@@ -6,9 +6,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-// MERDPOS / POS LATEST - API Timesheet v2 + POS-style staff dashboard
+// MERDPOS / POS LATEST - API Timesheet v2 + POS-style staff dashboard v5 v4
 // Setup -> Store selection -> Device activation -> Numeric login -> Main Menu
-// Main Menu supports primary user + one secondary visible user.
+// Main Menu supports persistent primary login + one temporary secondary user.
+// Dashboard UI follows the older POS app pattern: dark left rail, user session button, and clean workspace.
 const String kApiBaseUrl = 'https://app.merdpos.com/api';
 const String kGetStoresUrl = '$kApiBaseUrl/get_stores.php';
 const String kActivateDeviceUrl = '$kApiBaseUrl/activate_device.php';
@@ -384,7 +385,18 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final List<Employee> employees = await EmployeeService.loadEmployees(widget.session);
+      if (!mounted) return;
       setState(() => _employees = employees);
+
+      final int? savedPrimaryId = await PrimaryLoginStore.loadPrimaryEmployeeId();
+      if (savedPrimaryId != null && mounted) {
+        final Employee? savedPrimary = _findEmployeeById(employees, savedPrimaryId);
+        if (savedPrimary != null) {
+          _openHome(savedPrimary);
+          return;
+        }
+        await PrimaryLoginStore.clear();
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -392,7 +404,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _login() {
+  Future<void> _login() async {
     final String userId = _userIdController.text.trim();
     final String password = _passwordController.text.trim();
 
@@ -402,6 +414,12 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    await PrimaryLoginStore.save(employee);
+    if (!mounted) return;
+    _openHome(employee);
+  }
+
+  void _openHome(Employee employee) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => HomePage(
@@ -494,10 +512,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Employee _primaryEmployee;
   Employee? _secondaryEmployee;
   bool _syncing = false;
   String? _message;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _primaryEmployee = widget.primaryEmployee;
+  }
 
   void _showInfo(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -559,7 +584,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _logoutPrimary() {
+  Future<void> _logoutPrimary() async {
+    final Employee? secondary = _secondaryEmployee;
+
+    if (secondary != null) {
+      await PrimaryLoginStore.save(secondary);
+      if (!mounted) return;
+      setState(() {
+        _primaryEmployee = secondary;
+        _secondaryEmployee = null;
+        _message = '${secondary.fullName} is now the active user.';
+        _error = null;
+      });
+      return;
+    }
+
+    await PrimaryLoginStore.clear();
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => LoginPage(session: widget.session, onResetSetup: () async {}),
@@ -577,7 +618,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) => SecondaryLoginDialog(
         employees: widget.employees,
-        primaryEmployee: widget.primaryEmployee,
+        primaryEmployee: _primaryEmployee,
       ),
     );
 
@@ -585,144 +626,97 @@ class _HomePageState extends State<HomePage> {
     setState(() => _secondaryEmployee = employee);
   }
 
-  List<Widget> _dashboardTiles() {
-    final bool secondaryActive = _secondaryEmployee != null;
-    return <Widget>[
-      DashboardTile(
-        title: 'Add User',
-        subtitle: secondaryActive ? 'Maximum 2 users active' : 'Add temporary second user',
-        icon: Icons.person_add_alt_1,
-        color: secondaryActive ? Colors.grey : Colors.indigo,
-        onTap: secondaryActive
-            ? () => _showInfo('Maximum 2 users allowed at the same time.')
-            : _addSecondaryUser,
-      ),
-      DashboardTile(
-        title: 'User Guides',
-        subtitle: 'Help and staff guides',
-        icon: Icons.menu_book,
-        color: Colors.teal,
-        onTap: () => _showInfo('User Guides coming soon.'),
-      ),
-      DashboardTile(
-        title: 'Who Is Working',
-        subtitle: 'Current staff view',
-        icon: Icons.groups,
-        color: Colors.deepPurple,
-        onTap: () => _showInfo('Who Is Working coming soon.'),
-      ),
-      DashboardTile(
-        title: 'Financials',
-        subtitle: 'Store financial overview',
-        icon: Icons.attach_money,
-        color: Colors.green,
-        onTap: () => _showInfo('Financials coming soon.'),
-      ),
-      DashboardTile(
-        title: 'POS Coming Soon',
-        subtitle: 'Future POS module',
-        icon: Icons.point_of_sale,
-        color: Colors.orange,
-        onTap: () => _showInfo('POS Coming Soon.'),
-      ),
-      DashboardTile(
-        title: 'Tobacco Order',
-        subtitle: 'Order workflow',
-        icon: Icons.inventory_2,
-        color: Colors.brown,
-        onTap: () => _showInfo('Tobacco Order coming soon.'),
-      ),
-      DashboardTile(
-        title: 'Inventory Report',
-        subtitle: 'Stock and variance',
-        icon: Icons.assessment,
-        color: Colors.blueGrey,
-        onTap: () => _showInfo('Inventory Report coming soon.'),
-      ),
-      DashboardTile(
-        title: 'API Timesheet v2',
-        subtitle: 'Open primary user timesheet',
-        icon: Icons.table_chart,
-        color: Colors.blue,
-        onTap: () => _openTimesheet(widget.primaryEmployee),
-      ),
-      DashboardTile(
-        title: 'Punch IN',
-        subtitle: 'Primary user only',
-        icon: Icons.login,
-        color: Colors.lightGreen,
-        onTap: _syncing ? null : () => _punch(widget.primaryEmployee, 'IN'),
-      ),
-      DashboardTile(
-        title: 'Punch OUT',
-        subtitle: 'Primary user only',
-        icon: Icons.logout,
-        color: Colors.redAccent,
-        onTap: _syncing ? null : () => _punch(widget.primaryEmployee, 'OUT'),
-      ),
-    ];
+  void _logOffSecondary() {
+    setState(() => _secondaryEmployee = null);
   }
 
   @override
   Widget build(BuildContext context) {
-    final Employee primary = widget.primaryEmployee;
+    final Employee primary = _primaryEmployee;
     final Employee? secondary = _secondaryEmployee;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.session.storeName} - Main Menu'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(14),
+      body: Row(
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                UserBadge(
-                  labelPrefix: 'Primary',
-                  employee: primary,
-                  onTimesheet: () => _openTimesheet(primary),
-                  onChangePassword: () => _showInfo('Change Password coming soon.'),
-                  onLogOff: _logoutPrimary,
-                ),
-                if (secondary != null)
-                  UserBadge.secondary(
-                    employee: secondary,
-                    onTimesheet: () => _openTimesheet(secondary),
-                    onRemove: () => setState(() => _secondaryEmployee = null),
-                  ),
-              ],
-            ),
+          _PosSideRail(
+            primary: primary,
+            secondary: secondary,
+            onPrimaryTimesheet: () => _openTimesheet(primary),
+            onPrimaryChangePassword: () => _showInfo('Change Password coming soon.'),
+            onPrimaryLogOff: _logoutPrimary,
+            onAddUser: _addSecondaryUser,
+            onSecondaryLogOff: _logOffSecondary,
+            onPos: () => _showInfo('POS module coming soon.'),
+            onFinancials: () => _showInfo('Financials coming soon.'),
+            onInventory: () => _showInfo('Inventory coming soon.'),
+            onSync: _syncing ? null : () => _punch(primary, 'IN'),
+            onSettings: () => _showInfo('Settings coming soon.'),
           ),
-          const SizedBox(height: 12),
-          if (_syncing) const LinearProgressIndicator(),
-          if (_message != null) ...[
-            const SizedBox(height: 8),
-            _InfoCard(message: _message!),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            _ErrorCard(message: _error!),
-          ],
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final double width = constraints.maxWidth;
-              final int columns = width >= 900 ? 4 : width >= 620 ? 3 : 2;
-              final double tileWidth =
-                  (width - (12 * (columns - 1))) / columns;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _dashboardTiles()
-                    .map((Widget tile) => SizedBox(width: tileWidth, child: tile))
-                    .toList(),
-              );
-            },
+          Expanded(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.session.storeName,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF0D1B3E),
+                                    ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'API Timesheet v2',
+                                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                      color: const Color(0xFF1565C0),
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          _timeOnly(DateTime.now()).substring(0, 5),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    if (_syncing) const LinearProgressIndicator(),
+                    if (_message != null) ...[
+                      const SizedBox(height: 8),
+                      _InfoCard(message: _message!),
+                    ],
+                    if (_error != null) ...[
+                      const SizedBox(height: 8),
+                      _ErrorCard(message: _error!),
+                    ],
+                    const Spacer(),
+                    Center(
+                      child: Text(
+                        'Select a module from the sidebar.',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Colors.black45,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -827,26 +821,17 @@ class UserBadge extends StatelessWidget {
     required this.onTimesheet,
     required this.onChangePassword,
     required this.onLogOff,
-  })  : isSecondary = false,
-        onRemove = null;
-
-  const UserBadge.secondary({
-    super.key,
-    required this.employee,
-    required this.onTimesheet,
-    required this.onRemove,
-  })  : labelPrefix = 'Secondary',
-        isSecondary = true,
-        onChangePassword = null,
-        onLogOff = null;
+    this.onAddUser,
+    this.isSecondary = false,
+  });
 
   final String labelPrefix;
   final Employee employee;
   final bool isSecondary;
   final VoidCallback onTimesheet;
-  final VoidCallback? onChangePassword;
-  final VoidCallback? onLogOff;
-  final VoidCallback? onRemove;
+  final VoidCallback onChangePassword;
+  final VoidCallback onLogOff;
+  final VoidCallback? onAddUser;
 
   @override
   Widget build(BuildContext context) {
@@ -854,26 +839,12 @@ class UserBadge extends StatelessWidget {
       tooltip: employee.fullName,
       onSelected: (String value) {
         if (value == 'timesheet') onTimesheet();
-        if (value == 'password') onChangePassword?.call();
-        if (value == 'logout') onLogOff?.call();
-        if (value == 'remove') onRemove?.call();
+        if (value == 'password') onChangePassword();
+        if (value == 'logout') onLogOff();
+        if (value == 'add_user') onAddUser?.call();
       },
       itemBuilder: (BuildContext context) {
-        if (isSecondary) {
-          return <PopupMenuEntry<String>>[
-            PopupMenuItem<String>(
-              enabled: false,
-              child: Text('${employee.fullName} / ${employee.roleName}'),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem<String>(value: 'timesheet', child: Text('Time Sheet')),
-            const PopupMenuItem<String>(
-              value: 'remove',
-              child: Text('Remove Secondary User'),
-            ),
-          ];
-        }
-        return <PopupMenuEntry<String>>[
+        final List<PopupMenuEntry<String>> items = <PopupMenuEntry<String>>[
           PopupMenuItem<String>(
             enabled: false,
             child: Text('${employee.fullName} / ${employee.roleName}'),
@@ -881,27 +852,267 @@ class UserBadge extends StatelessWidget {
           const PopupMenuDivider(),
           const PopupMenuItem<String>(value: 'timesheet', child: Text('Time Sheet')),
           const PopupMenuItem<String>(value: 'password', child: Text('Change Password')),
-          const PopupMenuItem<String>(value: 'logout', child: Text('Log Off')),
+          PopupMenuItem<String>(
+            value: 'logout',
+            child: Text(isSecondary ? 'Log Off Secondary User' : 'Log Off'),
+          ),
         ];
+        if (!isSecondary && onAddUser != null) {
+          items.add(const PopupMenuDivider());
+          items.add(const PopupMenuItem<String>(value: 'add_user', child: Text('Add User')));
+        }
+        return items;
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSecondary ? const Color(0xFFE3F2FD) : const Color(0xFFE8EAF6),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(color: isSecondary ? Colors.blue : Colors.indigo),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(isSecondary ? Icons.person_outline : Icons.person, size: 18),
-            const SizedBox(width: 6),
+            CircleAvatar(
+              radius: 13,
+              backgroundColor: isSecondary ? Colors.blue : Colors.indigo,
+              child: Text(
+                employee.shortName.substring(0, 1).toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            const SizedBox(width: 7),
             Text(
               employee.shortName,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(width: 4),
             const Icon(Icons.arrow_drop_down, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PosSideRail extends StatelessWidget {
+  const _PosSideRail({
+    required this.primary,
+    required this.secondary,
+    required this.onPrimaryTimesheet,
+    required this.onPrimaryChangePassword,
+    required this.onPrimaryLogOff,
+    required this.onAddUser,
+    required this.onSecondaryLogOff,
+    required this.onPos,
+    required this.onFinancials,
+    required this.onInventory,
+    required this.onSync,
+    required this.onSettings,
+  });
+
+  final Employee primary;
+  final Employee? secondary;
+  final VoidCallback onPrimaryTimesheet;
+  final VoidCallback onPrimaryChangePassword;
+  final Future<void> Function() onPrimaryLogOff;
+  final Future<void> Function() onAddUser;
+  final VoidCallback onSecondaryLogOff;
+  final VoidCallback onPos;
+  final VoidCallback onFinancials;
+  final VoidCallback onInventory;
+  final VoidCallback? onSync;
+  final VoidCallback onSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasSecondary = secondary != null;
+    return Container(
+      width: 76,
+      color: const Color(0xFF06133A),
+      child: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            PopupMenuButton<String>(
+              tooltip: 'User menu',
+              onSelected: (String value) async {
+                if (value == 'timesheet') onPrimaryTimesheet();
+                if (value == 'password') onPrimaryChangePassword();
+                if (value == 'logout_primary') await onPrimaryLogOff();
+                if (value == 'add_user') await onAddUser();
+                if (value == 'logout_secondary') onSecondaryLogOff();
+              },
+              itemBuilder: (BuildContext context) {
+                if (hasSecondary) {
+                  return <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      child: Text('${primary.fullName} / ${primary.roleName}'),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'logout_primary',
+                      child: Text('${primary.shortName} Log off'),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      child: Text('${secondary!.fullName} / ${secondary!.roleName}'),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'logout_secondary',
+                      child: Text('${secondary!.shortName} Log off'),
+                    ),
+                  ];
+                }
+                return const <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(value: 'timesheet', child: Text('Time Sheet')),
+                  PopupMenuItem<String>(value: 'password', child: Text('Change Password')),
+                  PopupMenuItem<String>(value: 'logout_primary', child: Text('Log off')),
+                  PopupMenuDivider(),
+                  PopupMenuItem<String>(value: 'add_user', child: Text('Add User')),
+                ];
+              },
+              child: _UserSessionAvatar(primary: primary, secondary: secondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              hasSecondary ? '2 users' : primary.shortName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70, fontSize: 10),
+            ),
+            const SizedBox(height: 20),
+            _RailItem(
+              icon: Icons.point_of_sale,
+              label: 'POS',
+              selected: true,
+              onTap: onPos,
+            ),
+            _RailItem(
+              icon: Icons.attach_money,
+              label: 'Financials',
+              onTap: onFinancials,
+            ),
+            _RailItem(
+              icon: Icons.assessment,
+              label: 'Inventory',
+              onTap: onInventory,
+            ),
+            const Spacer(),
+            _RailItem(icon: Icons.cloud_sync, label: 'Sync', onTap: onSync),
+            _RailItem(icon: Icons.settings, label: 'Settings', onTap: onSettings),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserSessionAvatar extends StatelessWidget {
+  const _UserSessionAvatar({required this.primary, required this.secondary});
+
+  final Employee primary;
+  final Employee? secondary;
+
+  @override
+  Widget build(BuildContext context) {
+    final String p = primary.shortName.substring(0, 1).toUpperCase();
+    final String? s = secondary?.shortName.substring(0, 1).toUpperCase();
+    if (s == null) {
+      return CircleAvatar(
+        radius: 25,
+        backgroundColor: const Color(0xFFE91E63),
+        child: Text(
+          p,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+          ),
+        ),
+      );
+    }
+
+    return ClipOval(
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                color: const Color(0xFFE91E63),
+                alignment: Alignment.center,
+                child: Text(
+                  p,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: const Color(0xFF1565C0),
+                alignment: Alignment.center,
+                child: Text(
+                  s,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RailItem extends StatelessWidget {
+  const _RailItem({
+    required this.icon,
+    required this.label,
+    this.selected = false,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color fg = onTap == null ? Colors.white38 : Colors.white;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 62,
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF1565C0) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: fg, size: 20),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: onTap == null ? Colors.white38 : Colors.white70, fontSize: 9),
+            ),
           ],
         ),
       ),
@@ -929,48 +1140,50 @@ class DashboardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Ink(
-        height: 128,
+        height: 142,
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE3E7EF)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: color.withOpacity(0.16),
+                child: Icon(icon, color: color, size: 31),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF1F2937),
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
               ),
             ],
           ),
@@ -1094,6 +1307,33 @@ class _TimesheetPageState extends State<TimesheetPage> {
       ),
     );
   }
+}
+
+
+class PrimaryLoginStore {
+  static const String _keyPrimaryEmployeeId = 'primary_employee_id';
+
+  static Future<void> save(Employee employee) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyPrimaryEmployeeId, employee.id);
+  }
+
+  static Future<int?> loadPrimaryEmployeeId() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyPrimaryEmployeeId);
+  }
+
+  static Future<void> clear() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyPrimaryEmployeeId);
+  }
+}
+
+Employee? _findEmployeeById(List<Employee> employees, int id) {
+  for (final Employee employee in employees) {
+    if (employee.id == id) return employee;
+  }
+  return null;
 }
 
 class EmployeeService {
