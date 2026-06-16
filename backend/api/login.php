@@ -1,11 +1,10 @@
 <?php
 /**
- * MerdPOS change_password.php
- * Version: hashed-password-change-v2
+ * MerdPOS login.php
+ * Version: hashed-login-v1
  *
- * Verifies the current numeric PIN/password on the backend and stores the new
- * value using password_hash() in both login_password and pin_code for legacy
- * compatibility.
+ * Backend numeric USER_ID + PIN/password verification.
+ * Supports transparent migration from plaintext login_password / pin_code to password_hash().
  */
 
 require_once "config.php";
@@ -20,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-const API_VERSION = 'hashed-password-change-v2';
+const API_VERSION = 'hashed-login-v1';
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
@@ -30,19 +29,19 @@ function respond_json($payload, $status = 200) {
     exit;
 }
 
-function fail_json($message = 'Password change failed.', $status = 400, $extra = []) {
+function fail_json($message = 'Invalid login.', $status = 400, $extra = []) {
     respond_json(array_merge([
         'success' => false,
-        'api' => 'change_password.php',
+        'api' => 'login.php',
         'version' => API_VERSION,
         'error' => $message,
     ], $extra), $status);
 }
 
-function require_numeric_string($value, $message, $minLen = 1) {
+function require_numeric_string($value, $field, $minLen = 1) {
     $value = trim((string)$value);
     if ($value === '' || !preg_match('/^\d+$/', $value) || strlen($value) < $minLen) {
-        fail_json($message, 400);
+        fail_json('Invalid login.', 400);
     }
     return $value;
 }
@@ -66,6 +65,11 @@ function stored_secret_matches($stored, $entered) {
 function employee_secret_matches($employee, $entered) {
     return stored_secret_matches($employee['login_password'] ?? '', $entered)
         || stored_secret_matches($employee['pin_code'] ?? '', $entered);
+}
+
+function employee_needs_hash_upgrade($employee) {
+    return !is_password_hash_value((string)($employee['login_password'] ?? ''))
+        || !is_password_hash_value((string)($employee['pin_code'] ?? ''));
 }
 
 function auth_attempt_table_exists($pdo) {
@@ -128,59 +132,67 @@ try {
 
     $data = json_decode(file_get_contents('php://input'), true);
     if (!is_array($data)) {
-        fail_json('Invalid JSON body.', 400);
+        fail_json('Invalid login.', 400);
     }
 
     $clientId = filter_var($data['client_id'] ?? null, FILTER_VALIDATE_INT);
     $storeId = filter_var($data['store_id'] ?? null, FILTER_VALIDATE_INT);
     $deviceUuid = trim((string)($data['device_uuid'] ?? ''));
     $activationToken = trim((string)($data['activation_token'] ?? ''));
-    $employeeId = filter_var($data['employee_id'] ?? null, FILTER_VALIDATE_INT);
-    $oldPassword = require_numeric_string($data['old_password'] ?? '', 'Current password is incorrect.', 1);
-    $newPassword = require_numeric_string($data['new_password'] ?? '', 'New password must be numeric and at least 4 digits.', 4);
+    $userId = require_numeric_string($data['user_id'] ?? '', 'user_id');
+    $password = require_numeric_string($data['password'] ?? '', 'password', 4);
 
-    if (!$clientId || !$storeId || !$employeeId || $deviceUuid === '' || $activationToken === '') {
-        fail_json('Missing required fields.', 400);
+    if (!$clientId || !$storeId || $deviceUuid === '' || $activationToken === '') {
+        fail_json('Invalid login.', 400);
     }
 
     $stmt = $pdo->prepare("\n        SELECT id\n        FROM devices\n        WHERE client_id = ?\n          AND store_id = ?\n          AND device_uuid = ?\n          AND activation_token = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
     $stmt->execute([$clientId, $storeId, $deviceUuid, $activationToken]);
     if (!$stmt->fetch()) {
-        fail_json('Device not authorized.', 401);
+        fail_json('Invalid login.', 401);
     }
 
-    $stmt = $pdo->prepare("\n        SELECT id, full_name, user_id, login_password, pin_code\n        FROM employees\n        WHERE client_id = ?\n          AND id = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
-    $stmt->execute([$clientId, $employeeId]);
+    reject_if_locked($pdo, $clientId, $storeId, $userId, $deviceUuid, 'login');
+
+    $stmt = $pdo->prepare("\n        SELECT\n            id, client_id, store_id, full_name, user_id, login_password, pin_code,\n            employee_type, role_name, hourly_rate, status\n        FROM employees\n        WHERE client_id = ?\n          AND user_id = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
+    $stmt->execute([$clientId, $userId]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$employee) {
-        fail_json('Password change failed.', 404);
+    if (!$employee || !employee_secret_matches($employee, $password)) {
+        record_failed_attempt($pdo, $clientId, $storeId, $employee['id'] ?? null, $userId, $deviceUuid, 'login');
+        fail_json('Invalid login.', 401);
     }
 
-    $userId = (string)($employee['user_id'] ?? $employeeId);
-    reject_if_locked($pdo, $clientId, $storeId, $userId, $deviceUuid, 'change_password');
+    $employeeId = (int)$employee['id'];
+    $passwordUpgraded = false;
 
-    if (!employee_secret_matches($employee, $oldPassword)) {
-        record_failed_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, 'change_password');
-        fail_json('Current password is incorrect.', 403);
+    if (employee_needs_hash_upgrade($employee)) {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("\n            UPDATE employees\n            SET login_password = ?, pin_code = ?\n            WHERE client_id = ?\n              AND id = ?\n            LIMIT 1\n        ");
+        $stmt->execute([$hash, $hash, $clientId, $employeeId]);
+        $passwordUpgraded = true;
     }
 
-    $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-
-    $stmt = $pdo->prepare("\n        UPDATE employees\n        SET login_password = ?, pin_code = ?\n        WHERE client_id = ?\n          AND id = ?\n        LIMIT 1\n    ");
-    $stmt->execute([$hash, $hash, $clientId, $employeeId]);
-
-    record_success_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, 'change_password');
+    record_success_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, 'login');
 
     respond_json([
         'success' => true,
-        'api' => 'change_password.php',
+        'api' => 'login.php',
         'version' => API_VERSION,
         'password_storage' => 'password_hash',
-        'message' => 'Password changed successfully.',
-        'employee_id' => (string)$employeeId,
-        'employee_name' => $employee['full_name'] ?? '',
+        'password_upgraded' => $passwordUpgraded,
+        'employee' => [
+            'id' => $employeeId,
+            'client_id' => (int)$employee['client_id'],
+            'store_id' => isset($employee['store_id']) ? (int)$employee['store_id'] : null,
+            'full_name' => $employee['full_name'] ?? 'Employee',
+            'user_id' => (string)$employee['user_id'],
+            'employee_type' => $employee['employee_type'] ?? null,
+            'role_name' => $employee['role_name'] ?? ($employee['employee_type'] ?? 'Staff'),
+            'hourly_rate' => $employee['hourly_rate'] ?? '',
+            'status' => $employee['status'] ?? 'active',
+        ],
     ]);
 } catch (Throwable $e) {
-    fail_json('Password change failed.', 500);
+    fail_json('Login failed.', 500);
 }

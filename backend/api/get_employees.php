@@ -1,11 +1,11 @@
 <?php
 /**
  * MerdPOS get_employees.php
- * Version: client-wide-employees-v2
+ * Version: client-wide-employees-v3-no-passwords
  *
  * Device is still authorised against the selected store/device token.
- * After device auth passes, employee login list is loaded client-wide so staff
- * can log in from any store device and still see their own cross-store timesheet.
+ * After device auth passes, employee list is loaded client-wide.
+ * Password/PIN columns are intentionally NOT returned to the app.
  */
 
 require_once "config.php";
@@ -19,84 +19,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$client_id = $_GET["client_id"] ?? null;
-$store_id = $_GET["store_id"] ?? null;
-$activation_token = $_GET["activation_token"] ?? "";
+const API_VERSION = 'client-wide-employees-v3-no-passwords';
 
-if (!$client_id || !$store_id || !$activation_token) {
-    http_response_code(400);
-    echo json_encode([
-        "success" => false,
-        "api" => "get_employees.php",
-        "version" => "client-wide-employees-v2",
-        "error" => "Missing required fields"
-    ]);
+function respond_json($payload, $status = 200) {
+    http_response_code($status);
+    echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
+function fail_json($message, $status = 400) {
+    respond_json([
+        'success' => false,
+        'api' => 'get_employees.php',
+        'version' => API_VERSION,
+        'error' => $message,
+    ], $status);
+}
+
+$client_id = filter_var($_GET['client_id'] ?? null, FILTER_VALIDATE_INT);
+$store_id = filter_var($_GET['store_id'] ?? null, FILTER_VALIDATE_INT);
+$activation_token = trim((string)($_GET['activation_token'] ?? ''));
+
+if (!$client_id || !$store_id || $activation_token === '') {
+    fail_json('Missing required fields.', 400);
+}
+
 try {
-    // Keep device/store authorisation strict.
-    $stmt = $pdo->prepare("
-        SELECT id
-        FROM devices
-        WHERE client_id = ?
-        AND store_id = ?
-        AND activation_token = ?
-        AND status = 'active'
-        LIMIT 1
-    ");
+    $stmt = $pdo->prepare("\n        SELECT id\n        FROM devices\n        WHERE client_id = ?\n          AND store_id = ?\n          AND activation_token = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
     $stmt->execute([$client_id, $store_id, $activation_token]);
 
     if (!$stmt->fetch()) {
-        http_response_code(401);
-        echo json_encode([
-            "success" => false,
-            "api" => "get_employees.php",
-            "version" => "client-wide-employees-v2",
-            "error" => "Device not authorized"
-        ]);
-        exit;
+        fail_json('Device not authorized.', 401);
     }
 
-    // Important change: client-wide employees, not selected-store-only employees.
-    // Payroll/timesheet logs are store-aware separately in employee_logs.
-    $stmt = $pdo->prepare("
-        SELECT
-            id,
-            client_id,
-            store_id,
-            full_name,
-            user_id,
-            login_password,
-            employee_type,
-            pin_code,
-            role_name,
-            hourly_rate,
-            status
-        FROM employees
-        WHERE client_id = ?
-        AND status = 'active'
-        ORDER BY full_name
-    ");
+    $stmt = $pdo->prepare("\n        SELECT\n            id,\n            client_id,\n            store_id,\n            full_name,\n            user_id,\n            employee_type,\n            role_name,\n            hourly_rate,\n            status\n        FROM employees\n        WHERE client_id = ?\n          AND status = 'active'\n        ORDER BY full_name\n    ");
     $stmt->execute([$client_id]);
 
-    echo json_encode([
-        "success" => true,
-        "api" => "get_employees.php",
-        "version" => "client-wide-employees-v2",
-        "scope" => [
-            "client_id" => (int)$client_id,
-            "authorized_device_store_id" => (int)$store_id,
-            "employee_store_filter" => null
+    respond_json([
+        'success' => true,
+        'api' => 'get_employees.php',
+        'version' => API_VERSION,
+        'scope' => [
+            'client_id' => (int)$client_id,
+            'authorized_device_store_id' => (int)$store_id,
+            'employee_store_filter' => null,
         ],
-        "employees" => $stmt->fetchAll(PDO::FETCH_ASSOC)
+        'employees' => $stmt->fetchAll(PDO::FETCH_ASSOC),
     ]);
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "api" => "get_employees.php",
-        "version" => "client-wide-employees-v2",
-        "error" => $e->getMessage()
-    ]);
+    fail_json('Could not load employees.', 500);
 }
