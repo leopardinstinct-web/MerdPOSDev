@@ -15,3 +15,12 @@ Thumbs.db
 
 # Secrets / local config backups
 *.env
+
+# Deployment-only version marker
+backend/api/.deployed_version
+
+# Local database credentials
+backend/api/config.php
+
+# Local PHP configuration overrides
+*.local.php
