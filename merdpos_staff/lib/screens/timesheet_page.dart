@@ -1,7 +1,18 @@
 part of merdpos_staff;
 
 class TimesheetPage extends StatefulWidget {
-  const TimesheetPage({super.key, required this.session, required this.employee, required this.primary, required this.secondary, required this.onPrimaryChangePassword, required this.onPrimaryLogOff, required this.onAddUser, required this.onSecondaryLogOff});
+  const TimesheetPage({
+    super.key,
+    required this.session,
+    required this.employee,
+    required this.primary,
+    required this.secondary,
+    required this.onPrimaryChangePassword,
+    required this.onPrimaryLogOff,
+    required this.onAddUser,
+    required this.onSecondaryLogOff,
+  });
+
   final AppSession session;
   final Employee employee;
   final Employee primary;
@@ -29,24 +40,37 @@ class _TimesheetPageState extends State<TimesheetPage> {
   }
 
   DateTime get _weekEnd => _weekStart.add(const Duration(days: 6));
-  double get _totalHours => _rows.fold(0.0, (double sum, TimesheetRow row) => sum + row.totalHoursValue);
-  double get _totalWage => _rows.fold(0.0, (double sum, TimesheetRow row) => sum + row.wageValue);
+
+  double get _totalHours => _rows.fold(
+    0.0,
+    (double sum, TimesheetRow row) => sum + row.totalHoursValue,
+  );
+
+  double get _totalWage =>
+      _rows.fold(0.0, (double sum, TimesheetRow row) => sum + row.wageValue);
 
   Future<void> _load() async {
     setState(() {
       _loading = true;
       _error = null;
     });
+
     try {
-      final Uri uri = Uri.parse(kTimesheetApiUrl).replace(queryParameters: {
-        'client_id': widget.session.clientId.toString(),
-        'employee_id': widget.employee.id.toString(),
-        'week_start': _dateOnly(_weekStart),
-        'week_end': _dateOnly(_weekEnd),
-        'activation_token': widget.session.activationToken,
-      });
+      final Uri uri = Uri.parse(kTimesheetApiUrl).replace(
+        queryParameters: <String, String>{
+          'client_id': widget.session.clientId.toString(),
+          'employee_id': widget.employee.id.toString(),
+          'week_start': _dateOnly(_weekStart),
+          'week_end': _dateOnly(_weekEnd),
+          'activation_token': widget.session.activationToken,
+        },
+      );
+
       final Map<String, dynamic> payload = await Api.getJson(uri);
-      if (payload['success'] != true) throw Exception(payload['error']?.toString() ?? 'Timesheet failed.');
+      if (payload['success'] != true) {
+        throw Exception(payload['error']?.toString() ?? 'Timesheet failed.');
+      }
+
       final List<TimesheetRow> rows = TimesheetParser.parse(payload);
       if (!mounted) return;
       setState(() => _rows = rows);
@@ -62,23 +86,42 @@ class _TimesheetPageState extends State<TimesheetPage> {
     unawaited(_load());
   }
 
+  Future<void> _pickWeek() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _weekStart,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 366)),
+      helpText: 'Select any day in the week',
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _weekStart = startOfWeek(picked));
+    await _load();
+  }
+
+  void _returnToHome() {
+    if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Row(
-        children: [
+        children: <Widget>[
           _PosSideRail(
             primary: widget.primary,
             secondary: widget.secondary,
+            selected: AppModule.home,
             onPrimaryTimesheet: () {},
             onPrimaryChangePassword: widget.onPrimaryChangePassword,
             onPrimaryLogOff: widget.onPrimaryLogOff,
             onAddUser: widget.onAddUser,
             onSecondaryLogOff: widget.onSecondaryLogOff,
-            onWhoIsWorking: () => Navigator.of(context).pop(),
-            onPos: () => Navigator.of(context).pop(),
-            onFinancials: () => _snack(context, 'Financials coming soon.'),
-            onInventory: () => _snack(context, 'Inventory coming soon.'),
+            onHome: _returnToHome,
+            onPos: _returnToHome,
+            onOrders: _returnToHome,
+            onFinancials: _returnToHome,
+            onInventory: _returnToHome,
             onSync: null,
             onSettings: () => _snack(context, 'Settings coming soon.'),
           ),
@@ -88,7 +131,7 @@ class _TimesheetPageState extends State<TimesheetPage> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                  children: <Widget>[
                     _TimesheetTopBar(
                       storeName: widget.session.storeName,
                       employee: widget.employee,
@@ -101,12 +144,24 @@ class _TimesheetPageState extends State<TimesheetPage> {
                       onPrevious: _loading ? null : () => _moveWeek(-7),
                       onNext: _loading ? null : () => _moveWeek(7),
                       onRefresh: _loading ? null : _load,
+                      onPickWeek: _loading ? null : _pickWeek,
                     ),
                     const SizedBox(height: 16),
                     if (_loading) const LinearProgressIndicator(minHeight: 2),
-                    if (_error != null) ...[const SizedBox(height: 12), _MessageCard(message: _error!, type: MessageType.error)],
+                    if (_error != null) ...<Widget>[
+                      const SizedBox(height: 12),
+                      _MessageCard(message: _error!, type: MessageType.error),
+                    ],
                     const SizedBox(height: 12),
-                    Expanded(child: _rows.isEmpty && !_loading ? _EmptyTimesheetCard(employeeName: widget.employee.fullName, weekStart: _weekStart, weekEnd: _weekEnd) : TimesheetTable(rows: _rows)),
+                    Expanded(
+                      child: _rows.isEmpty && !_loading
+                          ? _EmptyTimesheetCard(
+                              employeeName: widget.employee.fullName,
+                              weekStart: _weekStart,
+                              weekEnd: _weekEnd,
+                            )
+                          : TimesheetTable(rows: _rows),
+                    ),
                   ],
                 ),
               ),

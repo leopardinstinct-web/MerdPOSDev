@@ -1,0 +1,96 @@
+CREATE TABLE IF NOT EXISTS retail_categories (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  name VARCHAR(120) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_category_name (client_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS retail_products (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  category_id BIGINT UNSIGNED NULL,
+  sku VARCHAR(80) NULL,
+  barcode VARCHAR(191) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  cost_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+  sell_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+  tax_rate DECIMAL(6,3) NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_product_barcode (client_id, barcode),
+  KEY idx_product_category (category_id),
+  CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES retail_categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS retail_store_inventory (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  store_id INT NOT NULL,
+  product_id BIGINT UNSIGNED NOT NULL,
+  quantity DECIMAL(12,3) NOT NULL DEFAULT 0,
+  reorder_level DECIMAL(12,3) NOT NULL DEFAULT 0,
+  store_price DECIMAL(12,2) NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_store_product (client_id, store_id, product_id),
+  CONSTRAINT fk_inventory_product FOREIGN KEY (product_id) REFERENCES retail_products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS retail_suppliers (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  name VARCHAR(190) NOT NULL,
+  contact_name VARCHAR(190) NULL,
+  phone VARCHAR(60) NULL,
+  email VARCHAR(190) NULL,
+  address TEXT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_supplier_name (client_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS retail_purchase_orders (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  store_id INT NOT NULL,
+  supplier_id BIGINT UNSIGNED NULL,
+  po_number VARCHAR(64) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'draft',
+  notes TEXT NULL,
+  ordered_at DATETIME NULL,
+  received_at DATETIME NULL,
+  created_by INT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_po_number (client_id, po_number),
+  CONSTRAINT fk_po_supplier FOREIGN KEY (supplier_id) REFERENCES retail_suppliers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS retail_purchase_order_lines (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  purchase_order_id BIGINT UNSIGNED NOT NULL,
+  product_id BIGINT UNSIGNED NOT NULL,
+  quantity_ordered DECIMAL(12,3) NOT NULL DEFAULT 0,
+  quantity_received DECIMAL(12,3) NOT NULL DEFAULT 0,
+  unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+  CONSTRAINT fk_po_line_header FOREIGN KEY (purchase_order_id) REFERENCES retail_purchase_orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_po_line_product FOREIGN KEY (product_id) REFERENCES retail_products(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  employee_id INT NOT NULL,
+  action VARCHAR(80) NOT NULL,
+  entity_type VARCHAR(80) NOT NULL,
+  entity_id VARCHAR(80) NULL,
+  details TEXT NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_audit_client_date (client_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

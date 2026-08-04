@@ -3,24 +3,34 @@ library merdpos_staff;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 part 'theme.dart';
 part 'models/app_session.dart';
 part 'models/employee.dart';
 part 'models/timesheet_row.dart';
+part 'models/retail_product.dart';
+part 'models/retail_sale.dart';
 part 'services/api.dart';
 part 'services/auth_service.dart';
 part 'services/employee_service.dart';
 part 'services/primary_login_store.dart';
 part 'services/timesheet_parser.dart';
+part 'services/retail_db.dart';
 part 'screens/setup_page.dart';
 part 'screens/login_page.dart';
 part 'screens/home_page.dart';
 part 'screens/timesheet_page.dart';
+part 'screens/pos_page.dart';
+part 'screens/orders_page.dart';
+part 'screens/inventory_page.dart';
+part 'screens/financials_page.dart';
 part 'dialogs/change_password_dialog.dart';
 part 'dialogs/secondary_login_dialog.dart';
 part 'widgets/pos_side_rail.dart';
@@ -28,11 +38,7 @@ part 'widgets/timesheet_table.dart';
 part 'widgets/common_widgets.dart';
 part 'utils/helpers.dart';
 
-// MERDPOS / POS LATEST - v16 modular hashed-login Blue Ice
-// GitHub current app upgraded into modules for easier future changes.
-// Backend login is verified by backend/api/login.php so password_hash() works.
-// get_employees.php must NOT return login_password or pin_code.
-// UI follows the Blue Ice design tokens from DESIGN_TOKENS.md.
+const String kAppVersion = '1.1.0-retail-v1';
 const String kApiBaseUrl = 'https://app.merdpos.com/api';
 const String kGetStoresUrl = '$kApiBaseUrl/get_stores.php';
 const String kActivateDeviceUrl = '$kApiBaseUrl/activate_device.php';
@@ -41,8 +47,10 @@ const String kLoginUrl = '$kApiBaseUrl/login.php';
 const String kSyncEmployeeLogsUrl = '$kApiBaseUrl/sync_employee_logs.php';
 const String kChangePasswordUrl = '$kApiBaseUrl/change_password.php';
 const String kTimesheetApiUrl = '$kApiBaseUrl/get_timesheet.php';
+const String kRetailSyncUrl = '$kApiBaseUrl/sync_retail.php';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MerdPosStaffApp());
 }
 
@@ -78,6 +86,9 @@ class _AppBootstrapState extends State<AppBootstrap> {
   }
 
   Future<void> _load() async {
+    if (!kIsWeb) {
+      await RetailDb.database;
+    }
     final AppSession? session = await AppSession.load();
     if (!mounted) return;
     setState(() {
@@ -99,7 +110,8 @@ class _AppBootstrapState extends State<AppBootstrap> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_session == null) return SetupPage(onConfigured: _onConfigured);
     return LoginPage(session: _session!, onResetSetup: _clearSetup);
   }

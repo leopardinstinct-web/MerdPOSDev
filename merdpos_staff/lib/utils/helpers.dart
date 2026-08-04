@@ -1,6 +1,11 @@
 part of merdpos_staff;
 
-BoxDecoration _panelDecoration({double radius = 10}) => BoxDecoration(color: BlueIce.surface, borderRadius: BorderRadius.circular(radius), border: Border.all(color: BlueIce.border), boxShadow: const [BoxShadow(color: Color(0x73000000), blurRadius: 8, offset: Offset(0, 2))]);
+BoxDecoration _panelDecoration({double radius = 10}) => BoxDecoration(
+      color: BlueIce.surface,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: BlueIce.border),
+      boxShadow: const [BoxShadow(color: Color(0x14101828), blurRadius: 18, offset: Offset(0, 8))],
+    );
 
 Widget _busyIcon(bool busy, IconData icon) => busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(icon);
 
