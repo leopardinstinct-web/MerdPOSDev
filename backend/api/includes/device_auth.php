@@ -302,7 +302,7 @@ final class MerdPdoDeviceStore implements MerdDeviceStore
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT id, client_id, store_id, device_uuid, status, revoked_at, '
+                'SELECT id, client_id, store_id, device_uuid, status, revoked_at, last_sync, '
                 . 'token_hash, token_expires_at, previous_token_hash, previous_token_valid_until '
                 . 'FROM devices WHERE client_id = ? AND store_id = ? AND device_uuid = ? LIMIT 1'
             );
@@ -353,5 +353,56 @@ function merd_device_auth_timestamp(mixed $value): int|false
         return (new DateTimeImmutable($value, new DateTimeZone('UTC')))->getTimestamp();
     } catch (Throwable $e) {
         return false;
+    }
+}
+
+function merd_device_authenticate_request(
+    PDO $pdo,
+    array $server,
+    array $body = [],
+    array $query = []
+): array {
+    $input = $body !== [] ? $body : $query;
+    $clientId = merd_request_positive_int($input['client_id'] ?? null, 'client_id');
+    $storeId = merd_request_positive_int($input['store_id'] ?? null, 'store_id');
+    $deviceUuid = merd_request_text($input['device_uuid'] ?? null, 'device_uuid', 150);
+    $credential = merd_device_auth_extract_token($server, $body, $query);
+    $device = merd_device_authorize(
+        new MerdPdoDeviceStore($pdo),
+        $clientId,
+        $storeId,
+        $deviceUuid,
+        $credential['token']
+    );
+    if ($device === null) {
+        throw new MerdRequestException('device_unauthorized', 401, 'Device authorization failed.');
+    }
+    return [
+        'client_id' => $clientId,
+        'store_id' => $storeId,
+        'device_uuid' => $deviceUuid,
+        'device' => $device,
+        'transport' => $credential['transport'],
+    ];
+}
+
+function merd_device_touch_last_sync(PDO $pdo, array $context): void
+{
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE devices SET last_sync = UTC_TIMESTAMP() '
+            . 'WHERE id = ? AND client_id = ? AND store_id = ? AND device_uuid = ?'
+        );
+        $stmt->execute([
+            $context['device']['id'],
+            $context['client_id'],
+            $context['store_id'],
+            $context['device_uuid'],
+        ]);
+        if ($stmt->rowCount() > 1) {
+            throw new RuntimeException('Unexpected device update count.');
+        }
+    } catch (Throwable $e) {
+        throw new MerdSecurityControlUnavailable('Device sync update unavailable.', 0, $e);
     }
 }

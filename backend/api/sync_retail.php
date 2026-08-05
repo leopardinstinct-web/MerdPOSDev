@@ -1,5 +1,9 @@
 <?php
-require_once 'config.php';
+declare(strict_types=1);
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/api_response.php';
+require_once __DIR__ . '/includes/request.php';
+require_once __DIR__ . '/includes/device_auth.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -15,26 +19,35 @@ function positive_int(mixed $value): ?int {
     return ($v !== false && $v > 0) ? (int)$v : null;
 }
 function clean_text(mixed $value, int $max): string {
+    if (!is_scalar($value) && $value !== null) throw new MerdRequestException('invalid_request',400,'Invalid request.');
     return mb_substr(trim((string)$value), 0, $max);
+}
+function decimal_value(mixed $value): float {
+    if ((!is_int($value) && !is_float($value) && !is_string($value)) || !is_numeric($value)) {
+        throw new MerdRequestException('invalid_request',400,'Invalid request.');
+    }
+    $number = (float)$value;
+    if (!is_finite($number)) throw new MerdRequestException('invalid_request',400,'Invalid request.');
+    return $number;
+}
+function clean_timestamp(mixed $value): string {
+    $text = clean_text($value, 40);
+    if ($text === '') throw new MerdRequestException('invalid_request',400,'Invalid request.');
+    try { return (new DateTimeImmutable($text))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'); }
+    catch (Throwable $e) { throw new MerdRequestException('invalid_request',400,'Invalid request.'); }
 }
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') reply(['success'=>false,'error'=>'POST required.'],405);
-    $body = json_decode(file_get_contents('php://input'), true);
-    if (!is_array($body)) reply(['success'=>false,'error'=>'Invalid request.'],400);
+    merd_request_require_method($_SERVER, 'POST');
+    merd_request_require_json_content_type($_SERVER);
+    $body = merd_request_json(file_get_contents('php://input'));
+    $auth = merd_device_authenticate_request($pdo, $_SERVER, $body);
+    $clientId = $auth['client_id'];
+    $storeId = $auth['store_id'];
+    $deviceUuid = $auth['device_uuid'];
 
-    $clientId = positive_int($body['client_id'] ?? null);
-    $storeId = positive_int($body['store_id'] ?? null);
-    $deviceUuid = clean_text($body['device_uuid'] ?? '', 191);
-    $token = clean_text($body['activation_token'] ?? '', 255);
-    if (!$clientId || !$storeId || $deviceUuid === '' || $token === '') reply(['success'=>false,'error'=>'Invalid request.'],400);
-
-    $device = $pdo->prepare("SELECT id FROM devices WHERE client_id=? AND store_id=? AND device_uuid=? AND activation_token=? AND status='active' LIMIT 1");
-    $device->execute([$clientId,$storeId,$deviceUuid,$token]);
-    if (!$device->fetch(PDO::FETCH_ASSOC)) reply(['success'=>false,'error'=>'Unauthorized.'],401);
-
-    $sales = is_array($body['sales'] ?? null) ? $body['sales'] : [];
-    $movements = is_array($body['stock_movements'] ?? null) ? $body['stock_movements'] : [];
+    $sales = merd_request_list($body['sales'] ?? [], 1000);
+    $movements = merd_request_list($body['stock_movements'] ?? [], 2000);
     $pdo->beginTransaction();
 
     $saleInsert = $pdo->prepare("INSERT IGNORE INTO retail_sales
@@ -44,6 +57,8 @@ try {
     $lineInsert = $pdo->prepare("INSERT INTO retail_sale_lines
       (retail_sale_id,product_id,barcode,product_name,quantity,unit_price,unit_cost,line_total)
       VALUES (?,?,?,?,?,?,?,?)");
+    $employeeCheck = $pdo->prepare("SELECT id FROM employees WHERE id=? AND client_id=? AND status='active' LIMIT 1");
+    $productCheck = $pdo->prepare("SELECT id FROM retail_products WHERE id=? AND client_id=? AND status='active' LIMIT 1");
 
     $syncedSales = 0;
     foreach ($sales as $sale) {
@@ -51,18 +66,24 @@ try {
         $saleNumber = clean_text($sale['sale_number'] ?? '',64);
         $cashierId = positive_int($sale['cashier_id'] ?? null);
         if ($saleNumber === '' || !$cashierId) continue;
-        $soldAt = date('Y-m-d H:i:s', strtotime((string)($sale['created_at'] ?? 'now')) ?: time());
-        $saleInsert->execute([$clientId,$storeId,(int)($sale['id'] ?? 0),$saleNumber,$cashierId,clean_text($sale['cashier_name'] ?? '',190),
-          (float)($sale['subtotal'] ?? 0),(float)($sale['discount'] ?? 0),(float)($sale['tax'] ?? 0),(float)($sale['total'] ?? 0),
+        $employeeCheck->execute([$cashierId,$clientId]);
+        if (!$employeeCheck->fetchColumn()) throw new MerdRequestException('invalid_request',400,'Invalid request.');
+        $soldAt = clean_timestamp($sale['created_at'] ?? null);
+        $saleInsert->execute([$clientId,$storeId,merd_request_nonnegative_int($sale['id'] ?? 0),$saleNumber,$cashierId,clean_text($sale['cashier_name'] ?? '',190),
+          decimal_value($sale['subtotal'] ?? 0),decimal_value($sale['discount'] ?? 0),decimal_value($sale['tax'] ?? 0),decimal_value($sale['total'] ?? 0),
           clean_text($sale['payment_method'] ?? 'unknown',32),clean_text($sale['status'] ?? 'completed',32),$deviceUuid,$soldAt]);
         $saleFind->execute([$clientId,$storeId,$deviceUuid,$saleNumber]);
         $serverSaleId = (int)$saleFind->fetchColumn();
         if ($serverSaleId <= 0) continue;
         if ($saleInsert->rowCount() > 0) {
-            foreach (($sale['lines'] ?? []) as $line) {
+            foreach (merd_request_list($sale['lines'] ?? [], 500) as $line) {
                 if (!is_array($line)) continue;
-                $lineInsert->execute([$serverSaleId,(int)($line['product_id'] ?? 0),clean_text($line['barcode'] ?? '',191),clean_text($line['product_name'] ?? '',255),
-                  (float)($line['quantity'] ?? 0),(float)($line['unit_price'] ?? 0),(float)($line['unit_cost'] ?? 0),(float)($line['line_total'] ?? 0)]);
+                $lineProductId = positive_int($line['product_id'] ?? null);
+                if (!$lineProductId) throw new MerdRequestException('invalid_request',400,'Invalid request.');
+                $productCheck->execute([$lineProductId,$clientId]);
+                if (!$productCheck->fetchColumn()) throw new MerdRequestException('invalid_request',400,'Invalid request.');
+                $lineInsert->execute([$serverSaleId,$lineProductId,clean_text($line['barcode'] ?? '',191),clean_text($line['product_name'] ?? '',255),
+                  decimal_value($line['quantity'] ?? 0),decimal_value($line['unit_price'] ?? 0),decimal_value($line['unit_cost'] ?? 0),decimal_value($line['line_total'] ?? 0)]);
             }
         }
         $syncedSales++;
@@ -77,15 +98,24 @@ try {
         $ref = clean_text($move['reference'] ?? '',191);
         $productId = positive_int($move['product_id'] ?? null);
         if ($ref === '' || !$productId) continue;
-        $movedAt = date('Y-m-d H:i:s', strtotime((string)($move['created_at'] ?? 'now')) ?: time());
-        $moveInsert->execute([$clientId,$storeId,$productId,clean_text($move['movement_type'] ?? 'adjustment',40),(float)($move['quantity'] ?? 0),$ref,clean_text($move['note'] ?? '',255),$deviceUuid,$movedAt]);
+        $productCheck->execute([$productId,$clientId]);
+        if (!$productCheck->fetchColumn()) throw new MerdRequestException('invalid_request',400,'Invalid request.');
+        $movedAt = clean_timestamp($move['created_at'] ?? null);
+        $moveInsert->execute([$clientId,$storeId,$productId,clean_text($move['movement_type'] ?? 'adjustment',40),decimal_value($move['quantity'] ?? 0),$ref,clean_text($move['note'] ?? '',255),$deviceUuid,$movedAt]);
         $syncedMoves++;
     }
 
+    merd_device_touch_last_sync($pdo, $auth);
     $pdo->commit();
-    reply(['success'=>true,'api'=>'sync_retail.php','version'=>'retail-sync-v1','synced_sales'=>$syncedSales,'synced_movements'=>$syncedMoves]);
+    reply(['success'=>true,'api'=>'sync_retail.php','version'=>'retail-sync-v2-secure-device','synced_sales'=>$syncedSales,'synced_movements'=>$syncedMoves]);
+} catch (MerdRequestException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
+    merd_api_fail($e->errorCode, $e->getMessage(), $e->status);
+} catch (MerdSecurityControlUnavailable $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
+    merd_api_fail('security_control_unavailable', 'Service temporarily unavailable.', 503);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
-    error_log('sync_retail.php: '.$e->getMessage());
+    error_log('sync_retail request failed');
     reply(['success'=>false,'error'=>'Retail sync failed.'],500);
 }

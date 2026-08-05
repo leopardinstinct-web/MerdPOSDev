@@ -6,7 +6,7 @@ Repository: `leopardinstinct-web/MerdPOSDev`
 
 Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
 
-Current Level 3 branch: `milestone-2a2-activation-auth-endpoints`
+Current Level 3 branch: `milestone-2a3-endpoint-hardening`
 
 ## Authority
 
@@ -71,7 +71,8 @@ The checked-in Flutter setup flow remains legacy pending Milestone 2B. Backend
 2A.2 adds dedicated POST setup validation and requires its hashed, single-use
 ten-minute grant for activation. New device tokens are stored only as hashes,
 expire after 180 days, allow a seven-day previous-token overlap, revoke
-immediately, and bind client/store/UUID. Remaining backend endpoints await 2A.3.
+immediately, and bind client/store/UUID. Milestone 2A.3 applies the same shared
+authorization to the remaining non-Timesheet device endpoints.
 
 ### Retail v1
 
@@ -167,5 +168,5 @@ separate approval before database execution.
 1. Review and validate Milestone 2A.1 in GitHub Actions.
 2. Integrate the approved activation, device authorization, and lockout
    foundation into endpoints in Milestone 2A.2.
-3. Harden remaining non-Timesheet endpoints in Milestone 2A.3.
+3. Review Milestone 2A.3 endpoint hardening and keep migrations deployment-gated.
 4. Implement reliable bidirectional retail master-data synchronization.

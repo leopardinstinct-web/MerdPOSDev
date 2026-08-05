@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/includes/maintenance_guard.php';
+merd_maintenance_guard();
 require_once "config.php";
 
 $pdo->exec("

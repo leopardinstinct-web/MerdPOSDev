@@ -14,10 +14,9 @@ was called.
 
 ## Device token model
 
-Milestone 2A.2 integrates the 2A.1 security foundation into activation,
-login, and password change. Remaining non-Timesheet device endpoints retain
-legacy authorization until 2A.3, so this endpoint set must not be deployed
-before the approved migrations or as an isolated production subset.
+Milestones 2A.2 and 2A.3 integrate the shared security foundation across the
+non-Timesheet device endpoint set. Deployment remains blocked until the
+approved migrations are reconciled and separately authorized.
 
 The approved target contract uses a dedicated POST
 `request_activation_grant.php` for a hashed, single-use ten-minute grant. New
@@ -63,8 +62,9 @@ to issue grants.
 ### `get_employees.php`
 
 - Method: GET (OPTIONS supported).
-- Input: `client_id`, `store_id`, `activation_token`.
-- Auth: active device matching client/store/token; UUID is not required.
+- Input: `client_id`, `store_id`, `device_uuid`; bearer token preferred with
+  legacy transport accepted only by the shared helper.
+- Auth: hash, client/store/UUID, status, expiry, and revocation are enforced.
 - Output: `success`, version `client-wide-employees-v3-no-passwords`, and
   client-wide active employee records with no password/PIN fields.
 
@@ -112,15 +112,13 @@ to issue grants.
 
 ## Other current endpoints
 
-- `get_working_now.php` — device-authorized working-employee query.
-- `sync_employee_logs.php` — employee-log upload; no enforced HTTP method.
-- `sync_shifts.php` — shift upload; no enforced HTTP method.
-- `import_actual_employees.php` — import utility; authorization requires review.
-- `import_timesheet_logs.php` — import utility; authorization requires review.
-- `init_employee_logs.php` — schema utility; authorization/deployment review.
-- `init_db.php` — database initialization utility; do not run without approval.
-- `cors_test.php` — debug utility; not for public production deployment.
-- `test_activate.php` — debug activation utility; not for production.
+- `get_working_now.php` — secure device-authorized client-wide query.
+- `sync_employee_logs.php`, `sync_shifts.php`, `sync_retail.php` — POST JSON,
+  secure device authorization, tenant-scoped actor/data checks, transactional
+  writes, and tenant-bound device `last_sync` updates.
+- Import/init/test/debug utilities deny by default before loading configuration
+  through `maintenance_guard.php`; production deployment should still exclude
+  them.
 - `index.php` — API landing response.
 - `version_check.php` — reports deployment marker, time, PHP version, status.
 

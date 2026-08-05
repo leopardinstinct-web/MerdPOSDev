@@ -2,6 +2,17 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 2A.3 endpoint hardening
+
+- Applied shared hash/UUID/client/store/status/expiry/revocation authorization
+  to employee, working-now, employee-log, shift, and retail endpoints.
+- Enforced GET or POST-JSON methods, bounded request validation, tenant-scoped
+  employee/product checks, prepared statements, generic failures, and
+  transactionally tenant-bound `devices.last_sync` updates.
+- Added deny-first maintenance guards to import, init, test, and debug routes.
+- Added deterministic hardening regression tests. No migration, production,
+  Flutter, Timesheet/payroll logic, deployment, or portal change was made.
+
 ## 2026-08-05 — Milestone 2A.2 activation/authentication integration
 
 - Added POST-only setup validation with hashed, single-use ten-minute

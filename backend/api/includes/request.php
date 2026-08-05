@@ -76,6 +76,37 @@ function merd_request_numeric_string(mixed $value, int $minLength = 1, int $maxL
     return $text;
 }
 
+function merd_request_list(mixed $value, int $maxItems = 1000): array
+{
+    if (!is_array($value) || !array_is_list($value) || count($value) > $maxItems) {
+        throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
+    }
+    return $value;
+}
+
+function merd_request_nonnegative_int(mixed $value): int
+{
+    $validated = filter_var($value, FILTER_VALIDATE_INT);
+    if ($validated === false || (int)$validated < 0) {
+        throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
+    }
+    return (int)$validated;
+}
+
+function merd_request_datetime(mixed $value): ?string
+{
+    if ($value === null || $value === '') {
+        return null;
+    }
+    $text = merd_request_text($value, 'datetime', 32);
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $text, new DateTimeZone('UTC'));
+    $errors = DateTimeImmutable::getLastErrors();
+    if (!$date || (is_array($errors) && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+        throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
+    }
+    return $date->format('Y-m-d H:i:s');
+}
+
 function merd_request_authorization_header(array $server): ?string
 {
     $value = $server['HTTP_AUTHORIZATION'] ?? $server['REDIRECT_HTTP_AUTHORIZATION'] ?? null;

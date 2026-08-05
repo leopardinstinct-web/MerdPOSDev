@@ -37,7 +37,7 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
 3. **PHP checks**
    - Container or runner with pinned PHP 8.2 CLI and required extensions.
    - Lint every tracked PHP file except local secret config.
-   - Run the Milestone 2A.1/2A.2 deterministic security and endpoint-policy
+   - Run the Milestone 2A.1–2A.3 deterministic security and endpoint-policy
      harness with in-memory test doubles and no external network or database
      access.
    - Run unit/contract tests using fixtures and a disposable database container

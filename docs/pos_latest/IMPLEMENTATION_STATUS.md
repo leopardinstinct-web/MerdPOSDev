@@ -29,7 +29,7 @@ Status meanings:
 | Milestone 2A.1 security foundation | Complete | Migration drafts, shared helpers, isolated tests, review, and CI are complete; production execution remains separately controlled. |
 | Durable PIN lockout | Partial | Login/password integration and deterministic tests are complete; production use awaits migration approval. |
 | Secure app token storage | Missing | Token is stored in `SharedPreferences`. |
-| Token lifecycle policy | Partial | Activation/login/password endpoints enforce grants, hashed expiry-bound tokens, UUID binding, revocation and rotation; remaining endpoints await 2A.3. |
+| Token lifecycle policy | Partial | All non-Timesheet device endpoints enforce the shared token lifecycle; migration execution and Flutter secure storage remain pending. |
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
