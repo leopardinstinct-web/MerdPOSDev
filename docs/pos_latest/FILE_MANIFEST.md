@@ -24,6 +24,11 @@ Core guidance:
 
 ## Flutter application
 
+Milestone 2B adds `services/device_token_store.dart` and
+`test/secure_token_storage_test.dart`, updates setup/API/session persistence for
+bearer transport and verified legacy migration, and disables Android backup for
+device-bound token safety.
+
 Entry and shared configuration:
 
 - `merdpos_staff/lib/main.dart`

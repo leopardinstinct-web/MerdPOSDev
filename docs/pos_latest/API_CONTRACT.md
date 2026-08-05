@@ -26,6 +26,10 @@ authenticated request binds client, store, UUID, token hash, active status, and
 non-revoked state. The shared device-auth helper alone accepts legacy
 `activation_token` transport for two application releases.
 
+Milestone 2B clients prefer `Authorization: Bearer <token>` on authenticated
+non-Timesheet endpoints. Device-authorization 401 codes mark the local session
+for controlled reactivation without deleting the retained compatibility token.
+
 `get_stores.php` remains the legacy compatibility endpoint and is not expanded
 to issue grants.
 

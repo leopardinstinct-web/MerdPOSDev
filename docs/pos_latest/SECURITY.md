@@ -39,7 +39,9 @@ listed explicitly; historical claims do not override current files.
    setup-validation grant flow; production use depends on migrations 013–015.
 4. Token lifecycle enforcement is integrated across the non-Timesheet device
    endpoint set in 2A.2/2A.3.
-5. Flutter stores the token in plain `SharedPreferences`.
+5. Milestone 2B moves the token to maintained secure storage; the legacy
+   SharedPreferences value is retained for two compatible releases and must be
+   removed in the third.
 6. Sensitive APIs use wildcard CORS.
 7. Normal non-Timesheet endpoints use shared authorization; isolated database
    endpoint tests remain future CI work.
@@ -106,6 +108,8 @@ reconciled with the target schema.
 - Use a production package ID and protected release signing key.
 - Define Android backup/restore behavior for tokens and local sales.
 - Store bearer secrets using Android-backed secure storage where available.
+- Android application backup is disabled so encrypted token material is not
+  restored without its device-bound key.
 - Signing-key custody, CI secrets, artifact retention, and key rotation are
   **requires decision**.
 

@@ -2,6 +2,19 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 2B secure token storage
+
+- Added maintained `flutter_secure_storage` integration behind injectable
+  secure/legacy token-store abstractions.
+- Added verified silent migration from SharedPreferences, safe legacy fallback
+  on secure-write failure, corrupt-token fail-closed behavior, and retained the
+  legacy value for the approved two-release window.
+- Updated setup to use activation grants and authenticated non-Timesheet calls
+  to prefer bearer headers.
+- Added controlled reactivation for expired/revoked authorization without
+  deleting the compatibility token, disabled Android backup, and added focused
+  token/session regression tests.
+
 ## 2026-08-05 — Milestone 2A.3 endpoint hardening
 
 - Applied shared hash/UUID/client/store/status/expiry/revocation authorization
