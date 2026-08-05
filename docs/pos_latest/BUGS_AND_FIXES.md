@@ -4,19 +4,23 @@ Use this file to track known issues, fixes attempted, and current status.
 
 ## Current source reconciliation — 2026-08-05
 
-Source baseline: `29de6f4`. Production was not inspected.
+Source baseline: merged `main` at `561a551`. Production was not inspected.
 
 Active non-Timesheet issues:
 
 - Tracked `config.sample.php` contained a real-looking historical value. Fixed
   in Milestone 1 by replacing values with placeholders. It is treated as
   exposed and already rotated; history cleanup is deferred.
-- Login/password endpoints use the fail-closed lockout service in 2A.2;
-  migration 012 still requires separate execution approval.
+- Milestones 2A.1–2A.3 and 2B are merged. M1 is source-complete but remains
+  deployment-gated.
+- Migrations 012–015 remain unexecuted. Production activation, lockout, token
+  lifecycle, and security-audit behavior remain unavailable until schema
+  reconciliation, migration approval, and deployment.
 - Shared token lifecycle enforcement now covers the non-Timesheet device
   endpoint set through 2A.2/2A.3.
 - Milestone 2B stores the bearer token in secure storage; removal of the
-  retained compatibility value is scheduled for the third compatible release.
+  retained SharedPreferences compatibility value is due in the third compatible
+  release.
 - Retail synchronization is outbound-only and aggregate-acknowledged.
 - Production demo product seeding is not separated from development mode.
 - Milestone 1 CI and initial Flutter tests are verified; 2A.1 adds deterministic
@@ -52,10 +56,11 @@ Milestone 1 CI status:
 Historical entries below describe earlier checkpoints. Where they conflict with
 this block, current source and current authoritative documents win.
 
-Milestone 2A.1 status:
+Milestone 1 security status:
 
-- Added migration drafts and shared/tested security foundation components; no
-  production migration was run and existing endpoint behavior is unchanged.
+- Added migration drafts and shared/tested security foundation components, then
+  integrated them across approved non-Timesheet endpoints and Flutter. No
+  production migration was run.
 - Migration `014` checks the tracked legacy devices shape and aborts on visible
   incompatibility; production schema remains unknown and requires separate
   reconciliation and approval.
@@ -63,6 +68,9 @@ Milestone 2A.1 status:
 - Legacy token transport exists exclusively in the shared device-auth helper.
 - Dedicated POST `request_activation_grant.php` is implemented in 2A.2;
   `get_stores.php` remains unchanged and does not issue grants.
+- M2 canonical catalogue and inbound synchronization is the next product
+  milestone, but its identifier, ownership, pricing, tax, stock, initial-sync,
+  and tombstone rules remain product-owner decisions.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint

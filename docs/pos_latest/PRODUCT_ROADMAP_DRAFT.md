@@ -1,8 +1,9 @@
 # POS LATEST Product Roadmap — Draft
 
-Status: draft requiring product-owner approval
+Status: M0 and M1 source implementation approved and merged; M2 decisions remain
+product-owner approval gates.
 
-Source baseline: commit `29de6f4`
+Source baseline: merge commit `561a551`
 
 Timesheet rule: preserve existing behavior; no new Timesheet development.
 
@@ -38,6 +39,13 @@ developer machines; CI minutes/storage policy.
 
 ## M1 — Secure setup, activation, login, and sessions
 
+**Status:** Source-complete through merged Milestones 2A.1–2A.3 and 2B;
+production deployment-gated. Migrations 012–015 remain unexecuted, so
+production activation, lockout, token lifecycle, and audit behavior are not
+available until schema reconciliation, migration approval, and deployment.
+The retained legacy SharedPreferences token is due for removal in the third
+compatible release.
+
 **Objective:** Establish a durable trust boundary before retail expansion.
 
 **Scope:** Decide setup proof and activation-token lifecycle; enforce methods,
@@ -65,6 +73,8 @@ shared-hosting clock/schema differences.
 
 ## M2 — Canonical catalogue and inbound synchronization
 
+**Status:** Next product milestone; implementation remains decision-gated.
+
 **Objective:** Replace demonstration data with authoritative store retail data.
 
 **Scope:** Versioned product/category/store-price/tax/stock contracts; initial
@@ -73,6 +83,12 @@ for disabled products; explicit development-only demo mode.
 
 **Dependencies:** Canonical identifier and ownership decisions; M1 device trust;
 server schema verification; tax/store-price rules.
+
+Before implementation, the product owner must decide the canonical product
+identifier; ownership of product, category, price, tax, and stock data; global
+versus store-specific pricing; tax representation and authority; stock
+authority and initial-sync semantics; and disabled-product/tombstone behavior.
+No default is implied by the current source or roadmap.
 
 **Acceptance criteria:** Clean authorized device loads correct store catalogue;
 incremental changes apply idempotently; disabled products cannot be sold;
