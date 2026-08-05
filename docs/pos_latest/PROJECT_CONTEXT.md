@@ -175,13 +175,14 @@ separate approval before database execution.
 The legacy SharedPreferences token remains for the approved two-compatible-
 release window and is due for removal in the third compatible release.
 
-## Next product milestone
+## Current product milestone
 
-M2 — Canonical catalogue and inbound synchronization is next. Implementation
-must not begin by guessing unresolved catalogue policy. Product-owner decisions
-are still required for the canonical product identifier; ownership of product,
-category, price, tax, and stock data; global versus store-specific pricing; tax
-representation and authority; stock authority and initial-sync semantics; and
-disabled-product/tombstone behavior. Server-schema verification is also a
-separate approval boundary. Existing Timesheet and payroll behavior remains
-preserved and excluded.
+M2.1 — Catalogue identity and lifecycle foundation is implemented in source as
+an additive, preconditioned migration draft plus isolated synthetic MariaDB
+tests. It preserves existing product/category IDs and historical references,
+adds exact-text zero-to-many barcode aliases, and enforces client-scoped
+case-insensitive SKU identity while preserving display case. It changes no API
+endpoint, Flutter, SQLite, Timesheet, or payroll behavior. Production schema
+reconciliation, migration execution, and deployment remain separate approval
+boundaries. Later M2 contracts must continue to follow
+`M2_CATALOGUE_DECISIONS.md`.

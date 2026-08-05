@@ -2,6 +2,43 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — M2.1 catalogue identity and lifecycle foundation
+
+- Added a visibly preconditioned, non-automatically-idempotent additive
+  migration draft that preserves product/category IDs and historical product
+  references.
+- Added normalized client SKU uniqueness, exact-text zero-to-many barcode
+  aliases, lifecycle timestamps, and restrictive reference protection.
+- Added synthetic MariaDB fixtures, positive/precondition failure tests, and a
+  pinned disposable MariaDB 10.11.14 CI job.
+- No endpoint, Flutter, SQLite, Timesheet, payroll, production database, or
+  deployment behavior changed; migration execution remains separately gated.
+
+## 2026-08-05 — M2.1 identifier normalization approved
+
+- Approved trimmed, display-case-preserving, case-insensitive client-wide SKU
+  uniqueness.
+- Approved trimmed exact-text barcode storage with leading-zero preservation,
+  no numeric coercion, and exact client-wide uniqueness.
+- Recorded that the two rules unblock M2.1 catalogue identity and lifecycle
+  planning. No code, SQL, branch, migration, production, deployment,
+  Timesheet, or payroll action was taken.
+
+## 2026-08-05 — M2 catalogue policy approved
+
+- Recorded product-owner approval for immutable server product IDs, optional
+  unique SKUs, and zero-to-many barcode aliases.
+- Approved a client-global product master and flat categories with store
+  availability, effective price, stock, and reorder overlays.
+- Approved effective-dated tax-inclusive pricing precedence and versioned
+  product tax codes including `No Tax`.
+- Approved a server-owned store stock ledger, acceptance of completed offline
+  sales, and negative-stock review rather than sale rejection or rewriting.
+- Approved active/disabled/archived/tombstone lifecycle and full-then-monotonic-
+  cursor synchronization with transactional replay and last-good preservation.
+- Added `M2_CATALOGUE_DECISIONS.md` as binding policy. No code, migration,
+  branch, production, deployment, Timesheet, or payroll change was made.
+
 ## 2026-08-05 — Milestone 2B.1 post-merge reconciliation
 
 - Reconciled authoritative current-state documentation after merged Milestones

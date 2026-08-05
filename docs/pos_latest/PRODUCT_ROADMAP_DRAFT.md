@@ -1,7 +1,7 @@
 # POS LATEST Product Roadmap — Draft
 
-Status: M0 and M1 source implementation approved and merged; M2 decisions remain
-product-owner approval gates.
+Status: M0 and M1 source implementation approved and merged; the eight M2
+catalogue-policy decisions are approved, with contract details still gated.
 
 Source baseline: merge commit `561a551`
 
@@ -73,7 +73,9 @@ shared-hosting clock/schema differences.
 
 ## M2 — Canonical catalogue and inbound synchronization
 
-**Status:** Next product milestone; implementation remains decision-gated.
+**Status:** In progress. M2.1 supplies the reviewed catalogue identity and
+lifecycle migration foundation without changing endpoint or Flutter behavior.
+Later M2 contracts and production schema reconciliation remain gated.
 
 **Objective:** Replace demonstration data with authoritative store retail data.
 
@@ -81,14 +83,14 @@ shared-hosting clock/schema differences.
 download; incremental cursor/version sync; SQLite schema migrations; tombstones
 for disabled products; explicit development-only demo mode.
 
-**Dependencies:** Canonical identifier and ownership decisions; M1 device trust;
-server schema verification; tax/store-price rules.
+**Dependencies:** Approved M2 catalogue decisions; M1 device trust; contract
+detail approval; server schema verification; separately approved migrations.
 
-Before implementation, the product owner must decide the canonical product
-identifier; ownership of product, category, price, tax, and stock data; global
-versus store-specific pricing; tax representation and authority; stock
-authority and initial-sync semantics; and disabled-product/tombstone behavior.
-No default is implied by the current source or roadmap.
+Approved policy uses immutable server product IDs, a client-global master with
+store overlays, flat client categories, effective-dated tax-inclusive pricing,
+versioned product tax codes, a store stock ledger, explicit lifecycle states,
+and full-then-cursor synchronization. `M2_CATALOGUE_DECISIONS.md` is binding;
+remaining contract details must not be guessed.
 
 **Acceptance criteria:** Clean authorized device loads correct store catalogue;
 incremental changes apply idempotently; disabled products cannot be sold;
@@ -230,11 +232,13 @@ hardware-specific failures; shared-hosting constraints.
 
 **Estimated complexity:** L–XL depending on dual-display requirements.
 
-## Decisions required before roadmap approval
+## Decisions still required for later roadmap work
 
 - Activation authority, expiry, rotation, and revocation.
 - PIN length, attempt threshold, cooldown, and administrator recovery.
-- Canonical product/store price/tax/stock ownership.
+- M2 contract details listed in `M2_CATALOGUE_DECISIONS.md`, including monetary
+  rounding, unit of measure, effective-time boundaries, cursor/tombstone
+  retention, stale-catalogue limits, and operational roles.
 - Conflict resolution and negative-stock policy.
 - Discount, tax, receipt, refund/void, and cash-management rules.
 - Whether card is record-only or integrated, and with which provider.

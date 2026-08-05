@@ -68,9 +68,10 @@ Milestone 1 security status:
 - Legacy token transport exists exclusively in the shared device-auth helper.
 - Dedicated POST `request_activation_grant.php` is implemented in 2A.2;
   `get_stores.php` remains unchanged and does not issue grants.
-- M2 canonical catalogue and inbound synchronization is the next product
-  milestone, but its identifier, ownership, pricing, tax, stock, initial-sync,
-  and tombstone rules remain product-owner decisions.
+- M2.1 catalogue identity/lifecycle source foundation is implemented with
+  synthetic migration coverage. Production schema reconciliation, explicit
+  migration approval, backup/rollback planning, and deployment remain gated;
+  later pricing, tax, stock-ledger, and catalogue-sync work is not included.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint
