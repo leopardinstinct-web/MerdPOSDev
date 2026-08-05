@@ -17,6 +17,8 @@ Core guidance:
 - `SECURITY.md` — binding security gates.
 - `DESIGN_TOKENS.md` and `merdpos-design-brief-blue-ice.md` — UI authority.
 - `PRODUCT_ROADMAP_DRAFT.md` — proposed non-Timesheet product milestones.
+- `M2_CATALOGUE_DECISIONS.md` — approved canonical catalogue, price, tax,
+  stock, lifecycle, and synchronization policy.
 - `IMPLEMENTATION_STATUS.md` — source-based roadmap status.
 - `CI_ENVIRONMENT_PLAN.md` — non-production build/test design.
 - `LEGACY_DOCUMENTATION_DEPRECATION.md` — authority notice for old packs.
@@ -163,6 +165,14 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/sql/010_retail_platform.sql` — retail sales and movements.
 - `backend/sql/011_admin_platform.sql` — categories, products, inventory,
   suppliers, purchase orders, and audit records.
+- `backend/sql/016_catalogue_identity_lifecycle.sql` — preconditioned M2.1
+  migration draft for normalized SKUs, barcode aliases, lifecycle metadata,
+  and historical-reference protection; never application-executed.
+- `backend/tests/fixtures/catalogue_identity_schema.sql` — synthetic tracked-
+  schema fixture with explicit identity and historical-reference examples.
+- `backend/tests/catalogue_identity_migration_test.php` and
+  `backend/tests/run_catalogue_identity.php` — local-only MariaDB migration and
+  rejection tests.
 - `backend/sql/001_employee_auth_attempts.sql` — historically referenced but
   missing; Milestone 2A.1 replaces that abandoned reference with the reviewed
   additive `012_employee_auth_attempts.sql` draft.

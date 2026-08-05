@@ -136,8 +136,9 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 
 1. Define a versioned standard success/error envelope.
 2. Document every non-Timesheet utility endpoint or remove it from deploys.
-3. After product-owner decisions, define product/category/price/tax/stock
-   download and incremental-sync contracts without inventing catalogue rules.
+3. Define the approved product/category/barcode/price/tax/stock full-snapshot and
+   cursor contracts from `M2_CATALOGUE_DECISIONS.md`, including transactional
+   replay and tombstones.
 4. Define per-record retail acknowledgement and conflict responses.
 5. Define API compatibility/versioning and deprecation policy.
 

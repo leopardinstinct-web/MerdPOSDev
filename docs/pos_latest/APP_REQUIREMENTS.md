@@ -1,6 +1,6 @@
 # Application Requirements — POS LATEST / MerdPOS
 
-Reconciled against commit `29de6f4`. Requirements marked **requires decision**
+Reconciled through merge commit `11f22a1`. Requirements marked **requires decision**
 must be resolved before related implementation; do not guess.
 
 ## Scope
@@ -32,6 +32,11 @@ prevent an approved change from causing a regression.
 
 ## Retail application
 
+- Follow the approved catalogue policy in `M2_CATALOGUE_DECISIONS.md`.
+- Products use immutable server IDs. Optional SKUs are client-unique when
+  present, and products may have zero or multiple barcode aliases.
+- Product/category identity and tax assignment are client-global; availability,
+  effective selling price, stock, and reorder level may be store-specific.
 - Authoritative multi-store product catalogue with barcode, SKU, category,
   price, cost, tax, status, and store-specific price/stock where approved.
 - Barcode/name/category search and scanner-friendly input.
@@ -46,13 +51,19 @@ prevent an approved change from causing a regression.
 
 ## Offline-first and synchronization
 
+- Initial catalogue synchronization is a full snapshot followed by transactional,
+  replay-safe pages using an opaque server-issued monotonic cursor.
+- Devices advance the cursor only after commit and preserve the last working
+  catalogue on failure. Offline catalogue creation is prohibited in M2.
 - Core selling must work without connectivity after an initial authorized sync.
 - Local writes must be transactional, idempotent, retryable, and auditable.
 - Server returns per-record acknowledgement/rejection; client marks only
   acknowledged records synced.
 - Products, prices, tax, and stock require server-to-device synchronization.
-- Conflict rules for product edits, stock, duplicate sales, clock skew, and
-  device replacement are **requires decision**.
+- Completed offline sales remain accepted. Resulting negative server-ledger
+  stock is flagged for review rather than rewriting or rejecting the sale.
+- Remaining duplicate-sale, clock-skew, and device-replacement conflict rules
+  are **requires decision** where not already governed by idempotency contracts.
 - Sync must be tenant/store scoped and expose actionable non-secret status.
 
 ## Admin portal

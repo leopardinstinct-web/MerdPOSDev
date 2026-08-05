@@ -15,7 +15,7 @@ Status meanings:
 |---|---|---|
 | Documentation authority/current state | Complete | Authoritative pack merged in PR #1; legacy pack deprecated. |
 | M1 secure activation/login/session source | Complete | Milestones 2A.1–2A.3 and 2B are merged; production behavior remains deployment-gated by migrations 012–015. |
-| CI pipeline | Complete | Milestone 1 CI is merged and verified; 2A.1 adds its deterministic backend harness to the existing PHP job. |
+| CI pipeline | Complete | Existing CI is merged and verified; M2.1 adds an isolated, pinned MariaDB 10.11.14 migration-test job. |
 | Repository-wide Dart formatting | Partial | Changed `lib/` and `test/` Dart files are CI-gated; pre-existing formatting debt is deferred to a separate cleanup. |
 | Flutter analyzer information debt | Partial | 38 existing information-level findings remain visible but non-fatal; errors and warnings remain fatal, and modified files must not introduce either. |
 | Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests run in CI; broader coverage remains incomplete. |
@@ -32,6 +32,8 @@ Status meanings:
 | Secure app token storage | Complete | Milestone 2B uses maintained Android-backed secure storage with verified legacy migration and a two-release compatibility value. |
 | Token lifecycle policy | Partial | Source enforcement and Flutter bearer transport/controlled reactivation are complete; production behavior is unavailable until migrations 013–015 are reconciled, approved, and deployed. |
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
+| M2 catalogue product policy | Complete | Product owner approved identity, ownership, category, pricing, tax, stock, lifecycle, and cursor-sync policy; lower-level contract details remain open. |
+| M2.1 catalogue identity/lifecycle foundation | Complete | Additive migration draft and synthetic MariaDB tests preserve IDs/references, add zero-to-many exact-text barcode aliases, enforce normalized client SKU identity, and protect lifecycle references. Production execution remains separately gated. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
 | Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |
@@ -39,7 +41,7 @@ Status meanings:
 | Stock validation/deduction | Complete | Checked and transactionally deducted locally. |
 | Cash sale recording | Complete | Local tender recording implemented. |
 | Card sale recording | Partial | Tender label recorded; payment integration requires decision. |
-| Tax/discount policy | Blocked | Fields exist, but rules are not defined/implemented in checkout. |
+| Tax/discount policy | Partial | M2 tax-inclusive, versioned product-tax policy is approved; rounding and discounts remain undecided and checkout still records zero tax. |
 | Order history | Partial | Summary list exists; full line detail/operations are incomplete. |
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |
 | Refunds/voids | Blocked | Rules and permissions require decision. |
@@ -53,7 +55,7 @@ Status meanings:
 | Outbound retail sync | Partial | Transactional aggregate sync exists. |
 | Per-record acknowledgement | Missing | Server returns aggregate counts only. |
 | Bidirectional synchronization | Missing | No inbound product/price/stock synchronization. |
-| Conflict handling | Blocked | Ownership and conflict rules require decision. |
+| Conflict handling | Partial | M2 master-data authority and completed-offline-sale/negative-stock policy are approved; broader M4 conflicts remain undecided. |
 | Retry idempotency | Partial | Unique keys/ignore inserts exist; client acknowledgement is unsafe. |
 | Admin authentication/session/CSRF | Complete | ADMIN check, CSRF, regeneration, timeout implemented. |
 | Admin product/category/inventory | Partial | Basic forms/listing; full CRUD/permissions incomplete. |

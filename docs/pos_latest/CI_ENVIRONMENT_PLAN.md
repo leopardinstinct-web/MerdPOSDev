@@ -47,7 +47,16 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Static analysis with a pinned tool may be proposed separately; adding a
      dependency requires approval.
 
-4. **Android build**
+4. **M2.1 catalogue schema checks**
+   - Disposable MariaDB `10.11.14` container pinned by immutable digest.
+   - Synthetic fixtures only, in a fixed test database; the harness rejects
+     non-loopback database hosts.
+   - Verify identity/reference preservation, normalization constraints,
+     barcode aliases, lifecycle restrictions, and visible precondition failure.
+   - Never use production credentials or execute migration 016 outside the
+     disposable CI database.
+
+5. **Android build**
    - Pinned JDK 17, Flutter, Android SDK platform/build-tools, and Gradle inputs.
    - Build a debug APK for pull requests.
    - Milestone 1 builds a debug APK only.
@@ -56,7 +65,7 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
      distribution are excluded.
    - Upload checksummed artifacts with commit, version, and toolchain metadata.
 
-5. **Security tests**
+6. **Security tests**
    - Secret scan.
    - Dependency review/advisory scan.
    - API authorization/tenant-isolation tests against local fixtures.

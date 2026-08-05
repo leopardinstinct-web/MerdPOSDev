@@ -101,6 +101,40 @@ jobs:
       - name: Run isolated backend security foundation tests
         run: php backend/tests/run.php
 
+  catalogue-schema:
+    name: M2.1 synthetic MariaDB migration
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11.14@sha256:dbe56e20372fc6d6b8e0e396866ba89c4c7f128c38c4f59aaa54d957db95790c
+        env:
+          MARIADB_ROOT_PASSWORD: synthetic-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2 with PDO MySQL
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Run isolated catalogue migration tests
+        env:
+          M2_DB_HOST: 127.0.0.1
+          M2_DB_PORT: '3306'
+          M2_DB_USER: root
+          M2_DB_PASSWORD: synthetic-ci-only
+        run: php backend/tests/run_catalogue_identity.php
+
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests
     runs-on: ubuntu-latest
