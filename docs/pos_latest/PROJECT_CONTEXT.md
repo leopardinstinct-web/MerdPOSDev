@@ -144,14 +144,15 @@ Android release limitations in source:
 - release build uses debug signing;
 - no landscape lock or dual-display implementation is present;
 - Montserrat is referenced by the theme but is not packaged in `pubspec.yaml`;
-- no Flutter tests are present.
+- Milestone 1 tests cover local model behavior and Timesheet parser regression,
+  but broader feature and integration coverage remains absent.
 
 See `CI_ENVIRONMENT_PLAN.md` and `PRODUCT_ROADMAP_DRAFT.md`.
 
 ## Immediate priorities
 
-1. Validate Milestone 1 workflows in GitHub Actions and resolve any missing
-   Android wrapper blocker without generating files on the production VPS.
+1. Validate the restored Android wrapper and all Milestone 1 workflows in
+   GitHub Actions.
 2. Define and harden device activation/token lifecycle.
 3. Restore guaranteed numeric-PIN lockout and add automated auth tests.
 4. Implement reliable bidirectional retail master-data synchronization.

@@ -71,8 +71,13 @@ signing configuration at the merged baseline. Milestone 1 adds:
 
 - `merdpos_staff/test/baseline_models_test.dart`
 - `merdpos_staff/test/timesheet_parser_regression_test.dart`
+- `merdpos_staff/android/gradlew`
+- `merdpos_staff/android/gradlew.bat`
+- `merdpos_staff/android/gradle/wrapper/gradle-wrapper.jar`
 
 The Timesheet test is preservation-only and does not change application logic.
+The wrapper files were restored from the reviewed clean Flutter 3.44.2 CI
+artifact and match the existing Gradle distribution property.
 
 ## GitHub automation
 

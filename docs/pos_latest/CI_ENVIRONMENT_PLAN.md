@@ -92,10 +92,9 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
 - PHP CLI 8.2 patch line matching hosting as closely as practical.
 - MySQL versus MariaDB test version matching production.
 
-JDK/Android versions are supplied by the pinned Flutter/GitHub runner during the
-first CI attempt. If the missing Gradle wrapper blocks the build, stop and
-review wrapper restoration from the approved Flutter template; do not generate
-it on the VPS.
+JDK/Android versions are supplied by the pinned Flutter/GitHub runner. The
+missing wrapper was restored from the reviewed artifact produced by a clean
+Flutter 3.44.2 GitHub Actions environment; it was not generated on the VPS.
 
 ## Local development alternative
 
@@ -120,13 +119,12 @@ inspection and modification. This exception does not allow any other
 continues to reject `.env` files, `.deployed_version`, APKs, keystores,
 `build/`, and `.dart_tool/`.
 
-Wrapper restoration is performed only by the temporary, manually dispatched
-`restore-gradle-wrapper.yml` workflow. It generates a clean Flutter 3.44.2
-project on a disposable GitHub-hosted runner with read-only repository
-permission, verifies its distribution URL against the existing wrapper
-properties, and publishes only the three approved wrapper files plus review
-metadata. It has no secrets or production-system access. Remove the temporary
-workflow after the reviewed files are added.
+Wrapper restoration was performed by a temporary GitHub Actions workflow using
+a clean Flutter 3.44.2 project on a disposable GitHub-hosted runner with
+read-only repository permission and no secrets or production-system access.
+The artifact contained only the three approved wrapper files and review
+metadata. Its file set, JAR checksum, distribution URL, and executable script
+mode were verified before copying. The temporary workflow was then removed.
 
 ## Milestone 1 historical-secret policy
 

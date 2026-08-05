@@ -26,10 +26,10 @@ Milestone 1 CI status:
 - Flutter 3.44.2 format/analyze/test workflow: implemented, awaits GitHub run.
 - PHP 8.2 syntax workflow: implemented, awaits GitHub run.
 - Redacted Gitleaks workflow: implemented, awaits GitHub run.
-- Debug APK workflow: implemented. The repository currently lacks the three
-  approved Android wrapper files; restore them only from the reviewed artifact
-  produced by the temporary Flutter 3.44.2 GitHub Actions workflow, never on
-  the production VPS.
+- Debug APK workflow: implemented. The three approved Android wrapper files
+  were restored from the reviewed Flutter 3.44.2 GitHub Actions artifact. The
+  artifact file set, JAR checksum, distribution URL, and executable script mode
+  were verified before copying; no wrapper was generated on the production VPS.
 - Repository hygiene has one exact legacy exception for
   `timesheet_portal/includes/config.php`. Its contents remain uninspected and
   unchanged. The exception requires a future separate security review and does

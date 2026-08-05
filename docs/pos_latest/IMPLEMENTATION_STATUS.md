@@ -17,7 +17,7 @@ Status meanings:
 | CI pipeline | Partial | Workflows implemented locally; GitHub execution awaits push/PR approval. |
 | Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests added; not yet run in CI. |
 | PHP lint/backend tests | Partial | PHP 8.2 syntax job added; backend unit/integration harness remains missing. |
-| Android CI build | Blocked | Debug job added, but repository lacks `android/gradlew`; CI result is required before remediation. |
+| Android CI build | Partial | Debug job and reviewed Gradle wrapper are present; successful GitHub Actions execution remains required. |
 | Secret-free sample configuration | Complete | Sample values replaced with placeholders; historical value treated as rotated. |
 | Numeric backend login | Complete | `login.php` plus Flutter `AuthService`. |
 | Password hashing/migration | Complete | `password_hash()`/`password_verify()` and transparent upgrade. |

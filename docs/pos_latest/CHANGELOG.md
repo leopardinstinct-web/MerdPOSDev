@@ -15,9 +15,10 @@ Changed:
 - Added one exact legacy repository-hygiene exception for
   `timesheet_portal/includes/config.php`; the file remains excluded from
   inspection and modification and requires a future separate security review.
-- Added a temporary, manually dispatched, read-only GitHub Actions workflow to
-  generate the three missing Android wrapper files from a clean Flutter 3.44.2
-  project for review.
+- Restored `android/gradlew`, `android/gradlew.bat`, and
+  `android/gradle/wrapper/gradle-wrapper.jar` from the reviewed clean Flutter
+  3.44.2 GitHub Actions artifact, then removed the temporary restoration
+  workflow.
 - Added local-only model tests and preservation-only Timesheet parser regression
   fixtures. Tests do not call production services.
 - Set debug APK artifact retention to seven days.
@@ -34,8 +35,9 @@ Validation status:
   the VPS without installing build tooling.
 - Flutter/PHP/Android workflow execution requires GitHub Actions after separate
   Level 3 approval to commit/push/open a PR.
-- Android debug build may be blocked by the missing Gradle wrapper; no wrapper
-  is generated on the VPS.
+- The restored wrapper targets the existing Gradle 9.1.0 distribution property;
+  no wrapper was generated on the VPS. Flutter/Android execution remains a CI
+  validation step.
 
 ## 2026-08-05 — Documentation reconciliation for source commit 29de6f4
 
