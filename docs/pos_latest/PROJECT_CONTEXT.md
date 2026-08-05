@@ -186,3 +186,11 @@ endpoint, Flutter, SQLite, Timesheet, or payroll behavior. Production schema
 reconciliation, migration execution, and deployment remain separate approval
 boundaries. Later M2 contracts must continue to follow
 `M2_CATALOGUE_DECISIONS.md`.
+
+M2.2 — Effective pricing and tax foundation adds a preconditioned shadow schema
+for client AUD settings, product units, effective-dated regular/promotional
+prices, stable tax codes/rates/assignments, overlap rejection, and nullable
+future sale-line audit snapshots. Existing `sell_price`, `store_price`,
+`tax_rate`, cost fields, completed sales, endpoints, admin, Flutter, SQLite,
+checkout, stock, and synchronization remain unchanged and authoritative until
+a separately approved integration and production cutover.

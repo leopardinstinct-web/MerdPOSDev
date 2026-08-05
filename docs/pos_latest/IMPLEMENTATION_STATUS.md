@@ -34,6 +34,7 @@ Status meanings:
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
 | M2 catalogue product policy | Complete | Product owner approved identity, ownership, category, pricing, tax, stock, lifecycle, and cursor-sync policy; lower-level contract details remain open. |
 | M2.1 catalogue identity/lifecycle foundation | Complete | Additive migration draft and synthetic MariaDB tests preserve IDs/references, add zero-to-many exact-text barcode aliases, enforce normalized client SKU identity, and protect lifecycle references. Production execution remains separately gated. |
+| M2.2 effective pricing/tax foundation | Complete | Shadow migration draft and synthetic MariaDB tests define AUD settings, approved units, effective price/tax history, overlap protection, and future sale snapshots. No runtime reader/writer uses it; production reconciliation and execution remain gated. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
 | Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |

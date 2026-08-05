@@ -102,7 +102,7 @@ jobs:
         run: php backend/tests/run.php
 
   catalogue-schema:
-    name: M2.1 synthetic MariaDB migration
+    name: M2 catalogue synthetic migrations
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -133,7 +133,9 @@ jobs:
           M2_DB_PORT: '3306'
           M2_DB_USER: root
           M2_DB_PASSWORD: synthetic-ci-only
-        run: php backend/tests/run_catalogue_identity.php
+        run: |
+          php backend/tests/run_catalogue_identity.php
+          php backend/tests/run_effective_pricing_tax.php
 
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests

@@ -2,6 +2,17 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — M2.2 effective pricing and tax foundation
+
+- Added a preconditioned, non-automatically-idempotent shadow migration for
+  client AUD settings, approved units, effective-dated prices, stable tax
+  codes/rates/assignments, overlap rejection, and future sale-line snapshots.
+- Added synthetic MariaDB fixtures and tests covering precedence, UTC half-open
+  boundaries, precision, promotion metadata, tax protections, tenant isolation,
+  legacy/history preservation, and visible precondition failure.
+- Preserved legacy price/tax/cost fields and all runtime behavior; no production
+  migration, API/admin/Flutter/SQLite/checkout/stock/sync change was made.
+
 ## 2026-08-05 — M2.1 catalogue identity and lifecycle foundation
 
 - Added a visibly preconditioned, non-automatically-idempotent additive

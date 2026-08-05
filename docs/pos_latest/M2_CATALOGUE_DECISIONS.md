@@ -110,14 +110,54 @@ deployment. Existing Timesheet and payroll behavior remains excluded.
 - Catalogue download, revisions, cursors, and tombstone delivery do not exist.
 - Fresh Flutter databases automatically receive demonstration products.
 
+## M2.2 effective pricing and tax contract
+
+Approved by the product owner on 2026-08-05:
+
+- Each client has one ISO 4217 base currency, initially `AUD`. M2.2 has no
+  multi-currency sales. Catalogue unit prices use `DECIMAL(19,4)`, finalized
+  sale amounts use `DECIMAL(19,2)`, and API monetary values are decimal strings.
+- Tax is calculated from each tax-inclusive extended sale-line amount and
+  rounded half-up to the currency minor unit per line. Transaction tax is the
+  sum of the rounded line-tax amounts.
+- Supported units are `each`, `kilogram`, and `litre`. `each` sale quantities
+  are whole and positive; kilogram/litre quantities may use three decimals.
+  Price means price per one declared product unit.
+- Price and tax intervals use UTC half-open semantics:
+  `effective_from_utc <= instant < effective_to_utc`; a null end is open-ended.
+- Equal-scope price overlaps for the same client, product, optional store,
+  price type, and effective interval are rejected. Creation time and record ID
+  never break ties. Existing price precedence remains binding.
+- Future and expired prices are retained. Cancelled prices retain cancellation
+  time, actor, and reason and are never selected. Effective prices are not
+  silently overwritten, and draft prices are not device-visible.
+- Promotions require a name, creator, and creation time. Reason and external
+  campaign reference are optional. Approval metadata may be reserved, but no
+  approval workflow is part of M2.2.
+- Cost versioning is excluded. Existing product cost, purchase-order unit cost,
+  and sale-line unit-cost snapshots retain their current behavior.
+- Tax codes have stable client-scoped IDs and unique client-scoped names/codes.
+  Rate versions are effective-dated and stored as integer basis points
+  (`1000 = 10.00%`). Lifecycle states are active, disabled, and archived;
+  referenced codes/rates are never hard-deleted. Mandatory `NO_TAX` is fixed
+  at zero and cannot be deleted or assigned a nonzero rate.
+- Checkout is blocked when no valid effective price or explicitly assigned
+  valid tax code/rate exists. There is no implicit zero price or `NO_TAX`
+  fallback. Existing completed sales remain unchanged.
+- Every completed sale line permanently snapshots canonical product ID,
+  barcode used, product name, unit, quantity, catalogue unit price, effective
+  price type/record, promotion or discount details, tax code/rate version and
+  rate, tax-inclusive flag, net/tax/gross amounts, currency, existing cost, and
+  authoritative sale time.
+
+M2.2 establishes the additive schema and contract foundation only. Runtime
+admin, API, Flutter, SQLite, checkout, stock-ledger, and catalogue-sync changes
+require later separately approved milestones.
+
 ## Remaining contract details
 
-The approved policy does not yet define several lower-level contract rules:
+The approved policy does not yet define several later contract rules:
 
-- currency code, monetary precision, and tax-rounding level;
-- unit-of-measure and fractional-quantity policy;
-- price/tax effective-time timezone and interval-boundary rules;
-- prevention or deterministic resolution of overlapping prices at equal scope;
 - cursor/tombstone retention and expired-cursor full-resync behavior;
 - stale-catalogue warning/blocking thresholds;
 - role authorization for catalogue, pricing, tax, and stock corrections;

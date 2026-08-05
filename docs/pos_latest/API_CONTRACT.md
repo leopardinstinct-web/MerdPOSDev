@@ -142,6 +142,14 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 4. Define per-record retail acknowledgement and conflict responses.
 5. Define API compatibility/versioning and deprecation policy.
 
+## M2.2 pricing/tax contract boundary
+
+The M2.2 source foundation stores catalogue prices at four decimal places,
+finalized monetary snapshots at two decimal places, and tax rates as integer
+basis points. Future APIs must transmit money as decimal strings and UTC times
+with explicit offsets. No current endpoint reads or writes the M2.2 shadow
+tables; runtime contract integration requires separate approval.
+
 ## Milestone 1 CI boundary
 
 Milestone 1 does not change endpoint behavior or `version_check.php`. PHP CI

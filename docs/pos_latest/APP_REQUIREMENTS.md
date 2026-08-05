@@ -37,6 +37,12 @@ prevent an approved change from causing a regression.
   present, and products may have zero or multiple barcode aliases.
 - Product/category identity and tax assignment are client-global; availability,
   effective selling price, stock, and reorder level may be store-specific.
+- Each client has one ISO 4217 base currency (initially AUD). Catalogue prices
+  use four decimal places, finalized sale money uses two, and API money is a
+  decimal string. Supported selling units are each, kilogram, and litre.
+- Effective price/tax intervals are UTC half-open. Missing effective price or
+  explicit tax assignment is a checkout-blocking configuration error; zero and
+  `NO_TAX` are never implicit fallbacks.
 - Authoritative multi-store product catalogue with barcode, SKU, category,
   price, cost, tax, status, and store-specific price/stock where approved.
 - Barcode/name/category search and scanner-friendly input.
