@@ -11,13 +11,16 @@ Active non-Timesheet issues:
 - Tracked `config.sample.php` contained a real-looking historical value. Fixed
   in Milestone 1 by replacing values with placeholders. It is treated as
   exposed and already rotated; history cleanup is deferred.
-- `backend/sql/001_employee_auth_attempts.sql` is missing; lockout is optional
-  at runtime and cannot be assumed active.
-- Device activation proof and token lifecycle/revocation are undefined.
+- Existing login/password endpoints still treat lockout as optional; 2A.1 adds
+  the replacement `012` migration draft and fail-closed service for 2A.2.
+- Device activation proof and token lifecycle are approved and represented in
+  the 2A.1 foundation, but existing endpoints remain legacy until 2A.2.
 - Flutter bearer token is stored in plain SharedPreferences.
 - Retail synchronization is outbound-only and aggregate-acknowledged.
 - Production demo product seeding is not separated from development mode.
-- No automated tests/CI configuration exist.
+- Milestone 1 CI and initial Flutter tests are verified; 2A.1 adds deterministic
+  backend security tests, while endpoint/database integration coverage remains
+  incomplete.
 - Android uses example application ID and debug release signing.
 - Flutter/Dart/Android toolchain is unavailable on the production VPS.
 - Pre-existing Dart application source is not uniformly formatted. Milestone 1
@@ -33,9 +36,9 @@ Active non-Timesheet issues:
 
 Milestone 1 CI status:
 
-- Flutter 3.44.2 format/analyze/test workflow: implemented, awaits GitHub run.
-- PHP 8.2 syntax workflow: implemented, awaits GitHub run.
-- Redacted Gitleaks workflow: implemented, awaits GitHub run.
+- Flutter 3.44.2 format/analyze/test workflow: merged and verified.
+- PHP 8.2 syntax workflow: merged and verified.
+- Redacted Gitleaks workflow: merged and verified.
 - Debug APK workflow: implemented. The three approved Android wrapper files
   were restored from the reviewed Flutter 3.44.2 GitHub Actions artifact. The
   artifact file set, JAR checksum, distribution URL, and executable script mode
@@ -47,6 +50,18 @@ Milestone 1 CI status:
 
 Historical entries below describe earlier checkpoints. Where they conflict with
 this block, current source and current authoritative documents win.
+
+Milestone 2A.1 status:
+
+- Added migration drafts and shared/tested security foundation components; no
+  production migration was run and existing endpoint behavior is unchanged.
+- Migration `014` checks the tracked legacy devices shape and aborts on visible
+  incompatibility; production schema remains unknown and requires separate
+  reconciliation and approval.
+- Lockout persistence is designed to fail closed when integrated in 2A.2.
+- Legacy token transport exists exclusively in the shared device-auth helper.
+- Dedicated POST `request_activation_grant.php` is planned for 2A.2;
+  `get_stores.php` does not issue grants.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint

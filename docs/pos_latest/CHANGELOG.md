@@ -2,6 +2,23 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 2A.1 security foundation
+
+Changed:
+
+- Added preconditioned migration drafts for lockout, activation grants,
+  device-token metadata, and redacted security events.
+- Added independently testable PHP response, request, device authorization,
+  lockout, logging, and deny-by-default maintenance helpers.
+- Added deterministic backend foundation tests and CI execution.
+
+Not changed:
+
+- No existing endpoint, Flutter source, Timesheet/payroll behavior, production
+  system, or database migration was changed or executed.
+- Endpoint integration remains 2A.2/2A.3; Flutter secure storage remains 2B
+  after backend CI and review.
+
 ## 2026-08-05 — Milestone 1 trusted baseline and CI implementation
 
 Changed:

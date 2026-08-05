@@ -90,6 +90,20 @@ artifact and match the existing Gradle distribution property.
 No release-signing workflow, keystore, deployment workflow, or production
 credential is part of Milestone 1.
 
+## Milestone 2A.1 security foundation
+
+- `backend/sql/012_employee_auth_attempts.sql` — durable device/action counters,
+  rolling events, and employee-wide locks.
+- `backend/sql/013_activation_grants.sql` — hashed ten-minute single-use grants.
+- `backend/sql/014_device_token_security.sql` — checked additive token hash,
+  expiry, rotation, and revocation metadata.
+- `backend/sql/015_security_audit_events.sql` — redacted security events.
+- `backend/api/includes/` — shared response, request, device authorization,
+  lockout, logging, and deny-by-default maintenance helpers.
+- `backend/tests/` — deterministic foundation tests and a synthetic schema.
+
+No existing endpoint or Flutter file is changed by 2A.1.
+
 ## Backend API
 
 Application endpoints:
@@ -125,8 +139,9 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/sql/010_retail_platform.sql` — retail sales and movements.
 - `backend/sql/011_admin_platform.sql` — categories, products, inventory,
   suppliers, purchase orders, and audit records.
-- `backend/sql/001_employee_auth_attempts.sql` — **missing**, despite historical
-  documentation references.
+- `backend/sql/001_employee_auth_attempts.sql` — historically referenced but
+  missing; Milestone 2A.1 replaces that abandoned reference with the reviewed
+  additive `012_employee_auth_attempts.sql` draft.
 
 ## Exclusions
 

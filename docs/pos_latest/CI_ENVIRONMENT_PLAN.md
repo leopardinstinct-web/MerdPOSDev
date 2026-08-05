@@ -29,14 +29,16 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Ubuntu runner with pinned Flutter stable matching `pubspec.yaml` SDK.
    - Restore dependency caches keyed by lockfile and SDK version.
    - `flutter pub get` with the committed lockfile.
-   - `dart format --output=none --set-exit-if-changed lib test`.
-   - `flutter analyze`.
-   - `flutter test --coverage` once tests exist.
+   - Format-check changed tracked Dart files under `lib/` and `test/`.
+   - `flutter analyze --no-fatal-infos`; errors and warnings remain fatal.
+   - `flutter test` across the complete project.
    - No production URLs called by tests; inject fake/local transports.
 
 3. **PHP checks**
    - Container or runner with pinned PHP 8.2 CLI and required extensions.
    - Lint every tracked PHP file except local secret config.
+   - Run the Milestone 2A.1 deterministic security-foundation harness with
+     in-memory test doubles and no external network or database access.
    - Run unit/contract tests using fixtures and a disposable database container
      only when database tests are added.
    - Static analysis with a pinned tool may be proposed separately; adding a
@@ -57,6 +59,11 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - API authorization/tenant-isolation tests against local fixtures.
    - Fail if forbidden artifacts (`config.php`, `.env`, `.deployed_version`,
      APKs, `build/`, `.dart_tool/`) are tracked.
+
+Milestone 2A.1 CI covers grant hashing/expiry/single use, bearer and centralized
+legacy-token extraction, token/tenant/UUID binding, layered lockout,
+fail-closed missing-schema behavior, redacted logging, and maintenance denial.
+Migration execution is not part of CI and requires separate approval.
 
 ## Signing and secrets
 

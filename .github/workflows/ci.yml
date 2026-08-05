@@ -98,6 +98,9 @@ jobs:
               php -n -l "$file"
             done
 
+      - name: Run isolated backend security foundation tests
+        run: php backend/tests/run.php
+
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests
     runs-on: ubuntu-latest
