@@ -94,6 +94,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_lints:
+    dependency: "direct dev"
+    description:
+      name: flutter_lints
+      sha256: "3105dc8492f6183fb076ccf1f351ac3d60564bff92e20bfc4af9cc1651f4e7e1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -114,7 +122,7 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage_linux
-      sha256: "a5f35ddab43cf5c8215d2feb4ce1957851f28c5c37e6f04335066a0602087bf5"
+      sha256: a5f35ddab43cf5c8215d2feb4ce1957851f28c5c37e6f04335066a0602087bf5
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
@@ -142,14 +150,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  flutter_lints:
-    dependency: "direct dev"
-    description:
-      name: flutter_lints
-      sha256: "3105dc8492f6183fb076ccf1f351ac3d60564bff92e20bfc4af9cc1651f4e7e1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -252,7 +252,7 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "f2c65e21139ce2c3dad46922be8272bb5963516045659e71bb16e151c93b580e"
+      sha256: f2c65e21139ce2c3dad46922be8272bb5963516045659e71bb16e151c93b580e
       url: "https://pub.dev"
     source: hosted
     version: "2.2.22"
