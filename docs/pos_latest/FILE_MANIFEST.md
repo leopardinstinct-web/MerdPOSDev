@@ -104,11 +104,24 @@ credential is part of Milestone 1.
 
 No existing endpoint or Flutter file is changed by 2A.1.
 
+## Milestone 2A.2 activation and authentication integration
+
+- `backend/api/request_activation_grant.php` — POST-only setup validation,
+  eligible-store discovery, and short-lived grant issuance.
+- `backend/api/activate_device.php` — grant-required hash-only token issuance.
+- `backend/api/login.php`, `change_password.php` — shared device authorization
+  and fail-closed layered lockout integration.
+- `backend/api/includes/employee_auth.php` — shared hashed/legacy employee
+  secret verification.
+- `backend/tests/endpoint_integration_test.php` — deterministic endpoint-policy
+  regression coverage.
+
 ## Backend API
 
 Application endpoints:
 
-- `activate_device.php`, `get_stores.php`, `get_employees.php`
+- `request_activation_grant.php`, `activate_device.php`, `get_stores.php`,
+  `get_employees.php`
 - `login.php`, `change_password.php`
 - `sync_retail.php`
 - `get_working_now.php`

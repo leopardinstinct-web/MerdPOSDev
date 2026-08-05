@@ -1,186 +1,118 @@
 <?php
-/**
- * MerdPOS change_password.php
- * Version: hashed-password-change-v2
- *
- * Verifies the current numeric PIN/password on the backend and stores the new
- * value using password_hash() in both login_password and pin_code for legacy
- * compatibility.
- */
+declare(strict_types=1);
 
-require_once "config.php";
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/api_response.php';
+require_once __DIR__ . '/includes/request.php';
+require_once __DIR__ . '/includes/device_auth.php';
+require_once __DIR__ . '/includes/auth_lockout.php';
+require_once __DIR__ . '/includes/employee_auth.php';
+require_once __DIR__ . '/includes/security_log.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-const API_VERSION = 'hashed-password-change-v2';
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MINUTES = 15;
-
-function respond_json($payload, $status = 200) {
-    http_response_code($status);
-    echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-function fail_json($message = 'Password change failed.', $status = 400, $extra = []) {
-    respond_json(array_merge([
-        'success' => false,
-        'api' => 'change_password.php',
-        'version' => API_VERSION,
-        'error' => $message,
-    ], $extra), $status);
-}
-
-function require_numeric_string($value, $message, $minLen = 1) {
-    $value = trim((string)$value);
-    if ($value === '' || !preg_match('/^\d+$/', $value) || strlen($value) < $minLen) {
-        fail_json($message, 400);
-    }
-    return $value;
-}
-
-function is_password_hash_value($value) {
-    if (!is_string($value) || $value === '') return false;
-    $info = password_get_info($value);
-    return (int)($info['algo'] ?? 0) !== 0;
-}
-
-function stored_secret_matches($stored, $entered) {
-    $stored = (string)$stored;
-    $entered = (string)$entered;
-    if ($stored === '') return false;
-    if (is_password_hash_value($stored)) {
-        return password_verify($entered, $stored);
-    }
-    return hash_equals($stored, $entered);
-}
-
-function employee_secret_matches($employee, $entered) {
-    return stored_secret_matches($employee['login_password'] ?? '', $entered)
-        || stored_secret_matches($employee['pin_code'] ?? '', $entered);
-}
-
-function auth_attempt_table_exists($pdo) {
-    try {
-        $stmt = $pdo->prepare("SHOW TABLES LIKE 'employee_auth_attempts'");
-        $stmt->execute();
-        return (bool)$stmt->fetch();
-    } catch (Throwable $e) {
-        return false;
-    }
-}
-
-function get_attempt_row($pdo, $clientId, $storeId, $userId, $deviceUuid, $action) {
-    if (!auth_attempt_table_exists($pdo)) return null;
-    $stmt = $pdo->prepare("\n        SELECT *\n        FROM employee_auth_attempts\n        WHERE client_id = ?\n          AND store_id = ?\n          AND user_id = ?\n          AND device_uuid = ?\n          AND action = ?\n        LIMIT 1\n    ");
-    $stmt->execute([$clientId, $storeId, $userId, $deviceUuid, $action]);
-    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-}
-
-function reject_if_locked($pdo, $clientId, $storeId, $userId, $deviceUuid, $action) {
-    $row = get_attempt_row($pdo, $clientId, $storeId, $userId, $deviceUuid, $action);
-    if (!$row || empty($row['locked_until'])) return;
-    $lockedUntil = strtotime((string)$row['locked_until']);
-    if ($lockedUntil !== false && $lockedUntil > time()) {
-        fail_json('Too many attempts. Try again later.', 429);
-    }
-}
-
-function record_failed_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, $action) {
-    if (!auth_attempt_table_exists($pdo)) return;
-
-    $row = get_attempt_row($pdo, $clientId, $storeId, $userId, $deviceUuid, $action);
-    $failed = $row ? ((int)$row['failed_attempts'] + 1) : 1;
-    $lockedUntil = $failed >= MAX_FAILED_ATTEMPTS
-        ? date('Y-m-d H:i:s', time() + LOCKOUT_MINUTES * 60)
-        : null;
-
-    if ($row) {
-        $stmt = $pdo->prepare("\n            UPDATE employee_auth_attempts\n            SET employee_id = ?, failed_attempts = ?, locked_until = ?, last_failed_at = NOW()\n            WHERE id = ?\n        ");
-        $stmt->execute([$employeeId, $failed, $lockedUntil, $row['id']]);
-        return;
-    }
-
-    $stmt = $pdo->prepare("\n        INSERT INTO employee_auth_attempts\n            (client_id, store_id, employee_id, user_id, device_uuid, action, failed_attempts, locked_until, last_failed_at)\n        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())\n    ");
-    $stmt->execute([$clientId, $storeId, $employeeId, $userId, $deviceUuid, $action, $failed, $lockedUntil]);
-}
-
-function record_success_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, $action) {
-    if (!auth_attempt_table_exists($pdo)) return;
-    $row = get_attempt_row($pdo, $clientId, $storeId, $userId, $deviceUuid, $action);
-    if (!$row) return;
-    $stmt = $pdo->prepare("\n        UPDATE employee_auth_attempts\n        SET employee_id = ?, failed_attempts = 0, locked_until = NULL, last_success_at = NOW()\n        WHERE id = ?\n    ");
-    $stmt->execute([$employeeId, $row['id']]);
-}
+$requestId = merd_request_id();
+$log = new MerdPdoSecurityLogStore($pdo);
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        fail_json('POST required.', 405);
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+        http_response_code(204);
+        exit;
     }
-
-    $data = json_decode(file_get_contents('php://input'), true);
-    if (!is_array($data)) {
-        fail_json('Invalid JSON body.', 400);
+    merd_request_require_method($_SERVER, 'POST');
+    merd_request_require_json_content_type($_SERVER);
+    $data = merd_request_json(file_get_contents('php://input'));
+    $clientId = merd_request_positive_int($data['client_id'] ?? null, 'client_id');
+    $storeId = merd_request_positive_int($data['store_id'] ?? null, 'store_id');
+    $deviceUuid = merd_request_text($data['device_uuid'] ?? null, 'device_uuid', 150);
+    $employeeId = merd_request_positive_int($data['employee_id'] ?? null, 'employee_id');
+    $oldPassword = merd_request_numeric_string($data['old_password'] ?? null, 1);
+    $newPassword = merd_request_numeric_string($data['new_password'] ?? null, 4);
+    $credential = merd_device_auth_extract_token($_SERVER, $data);
+    $device = merd_device_authorize(
+        new MerdPdoDeviceStore($pdo),
+        $clientId,
+        $storeId,
+        $deviceUuid,
+        $credential['token']
+    );
+    if ($device === null) {
+        merd_api_fail('device_unauthorized', 'Device authorization failed.', 401, $requestId);
     }
-
-    $clientId = filter_var($data['client_id'] ?? null, FILTER_VALIDATE_INT);
-    $storeId = filter_var($data['store_id'] ?? null, FILTER_VALIDATE_INT);
-    $deviceUuid = trim((string)($data['device_uuid'] ?? ''));
-    $activationToken = trim((string)($data['activation_token'] ?? ''));
-    $employeeId = filter_var($data['employee_id'] ?? null, FILTER_VALIDATE_INT);
-    $oldPassword = require_numeric_string($data['old_password'] ?? '', 'Current password is incorrect.', 1);
-    $newPassword = require_numeric_string($data['new_password'] ?? '', 'New password must be numeric and at least 4 digits.', 4);
-
-    if (!$clientId || !$storeId || !$employeeId || $deviceUuid === '' || $activationToken === '') {
-        fail_json('Missing required fields.', 400);
-    }
-
-    $stmt = $pdo->prepare("\n        SELECT id\n        FROM devices\n        WHERE client_id = ?\n          AND store_id = ?\n          AND device_uuid = ?\n          AND activation_token = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
-    $stmt->execute([$clientId, $storeId, $deviceUuid, $activationToken]);
-    if (!$stmt->fetch()) {
-        fail_json('Device not authorized.', 401);
-    }
-
-    $stmt = $pdo->prepare("\n        SELECT id, full_name, user_id, login_password, pin_code\n        FROM employees\n        WHERE client_id = ?\n          AND id = ?\n          AND status = 'active'\n        LIMIT 1\n    ");
+    $stmt = $pdo->prepare(
+        'SELECT id, full_name, user_id, login_password, pin_code FROM employees '
+        . "WHERE client_id = ? AND id = ? AND status = 'active' LIMIT 1"
+    );
     $stmt->execute([$clientId, $employeeId]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$employee) {
-        fail_json('Password change failed.', 404);
+    if (!is_array($employee)) {
+        merd_api_fail('password_change_failed', 'Password change failed.', 404, $requestId);
     }
-
-    $userId = (string)($employee['user_id'] ?? $employeeId);
-    reject_if_locked($pdo, $clientId, $storeId, $userId, $deviceUuid, 'change_password');
-
-    if (!employee_secret_matches($employee, $oldPassword)) {
-        record_failed_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, 'change_password');
-        fail_json('Current password is incorrect.', 403);
+    $userId = (string)$employee['user_id'];
+    $lockout = new MerdAuthLockoutService(new MerdPdoAuthLockoutStore($pdo));
+    $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    $lockout->assertNotLocked($clientId, $userId, $deviceUuid, 'change_password', $now);
+    if (!merd_employee_authenticates($employee, $oldPassword)) {
+        $lockout->recordFailure($clientId, $employeeId, $userId, $deviceUuid, 'change_password', $now);
+        merd_security_log_event(
+            $log,
+            $_SERVER,
+            'employee_password_change',
+            'denied',
+            [
+                'client_id' => $clientId,
+                'employee_id' => $employeeId,
+                'device_id' => (int)$device['id'],
+                'request_id' => $requestId,
+            ],
+            ['endpoint' => 'change_password.php', 'action' => 'change_password', 'reason_code' => 'invalid_credentials']
+        );
+        merd_api_fail('invalid_credentials', 'Current password is incorrect.', 403, $requestId);
     }
-
     $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-
-    $stmt = $pdo->prepare("\n        UPDATE employees\n        SET login_password = ?, pin_code = ?\n        WHERE client_id = ?\n          AND id = ?\n        LIMIT 1\n    ");
-    $stmt->execute([$hash, $hash, $clientId, $employeeId]);
-
-    record_success_attempt($pdo, $clientId, $storeId, $employeeId, $userId, $deviceUuid, 'change_password');
-
-    respond_json([
-        'success' => true,
+    $pdo->beginTransaction();
+    try {
+        $update = $pdo->prepare(
+            'UPDATE employees SET login_password = ?, pin_code = ? '
+            . 'WHERE client_id = ? AND id = ? LIMIT 1'
+        );
+        $update->execute([$hash, $hash, $clientId, $employeeId]);
+        $lockout->recordSuccess($clientId, $employeeId, $userId, $deviceUuid, 'change_password', $now);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+    merd_security_log_event(
+        $log,
+        $_SERVER,
+        'employee_password_change',
+        'success',
+        [
+            'client_id' => $clientId,
+            'employee_id' => $employeeId,
+            'device_id' => (int)$device['id'],
+            'actor_type' => 'employee',
+            'actor_id' => $userId,
+            'request_id' => $requestId,
+        ],
+        ['endpoint' => 'change_password.php', 'action' => 'change_password', 'transport' => $credential['transport']]
+    );
+    merd_api_send(merd_api_success([
         'api' => 'change_password.php',
-        'version' => API_VERSION,
+        'version' => 'secure-password-change-v3',
         'password_storage' => 'password_hash',
         'message' => 'Password changed successfully.',
         'employee_id' => (string)$employeeId,
         'employee_name' => $employee['full_name'] ?? '',
-    ]);
+    ]));
+} catch (MerdRequestException $e) {
+    merd_api_fail($e->errorCode, $e->getMessage(), $e->status, $requestId);
+} catch (MerdAuthLocked $e) {
+    merd_api_fail('authentication_locked', 'Too many attempts. Try again later.', 429, $requestId);
+} catch (MerdSecurityControlUnavailable $e) {
+    merd_api_fail('security_control_unavailable', 'Service temporarily unavailable.', 503, $requestId);
 } catch (Throwable $e) {
-    fail_json('Password change failed.', 500);
+    error_log('change_password request failed');
+    merd_api_fail('internal_error', 'Password change failed.', 500, $requestId);
 }

@@ -76,6 +76,14 @@ function merd_activation_grant_consume(
     return $store->consumeGrantHash($clientId, hash('sha256', $plaintextGrant), $clock);
 }
 
+function merd_setup_key_matches(mixed $stored, string $presented): bool
+{
+    if (!is_string($stored) || $stored === '' || $presented === '') {
+        return false;
+    }
+    return hash_equals(hash('sha256', $stored), hash('sha256', $presented));
+}
+
 function merd_device_token_generate(?callable $randomBytes = null): string
 {
     $generator = $randomBytes ?? static fn (int $length): string => random_bytes($length);
@@ -85,6 +93,164 @@ function merd_device_token_generate(?callable $randomBytes = null): string
 function merd_device_token_hash(string $token): string
 {
     return hash('sha256', $token);
+}
+
+interface MerdDeviceActivationStore
+{
+    public function begin(): void;
+    public function commit(): void;
+    public function rollback(): void;
+    public function eligibleStoreExists(int $clientId, int $storeId): bool;
+    public function activate(
+        int $clientId,
+        int $storeId,
+        string $deviceUuid,
+        string $deviceName,
+        string $tokenHash,
+        DateTimeImmutable $tokenExpiresAt,
+        DateTimeImmutable $previousTokenValidUntil,
+        DateTimeImmutable $now
+    ): int;
+}
+
+final class MerdPdoDeviceActivationStore implements MerdDeviceActivationStore
+{
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
+
+    public function begin(): void
+    {
+        if (!$this->pdo->beginTransaction()) {
+            throw new RuntimeException('Could not begin activation transaction.');
+        }
+    }
+
+    public function commit(): void
+    {
+        if (!$this->pdo->commit()) {
+            throw new RuntimeException('Could not commit activation transaction.');
+        }
+    }
+
+    public function rollback(): void
+    {
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+    }
+
+    public function eligibleStoreExists(int $clientId, int $storeId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id FROM stores WHERE id = ? AND client_id = ? AND status = 'active' LIMIT 1"
+        );
+        $stmt->execute([$storeId, $clientId]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    public function activate(
+        int $clientId,
+        int $storeId,
+        string $deviceUuid,
+        string $deviceName,
+        string $tokenHash,
+        DateTimeImmutable $tokenExpiresAt,
+        DateTimeImmutable $previousTokenValidUntil,
+        DateTimeImmutable $now
+    ): int {
+        $select = $this->pdo->prepare(
+            'SELECT id, client_id, token_hash FROM devices WHERE device_uuid = ? LIMIT 1 FOR UPDATE'
+        );
+        $select->execute([$deviceUuid]);
+        $existing = $select->fetch(PDO::FETCH_ASSOC);
+        $timestamp = $now->format('Y-m-d H:i:s');
+        if (is_array($existing)) {
+            if ((int)$existing['client_id'] !== $clientId) {
+                throw new MerdActivationDenied('Device activation failed.');
+            }
+            $previousHash = trim((string)($existing['token_hash'] ?? ''));
+            $update = $this->pdo->prepare(
+                "UPDATE devices SET store_id = ?, device_name = ?, previous_token_hash = ?, "
+                . 'previous_token_valid_until = ?, token_hash = ?, token_expires_at = ?, '
+                . "token_rotated_at = ?, revoked_at = NULL, activated_at = COALESCE(activated_at, ?), status = 'active' "
+                . 'WHERE id = ? AND client_id = ?'
+            );
+            $update->execute([
+                $storeId,
+                $deviceName,
+                $previousHash !== '' ? $previousHash : null,
+                $previousHash !== '' ? $previousTokenValidUntil->format('Y-m-d H:i:s') : null,
+                $tokenHash,
+                $tokenExpiresAt->format('Y-m-d H:i:s'),
+                $timestamp,
+                $timestamp,
+                $existing['id'],
+                $clientId,
+            ]);
+            return (int)$existing['id'];
+        }
+        $insert = $this->pdo->prepare(
+            'INSERT INTO devices '
+            . '(client_id, store_id, device_uuid, device_name, activation_token, token_hash, '
+            . "token_expires_at, revoked_at, activated_at, status) VALUES (?, ?, ?, ?, NULL, ?, ?, NULL, ?, 'active')"
+        );
+        $insert->execute([
+            $clientId,
+            $storeId,
+            $deviceUuid,
+            $deviceName,
+            $tokenHash,
+            $tokenExpiresAt->format('Y-m-d H:i:s'),
+            $timestamp,
+        ]);
+        return (int)$this->pdo->lastInsertId();
+    }
+}
+
+final class MerdActivationDenied extends RuntimeException
+{
+}
+
+function merd_activate_device(
+    MerdActivationGrantStore $grantStore,
+    MerdDeviceActivationStore $deviceStore,
+    int $clientId,
+    int $storeId,
+    string $grant,
+    string $deviceUuid,
+    string $deviceName,
+    ?DateTimeImmutable $now = null,
+    ?callable $randomBytes = null
+): array {
+    $clock = $now ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    try {
+        $deviceStore->begin();
+        if (!$deviceStore->eligibleStoreExists($clientId, $storeId)
+            || !merd_activation_grant_consume($grantStore, $clientId, $grant, $clock)) {
+            throw new MerdActivationDenied('Device activation failed.');
+        }
+        $token = merd_device_token_generate($randomBytes);
+        $expiresAt = $clock->modify('+180 days');
+        $deviceId = $deviceStore->activate(
+            $clientId,
+            $storeId,
+            $deviceUuid,
+            $deviceName,
+            merd_device_token_hash($token),
+            $expiresAt,
+            $clock->modify('+7 days'),
+            $clock
+        );
+        $deviceStore->commit();
+        return ['token' => $token, 'expires_at' => $expiresAt, 'device_id' => $deviceId];
+    } catch (MerdActivationDenied $e) {
+        $deviceStore->rollback();
+        throw $e;
+    } catch (Throwable $e) {
+        $deviceStore->rollback();
+        throw new MerdSecurityControlUnavailable('Device activation unavailable.', 0, $e);
+    }
 }
 
 function merd_device_auth_extract_token(array $server, array $body = [], array $query = []): array

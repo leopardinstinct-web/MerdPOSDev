@@ -6,7 +6,7 @@ Repository: `leopardinstinct-web/MerdPOSDev`
 
 Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
 
-Current Level 3 branch: `milestone-2-secure-activation-login`
+Current Level 3 branch: `milestone-2a2-activation-auth-endpoints`
 
 ## Authority
 
@@ -57,11 +57,9 @@ future decision.
 - `get_employees.php` does not return password/PIN fields.
 - `change_password.php` hashes the new numeric secret in both
   `login_password` and `pin_code` for legacy compatibility.
-- Login and password-change code uses an optional `employee_auth_attempts`
-  table, but the documented migration file is missing from this commit.
-  Lockout therefore cannot be assumed active in current endpoints. Milestone
-  2A.1 adds the replacement `012` migration draft and fail-closed shared
-  service; endpoint integration remains 2A.2.
+- Login and password change use the 2A.1 fail-closed layered lockout service.
+  Production use still requires separate approval and execution of migration
+  012; no migration is executed by application code.
 - One primary employee persists by employee ID; one temporary secondary user
   is supported. Maximum visible users: two.
 - Device UUID and activation token are stored in `SharedPreferences`, which
@@ -69,12 +67,11 @@ future decision.
 
 ### Setup and activation
 
-The app currently loads stores using company code/setup key, then calls
-`activate_device.php` with client/store/device data. This remains legacy
-behavior through 2A.1. The approved target uses a dedicated POST activation
-grant endpoint, hashed ten-minute grants, hashed 180-day device tokens,
-seven-day previous-token overlap, immediate revocation, and mandatory
-client/store/UUID binding. Endpoint integration remains 2A.2.
+The checked-in Flutter setup flow remains legacy pending Milestone 2B. Backend
+2A.2 adds dedicated POST setup validation and requires its hashed, single-use
+ten-minute grant for activation. New device tokens are stored only as hashes,
+expire after 180 days, allow a seven-day previous-token overlap, revoke
+immediately, and bind client/store/UUID. Remaining backend endpoints await 2A.3.
 
 ### Retail v1
 

@@ -24,7 +24,23 @@ CREATE TABLE devices (
   device_uuid VARCHAR(150) NOT NULL UNIQUE,
   device_name VARCHAR(150) NULL,
   activation_token VARCHAR(150) NULL,
+  token_hash CHAR(64) NULL,
+  previous_token_hash CHAR(64) NULL,
+  token_expires_at DATETIME NULL,
+  previous_token_valid_until DATETIME NULL,
+  token_rotated_at DATETIME NULL,
+  revoked_at DATETIME NULL,
+  activated_at DATETIME NULL,
   status ENUM('active','inactive') DEFAULT 'active',
   last_sync DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE activation_grants (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  grant_hash CHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  consumed_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

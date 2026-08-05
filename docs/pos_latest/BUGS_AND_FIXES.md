@@ -11,10 +11,10 @@ Active non-Timesheet issues:
 - Tracked `config.sample.php` contained a real-looking historical value. Fixed
   in Milestone 1 by replacing values with placeholders. It is treated as
   exposed and already rotated; history cleanup is deferred.
-- Existing login/password endpoints still treat lockout as optional; 2A.1 adds
-  the replacement `012` migration draft and fail-closed service for 2A.2.
-- Device activation proof and token lifecycle are approved and represented in
-  the 2A.1 foundation, but existing endpoints remain legacy until 2A.2.
+- Login/password endpoints use the fail-closed lockout service in 2A.2;
+  migration 012 still requires separate execution approval.
+- Dedicated setup-grant activation and token lifecycle enforcement are
+  integrated for the 2A.2 endpoint set; remaining endpoints await 2A.3.
 - Flutter bearer token is stored in plain SharedPreferences.
 - Retail synchronization is outbound-only and aggregate-acknowledged.
 - Production demo product seeding is not separated from development mode.
@@ -58,10 +58,10 @@ Milestone 2A.1 status:
 - Migration `014` checks the tracked legacy devices shape and aborts on visible
   incompatibility; production schema remains unknown and requires separate
   reconciliation and approval.
-- Lockout persistence is designed to fail closed when integrated in 2A.2.
+- Lockout persistence fails closed in the integrated 2A.2 endpoints.
 - Legacy token transport exists exclusively in the shared device-auth helper.
-- Dedicated POST `request_activation_grant.php` is planned for 2A.2;
-  `get_stores.php` does not issue grants.
+- Dedicated POST `request_activation_grant.php` is implemented in 2A.2;
+  `get_stores.php` remains unchanged and does not issue grants.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint

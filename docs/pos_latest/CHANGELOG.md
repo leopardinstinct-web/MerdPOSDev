@@ -2,6 +2,19 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 2A.2 activation/authentication integration
+
+- Added POST-only setup validation with hashed, single-use ten-minute
+  activation grants and eligible-store discovery.
+- Required a client-bound grant for atomic activation and hash-only 180-day
+  bearer-token issuance, with seven-day previous-token rotation overlap.
+- Integrated client/store/UUID/status/revocation/expiry device authorization
+  and fail-closed layered lockout into login and password change.
+- Preserved client-wide active employee scope, numeric login, password hashing
+  migration, and successful employee/session response fields.
+- Added deterministic endpoint-policy tests. No migrations were executed;
+  remaining non-Timesheet endpoint hardening remains Milestone 2A.3.
+
 ## 2026-08-05 — Milestone 2A.1 security foundation
 
 Changed:
