@@ -25,6 +25,11 @@ Active non-Timesheet issues:
   `merdpos_staff/lib/` and `merdpos_staff/test/`; repository-wide formatting is
   separate technical debt and must not create unrelated application diffs in
   this milestone.
+- The Flutter 3.44.2 analyzer reports 38 pre-existing information-level
+  findings, including deprecations. Milestone 1 keeps them visible without
+  making information findings fatal; they remain separate technical debt.
+  Analyzer errors and warnings remain fatal, and future modified files must not
+  introduce new analyzer errors or warnings.
 
 Milestone 1 CI status:
 

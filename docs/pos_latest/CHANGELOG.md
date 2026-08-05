@@ -22,6 +22,10 @@ Changed:
 - Added local-only model tests and preservation-only Timesheet parser regression
   fixtures. Tests do not call production services.
 - Set debug APK artifact retention to seven days.
+- Adjusted baseline analysis to keep 38 existing information-level findings
+  visible but non-fatal with `flutter analyze --no-fatal-infos`. Errors and
+  warnings remain fatal; future modified files must not introduce new analyzer
+  errors or warnings. The existing findings remain separate technical debt.
 
 Not changed:
 
