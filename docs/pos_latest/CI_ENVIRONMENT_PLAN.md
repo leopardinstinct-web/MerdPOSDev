@@ -14,6 +14,9 @@ revisions and SDK versions. If private-repository policy prevents hosted
 runners, use a dedicated non-production self-hosted runner with no production
 network/database credentials.
 
+Milestone 1 decision: use GitHub Actions with Flutter `3.44.2` exactly. Do not
+install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
+
 ### Jobs
 
 1. **Documentation and repository hygiene**
@@ -42,8 +45,10 @@ network/database credentials.
 4. **Android build**
    - Pinned JDK 17, Flutter, Android SDK platform/build-tools, and Gradle inputs.
    - Build a debug APK for pull requests.
-   - Build a release candidate only on protected/manual workflow after signing
-     policy approval.
+   - Milestone 1 builds a debug APK only.
+   - Retain the debug APK and checksum for seven days.
+   - Production release signing, keystores, release environments, and release
+     distribution are excluded.
    - Upload checksummed artifacts with commit, version, and toolchain metadata.
 
 5. **Security tests**
@@ -56,12 +61,10 @@ network/database credentials.
 ## Signing and secrets
 
 - Do not place production DB/API credentials in CI.
-- Android signing key custody is **requires decision**.
-- Preferred options: protected CI environment secret or external signing
-  service, restricted to manually approved protected-branch releases.
-- Never expose keystore, passwords, tokens, or decoded key material in logs or
-  artifacts.
-- Rotate/revoke access through documented owner-controlled procedure.
+- No Android signing secrets are required or permitted in Milestone 1.
+- `GITHUB_TOKEN` with read-only contents permission is sufficient for current
+  workflows.
+- Future signing-key custody remains a later release decision.
 
 ## Test architecture
 
@@ -77,21 +80,21 @@ network/database credentials.
 
 - Pull request: docs/hygiene, Flutter format/analyze/tests, PHP lint/tests,
   debug Android build.
-- Protected release candidate: all PR gates plus signed build when authorized,
-  artifact manifest, migration review, deployment plan, and rollback plan.
+- Protected release candidate workflow is deferred until separately approved.
 - Production: always a separate explicit approval; CI must not auto-deploy.
 
 ## Version matrix to decide and record
 
-- Flutter exact version/channel.
-- Dart version implied by Flutter.
+- Flutter `3.44.2` stable (approved and exact).
+- Dart version bundled with Flutter `3.44.2`.
 - JDK 17 distribution/version.
 - Android compile/target SDK and build-tools.
 - PHP CLI 8.2 patch line matching hosting as closely as practical.
 - MySQL versus MariaDB test version matching production.
 
-These are **requires decision** until a known-good developer build environment
-or approved production metadata supplies exact values.
+JDK/Android versions are supplied by the pinned Flutter/GitHub runner. The
+missing wrapper was restored from the reviewed artifact produced by a clean
+Flutter 3.44.2 GitHub Actions environment; it was not generated on the VPS.
 
 ## Local development alternative
 
@@ -108,3 +111,27 @@ a reliable PHP CLI is later provided; it must not become the primary builder.
 - Debug APK is traceable to commit and checksum.
 - CI configuration and action dependencies are pinned and reviewable.
 - Production deployment remains disabled by default.
+
+Repository hygiene has one exact legacy exception for
+`timesheet_portal/includes/config.php`. The portal file remains excluded from
+inspection and modification. This exception does not allow any other
+`config.php`, and it requires a future separate security review. The policy
+continues to reject `.env` files, `.deployed_version`, APKs, keystores,
+`build/`, and `.dart_tool/`.
+
+Wrapper restoration was performed by a temporary GitHub Actions workflow using
+a clean Flutter 3.44.2 project on a disposable GitHub-hosted runner with
+read-only repository permission and no secrets or production-system access.
+The artifact contained only the three approved wrapper files and review
+metadata. Its file set, JAR checksum, distribution URL, and executable script
+mode were verified before copying. The temporary workflow was then removed.
+
+## Milestone 1 historical-secret policy
+
+- The previous sample value is considered exposed and already rotated.
+- PR/push scans cover introduced commits with redacted Gitleaks output.
+- A manual full-history scan may identify the historical value.
+- If necessary, record only its Gitleaks fingerprint in a narrowly scoped
+  ignore entry after review.
+- Do not print/test the value, contact production, or rewrite Git history in
+  this milestone.

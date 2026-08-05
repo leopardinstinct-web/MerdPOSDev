@@ -8,7 +8,9 @@ Source baseline: `29de6f4`. Production was not inspected.
 
 Active non-Timesheet issues:
 
-- Tracked `config.sample.php` contains a real-looking value: unresolved.
+- Tracked `config.sample.php` contained a real-looking historical value. Fixed
+  in Milestone 1 by replacing values with placeholders. It is treated as
+  exposed and already rotated; history cleanup is deferred.
 - `backend/sql/001_employee_auth_attempts.sql` is missing; lockout is optional
   at runtime and cannot be assumed active.
 - Device activation proof and token lifecycle/revocation are undefined.
@@ -18,6 +20,30 @@ Active non-Timesheet issues:
 - No automated tests/CI configuration exist.
 - Android uses example application ID and debug release signing.
 - Flutter/Dart/Android toolchain is unavailable on the production VPS.
+- Pre-existing Dart application source is not uniformly formatted. Milestone 1
+  CI checks formatting only for changed tracked Dart files under
+  `merdpos_staff/lib/` and `merdpos_staff/test/`; repository-wide formatting is
+  separate technical debt and must not create unrelated application diffs in
+  this milestone.
+- The Flutter 3.44.2 analyzer reports 38 pre-existing information-level
+  findings, including deprecations. Milestone 1 keeps them visible without
+  making information findings fatal; they remain separate technical debt.
+  Analyzer errors and warnings remain fatal, and future modified files must not
+  introduce new analyzer errors or warnings.
+
+Milestone 1 CI status:
+
+- Flutter 3.44.2 format/analyze/test workflow: implemented, awaits GitHub run.
+- PHP 8.2 syntax workflow: implemented, awaits GitHub run.
+- Redacted Gitleaks workflow: implemented, awaits GitHub run.
+- Debug APK workflow: implemented. The three approved Android wrapper files
+  were restored from the reviewed Flutter 3.44.2 GitHub Actions artifact. The
+  artifact file set, JAR checksum, distribution URL, and executable script mode
+  were verified before copying; no wrapper was generated on the production VPS.
+- Repository hygiene has one exact legacy exception for
+  `timesheet_portal/includes/config.php`. Its contents remain uninspected and
+  unchanged. The exception requires a future separate security review and does
+  not permit any other `config.php`.
 
 Historical entries below describe earlier checkpoints. Where they conflict with
 this block, current source and current authoritative documents win.

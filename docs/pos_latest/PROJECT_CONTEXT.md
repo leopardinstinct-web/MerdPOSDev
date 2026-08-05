@@ -4,9 +4,9 @@ Last reconciled from local source: 2026-08-05
 
 Repository: `leopardinstinct-web/MerdPOSDev`
 
-Documentation baseline commit: `29de6f4430a7e0498561b41be4dfa04b4dfdb83b` (`29de6f4`)
+Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
 
-Development base branch observed during reconciliation: `openclaw-development`
+Current Level 2 branch: `milestone-1-trusted-baseline-ci`
 
 ## Authority
 
@@ -132,21 +132,27 @@ does not have Flutter, Dart, Java, Gradle, Android SDK, ADB, a Gradle wrapper,
 or resolved Flutter package metadata. Android builds must run on CI or a
 dedicated development/build machine, not this production VPS.
 
+Milestone 1 introduces GitHub Actions using Flutter `3.44.2` exactly for
+formatting, analysis, local-fixture tests, and a debug APK build. PHP files are
+parsed with PHP 8.2 CLI in CI. Gitleaks scans changes with redacted output.
+Debug APK artifacts are retained for seven days. Production release signing,
+deployment automation, and production credentials remain excluded.
+
 Android release limitations in source:
 
 - application ID remains `com.example.merdpos_staff`;
 - release build uses debug signing;
 - no landscape lock or dual-display implementation is present;
 - Montserrat is referenced by the theme but is not packaged in `pubspec.yaml`;
-- no Flutter tests are present.
+- Milestone 1 tests cover local model behavior and Timesheet parser regression,
+  but broader feature and integration coverage remains absent.
 
 See `CI_ENVIRONMENT_PLAN.md` and `PRODUCT_ROADMAP_DRAFT.md`.
 
 ## Immediate priorities
 
-1. Resolve the real-looking value in tracked `config.sample.php` without
-   reproducing it; confirm rotation if it was ever valid.
+1. Validate the restored Android wrapper and all Milestone 1 workflows in
+   GitHub Actions.
 2. Define and harden device activation/token lifecycle.
 3. Restore guaranteed numeric-PIN lockout and add automated auth tests.
-4. Establish CI-based Flutter/PHP/Android checks.
-5. Implement reliable bidirectional retail master-data synchronization.
+4. Implement reliable bidirectional retail master-data synchronization.

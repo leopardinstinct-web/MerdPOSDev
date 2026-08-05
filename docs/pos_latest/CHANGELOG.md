@@ -2,6 +2,47 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 1 trusted baseline and CI implementation
+
+Changed:
+
+- Sanitized `backend/api/config.sample.php` to safe placeholders; previous value
+  is treated as historically exposed, rotated, and never reproduced.
+- Added GitHub Actions repository hygiene, PHP 8.2 syntax parsing, Flutter
+  `3.44.2` formatting/analysis/tests, and debug APK build.
+- Added redacted Gitleaks change scanning plus optional manual full-history scan.
+- Added CODEOWNERS for CI/security-sensitive paths.
+- Added one exact legacy repository-hygiene exception for
+  `timesheet_portal/includes/config.php`; the file remains excluded from
+  inspection and modification and requires a future separate security review.
+- Restored `android/gradlew`, `android/gradlew.bat`, and
+  `android/gradle/wrapper/gradle-wrapper.jar` from the reviewed clean Flutter
+  3.44.2 GitHub Actions artifact, then removed the temporary restoration
+  workflow.
+- Added local-only model tests and preservation-only Timesheet parser regression
+  fixtures. Tests do not call production services.
+- Set debug APK artifact retention to seven days.
+- Adjusted baseline analysis to keep 38 existing information-level findings
+  visible but non-fatal with `flutter analyze --no-fatal-infos`. Errors and
+  warnings remain fatal; future modified files must not introduce new analyzer
+  errors or warnings. The existing findings remain separate technical debt.
+
+Not changed:
+
+- No production signing, release workflow, deployment, application ID, Android
+  project regeneration, API behavior, app feature screen, or Timesheet behavior.
+- App/API version reporting is deferred to a separate feature milestone.
+
+Validation status:
+
+- Local structural, hygiene, whitespace, and secret-pattern checks are run on
+  the VPS without installing build tooling.
+- Flutter/PHP/Android workflow execution requires GitHub Actions after separate
+  Level 3 approval to commit/push/open a PR.
+- The restored wrapper targets the existing Gradle 9.1.0 distribution property;
+  no wrapper was generated on the VPS. Flutter/Android execution remains a CI
+  validation step.
+
 ## 2026-08-05 — Documentation reconciliation for source commit 29de6f4
 
 Changed:

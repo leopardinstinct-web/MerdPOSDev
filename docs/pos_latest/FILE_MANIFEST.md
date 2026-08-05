@@ -1,6 +1,6 @@
 # FILE MANIFEST — POS LATEST / MerdPOS
 
-Reconciled against commit `29de6f4` on 2026-08-05.
+Reconciled after documentation merge commit `ae873f8` on 2026-08-05.
 
 ## Documentation authority
 
@@ -67,7 +67,28 @@ Android/build files:
 - `merdpos_staff/pubspec.yaml`, `pubspec.lock`, `analysis_options.yaml`
 
 There is no `merdpos_staff/test/`, Android `gradlew`, or committed release
-signing configuration at this commit.
+signing configuration at the merged baseline. Milestone 1 adds:
+
+- `merdpos_staff/test/baseline_models_test.dart`
+- `merdpos_staff/test/timesheet_parser_regression_test.dart`
+- `merdpos_staff/android/gradlew`
+- `merdpos_staff/android/gradlew.bat`
+- `merdpos_staff/android/gradle/wrapper/gradle-wrapper.jar`
+
+The Timesheet test is preservation-only and does not change application logic.
+The wrapper files were restored from the reviewed clean Flutter 3.44.2 CI
+artifact and match the existing Gradle distribution property.
+
+## GitHub automation
+
+- `.github/workflows/ci.yml` — hygiene, PHP 8.2 lint, Flutter 3.44.2
+  format/analyze/tests, and debug APK build with seven-day retention.
+- `.github/workflows/secret-scan.yml` — redacted Gitleaks change scanning and
+  optional manually requested full-history scan.
+- `.github/CODEOWNERS` — review ownership for CI/security-sensitive paths.
+
+No release-signing workflow, keystore, deployment workflow, or production
+credential is part of Milestone 1.
 
 ## Backend API
 
@@ -94,9 +115,9 @@ Sensitive local-only files:
 - `backend/api/.deployed_version` — ignored deployment marker.
 - `.env`, `*.local.php` — never commit.
 
-`backend/api/config.sample.php` is tracked but currently contains a
-real-looking non-empty value. It must be treated as potentially exposed until
-the owner confirms otherwise. Do not reproduce it.
+`backend/api/config.sample.php` is tracked with safe empty placeholders. The
+previous real-looking value is treated as historically exposed and already
+rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 
 ## Admin and schema
 
