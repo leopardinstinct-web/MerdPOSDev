@@ -28,8 +28,8 @@ Status meanings:
 | Secure device activation | Partial | Backend grant/token lifecycle integration is implemented; Flutter and remaining endpoint migration are pending. |
 | Milestone 2A.1 security foundation | Complete | Migration drafts, shared helpers, isolated tests, review, and CI are complete; production execution remains separately controlled. |
 | Durable PIN lockout | Partial | Login/password integration and deterministic tests are complete; production use awaits migration approval. |
-| Secure app token storage | Missing | Token is stored in `SharedPreferences`. |
-| Token lifecycle policy | Partial | All non-Timesheet device endpoints enforce the shared token lifecycle; migration execution and Flutter secure storage remain pending. |
+| Secure app token storage | Complete | Milestone 2B uses maintained Android-backed secure storage with verified legacy migration and a two-release compatibility value. |
+| Token lifecycle policy | Partial | Backend enforcement and Flutter bearer transport/controlled reactivation are implemented; migration execution remains pending. |
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |

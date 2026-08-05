@@ -32,6 +32,8 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Format-check changed tracked Dart files under `lib/` and `test/`.
    - `flutter analyze --no-fatal-infos`; errors and warnings remain fatal.
    - `flutter test` across the complete project.
+   - Secure-token tests use injected in-memory stores and never contact native
+     secure storage or production services.
    - No production URLs called by tests; inject fake/local transports.
 
 3. **PHP checks**

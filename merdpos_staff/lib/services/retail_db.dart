@@ -524,7 +524,6 @@ class RetailDb {
         'client_id': session.clientId,
         'store_id': session.storeId,
         'device_uuid': session.deviceUuid,
-        'activation_token': session.activationToken,
         'sales': pendingSales,
         'stock_movements': movements,
       };
@@ -553,7 +552,6 @@ class RetailDb {
       'client_id': session.clientId,
       'store_id': session.storeId,
       'device_uuid': session.deviceUuid,
-      'activation_token': session.activationToken,
       'sales': sales,
       'stock_movements': movements,
     };
@@ -567,6 +565,7 @@ class RetailDb {
     final Map<String, dynamic> response = await Api.postJson(
       Uri.parse(kRetailSyncUrl),
       payload,
+      bearerToken: session.activationToken,
     );
     if (response['success'] != true)
       throw Exception(response['error']?.toString() ?? 'Retail sync failed.');

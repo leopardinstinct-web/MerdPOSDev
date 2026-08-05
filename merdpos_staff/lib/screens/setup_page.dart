@@ -18,6 +18,7 @@ class _SetupPageState extends State<SetupPage> {
   Map<String, dynamic>? _client;
   List<Map<String, dynamic>> _stores = <Map<String, dynamic>>[];
   Map<String, dynamic>? _selectedStore;
+  String? _activationGrant;
 
   @override
   void dispose() {
@@ -38,24 +39,28 @@ class _SetupPageState extends State<SetupPage> {
       _client = null;
       _stores = <Map<String, dynamic>>[];
       _selectedStore = null;
+      _activationGrant = null;
     });
     try {
-      final Uri uri = Uri.parse(kGetStoresUrl).replace(
-        queryParameters: {
+      final Map<String, dynamic> payload = await Api.postJson(
+        Uri.parse(kRequestActivationGrantUrl),
+        <String, dynamic>{
           'client_code': _companyCodeController.text.trim(),
           'setup_key': _setupKeyController.text.trim(),
         },
       );
-      final Map<String, dynamic> payload = await Api.getJson(uri);
       if (payload['success'] != true)
         throw Exception(
           payload['error']?.toString() ?? 'Could not load stores.',
         );
       final Object? storesRaw = payload['stores'];
       if (storesRaw is! List) throw Exception('Invalid stores response.');
+      final String grant = payload['activation_grant']?.toString() ?? '';
+      if (grant.isEmpty) throw Exception('Activation grant missing.');
       if (!mounted) return;
       setState(() {
         _client = _asMap(payload['client']);
+        _activationGrant = grant;
         _stores = storesRaw.map((e) => _asMap(e)).toList();
         if (_stores.isNotEmpty) _selectedStore = _stores.first;
       });
@@ -67,7 +72,7 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   Future<void> _activateSelectedStore() async {
-    if (_client == null || _selectedStore == null) return;
+    if (_client == null || _selectedStore == null || _activationGrant == null) return;
     setState(() {
       _activating = true;
       _error = null;
@@ -81,6 +86,7 @@ class _SetupPageState extends State<SetupPage> {
           await Api.postJson(Uri.parse(kActivateDeviceUrl), <String, dynamic>{
             'client_id': _toInt(_client!['id']),
             'store_id': _toInt(_selectedStore!['id']),
+            'activation_grant': _activationGrant,
             'device_uuid': deviceUuid,
             'device_name': 'MerdPOS Staff App',
           });

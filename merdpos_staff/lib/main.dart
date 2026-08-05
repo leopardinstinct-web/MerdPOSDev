@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +19,7 @@ part 'models/timesheet_row.dart';
 part 'models/retail_product.dart';
 part 'models/retail_sale.dart';
 part 'services/api.dart';
+part 'services/device_token_store.dart';
 part 'services/auth_service.dart';
 part 'services/employee_service.dart';
 part 'services/primary_login_store.dart';
@@ -40,7 +42,7 @@ part 'utils/helpers.dart';
 
 const String kAppVersion = '1.1.0-retail-v1';
 const String kApiBaseUrl = 'https://app.merdpos.com/api';
-const String kGetStoresUrl = '$kApiBaseUrl/get_stores.php';
+const String kRequestActivationGrantUrl = '$kApiBaseUrl/request_activation_grant.php';
 const String kActivateDeviceUrl = '$kApiBaseUrl/activate_device.php';
 const String kGetEmployeesUrl = '$kApiBaseUrl/get_employees.php';
 const String kLoginUrl = '$kApiBaseUrl/login.php';
@@ -82,7 +84,14 @@ class _AppBootstrapState extends State<AppBootstrap> {
   @override
   void initState() {
     super.initState();
+    Api.onDeviceAuthorizationFailure = _requireReactivation;
     unawaited(_load());
+  }
+
+  @override
+  void dispose() {
+    Api.onDeviceAuthorizationFailure = null;
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -102,8 +111,13 @@ class _AppBootstrapState extends State<AppBootstrap> {
   }
 
   Future<void> _clearSetup() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await AppSession.requireReactivation();
+    if (!mounted) return;
+    setState(() => _session = null);
+  }
+
+  Future<void> _requireReactivation() async {
+    await AppSession.requireReactivation();
     if (!mounted) return;
     setState(() => _session = null);
   }

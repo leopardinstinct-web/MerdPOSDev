@@ -6,10 +6,9 @@ class AuthService {
       'client_id': session.clientId,
       'store_id': session.storeId,
       'device_uuid': session.deviceUuid,
-      'activation_token': session.activationToken,
       'user_id': userId,
       'password': password,
-    });
+    }, bearerToken: session.activationToken);
     if (payload['success'] != true) throw Exception(payload['error']?.toString() ?? 'Invalid login.');
     final Map<String, dynamic> employeeMap = _asMap(payload['employee'] ?? payload['data']);
     if (employeeMap.isEmpty) throw Exception('Login response missing employee.');

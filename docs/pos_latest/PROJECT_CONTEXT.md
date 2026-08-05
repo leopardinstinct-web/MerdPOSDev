@@ -6,7 +6,7 @@ Repository: `leopardinstinct-web/MerdPOSDev`
 
 Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
 
-Current Level 3 branch: `milestone-2a3-endpoint-hardening`
+Current Level 3 branch: `milestone-2b-secure-token-storage`
 
 ## Authority
 
@@ -62,14 +62,15 @@ future decision.
   012; no migration is executed by application code.
 - One primary employee persists by employee ID; one temporary secondary user
   is supported. Maximum visible users: two.
-- Device UUID and activation token are stored in `SharedPreferences`, which
-  conflicts with the secure-storage requirement.
+- Device tokens use Android-backed secure storage. Existing SharedPreferences
+  tokens migrate silently after a verified write/read round trip and remain for
+  the approved two-release compatibility window; non-secret metadata stays in
+  SharedPreferences.
 
 ### Setup and activation
 
-The checked-in Flutter setup flow remains legacy pending Milestone 2B. Backend
-2A.2 adds dedicated POST setup validation and requires its hashed, single-use
-ten-minute grant for activation. New device tokens are stored only as hashes,
+Flutter setup uses the dedicated POST setup-validation grant and grant-required
+activation contracts. New device tokens are stored only as hashes server-side,
 expire after 180 days, allow a seven-day previous-token overlap, revoke
 immediately, and bind client/store/UUID. Milestone 2A.3 applies the same shared
 authorization to the remaining non-Timesheet device endpoints.

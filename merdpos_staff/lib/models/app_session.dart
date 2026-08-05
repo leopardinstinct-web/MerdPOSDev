@@ -17,14 +17,15 @@ class AppSession {
   final String deviceUuid;
   final String activationToken;
 
-  static Future<AppSession?> load() async {
+  static Future<AppSession?> load({DeviceTokenStore? tokenStore}) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final int? clientId = prefs.getInt('client_id');
     final int? storeId = prefs.getInt('store_id');
     final String? clientName = prefs.getString('client_name');
     final String? storeName = prefs.getString('store_name');
     final String? deviceUuid = prefs.getString('device_uuid');
-    final String? activationToken = prefs.getString('activation_token');
+    final DeviceTokenResult tokenResult = await (tokenStore ?? DeviceTokenStore()).load();
+    final String? activationToken = tokenResult.token;
     if (clientId == null || storeId == null || clientName == null || storeName == null || deviceUuid == null || activationToken == null) return null;
     return AppSession(
       clientId: clientId,
@@ -36,13 +37,16 @@ class AppSession {
     );
   }
 
-  Future<void> save() async {
+  Future<void> save({DeviceTokenStore? tokenStore}) async {
+    await (tokenStore ?? DeviceTokenStore()).save(activationToken);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('client_id', clientId);
     await prefs.setString('client_name', clientName);
     await prefs.setInt('store_id', storeId);
     await prefs.setString('store_name', storeName);
     await prefs.setString('device_uuid', deviceUuid);
-    await prefs.setString('activation_token', activationToken);
   }
+
+  static Future<void> requireReactivation({DeviceTokenStore? tokenStore}) =>
+      (tokenStore ?? DeviceTokenStore()).requireReactivation();
 }

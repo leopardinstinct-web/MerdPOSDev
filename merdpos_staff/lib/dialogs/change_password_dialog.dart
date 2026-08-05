@@ -52,11 +52,10 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
         'client_id': widget.session.clientId,
         'store_id': widget.session.storeId,
         'device_uuid': widget.session.deviceUuid,
-        'activation_token': widget.session.activationToken,
         'employee_id': widget.employee.id,
         'old_password': oldPassword,
         'new_password': newPassword,
-      });
+      }, bearerToken: widget.session.activationToken);
       if (payload['success'] != true) throw Exception(payload['error']?.toString() ?? 'Password change failed.');
       if (!mounted) return;
       Navigator.of(context).pop();

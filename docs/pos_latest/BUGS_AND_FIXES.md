@@ -15,7 +15,8 @@ Active non-Timesheet issues:
   migration 012 still requires separate execution approval.
 - Shared token lifecycle enforcement now covers the non-Timesheet device
   endpoint set through 2A.2/2A.3.
-- Flutter bearer token is stored in plain SharedPreferences.
+- Milestone 2B stores the bearer token in secure storage; removal of the
+  retained compatibility value is scheduled for the third compatible release.
 - Retail synchronization is outbound-only and aggregate-acknowledged.
 - Production demo product seeding is not separated from development mode.
 - Milestone 1 CI and initial Flutter tests are verified; 2A.1 adds deterministic
