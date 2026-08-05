@@ -33,8 +33,9 @@ listed explicitly; historical claims do not override current files.
 1. `config.sample.php` contains a real-looking non-empty value despite the
    documentation saying it is a blank template. Treat it as exposed if genuine;
    never reproduce it.
-2. `employee_auth_attempts` migration is absent. The application silently skips
-   lockout when the table does not exist.
+2. The 2A.1 branch adds a lockout migration draft and fail-closed shared
+   service, but existing endpoints do not use it until 2A.2. Current endpoint
+   code still silently skips lockout when the table does not exist.
 3. Activation issues/rotates a token without proving the setup secret.
 4. Token lifetime, expiry, rotation, and revocation are undefined.
 5. Flutter stores the token in plain `SharedPreferences`.
@@ -43,30 +44,46 @@ listed explicitly; historical claims do not override current files.
    complete device/actor authorization.
 8. Debug/test/init/import endpoints are stored beside production endpoints.
 9. Release builds use debug signing and an example application ID.
-10. No automated security or tenant-isolation tests are present.
+10. Milestone 2A.1 adds deterministic foundation security tests; endpoint-level
+    authorization and tenant-isolation integration tests remain 2A.2/2A.3.
 
-## Password and PIN policy
+## Approved Password and PIN policy
 
 - Current backend hashing behavior is confirmed; it is no longer “unconfirmed.”
 - Minimum numeric PIN length is currently four digits.
 - Raising minimum length or permitting longer numeric PINs is
   **requires decision**.
-- Rate-limit policy (threshold, cooldown, reset, administrator unlock, audit)
-  is **requires decision**. Until implemented durably, numeric login is not
-  considered adequately protected.
+- Five failures for client, user ID, device UUID, and action cause a 15-minute
+  lock. Fifteen failures for the same client, user ID, and action across devices
+  in a rolling 30-minute window cause a 15-minute employee-wide lock. Login and
+  password-change actions remain separate. Missing persistence must fail closed.
+- Future manual unlock requires a same-client authenticated SUPER actor, a
+  reason, and an immutable redacted audit record. No unlock API or UI is part of
+  2A.1.
 
-## Device activation policy
+## Approved device activation policy
 
-Required decisions:
+- Dedicated POST setup validation issues a hashed, single-use ten-minute grant.
+- New tokens are stored only as SHA-256 hashes and expire after 180 days.
+- Rotation may accept the previous hash for seven days; there is no refresh
+  token in Milestone 2. Revocation is immediate.
+- Client, store, UUID, token hash, active status, and non-revoked state are
+  mandatory authorization bindings.
+- Legacy token transport is isolated to the shared device-auth helper for two
+  application releases.
 
-- setup proof and who may activate;
-- token lifetime and refresh;
-- revocation and lost-device process;
-- reactivation/rotation behavior;
-- device inventory visibility and secret redaction;
-- secure storage and migration for installed devices.
+The 2A.1 code provides migrations and shared helpers only. Endpoint enforcement
+begins in 2A.2 after review.
 
-No new activation scheme may be invented before these decisions are approved.
+## Security logging
+
+- Retain redacted security events for 90 days.
+- Use `REMOTE_ADDR` only; forwarding headers remain untrusted unless a future
+  trusted-proxy configuration explicitly says otherwise.
+- Never retain tokens, grants, PINs, passwords, setup keys, payroll payloads,
+  or full request bodies. User-agent and metadata values are bounded.
+- Logging failures expose no internal detail and must not weaken required
+  authentication controls.
 
 ## API and deployment policy
 
@@ -77,7 +94,8 @@ No new activation scheme may be invented before these decisions are approved.
   require wildcard browser CORS.
 - API errors must not return SQL, exception text, stack traces, paths, database
   shape, secrets, or full personal/payroll payloads.
-- Production logging/retention/redaction policy is **requires decision**.
+- Security-event retention is approved at 90 days; production scheduling and
+  migration execution still require separate deployment approval.
 
 ## Release security
 

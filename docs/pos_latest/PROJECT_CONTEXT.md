@@ -6,7 +6,7 @@ Repository: `leopardinstinct-web/MerdPOSDev`
 
 Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
 
-Current Level 2 branch: `milestone-1-trusted-baseline-ci`
+Current Level 3 branch: `milestone-2-secure-activation-login`
 
 ## Authority
 
@@ -59,7 +59,9 @@ future decision.
   `login_password` and `pin_code` for legacy compatibility.
 - Login and password-change code uses an optional `employee_auth_attempts`
   table, but the documented migration file is missing from this commit.
-  Lockout therefore cannot be assumed active.
+  Lockout therefore cannot be assumed active in current endpoints. Milestone
+  2A.1 adds the replacement `012` migration draft and fail-closed shared
+  service; endpoint integration remains 2A.2.
 - One primary employee persists by employee ID; one temporary secondary user
   is supported. Maximum visible users: two.
 - Device UUID and activation token are stored in `SharedPreferences`, which
@@ -67,11 +69,12 @@ future decision.
 
 ### Setup and activation
 
-The app loads stores using company code/setup key, then calls
-`activate_device.php` with client/store/device data. The endpoint issues or
-rotates a random bearer token. Token lifetime, expiry, revocation, and secure
-re-activation policy are **requires decision**. The endpoint currently does not
-prove possession of the setup key when issuing the token.
+The app currently loads stores using company code/setup key, then calls
+`activate_device.php` with client/store/device data. This remains legacy
+behavior through 2A.1. The approved target uses a dedicated POST activation
+grant endpoint, hashed ten-minute grants, hashed 180-day device tokens,
+seven-day previous-token overlap, immediate revocation, and mandatory
+client/store/UUID binding. Endpoint integration remains 2A.2.
 
 ### Retail v1
 
@@ -149,10 +152,23 @@ Android release limitations in source:
 
 See `CI_ENVIRONMENT_PLAN.md` and `PRODUCT_ROADMAP_DRAFT.md`.
 
+## Milestone 2A.1 security foundation
+
+The `milestone-2-secure-activation-login` branch adds additive migration drafts,
+shared PHP security components, and deterministic backend tests. Existing API
+endpoints are intentionally unchanged. Integration is 2A.2/2A.3; Flutter secure
+storage is 2B after backend CI and review.
+
+The only tracked `devices` definition uses integer client/store IDs,
+`device_uuid VARCHAR(150)`, plaintext `activation_token VARCHAR(150)`, and no
+token lifecycle columns. Production schema is unknown. Migration `014` checks
+visible preconditions, adds no speculative indexes or `updated_at`, and requires
+separate approval before database execution.
+
 ## Immediate priorities
 
-1. Validate the restored Android wrapper and all Milestone 1 workflows in
-   GitHub Actions.
-2. Define and harden device activation/token lifecycle.
-3. Restore guaranteed numeric-PIN lockout and add automated auth tests.
+1. Review and validate Milestone 2A.1 in GitHub Actions.
+2. Integrate the approved activation, device authorization, and lockout
+   foundation into endpoints in Milestone 2A.2.
+3. Harden remaining non-Timesheet endpoints in Milestone 2A.3.
 4. Implement reliable bidirectional retail master-data synchronization.

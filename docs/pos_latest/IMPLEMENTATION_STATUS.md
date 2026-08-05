@@ -1,7 +1,7 @@
 # Implementation Status — POS LATEST
 
-Source baseline: documentation merge commit `ae873f8` plus uncommitted Level 2
-Milestone 1 work. Status reflects source only, not production deployment.
+Source baseline: current `milestone-2-secure-activation-login` branch.
+Status reflects source only, not production deployment.
 Existing Timesheet is preserved and excluded from new roadmap scoring.
 
 Status meanings:
@@ -14,20 +14,22 @@ Status meanings:
 | Roadmap feature | Status | Current evidence / gap |
 |---|---|---|
 | Documentation authority/current state | Complete | Authoritative pack merged in PR #1; legacy pack deprecated. |
-| CI pipeline | Partial | Workflows implemented locally; GitHub execution awaits push/PR approval. |
+| CI pipeline | Complete | Milestone 1 CI is merged and verified; 2A.1 adds its deterministic backend harness to the existing PHP job. |
 | Repository-wide Dart formatting | Partial | Changed `lib/` and `test/` Dart files are CI-gated; pre-existing formatting debt is deferred to a separate cleanup. |
 | Flutter analyzer information debt | Partial | 38 existing information-level findings remain visible but non-fatal; errors and warnings remain fatal, and modified files must not introduce either. |
-| Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests added; not yet run in CI. |
-| PHP lint/backend tests | Partial | PHP 8.2 syntax job added; backend unit/integration harness remains missing. |
-| Android CI build | Partial | Debug job and reviewed Gradle wrapper are present; successful GitHub Actions execution remains required. |
+| Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests run in CI; broader coverage remains incomplete. |
+| PHP lint/backend tests | Partial | PHP 8.2 lint and deterministic 2A.1 security tests run in CI; endpoint/database integration tests remain pending. |
+| Android CI build | Complete | Debug build and reviewed Gradle wrapper are merged and verified in Milestone 1 CI. |
 | Secret-free sample configuration | Complete | Sample values replaced with placeholders; historical value treated as rotated. |
 | Numeric backend login | Complete | `login.php` plus Flutter `AuthService`. |
 | Password hashing/migration | Complete | `password_hash()`/`password_verify()` and transparent upgrade. |
-| PIN brute-force protection | Partial | Code supports optional attempts table; migration is missing. |
+| PIN brute-force protection | Partial | Existing endpoints remain optional/fail-open; 2A.1 adds the approved migration draft and fail-closed service for 2A.2 integration. |
 | Primary/secondary employee sessions | Complete | Maximum two; primary persistence and promotion implemented. |
 | Secure device activation | Partial | Token issuance exists; setup proof/lifecycle/revocation incomplete. |
+| Milestone 2A.1 security foundation | Partial | Migration drafts, shared helpers, and isolated tests are implemented; endpoint integration and migration execution remain pending. |
+| Durable PIN lockout | Partial | Approved layered policy exists in a tested shared service; existing login/password endpoints remain unchanged until 2A.2. |
 | Secure app token storage | Missing | Token is stored in `SharedPreferences`. |
-| Token lifecycle policy | Blocked | Requires product/security decision. |
+| Token lifecycle policy | Partial | Policy is approved and represented in 2A.1 migrations/helpers; endpoint enforcement remains 2A.2. |
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |

@@ -14,21 +14,20 @@ was called.
 
 ## Device token model
 
-`activate_device.php` creates a 32-byte random token represented as hex and
-upserts it by device UUID. Current device-authenticated endpoints compare some
-combination of client, store, UUID, token, and active status.
+Current endpoint behavior remains legacy until Milestone 2A.2. Milestone 2A.1
+adds shared, independently tested foundation code and additive migration drafts
+without importing those helpers into existing endpoints.
 
-The following are **requires decision**:
+The approved target contract uses a dedicated POST
+`request_activation_grant.php` for a hashed, single-use ten-minute grant. New
+bearer tokens are stored only as SHA-256 hashes, expire after 180 days, revoke
+immediately, and may retain the previous hash for a seven-day overlap. Every
+authenticated request binds client, store, UUID, token hash, active status, and
+non-revoked state. The shared device-auth helper alone accepts legacy
+`activation_token` transport for two application releases.
 
-- proof required to activate/re-activate a device;
-- expiry and refresh;
-- explicit revocation;
-- token rotation and overlap;
-- lost/replaced device handling;
-- whether every endpoint must bind the UUID as well as the token.
-
-Until decided, treat the token as a permanent bearer secret and do not expand
-the activation design by assumption.
+No endpoint contract changes take effect in 2A.1. `get_stores.php` remains the
+legacy compatibility endpoint and will not be expanded to issue grants.
 
 ## Flutter-used endpoints
 
@@ -117,7 +116,7 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 
 ## Contract work required
 
-1. Decide activation-token lifecycle and setup proof.
+1. Implement the approved activation grant and device-token lifecycle in 2A.2.
 2. Define a versioned standard success/error envelope.
 3. Document every non-Timesheet utility endpoint or remove it from deploys.
 4. Define product/price/stock download and incremental-sync contracts.
