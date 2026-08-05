@@ -2,6 +2,22 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 2B.1 post-merge reconciliation
+
+- Reconciled authoritative current-state documentation after merged Milestones
+  2A.1–2A.3 and 2B.
+- Marked M1 source-complete but deployment-gated: migrations 012–015 remain
+  unexecuted, and production activation, lockout, token lifecycle, and audit
+  behavior remain unavailable pending schema reconciliation, approval, and
+  deployment.
+- Recorded legacy SharedPreferences token removal as due in the third compatible
+  release.
+- Identified M2 canonical catalogue and inbound synchronization as the next
+  product milestone while preserving its unresolved identifier, ownership,
+  pricing, tax, stock, initial-sync, and tombstone decisions.
+- No code, migration, production, deployment, Timesheet, or payroll behavior
+  changed.
+
 ## 2026-08-05 — Milestone 2B secure token storage
 
 - Added maintained `flutter_secure_storage` integration behind injectable

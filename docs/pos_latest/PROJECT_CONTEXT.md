@@ -4,9 +4,10 @@ Last reconciled from local source: 2026-08-05
 
 Repository: `leopardinstinct-web/MerdPOSDev`
 
-Merged documentation baseline: `ae873f86f2390f5becba5679dfb0de887d489dd3` (`ae873f8`)
+Merged source baseline: `561a55108dcbfd5a411bb72b2d92df7226c2e62c` (`561a551`)
 
-Current Level 3 branch: `milestone-2b-secure-token-storage`
+Current planning state: Milestone 1 is source-complete through merged Milestone
+2B. Production use of its security controls remains deployment-gated.
 
 ## Authority
 
@@ -151,12 +152,19 @@ Android release limitations in source:
 
 See `CI_ENVIRONMENT_PLAN.md` and `PRODUCT_ROADMAP_DRAFT.md`.
 
-## Milestone 2A.1 security foundation
+## Milestone 1 security implementation and deployment gate
 
-The `milestone-2-secure-activation-login` branch adds additive migration drafts,
-shared PHP security components, and deterministic backend tests. Existing API
-endpoints are intentionally unchanged. Integration is 2A.2/2A.3; Flutter secure
-storage is 2B after backend CI and review.
+Milestones 2A.1, 2A.2, 2A.3, and 2B are merged. Source now includes additive
+migration drafts, shared PHP security components, activation/authentication and
+non-Timesheet endpoint integration, deterministic tests, bearer transport, and
+verified Flutter secure-token migration.
+
+Migrations `012_employee_auth_attempts.sql`, `013_activation_grants.sql`,
+`014_device_token_security.sql`, and `015_security_audit_events.sql` remain
+unexecuted. Production activation, lockout, token lifecycle, and security-audit
+behavior remain unavailable until the production schema is reconciled, the
+migrations and deployment are separately approved, and the reviewed code and
+schema changes are deployed.
 
 The only tracked `devices` definition uses integer client/store IDs,
 `device_uuid VARCHAR(150)`, plaintext `activation_token VARCHAR(150)`, and no
@@ -164,10 +172,16 @@ token lifecycle columns. Production schema is unknown. Migration `014` checks
 visible preconditions, adds no speculative indexes or `updated_at`, and requires
 separate approval before database execution.
 
-## Immediate priorities
+The legacy SharedPreferences token remains for the approved two-compatible-
+release window and is due for removal in the third compatible release.
 
-1. Review and validate Milestone 2A.1 in GitHub Actions.
-2. Integrate the approved activation, device authorization, and lockout
-   foundation into endpoints in Milestone 2A.2.
-3. Review Milestone 2A.3 endpoint hardening and keep migrations deployment-gated.
-4. Implement reliable bidirectional retail master-data synchronization.
+## Next product milestone
+
+M2 — Canonical catalogue and inbound synchronization is next. Implementation
+must not begin by guessing unresolved catalogue policy. Product-owner decisions
+are still required for the canonical product identifier; ownership of product,
+category, price, tax, and stock data; global versus store-specific pricing; tax
+representation and authority; stock authority and initial-sync semantics; and
+disabled-product/tombstone behavior. Server-schema verification is also a
+separate approval boundary. Existing Timesheet and payroll behavior remains
+preserved and excluded.

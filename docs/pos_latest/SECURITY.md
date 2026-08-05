@@ -34,14 +34,14 @@ listed explicitly; historical claims do not override current files.
    documentation saying it is a blank template. Treat it as exposed if genuine;
    never reproduce it.
 2. Milestone 2A.2 integrates fail-closed lockout into login and password
-   change; production use still depends on separately approved migration 012.
+   change; migration 012 remains unexecuted.
 3. Milestone 2A.2 replaces client/store-only activation with a dedicated
-   setup-validation grant flow; production use depends on migrations 013–015.
+   setup-validation grant flow; migrations 013–015 remain unexecuted.
 4. Token lifecycle enforcement is integrated across the non-Timesheet device
    endpoint set in 2A.2/2A.3.
-5. Milestone 2B moves the token to maintained secure storage; the legacy
-   SharedPreferences value is retained for two compatible releases and must be
-   removed in the third.
+5. Merged Milestone 2B moves the token to maintained secure storage; the legacy
+   SharedPreferences value is retained for two compatible releases and is due
+   for removal in the third compatible release.
 6. Sensitive APIs use wildcard CORS.
 7. Normal non-Timesheet endpoints use shared authorization; isolated database
    endpoint tests remain future CI work.
@@ -77,9 +77,11 @@ listed explicitly; historical claims do not override current files.
 - Legacy token transport is isolated to the shared device-auth helper for two
   application releases.
 
-The 2A.2 code enforces this model in activation, login, and password change.
-Deployment is blocked until migrations 012–015 are separately approved and
-reconciled with the target schema.
+Merged 2A.2/2A.3 source enforces this model across the non-Timesheet device
+endpoint set. Migrations 012–015 remain unexecuted. Production activation,
+lockout, token lifecycle, and security-audit behavior remain unavailable until
+the target schema is reconciled and migration execution and deployment are
+separately approved and completed.
 
 ## Security logging
 

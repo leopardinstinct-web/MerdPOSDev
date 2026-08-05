@@ -1,6 +1,6 @@
 # API Contract — POS LATEST / MerdPOS
 
-Source reconciliation baseline: merge commit `ae873f8`, 2026-08-05. This
+Source reconciliation baseline: merge commit `561a551`, 2026-08-05. This
 describes checked-in code, not verified production behavior. No production API
 was called.
 
@@ -134,12 +134,12 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 
 ## Contract work required
 
-1. Implement the approved activation grant and device-token lifecycle in 2A.2.
-2. Define a versioned standard success/error envelope.
-3. Document every non-Timesheet utility endpoint or remove it from deploys.
-4. Define product/price/stock download and incremental-sync contracts.
-5. Define per-record retail acknowledgement and conflict responses.
-6. Define API compatibility/versioning and deprecation policy.
+1. Define a versioned standard success/error envelope.
+2. Document every non-Timesheet utility endpoint or remove it from deploys.
+3. After product-owner decisions, define product/category/price/tax/stock
+   download and incremental-sync contracts without inventing catalogue rules.
+4. Define per-record retail acknowledgement and conflict responses.
+5. Define API compatibility/versioning and deprecation policy.
 
 ## Milestone 1 CI boundary
 
