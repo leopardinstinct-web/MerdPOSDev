@@ -8,7 +8,9 @@ Source baseline: `29de6f4`. Production was not inspected.
 
 Active non-Timesheet issues:
 
-- Tracked `config.sample.php` contains a real-looking value: unresolved.
+- Tracked `config.sample.php` contained a real-looking historical value. Fixed
+  in Milestone 1 by replacing values with placeholders. It is treated as
+  exposed and already rotated; history cleanup is deferred.
 - `backend/sql/001_employee_auth_attempts.sql` is missing; lockout is optional
   at runtime and cannot be assumed active.
 - Device activation proof and token lifecycle/revocation are undefined.
@@ -18,6 +20,20 @@ Active non-Timesheet issues:
 - No automated tests/CI configuration exist.
 - Android uses example application ID and debug release signing.
 - Flutter/Dart/Android toolchain is unavailable on the production VPS.
+
+Milestone 1 CI status:
+
+- Flutter 3.44.2 format/analyze/test workflow: implemented, awaits GitHub run.
+- PHP 8.2 syntax workflow: implemented, awaits GitHub run.
+- Redacted Gitleaks workflow: implemented, awaits GitHub run.
+- Debug APK workflow: implemented. The repository currently lacks the three
+  approved Android wrapper files; restore them only from the reviewed artifact
+  produced by the temporary Flutter 3.44.2 GitHub Actions workflow, never on
+  the production VPS.
+- Repository hygiene has one exact legacy exception for
+  `timesheet_portal/includes/config.php`. Its contents remain uninspected and
+  unchanged. The exception requires a future separate security review and does
+  not permit any other `config.php`.
 
 Historical entries below describe earlier checkpoints. Where they conflict with
 this block, current source and current authoritative documents win.

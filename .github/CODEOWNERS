@@ -1,0 +1,9 @@
+# Default review owner
+* @leopardinstinct-web
+
+# CI, security, release, API, schema, and authoritative guidance
+/.github/ @leopardinstinct-web
+/backend/api/ @leopardinstinct-web
+/backend/sql/ @leopardinstinct-web
+/merdpos_staff/android/ @leopardinstinct-web
+/docs/pos_latest/ @leopardinstinct-web

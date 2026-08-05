@@ -2,6 +2,41 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-05 — Milestone 1 trusted baseline and CI implementation
+
+Changed:
+
+- Sanitized `backend/api/config.sample.php` to safe placeholders; previous value
+  is treated as historically exposed, rotated, and never reproduced.
+- Added GitHub Actions repository hygiene, PHP 8.2 syntax parsing, Flutter
+  `3.44.2` formatting/analysis/tests, and debug APK build.
+- Added redacted Gitleaks change scanning plus optional manual full-history scan.
+- Added CODEOWNERS for CI/security-sensitive paths.
+- Added one exact legacy repository-hygiene exception for
+  `timesheet_portal/includes/config.php`; the file remains excluded from
+  inspection and modification and requires a future separate security review.
+- Added a temporary, manually dispatched, read-only GitHub Actions workflow to
+  generate the three missing Android wrapper files from a clean Flutter 3.44.2
+  project for review.
+- Added local-only model tests and preservation-only Timesheet parser regression
+  fixtures. Tests do not call production services.
+- Set debug APK artifact retention to seven days.
+
+Not changed:
+
+- No production signing, release workflow, deployment, application ID, Android
+  project regeneration, API behavior, app feature screen, or Timesheet behavior.
+- App/API version reporting is deferred to a separate feature milestone.
+
+Validation status:
+
+- Local structural, hygiene, whitespace, and secret-pattern checks are run on
+  the VPS without installing build tooling.
+- Flutter/PHP/Android workflow execution requires GitHub Actions after separate
+  Level 3 approval to commit/push/open a PR.
+- Android debug build may be blocked by the missing Gradle wrapper; no wrapper
+  is generated on the VPS.
+
 ## 2026-08-05 — Documentation reconciliation for source commit 29de6f4
 
 Changed:

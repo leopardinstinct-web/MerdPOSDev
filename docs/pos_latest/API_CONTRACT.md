@@ -1,7 +1,8 @@
 # API Contract — POS LATEST / MerdPOS
 
-Source reconciliation: commit `29de6f4`, 2026-08-05. This describes checked-in
-code, not verified production behavior. No production API was called.
+Source reconciliation baseline: merge commit `ae873f8`, 2026-08-05. This
+describes checked-in code, not verified production behavior. No production API
+was called.
 
 ## Base and transport
 
@@ -122,3 +123,10 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 4. Define product/price/stock download and incremental-sync contracts.
 5. Define per-record retail acknowledgement and conflict responses.
 6. Define API compatibility/versioning and deprecation policy.
+
+## Milestone 1 CI boundary
+
+Milestone 1 does not change endpoint behavior or `version_check.php`. PHP CI
+uses syntax parsing only and never executes endpoint files. App/API version
+reporting remains a separate approved feature milestone after the CI foundation
+passes.

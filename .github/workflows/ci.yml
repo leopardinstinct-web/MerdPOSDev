@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject forbidden tracked files
+        shell: bash
+        run: |
+          set -euo pipefail
+          violations="$({
+            # Legacy portal exception: this one exact tracked path is excluded
+            # pending a separate security review. Do not broaden this filter.
+            git ls-files | grep -E '(^|/)config\.php$' |
+              grep -vxF 'timesheet_portal/includes/config.php' || true
+            git ls-files | grep -E '(^|/)\.env($|\.)' || true
+            git ls-files | grep -E '(^|/)\.deployed_version$' || true
+            git ls-files | grep -Ei '\.apk$' || true
+            git ls-files | grep -Ei '\.(jks|keystore|p12|pfx)$' || true
+            git ls-files | grep -E '(^|/)key\.properties$' || true
+            git ls-files | grep -E '(^|/)build/' || true
+            git ls-files | grep -E '(^|/)\.dart_tool/' || true
+          } | sort -u)"
+          if [[ -n "$violations" ]]; then
+            echo "Forbidden tracked paths detected:"
+            printf '%s\n' "$violations"
+            exit 1
+          fi
+
+      - name: Check patch whitespace
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            base="$BEFORE_SHA"
+          else
+            base="$(git rev-parse HEAD^)"
+          fi
+          git diff --check "$base" HEAD
+
+      - name: Ensure tests are local-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIl --include='*_test.dart' 'app\.merdpos\.com' merdpos_staff/test; then
+            echo "Tests must not reference the production API host."
+            exit 1
+          fi
+
+  php-lint:
+    name: PHP 8.2 lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2 CLI
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Parse tracked PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z backend |
+            while IFS= read -r -d '' file; do
+              if [[ "$file" != *.php || "$file" == "backend/api/config.php" ]]; then
+                continue
+              fi
+              php -n -l "$file"
+            done
+
+  flutter-checks:
+    name: Flutter 3.44.2 analysis and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: merdpos_staff
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter 3.44.2
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.2'
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  android-debug-build:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    needs:
+      - repository-hygiene
+      - flutter-checks
+    defaults:
+      run:
+        working-directory: merdpos_staff
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter 3.44.2
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.2'
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Create checksum
+        run: sha256sum build/app/outputs/flutter-apk/app-debug.apk > build/app/outputs/flutter-apk/app-debug.apk.sha256
+
+      - name: Upload debug artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: merdpos-debug-${{ github.sha }}
+          path: |
+            merdpos_staff/build/app/outputs/flutter-apk/app-debug.apk
+            merdpos_staff/build/app/outputs/flutter-apk/app-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 7

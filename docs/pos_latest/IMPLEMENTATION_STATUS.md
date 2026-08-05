@@ -1,8 +1,8 @@
 # Implementation Status — POS LATEST
 
-Source baseline: commit `29de6f4`. Status reflects checked-in source only, not
-production deployment. Existing Timesheet is preserved and excluded from new
-roadmap scoring.
+Source baseline: documentation merge commit `ae873f8` plus uncommitted Level 2
+Milestone 1 work. Status reflects source only, not production deployment.
+Existing Timesheet is preserved and excluded from new roadmap scoring.
 
 Status meanings:
 
@@ -13,12 +13,12 @@ Status meanings:
 
 | Roadmap feature | Status | Current evidence / gap |
 |---|---|---|
-| Documentation authority/current state | Partial | New pack exists but is untracked and legacy packs coexist. |
-| CI pipeline | Missing | No CI configuration or runnable VPS Flutter toolchain found. |
-| Automated Flutter tests | Missing | No `merdpos_staff/test/`. |
-| PHP lint/backend tests | Missing | No test suite; VPS PHP command is a problematic CGI wrapper. |
-| Android CI build | Missing | No Flutter/Java/SDK/Gradle environment on VPS; no wrapper. |
-| Secret-free sample configuration | Partial | `config.php` ignored, but sample contains a real-looking value. |
+| Documentation authority/current state | Complete | Authoritative pack merged in PR #1; legacy pack deprecated. |
+| CI pipeline | Partial | Workflows implemented locally; GitHub execution awaits push/PR approval. |
+| Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests added; not yet run in CI. |
+| PHP lint/backend tests | Partial | PHP 8.2 syntax job added; backend unit/integration harness remains missing. |
+| Android CI build | Blocked | Debug job added, but repository lacks `android/gradlew`; CI result is required before remediation. |
+| Secret-free sample configuration | Complete | Sample values replaced with placeholders; historical value treated as rotated. |
 | Numeric backend login | Complete | `login.php` plus Flutter `AuthService`. |
 | Password hashing/migration | Complete | `password_hash()`/`password_verify()` and transparent upgrade. |
 | PIN brute-force protection | Partial | Code supports optional attempts table; migration is missing. |
