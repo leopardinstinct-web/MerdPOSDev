@@ -2,6 +2,11 @@ name: Restore Android Gradle wrapper
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - milestone-1-trusted-baseline-ci
+    paths:
+      - '.github/workflows/restore-gradle-wrapper.yml'
 
 permissions:
   contents: read
