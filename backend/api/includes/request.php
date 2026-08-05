@@ -20,6 +20,14 @@ function merd_request_require_method(array $server, string $expected): void
     }
 }
 
+function merd_request_require_json_content_type(array $server): void
+{
+    $contentType = strtolower(trim((string)($server['CONTENT_TYPE'] ?? '')));
+    if (!preg_match('/^application\/json(?:\s*;|$)/', $contentType)) {
+        throw new MerdRequestException('unsupported_media_type', 415, 'JSON request required.');
+    }
+}
+
 function merd_request_json(string $raw): array
 {
     try {
@@ -49,6 +57,20 @@ function merd_request_text(mixed $value, string $field, int $maxLength, bool $al
     }
     $text = trim((string)$value);
     if ((!$allowEmpty && $text === '') || strlen($text) > $maxLength) {
+        throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
+    }
+    return $text;
+}
+
+function merd_request_numeric_string(mixed $value, int $minLength = 1, int $maxLength = 20): string
+{
+    if (!is_string($value) && !is_int($value)) {
+        throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
+    }
+    $text = trim((string)$value);
+    if (!preg_match('/^\d+$/', $text)
+        || strlen($text) < $minLength
+        || strlen($text) > $maxLength) {
         throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
     }
     return $text;

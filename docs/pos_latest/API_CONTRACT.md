@@ -14,9 +14,10 @@ was called.
 
 ## Device token model
 
-Current endpoint behavior remains legacy until Milestone 2A.2. Milestone 2A.1
-adds shared, independently tested foundation code and additive migration drafts
-without importing those helpers into existing endpoints.
+Milestone 2A.2 integrates the 2A.1 security foundation into activation,
+login, and password change. Remaining non-Timesheet device endpoints retain
+legacy authorization until 2A.3, so this endpoint set must not be deployed
+before the approved migrations or as an isolated production subset.
 
 The approved target contract uses a dedicated POST
 `request_activation_grant.php` for a hashed, single-use ten-minute grant. New
@@ -26,8 +27,17 @@ authenticated request binds client, store, UUID, token hash, active status, and
 non-revoked state. The shared device-auth helper alone accepts legacy
 `activation_token` transport for two application releases.
 
-No endpoint contract changes take effect in 2A.1. `get_stores.php` remains the
-legacy compatibility endpoint and will not be expanded to issue grants.
+`get_stores.php` remains the legacy compatibility endpoint and is not expanded
+to issue grants.
+
+### `request_activation_grant.php`
+
+- Method/content: POST with `application/json` only.
+- Input: `client_code`, `setup_key`.
+- Success: client display data, active eligible stores, one plaintext
+  `activation_grant`, and `grant_expires_at`.
+- Security: the grant is random, stored only as SHA-256, client-bound,
+  single-use, and valid for ten minutes. Neither setup key nor grant is logged.
 
 ## Flutter-used endpoints
 
@@ -41,11 +51,14 @@ legacy compatibility endpoint and will not be expanded to issue grants.
 
 ### `activate_device.php`
 
-- Intended method: POST JSON; source does not enforce the method.
-- Input: `client_id`, `store_id`, `device_uuid`, optional `device_name`.
-- Output: `success`, `activation_token`.
-- Current issue: the endpoint does not verify company setup authorization when
-  issuing/rotating a token.
+- Method/content: POST with `application/json` only.
+- Input: `client_id`, selected `store_id`, `activation_grant`, `device_uuid`,
+  optional `device_name`.
+- Success: plaintext `activation_token` returned once, `token_type: Bearer`,
+  and a 180-day expiry.
+- Security: grant consumption and token persistence are atomic; only the token
+  hash is stored. The selected store must belong to the grant's client.
+  Rotation retains the previous hash for seven days.
 
 ### `get_employees.php`
 
@@ -58,24 +71,27 @@ legacy compatibility endpoint and will not be expanded to issue grants.
 ### `login.php`
 
 - Method: POST JSON (OPTIONS supported).
-- Version: `hashed-login-v1`.
+- Version: `secure-login-v2`.
 - Input: `client_id`, `store_id`, `device_uuid`, `activation_token`, numeric
   `user_id`, numeric `password` of at least four digits.
-- Auth: active device matching client/store/UUID/token; active client employee.
+- Auth: bearer preferred; the shared helper alone accepts the legacy body token.
+  Authorization binds hash, client/store/UUID, active state, revocation, and
+  expiry. Employees remain client-wide and must be active.
 - Password: verify supported hash or legacy plaintext; successful legacy login
   upgrades both secret columns with `password_hash()`.
 - Output: sanitized employee record plus password-storage/migration metadata.
-- Lockout: conditional on `employee_auth_attempts` existing. Its migration is
-  missing at this commit, so protection is not guaranteed.
+- Lockout: fail-closed five-attempt per-device and fifteen-attempt employee-wide
+  policy through the shared durable lockout service.
 
 ### `change_password.php`
 
 - Method: POST JSON (OPTIONS supported).
-- Version: `hashed-password-change-v2`.
+- Version: `secure-password-change-v3`.
 - Input: device credentials, `employee_id`, numeric `old_password`, numeric
   `new_password` of at least four digits.
 - Stores one `password_hash()` in both legacy secret fields.
-- Lockout has the same missing-table limitation as login.
+- Uses the same device authorization and fail-closed lockout foundation as
+  login, with its own `change_password` counter.
 
 ### `get_timesheet.php`
 

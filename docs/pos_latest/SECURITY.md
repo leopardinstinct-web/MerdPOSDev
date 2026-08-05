@@ -33,19 +33,21 @@ listed explicitly; historical claims do not override current files.
 1. `config.sample.php` contains a real-looking non-empty value despite the
    documentation saying it is a blank template. Treat it as exposed if genuine;
    never reproduce it.
-2. The 2A.1 branch adds a lockout migration draft and fail-closed shared
-   service, but existing endpoints do not use it until 2A.2. Current endpoint
-   code still silently skips lockout when the table does not exist.
-3. Activation issues/rotates a token without proving the setup secret.
-4. Token lifetime, expiry, rotation, and revocation are undefined.
+2. Milestone 2A.2 integrates fail-closed lockout into login and password
+   change; production use still depends on separately approved migration 012.
+3. Milestone 2A.2 replaces client/store-only activation with a dedicated
+   setup-validation grant flow; production use depends on migrations 013–015.
+4. Token lifecycle enforcement is integrated for the 2A.2 endpoint set;
+   remaining non-Timesheet endpoints await 2A.3.
 5. Flutter stores the token in plain `SharedPreferences`.
 6. Sensitive APIs use wildcard CORS.
 7. Several legacy/import/init endpoints do not enforce a request method or have
    complete device/actor authorization.
 8. Debug/test/init/import endpoints are stored beside production endpoints.
 9. Release builds use debug signing and an example application ID.
-10. Milestone 2A.1 adds deterministic foundation security tests; endpoint-level
-    authorization and tenant-isolation integration tests remain 2A.2/2A.3.
+10. Deterministic activation/authentication policy tests cover 2A.2. A full
+    isolated database suite and remaining endpoint isolation stay on the
+    2A.3/test-environment backlog.
 
 ## Approved Password and PIN policy
 
@@ -72,8 +74,9 @@ listed explicitly; historical claims do not override current files.
 - Legacy token transport is isolated to the shared device-auth helper for two
   application releases.
 
-The 2A.1 code provides migrations and shared helpers only. Endpoint enforcement
-begins in 2A.2 after review.
+The 2A.2 code enforces this model in activation, login, and password change.
+Deployment is blocked until migrations 012–015 are separately approved and
+reconciled with the target schema. Other endpoints remain a 2A.3 boundary.
 
 ## Security logging
 

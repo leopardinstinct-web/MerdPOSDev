@@ -23,13 +23,13 @@ Status meanings:
 | Secret-free sample configuration | Complete | Sample values replaced with placeholders; historical value treated as rotated. |
 | Numeric backend login | Complete | `login.php` plus Flutter `AuthService`. |
 | Password hashing/migration | Complete | `password_hash()`/`password_verify()` and transparent upgrade. |
-| PIN brute-force protection | Partial | Existing endpoints remain optional/fail-open; 2A.1 adds the approved migration draft and fail-closed service for 2A.2 integration. |
+| PIN brute-force protection | Partial | 2A.2 integrates fail-closed layered lockout into login/password change; migration execution remains unapproved. |
 | Primary/secondary employee sessions | Complete | Maximum two; primary persistence and promotion implemented. |
-| Secure device activation | Partial | Token issuance exists; setup proof/lifecycle/revocation incomplete. |
-| Milestone 2A.1 security foundation | Partial | Migration drafts, shared helpers, and isolated tests are implemented; endpoint integration and migration execution remain pending. |
-| Durable PIN lockout | Partial | Approved layered policy exists in a tested shared service; existing login/password endpoints remain unchanged until 2A.2. |
+| Secure device activation | Partial | Backend grant/token lifecycle integration is implemented; Flutter and remaining endpoint migration are pending. |
+| Milestone 2A.1 security foundation | Complete | Migration drafts, shared helpers, isolated tests, review, and CI are complete; production execution remains separately controlled. |
+| Durable PIN lockout | Partial | Login/password integration and deterministic tests are complete; production use awaits migration approval. |
 | Secure app token storage | Missing | Token is stored in `SharedPreferences`. |
-| Token lifecycle policy | Partial | Policy is approved and represented in 2A.1 migrations/helpers; endpoint enforcement remains 2A.2. |
+| Token lifecycle policy | Partial | Activation/login/password endpoints enforce grants, hashed expiry-bound tokens, UUID binding, revocation and rotation; remaining endpoints await 2A.3. |
 | Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |

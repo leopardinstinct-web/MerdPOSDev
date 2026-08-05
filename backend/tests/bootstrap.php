@@ -5,6 +5,7 @@ require_once __DIR__ . '/../api/includes/api_response.php';
 require_once __DIR__ . '/../api/includes/request.php';
 require_once __DIR__ . '/../api/includes/device_auth.php';
 require_once __DIR__ . '/../api/includes/auth_lockout.php';
+require_once __DIR__ . '/../api/includes/employee_auth.php';
 require_once __DIR__ . '/../api/includes/security_log.php';
 require_once __DIR__ . '/../api/includes/maintenance_guard.php';
 
@@ -81,6 +82,45 @@ final class MerdMemoryDeviceStore implements MerdDeviceStore
             return null;
         }
         return $this->device;
+    }
+}
+
+final class MerdMemoryDeviceActivationStore implements MerdDeviceActivationStore
+{
+    public bool $eligible = true;
+    public bool $transaction = false;
+    public array $devices = [];
+
+    public function begin(): void { $this->transaction = true; }
+    public function commit(): void { $this->transaction = false; }
+    public function rollback(): void { $this->transaction = false; }
+    public function eligibleStoreExists(int $clientId, int $storeId): bool { return $this->eligible; }
+
+    public function activate(
+        int $clientId,
+        int $storeId,
+        string $deviceUuid,
+        string $deviceName,
+        string $tokenHash,
+        DateTimeImmutable $tokenExpiresAt,
+        DateTimeImmutable $previousTokenValidUntil,
+        DateTimeImmutable $now
+    ): int {
+        $existing = $this->devices[$deviceUuid] ?? null;
+        if (is_array($existing) && $existing['client_id'] !== $clientId) {
+            throw new MerdActivationDenied('Device activation failed.');
+        }
+        $this->devices[$deviceUuid] = [
+            'id' => $existing['id'] ?? 1,
+            'client_id' => $clientId,
+            'store_id' => $storeId,
+            'device_name' => $deviceName,
+            'token_hash' => $tokenHash,
+            'previous_token_hash' => $existing['token_hash'] ?? null,
+            'token_expires_at' => $tokenExpiresAt,
+            'previous_token_valid_until' => isset($existing['token_hash']) ? $previousTokenValidUntil : null,
+        ];
+        return (int)$this->devices[$deviceUuid]['id'];
     }
 }
 
