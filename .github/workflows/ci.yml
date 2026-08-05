@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - milestone-2b-secure-token-storage
   workflow_dispatch:
 
 permissions:
