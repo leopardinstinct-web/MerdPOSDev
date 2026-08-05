@@ -118,6 +118,12 @@ No existing endpoint or Flutter file is changed by 2A.1.
 
 ## Backend API
 
+Milestone 2A.3 hardens `get_employees.php`, `get_working_now.php`,
+`sync_employee_logs.php`, `sync_shifts.php`, and `sync_retail.php` through the
+shared device-auth helper. Import/init/test/debug routes use the deny-first
+maintenance guard. `backend/tests/endpoint_hardening_test.php` protects these
+boundaries.
+
 Application endpoints:
 
 - `request_activation_grant.php`, `activate_device.php`, `get_stores.php`,

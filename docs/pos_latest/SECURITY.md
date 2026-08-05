@@ -37,13 +37,14 @@ listed explicitly; historical claims do not override current files.
    change; production use still depends on separately approved migration 012.
 3. Milestone 2A.2 replaces client/store-only activation with a dedicated
    setup-validation grant flow; production use depends on migrations 013–015.
-4. Token lifecycle enforcement is integrated for the 2A.2 endpoint set;
-   remaining non-Timesheet endpoints await 2A.3.
+4. Token lifecycle enforcement is integrated across the non-Timesheet device
+   endpoint set in 2A.2/2A.3.
 5. Flutter stores the token in plain `SharedPreferences`.
 6. Sensitive APIs use wildcard CORS.
-7. Several legacy/import/init endpoints do not enforce a request method or have
-   complete device/actor authorization.
-8. Debug/test/init/import endpoints are stored beside production endpoints.
+7. Normal non-Timesheet endpoints use shared authorization; isolated database
+   endpoint tests remain future CI work.
+8. Debug/test/init/import endpoints remain stored beside production endpoints,
+   but now deny by default before configuration is loaded.
 9. Release builds use debug signing and an example application ID.
 10. Deterministic activation/authentication policy tests cover 2A.2. A full
     isolated database suite and remaining endpoint isolation stay on the
@@ -76,7 +77,7 @@ listed explicitly; historical claims do not override current files.
 
 The 2A.2 code enforces this model in activation, login, and password change.
 Deployment is blocked until migrations 012–015 are separately approved and
-reconciled with the target schema. Other endpoints remain a 2A.3 boundary.
+reconciled with the target schema.
 
 ## Security logging
 

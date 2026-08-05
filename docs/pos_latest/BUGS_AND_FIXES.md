@@ -13,8 +13,8 @@ Active non-Timesheet issues:
   exposed and already rotated; history cleanup is deferred.
 - Login/password endpoints use the fail-closed lockout service in 2A.2;
   migration 012 still requires separate execution approval.
-- Dedicated setup-grant activation and token lifecycle enforcement are
-  integrated for the 2A.2 endpoint set; remaining endpoints await 2A.3.
+- Shared token lifecycle enforcement now covers the non-Timesheet device
+  endpoint set through 2A.2/2A.3.
 - Flutter bearer token is stored in plain SharedPreferences.
 - Retail synchronization is outbound-only and aggregate-acknowledged.
 - Production demo product seeding is not separated from development mode.
