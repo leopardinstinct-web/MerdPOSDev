@@ -15,6 +15,7 @@ Status meanings:
 |---|---|---|
 | Documentation authority/current state | Complete | Authoritative pack merged in PR #1; legacy pack deprecated. |
 | CI pipeline | Partial | Workflows implemented locally; GitHub execution awaits push/PR approval. |
+| Repository-wide Dart formatting | Partial | Changed `lib/` and `test/` Dart files are CI-gated; pre-existing formatting debt is deferred to a separate cleanup. |
 | Automated Flutter tests | Partial | Local-fixture model and Timesheet parser regression tests added; not yet run in CI. |
 | PHP lint/backend tests | Partial | PHP 8.2 syntax job added; backend unit/integration harness remains missing. |
 | Android CI build | Partial | Debug job and reviewed Gradle wrapper are present; successful GitHub Actions execution remains required. |

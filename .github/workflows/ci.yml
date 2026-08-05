@@ -107,6 +107,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter 3.44.2
         uses: subosito/flutter-action@v2
@@ -119,7 +121,24 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base HEAD origin/main)"
+          mapfile -d '' changed_files < <(
+            git diff --name-only --diff-filter=ACMR -z "$base" HEAD -- lib test
+          )
+          dart_files=()
+          for file in "${changed_files[@]}"; do
+            if [[ "$file" == *.dart ]]; then
+              dart_files+=("$file")
+            fi
+          done
+          if (( ${#dart_files[@]} == 0 )); then
+            echo "No changed Dart files under merdpos_staff/lib or test."
+            exit 0
+          fi
+          dart format --output=none --set-exit-if-changed "${dart_files[@]}"
 
       - name: Analyze
         run: flutter analyze

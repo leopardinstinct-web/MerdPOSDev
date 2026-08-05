@@ -20,6 +20,11 @@ Active non-Timesheet issues:
 - No automated tests/CI configuration exist.
 - Android uses example application ID and debug release signing.
 - Flutter/Dart/Android toolchain is unavailable on the production VPS.
+- Pre-existing Dart application source is not uniformly formatted. Milestone 1
+  CI checks formatting only for changed tracked Dart files under
+  `merdpos_staff/lib/` and `merdpos_staff/test/`; repository-wide formatting is
+  separate technical debt and must not create unrelated application diffs in
+  this milestone.
 
 Milestone 1 CI status:
 
