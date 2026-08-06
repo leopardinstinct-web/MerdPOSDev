@@ -56,8 +56,11 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Run M2.2 pricing/tax migration and trigger tests for precision, effective
      intervals, overlap rejection, units, tax protection, tenant isolation,
      and legacy/historical preservation.
-   - Never use production credentials or execute migrations 016/017 outside
-     the disposable CI database.
+   - Run M2.3 stock ledger/balance tests for opening uniqueness, idempotency,
+     late/negative stock, reversals, transfers, maintained-balance consistency,
+     reconciliation boundaries, tenant isolation, and history preservation.
+   - Never use production credentials or execute migrations 016/017/018
+     outside the disposable CI database.
 
 5. **Android build**
    - Pinned JDK 17, Flutter, Android SDK platform/build-tools, and Gradle inputs.

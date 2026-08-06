@@ -1,4 +1,9 @@
-# MerdPOS Design System — "Blue Ice"
+# MerdPOS Design System — "Blue Ice" (superseded)
+
+> Historical reference only. The product owner superseded Blue Ice on
+> 2026-08-06 with the original TapTouch-inspired MerdPOS direction in
+> `merdpos-design-brief-taptouch-inspired.md` and `DESIGN_TOKENS.md`.
+> Existing implemented screens are not automatically restyled.
 
 Master design directive for the MerdPOS app (Flutter), admin web, and future
 marketing. Based on the approved A.1 "Blue Ice" logo concept. Machine-usable

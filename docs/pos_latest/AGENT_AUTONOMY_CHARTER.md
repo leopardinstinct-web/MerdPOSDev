@@ -81,7 +81,9 @@ Never deploy automatically. Production deployment, database migrations, secret c
 - Use HTTPS only.
 
 ## Design gates
-- Use only Blue Ice tokens.
+- Use only the approved original TapTouch-inspired MerdPOS tokens for future
+  reviewable UI work. Existing Blue Ice screens remain unchanged unless a
+  dedicated UI scope authorizes restyling.
 - Apply styles through shared theme code.
 - Do not invent colors, fonts, spacing, radii, or component styles.
 - Use `#5FD0C5` for success and `#E06C9F` for errors.

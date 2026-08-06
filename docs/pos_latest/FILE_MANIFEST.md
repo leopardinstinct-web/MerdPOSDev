@@ -181,6 +181,17 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/tests/effective_pricing_tax_migration_test.php` and
   `backend/tests/run_effective_pricing_tax.php` — isolated M2.2 migration,
   trigger, precision, tenant, and preservation tests.
+- `backend/sql/018_stock_ledger_balance.sql` — preconditioned M2.3 shadow
+  ledger, maintained balances, idempotency, transfers, negative exceptions,
+  reconciliation boundary, and immutable movement triggers.
+- `backend/tests/stock_ledger_balance_migration_test.php` and
+  `backend/tests/run_stock_ledger_balance.php` — local-only synthetic M2.3
+  migration, behavior, preservation, tenant, and precondition tests.
+- `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
+  Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
+- `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual
+  intent and implementation boundaries. The Blue Ice brief is retained only as
+  a marked superseded historical reference.
 - `backend/sql/001_employee_auth_attempts.sql` — historically referenced but
   missing; Milestone 2A.1 replaces that abandoned reference with the reviewed
   additive `012_employee_auth_attempts.sql` draft.

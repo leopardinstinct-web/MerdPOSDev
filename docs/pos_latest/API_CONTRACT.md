@@ -150,6 +150,18 @@ basis points. Future APIs must transmit money as decimal strings and UTC times
 with explicit offsets. No current endpoint reads or writes the M2.2 shadow
 tables; runtime contract integration requires separate approval.
 
+## M2.3 stock contract boundary
+
+Migration 018 defines shadow ledger movement meanings, stable client/store
+idempotency and source identities, accepted-server ordering, and maintained
+balance revisions. A future writer that receives a duplicate must look up and
+return the original movement/balance result rather than creating a second stock
+effect. Device event time is audit data and does not override server acceptance
+order. Current `sync_retail.php` continues writing only the legacy movement
+table and does not read or write M2.3 structures. Runtime integration,
+per-record acknowledgement, reconciliation, and cutover require separate
+approval.
+
 ## Milestone 1 CI boundary
 
 Milestone 1 does not change endpoint behavior or `version_check.php`. PHP CI

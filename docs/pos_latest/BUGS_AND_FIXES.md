@@ -76,6 +76,14 @@ Milestone 1 security status:
   schema with synthetic trigger coverage. Legacy zero price/tax values remain
   deliberately ambiguous and require production reconciliation; runtime
   selection, checkout blocking, admin workflows, and cutover remain later work.
+- M2.3 resolves the missing server-ledger schema foundation with an immutable
+  shadow ledger, maintained balances, stable idempotency, negative-stock
+  exceptions, and reconciliation candidates. It intentionally does not resolve
+  runtime cutover: legacy movement uploads and inventory quantities remain
+  unchanged until reviewed production reconciliation and later integration.
+- Blue Ice is superseded for future UI work by the original TapTouch-inspired
+  MerdPOS direction. Existing screens are not restyled in M2.3. OpenClaw did not
+  inspect the MP4; only product-owner-supplied findings are recorded.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint

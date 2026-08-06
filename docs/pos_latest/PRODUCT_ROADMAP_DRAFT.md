@@ -74,9 +74,10 @@ shared-hosting clock/schema differences.
 ## M2 — Canonical catalogue and inbound synchronization
 
 **Status:** In progress. M2.1 supplies catalogue identity/lifecycle foundations;
-M2.2 supplies the reviewed effective pricing/tax shadow schema. Neither changes
-endpoint or Flutter behavior. Runtime integration, later M2 contracts, and
-production schema reconciliation remain gated.
+M2.2 supplies the effective pricing/tax shadow schema; M2.3 supplies the
+immutable stock-ledger and maintained-balance shadow foundation. None changes
+runtime endpoint or Flutter behavior. Runtime integration, synchronization,
+and production schema reconciliation remain gated.
 
 **Objective:** Replace demonstration data with authoritative store retail data.
 
@@ -105,6 +106,16 @@ performance; offline search.
 identifier collisions.
 
 **Estimated complexity:** XL.
+
+### M2.3 implementation boundary
+
+Migration 018 defines opening, sales/returns, receiving/supplier returns,
+transfer legs, wastage/damage, adjustments, reconciliation, reversal,
+idempotency, accepted-server ordering, negative-stock exceptions, and reviewed
+legacy-inventory reconciliation. Existing quantities are not backfilled and no
+runtime cutover occurs. Future inventory/stock UI must follow the supplied
+TapTouch benchmark selectively under the original MerdPOS token system; Flutter
+redesign is a separate milestone.
 
 ## M3 — Barcode POS and durable sales
 

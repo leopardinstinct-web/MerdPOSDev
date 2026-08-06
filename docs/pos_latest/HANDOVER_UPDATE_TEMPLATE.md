@@ -24,7 +24,8 @@ Confirm (security + process):
 11. Were the real latest GitHub files inspected (not guessed)?
 12. Prepared statements used and inputs validated?
 13. No secrets committed; passwords hashed?
-14. UI used Blue Ice tokens only (no invented colors/fonts)?
+14. UI used the approved TapTouch-inspired MerdPOS tokens and cited adopted
+    benchmark findings (no copied branding/assets or invented observations)?
 15. Complete replacement file(s) provided as downloads?
 
 Full-Stack Delivery Check (for new features):

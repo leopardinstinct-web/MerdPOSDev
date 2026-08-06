@@ -1,10 +1,10 @@
 # POS LATEST — Current Project Context
 
-Last reconciled from local source: 2026-08-05
+Last reconciled from local source: 2026-08-06
 
 Repository: `leopardinstinct-web/MerdPOSDev`
 
-Merged source baseline: `561a55108dcbfd5a411bb72b2d92df7226c2e62c` (`561a551`)
+Merged source baseline: `4104092e6c2243d07c82c18947d6f819191cd1e4` (`4104092`)
 
 Current planning state: Milestone 1 is source-complete through merged Milestone
 2B. Production use of its security controls remains deployment-gated.
@@ -43,7 +43,8 @@ The app uses a modular Dart `library`/`part` structure rooted at
   preserved timesheet screen.
 - `dialogs/`: password change and secondary-user login.
 - `widgets/`: shared shell, side rail, common widgets, preserved timesheet table.
-- `theme.dart`: Blue Ice theme tokens.
+- `theme.dart`: implemented legacy Blue Ice theme; future redesign uses the
+  TapTouch-inspired original MerdPOS tokens after separate UI review.
 
 The production API base URL is currently compiled into `main.dart` as
 `https://app.merdpos.com/api`. Environment-specific configuration requires a
@@ -100,7 +101,7 @@ successful response.
 
 ### Admin v1
 
-`backend/admin/` provides a Blue Ice browser administration console with:
+`backend/admin/` provides a legacy Blue Ice browser administration console with:
 
 - ADMIN employee login and PHP sessions;
 - dashboard metrics;
@@ -194,3 +195,20 @@ future sale-line audit snapshots. Existing `sell_price`, `store_price`,
 `tax_rate`, cost fields, completed sales, endpoints, admin, Flutter, SQLite,
 checkout, stock, and synchronization remain unchanged and authoritative until
 a separately approved integration and production cutover.
+
+M2.3 — Stock ledger and server balance foundation adds a distinct immutable
+shadow ledger, transactionally maintained store-product balances, stable
+idempotency/source identities, compensating reversals, linked transfer legs,
+negative-stock exceptions, and reviewed reconciliation-candidate structures.
+It does not reinterpret the legacy movement table or copy
+`retail_store_inventory.quantity`. No runtime API, admin, Flutter, SQLite,
+checkout, receiving, inventory, or sync behavior changes in this milestone.
+
+## Product-owner UX benchmark and visual direction
+
+TapTouch is the preferred functional and visual benchmark for future admin,
+catalogue, pricing, inventory, and POS work. OpenClaw did not receive or inspect
+the original MP4; `TAPTOUCH_UX_BENCHMARK.md` records only product-owner-supplied
+observations. The original TapTouch-inspired MerdPOS system supersedes Blue Ice
+for future reviewable UI work. Existing screens remain unchanged, and Flutter
+redesign requires a separate scope.
