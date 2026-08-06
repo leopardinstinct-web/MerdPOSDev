@@ -114,6 +114,21 @@ to issue grants.
 - Output: `success`, version `retail-sync-v1`, aggregate synchronized counts.
 - Gap: no per-record acknowledgement/rejection and no inbound master data.
 
+### `sync_catalogue.php`
+
+- Method: POST JSON (OPTIONS supported).
+- Auth: existing shared device authorization and bearer/centralized legacy
+  compatibility transport; generic unauthorized failures are unchanged.
+- Input: `contract_version: m2.catalogue.full.v1`, `snapshot_type: full`, and
+  existing device lookup identifiers. Server-side matched device scope wins.
+- Output: standard success/error envelope, deterministic store-scoped full
+  snapshot, content revision, opaque future seed, UTC generation time, currency,
+  categories, products/barcodes/lifecycle/units, effective and resolved
+  price/tax, M2.3 stock/exception state, and explicit configuration warnings.
+- Exact schema and compatibility rules: `M2_4_CATALOGUE_SNAPSHOT_SCHEMA.md`.
+- Boundary: read-only; no paging/incremental cursor, `last_sync` mutation,
+  Flutter/SQLite application, checkout change, or outbound-sync change.
+
 ## Other current endpoints
 
 - `get_working_now.php` — secure device-authorized client-wide query.
@@ -136,9 +151,8 @@ mutations. Admin v1 scope is documented in `PROJECT_CONTEXT.md`.
 
 1. Define a versioned standard success/error envelope.
 2. Document every non-Timesheet utility endpoint or remove it from deploys.
-3. Define the approved product/category/barcode/price/tax/stock full-snapshot and
-   cursor contracts from `M2_CATALOGUE_DECISIONS.md`, including transactional
-   replay and tombstones.
+3. Implement the approved M2.4 full-snapshot contract on devices and separately
+   define M2.6 incremental cursor consumption/expiry semantics.
 4. Define per-record retail acknowledgement and conflict responses.
 5. Define API compatibility/versioning and deprecation policy.
 

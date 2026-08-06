@@ -59,6 +59,9 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Run M2.3 stock ledger/balance tests for opening uniqueness, idempotency,
      late/negative stock, reversals, transfers, maintained-balance consistency,
      reconciliation boundaries, tenant isolation, and history preservation.
+   - Run M2.4 full-catalogue synthetic integration tests for shared device
+     authorization, tenant/store isolation, deterministic schema/order/retries,
+     effective price/tax resolution, lifecycle, stock, and exact serialization.
    - Never use production credentials or execute migrations 016/017/018
      outside the disposable CI database.
 

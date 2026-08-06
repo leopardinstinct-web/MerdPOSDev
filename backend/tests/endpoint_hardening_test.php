@@ -11,7 +11,7 @@ merd_test('sync request helpers reject malformed lists, counters, and timestamps
 });
 
 merd_test('normal endpoints centralize device authorization and never parse legacy tokens', function (): void {
-    foreach (['get_employees.php', 'get_working_now.php', 'sync_employee_logs.php', 'sync_shifts.php', 'sync_retail.php'] as $endpoint) {
+    foreach (['get_employees.php', 'get_working_now.php', 'sync_employee_logs.php', 'sync_shifts.php', 'sync_retail.php', 'sync_catalogue.php'] as $endpoint) {
         $source = file_get_contents(__DIR__ . '/../api/' . $endpoint);
         merd_assert(is_string($source));
         merd_assert(strpos($source, 'merd_device_authenticate_request') !== false, $endpoint . ' missed shared authorization.');

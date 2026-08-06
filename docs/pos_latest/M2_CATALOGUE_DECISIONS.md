@@ -203,6 +203,40 @@ Automatically adopted under the product-owner standing authority on
   receiving, inventory, sync, prices, and tax behavior remain unchanged until
   separately approved integration and production cutover.
 
+## M2.4 initial full catalogue API contract
+
+Automatically adopted under the standing authority on 2026-08-06:
+
+- `POST /api/sync_catalogue.php` supports exactly
+  `m2.catalogue.full.v1` and `snapshot_type: full`. Incremental paging and cursor
+  consumption are excluded.
+- Existing device authorization is reused without policy changes. Request
+  client/store/device identifiers are lookup inputs; the matched server-side
+  device row is the authoritative snapshot scope.
+- One UTC instant governs the whole snapshot. Ordering is deterministic by
+  stable IDs and approved price precedence.
+- All tenant products are included, including disabled, archived, tombstoned,
+  barcode-free, and incomplete records. Problematic records are not silently
+  omitted; they have `sellable: false` and machine-readable reasons.
+- A resolved price requires a current published M2.2 candidate. A resolved tax
+  requires a current published assignment/rate and active code. There is no
+  implicit zero price or `NO_TAX` fallback.
+- Store availability uses the existing tenant-safe inventory overlay row until
+  a later approved availability model. Authoritative stock comes only from the
+  M2.3 balance, with zero/revision zero when no ledger balance exists; legacy
+  quantity is never substituted.
+- Negative stock/exception metadata is exposed for operational awareness and
+  does not invalidate a completed sale or make an otherwise sellable product
+  unsellable.
+- Money and quantities are exact decimal strings, barcodes are exact text, and
+  timestamps are UTC with explicit `Z`.
+- The content-derived snapshot revision excludes generation time and device
+  UUID. The opaque seed is reserved for M2.6 compatibility but has no incremental
+  semantics in M2.4.
+- Download does not update device `last_sync`; a later device milestone must
+  transactionally validate/commit the full response before advancing last-good
+  state.
+
 ## Remaining contract details
 
 The approved policy does not yet define several later contract rules:

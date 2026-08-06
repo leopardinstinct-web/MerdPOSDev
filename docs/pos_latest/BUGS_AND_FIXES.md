@@ -84,6 +84,10 @@ Milestone 1 security status:
 - Blue Ice is superseded for future UI work by the original TapTouch-inspired
   MerdPOS direction. Existing screens are not restyled in M2.3. OpenClaw did not
   inspect the MP4; only product-owner-supplied findings are recorded.
+- M2.4 resolves the missing initial backend catalogue download path with a
+  device-authorized deterministic full snapshot and synthetic integration
+  tests. Device application, SQLite migration, last-good commit acknowledgement,
+  and incremental synchronization remain intentionally unresolved later work.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint
