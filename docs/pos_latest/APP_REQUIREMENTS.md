@@ -52,6 +52,11 @@ prevent an approved change from causing a regression.
 - Durable completed order history with line details and synchronization state.
 - Inventory stock movements for sales, adjustments, receiving, and later
   approved transfers/counts.
+- The server stock ledger is immutable and store/product-specific. Maintained
+  balances use server acceptance order and stable idempotency/source identities;
+  original event time remains audit metadata.
+- Opening stock is one reviewed ledger movement. Later corrections use
+  reconciliation or compensating reversal, never silent quantity overwrite.
 - Same-day and historical financial summaries appropriate to employee role.
 - Demonstration data must never appear in production mode.
 
@@ -68,6 +73,9 @@ prevent an approved change from causing a regression.
 - Products, prices, tax, and stock require server-to-device synchronization.
 - Completed offline sales remain accepted. Resulting negative server-ledger
   stock is flagged for review rather than rewriting or rejecting the sale.
+- Device projected stock equals the last accepted server balance plus pending
+  local movements. Late valid movements apply idempotently and negative-stock
+  exceptions remain visible until operationally resolved.
 - Remaining duplicate-sale, clock-skew, and device-replacement conflict rules
   are **requires decision** where not already governed by idempotency contracts.
 - Sync must be tenant/store scoped and expose actionable non-secret status.
@@ -95,7 +103,14 @@ prevent an approved change from causing a regression.
 ## Design and device experience
 
 - Follow `DESIGN_TOKENS.md`; use shared theme/components.
-- Dark-mode-first Blue Ice design and accessible contrast.
+- Use the original TapTouch-inspired MerdPOS direction: light content mode
+  first, persistent dark navigation where appropriate, accessible contrast,
+  clear operational hierarchy, and large touch targets. Blue Ice is superseded.
+- `TAPTOUCH_UX_BENCHMARK.md` records product-owner-supplied observations;
+  OpenClaw did not inspect the original MP4. Apply findings selectively and do
+  not copy TapTouch branding or proprietary assets.
+- Backend-only milestones do not restyle Flutter. A dedicated reviewable UI
+  scope is required before visual implementation.
 - Android landscape and dual-display requirements are **requires decision**
   pending the exact terminal hardware and customer-display behavior.
 - Production package ID, signing, versioning, and backup policy are mandatory.

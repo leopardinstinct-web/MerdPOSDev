@@ -1,6 +1,6 @@
 # Implementation Status — POS LATEST
 
-Source baseline: merged `main` at `561a551` after Milestone 2B.
+Source baseline: merged `main` at `4104092` after Milestone 2.2.
 Status reflects source only, not production deployment.
 Existing Timesheet is preserved and excluded from new roadmap scoring.
 
@@ -35,6 +35,7 @@ Status meanings:
 | M2 catalogue product policy | Complete | Product owner approved identity, ownership, category, pricing, tax, stock, lifecycle, and cursor-sync policy; lower-level contract details remain open. |
 | M2.1 catalogue identity/lifecycle foundation | Complete | Additive migration draft and synthetic MariaDB tests preserve IDs/references, add zero-to-many exact-text barcode aliases, enforce normalized client SKU identity, and protect lifecycle references. Production execution remains separately gated. |
 | M2.2 effective pricing/tax foundation | Complete | Shadow migration draft and synthetic MariaDB tests define AUD settings, approved units, effective price/tax history, overlap protection, and future sale snapshots. No runtime reader/writer uses it; production reconciliation and execution remain gated. |
+| M2.3 stock ledger/balance foundation | Complete | Branch adds immutable shadow movements, maintained balances, idempotency, transfer/reversal links, negative-stock exceptions, reconciliation boundaries, and passing synthetic tests. Runtime and production cutover remain gated. |
 | Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
 | Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |
@@ -47,7 +48,7 @@ Status meanings:
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |
 | Refunds/voids | Blocked | Rules and permissions require decision. |
 | Local inventory adjustments | Complete | Local adjustment and stock movement implemented. |
-| Server inventory ledger/reconciliation | Partial | Retail movement upload exists; convergence/reconciliation absent. |
+| Server inventory ledger/reconciliation | Partial | M2.3 shadow foundation exists; legacy upload/runtime convergence and reviewed inventory reconciliation remain unimplemented. |
 | Suppliers | Partial | Admin create/list foundation exists. |
 | Purchase orders | Partial | Basic single-product creation and receiving exists. |
 | Multi-line/partial receiving | Partial | Schema supports lines; UI/workflow is incomplete. |
@@ -64,7 +65,7 @@ Status meanings:
 | Admin sales/devices/reports | Partial | Basic read/report pages; device revocation absent. |
 | Audit logging | Partial | Admin actions logged; coverage/context/retention undefined. |
 | Role/permission model | Blocked | ADMIN gate exists; detailed matrix requires decision. |
-| Blue Ice palette/theme | Complete | Canonical colors/theme mapped in Flutter. |
+| TapTouch-inspired MerdPOS direction | Planned | Approved tokens/brief and supplied benchmark supersede Blue Ice for future UI; implemented Flutter remains unchanged pending dedicated review. |
 | Fonts/logo/design assets | Partial | Montserrat declared but not packaged; prism/logo assets absent. |
 | Settings/version screen | Partial | Settings placeholder; home shows app label only. |
 | Production application ID | Missing | Still `com.example.merdpos_staff`. |

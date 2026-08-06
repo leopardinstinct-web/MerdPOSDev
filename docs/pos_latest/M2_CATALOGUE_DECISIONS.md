@@ -154,6 +154,55 @@ M2.2 establishes the additive schema and contract foundation only. Runtime
 admin, API, Flutter, SQLite, checkout, stock-ledger, and catalogue-sync changes
 require later separately approved milestones.
 
+## M2.3 stock ledger and balance contract
+
+Automatically adopted under the product-owner standing authority on
+2026-08-06:
+
+- `retail_stock_movements` remains the unchanged legacy upload record. The new
+  authoritative shadow ledger uses a distinct table so legacy history is never
+  reinterpreted or rewritten.
+- Every accepted movement is immutable and has a signed quantity. Types are
+  opening balance, sale, sale return, purchase receiving, supplier return,
+  transfer out/in, wastage/damage, adjustment increase/decrease,
+  reconciliation, and compensating reversal. These meanings are canonical for
+  later writers and must not vary by API or device.
+- One maintained balance exists per client/store/canonical-product. A locked
+  insert transaction assigns balance-before, balance-after, and a monotonic
+  store-product revision using server acceptance order. Device event time is
+  audit data, never the sole ordering authority.
+- Idempotency is scoped by client and store using a stable idempotency key, with
+  an additional deterministic source record identity. A duplicate writer must
+  look up and return the original movement/result after the uniqueness conflict;
+  it must not create another stock effect. Timestamps are not idempotency keys.
+- One opening movement is allowed per client/store/product. A later corrected
+  baseline is a reviewed reconciliation or compensating reversal, never a
+  second opening or silent overwrite.
+- Valid late offline sales and other movements apply in accepted server order
+  and may make the authoritative balance negative. The sale is not rejected or
+  rewritten. An exception retains first/latest detection, lowest/latest
+  balance, movement links, recovery time, acknowledgement, and resolution
+  metadata. Becoming non-negative records recovery but does not silently close
+  the exception; operational acknowledgement/resolution remains later scope.
+- Adjustments and reconciliations require a reason. Actor fields are compatible
+  with future role/approval policy but M2.3 adds no authorization workflow.
+- Reversals exactly negate one same-tenant/store/product original movement.
+  Only one direct reversal is allowed and posted movement rows cannot be edited
+  or deleted. Further correction uses another explicit compensating movement.
+- Transfers use one client-scoped identity with immutable source, destination,
+  product, and quantity plus unique linked out/in ledger legs. The foundation
+  reserves draft/dispatched/received/cancelled lifecycle data; runtime transfer
+  workflow is deferred.
+- `retail_store_inventory.quantity` is not assumed ledger-derived. Migration
+  018 creates no opening movements, balances, or reconciliation candidates
+  from it. A later separately approved process snapshots exact legacy and
+  ledger values, reports differences, reviews provenance/cutover timing, and
+  posts approved idempotent opening/reconciliation movements without changing
+  IDs or historical sale/purchase rows.
+- M2.3 is shadow-only. Existing API, admin, Flutter, SQLite, checkout,
+  receiving, inventory, sync, prices, and tax behavior remain unchanged until
+  separately approved integration and production cutover.
+
 ## Remaining contract details
 
 The approved policy does not yet define several later contract rules:
@@ -161,7 +210,8 @@ The approved policy does not yet define several later contract rules:
 - cursor/tombstone retention and expired-cursor full-resync behavior;
 - stale-catalogue warning/blocking thresholds;
 - role authorization for catalogue, pricing, tax, and stock corrections;
-- the operational owner and resolution workflow for negative-stock exceptions.
+- the operational owner and final acknowledgement/resolution workflow for
+  negative-stock exceptions.
 
 These details must be resolved at the milestone where they affect externally
 observable behavior. They must not be silently inferred from legacy columns.

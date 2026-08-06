@@ -2,6 +2,24 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-06 — M2.3 stock ledger and server balance foundation
+
+- Added a visibly preconditioned, non-automatically-idempotent migration draft
+  for immutable stock movements, maintained store-product balances, stable
+  source/idempotency identities, compensating reversals, linked transfer legs,
+  negative-stock exceptions, and reviewed reconciliation candidates.
+- Preserved the legacy movement/inventory tables and all product/store IDs,
+  sales, purchase records, pricing/tax structures, and runtime behavior. No
+  inventory quantity was silently copied, overwritten, or treated as derived.
+- Added synthetic tests and CI coverage for opening uniqueness, retries, tenant
+  isolation, late offline acceptance, negative stock, reversals, adjustments,
+  transfers, balance consistency, preservation, and visible preconditions.
+- Recorded product-owner-supplied TapTouch benchmark findings with explicit
+  dispositions. OpenClaw did not receive or inspect the MP4.
+- Replaced Blue Ice as the future direction with an original, accessible,
+  light-content/dark-navigation TapTouch-inspired MerdPOS token system. No
+  Flutter screen or runtime behavior was changed.
+
 ## 2026-08-05 — M2.2 effective pricing and tax foundation
 
 - Added a preconditioned, non-automatically-idempotent shadow migration for

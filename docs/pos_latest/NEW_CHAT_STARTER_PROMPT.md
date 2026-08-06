@@ -16,7 +16,9 @@ Before acting:
 7. Work only at the granted autonomy level. Commit, push, merge, migration,
    deployment, credential use, and production access require explicit approval.
 8. Use complete replacement files for approved code changes.
-9. Follow SECURITY.md and the Blue Ice design documents.
+9. Follow SECURITY.md, `DESIGN_TOKENS.md`, and the supplied TapTouch benchmark;
+   Blue Ice is superseded for future UI work but existing screens are not
+   automatically restyled.
 10. Run checks through the approved non-production CI/build environment.
 
 Current reconciled repository baseline in documentation: 29de6f4.
