@@ -47,14 +47,17 @@ install Flutter, Dart, Java, Gradle, or Android tooling on the production VPS.
    - Static analysis with a pinned tool may be proposed separately; adding a
      dependency requires approval.
 
-4. **M2.1 catalogue schema checks**
+4. **M2 catalogue schema checks**
    - Disposable MariaDB `10.11.14` container pinned by immutable digest.
    - Synthetic fixtures only, in a fixed test database; the harness rejects
      non-loopback database hosts.
    - Verify identity/reference preservation, normalization constraints,
      barcode aliases, lifecycle restrictions, and visible precondition failure.
-   - Never use production credentials or execute migration 016 outside the
-     disposable CI database.
+   - Run M2.2 pricing/tax migration and trigger tests for precision, effective
+     intervals, overlap rejection, units, tax protection, tenant isolation,
+     and legacy/historical preservation.
+   - Never use production credentials or execute migrations 016/017 outside
+     the disposable CI database.
 
 5. **Android build**
    - Pinned JDK 17, Flutter, Android SDK platform/build-tools, and Gradle inputs.

@@ -173,6 +173,14 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/tests/catalogue_identity_migration_test.php` and
   `backend/tests/run_catalogue_identity.php` — local-only MariaDB migration and
   rejection tests.
+- `backend/sql/017_effective_pricing_tax.sql` — preconditioned shadow-schema
+  draft for currency, product units, effective prices, tax codes/rates/
+  assignments, overlap triggers, and nullable future sale snapshots.
+- `backend/tests/fixtures/effective_pricing_tax_schema.sql` — synthetic clients,
+  stores, legacy price/tax values, and completed-sale compatibility data.
+- `backend/tests/effective_pricing_tax_migration_test.php` and
+  `backend/tests/run_effective_pricing_tax.php` — isolated M2.2 migration,
+  trigger, precision, tenant, and preservation tests.
 - `backend/sql/001_employee_auth_attempts.sql` — historically referenced but
   missing; Milestone 2A.1 replaces that abandoned reference with the reviewed
   additive `012_employee_auth_attempts.sql` draft.

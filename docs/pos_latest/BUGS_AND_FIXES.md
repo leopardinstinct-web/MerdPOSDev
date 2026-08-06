@@ -72,6 +72,10 @@ Milestone 1 security status:
   synthetic migration coverage. Production schema reconciliation, explicit
   migration approval, backup/rollback planning, and deployment remain gated;
   later pricing, tax, stock-ledger, and catalogue-sync work is not included.
+- M2.2 effective pricing/tax source foundation is implemented as shadow-only
+  schema with synthetic trigger coverage. Legacy zero price/tax values remain
+  deliberately ambiguous and require production reconciliation; runtime
+  selection, checkout blocking, admin workflows, and cutover remain later work.
 
 Open / Recent Issues
 0. 2026-08-01 Stable Deployment / Security Checkpoint

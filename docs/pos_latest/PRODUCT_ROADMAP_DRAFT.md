@@ -73,9 +73,10 @@ shared-hosting clock/schema differences.
 
 ## M2 — Canonical catalogue and inbound synchronization
 
-**Status:** In progress. M2.1 supplies the reviewed catalogue identity and
-lifecycle migration foundation without changing endpoint or Flutter behavior.
-Later M2 contracts and production schema reconciliation remain gated.
+**Status:** In progress. M2.1 supplies catalogue identity/lifecycle foundations;
+M2.2 supplies the reviewed effective pricing/tax shadow schema. Neither changes
+endpoint or Flutter behavior. Runtime integration, later M2 contracts, and
+production schema reconciliation remain gated.
 
 **Objective:** Replace demonstration data with authoritative store retail data.
 
