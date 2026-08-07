@@ -20,7 +20,7 @@ class RetailSyncHealth {
 }
 
 class RetailDb {
-  static const int schemaVersion = 4;
+  static const int schemaVersion = 5;
   static const bool developmentCatalogueFixtures = bool.fromEnvironment(
     'MERDPOS_DEVELOPMENT_CATALOGUE_FIXTURES',
     defaultValue: false,
@@ -108,6 +108,7 @@ class RetailDb {
     await _createCatalogueTables(db);
     await _createIncrementalCatalogueTables(db);
     await _createStockSyncTables(db);
+    await _createDurableSaleTables(db);
   }
 
   static Future<void> _createTransactionTables(DatabaseExecutor db) async {
@@ -136,7 +137,20 @@ class RetailDb {
       payment_method TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'completed',
       sync_status TEXT NOT NULL DEFAULT 'pending',
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      sale_uid TEXT UNIQUE,
+      device_uuid TEXT,
+      occurred_at_utc TEXT,
+      accepted_at_utc TEXT,
+      server_sale_id INTEGER,
+      currency_code TEXT,
+      subtotal_decimal TEXT,
+      manual_discount_decimal TEXT,
+      tax_decimal TEXT,
+      total_decimal TEXT,
+      receipt_contract_version TEXT,
+      sync_error_code TEXT,
+      sync_error_message TEXT
     )''');
     await db.execute('''CREATE TABLE sale_lines(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,6 +168,23 @@ class RetailDb {
       tax_code TEXT,
       tax_rate_basis_points INTEGER,
       tax_inclusive INTEGER,
+      line_uid TEXT,
+      sku_snapshot TEXT,
+      original_unit_price TEXT,
+      price_type TEXT,
+      price_version_id INTEGER,
+      promotion_name TEXT,
+      campaign_reference TEXT,
+      automatic_promotion_json TEXT,
+      manual_discount_amount TEXT,
+      manual_discount_reason TEXT,
+      manual_discount_actor_id TEXT,
+      taxable_amount TEXT,
+      net_amount TEXT,
+      tax_amount TEXT,
+      gross_amount TEXT,
+      currency_code TEXT,
+      tax_rate_version_id INTEGER,
       FOREIGN KEY(sale_id) REFERENCES sales(id)
     )''');
     await db.execute('''CREATE TABLE stock_movements(
@@ -231,6 +262,43 @@ class RetailDb {
         'ALTER TABLE stock_movements ADD COLUMN rejection_message TEXT',
       );
       await _createStockSyncTables(db);
+    }
+    if (oldVersion < 5) {
+      for (final String statement in <String>[
+        'ALTER TABLE sales ADD COLUMN sale_uid TEXT',
+        'ALTER TABLE sales ADD COLUMN device_uuid TEXT',
+        'ALTER TABLE sales ADD COLUMN occurred_at_utc TEXT',
+        'ALTER TABLE sales ADD COLUMN accepted_at_utc TEXT',
+        'ALTER TABLE sales ADD COLUMN server_sale_id INTEGER',
+        'ALTER TABLE sales ADD COLUMN currency_code TEXT',
+        'ALTER TABLE sales ADD COLUMN subtotal_decimal TEXT',
+        'ALTER TABLE sales ADD COLUMN manual_discount_decimal TEXT',
+        'ALTER TABLE sales ADD COLUMN tax_decimal TEXT',
+        'ALTER TABLE sales ADD COLUMN total_decimal TEXT',
+        'ALTER TABLE sales ADD COLUMN receipt_contract_version TEXT',
+        'ALTER TABLE sales ADD COLUMN sync_error_code TEXT',
+        'ALTER TABLE sales ADD COLUMN sync_error_message TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN line_uid TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN sku_snapshot TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN original_unit_price TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN price_type TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN price_version_id INTEGER',
+        'ALTER TABLE sale_lines ADD COLUMN promotion_name TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN campaign_reference TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN automatic_promotion_json TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN manual_discount_amount TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN manual_discount_reason TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN manual_discount_actor_id TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN taxable_amount TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN net_amount TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN tax_amount TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN gross_amount TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN currency_code TEXT',
+        'ALTER TABLE sale_lines ADD COLUMN tax_rate_version_id INTEGER',
+      ]) {
+        await db.execute(statement);
+      }
+      await _createDurableSaleTables(db);
     }
   }
 
@@ -376,6 +444,39 @@ class RetailDb {
     );
   }
 
+  static Future<void> _createDurableSaleTables(DatabaseExecutor db) async {
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS sales_uid_idx ON sales(sale_uid) WHERE sale_uid IS NOT NULL',
+    );
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS sale_lines_uid_idx ON sale_lines(sale_id,line_uid) WHERE line_uid IS NOT NULL',
+    );
+    await db.execute('''CREATE TABLE sale_tenders(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tender_uid TEXT NOT NULL UNIQUE,
+      sale_id INTEGER NOT NULL UNIQUE,
+      tender_type TEXT NOT NULL CHECK(tender_type IN ('cash','card_recorded')),
+      currency_code TEXT NOT NULL,
+      amount_due TEXT NOT NULL,
+      amount_tendered TEXT NOT NULL,
+      change_due TEXT NOT NULL,
+      recorded_at_utc TEXT NOT NULL,
+      FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE RESTRICT
+    )''');
+    await db.execute('''CREATE TABLE sale_outbox(
+      sale_id INTEGER PRIMARY KEY,
+      state TEXT NOT NULL CHECK(state IN ('pending','sending','acknowledged','rejected')),
+      attempt_count INTEGER NOT NULL DEFAULT 0,
+      next_attempt_at_utc TEXT,
+      last_attempt_at_utc TEXT,
+      last_error_code TEXT,
+      last_error_message TEXT,
+      created_at_utc TEXT NOT NULL,
+      acknowledged_at_utc TEXT,
+      FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE RESTRICT
+    )''');
+  }
+
   static Future<void> _seed(Database db) async {
     final int count =
         Sqflite.firstIntValue(
@@ -501,8 +602,24 @@ class RetailDb {
     required Employee cashier,
     required List<BasketLine> lines,
     required String paymentMethod,
+    @visibleForTesting Database? databaseOverride,
   }) async {
     if (lines.isEmpty) throw StateError('Basket is empty.');
+    final DateTime occurredAt = DateTime.now().toUtc();
+    final Uuid uuid = const Uuid();
+    final String saleUid = uuid.v4();
+    final String dateCode =
+        '${occurredAt.year.toString().padLeft(4, '0')}'
+        '${occurredAt.month.toString().padLeft(2, '0')}'
+        '${occurredAt.day.toString().padLeft(2, '0')}';
+    final String saleNumber =
+        'S-$dateCode-${saleUid.substring(0, 8).toUpperCase()}';
+    final String tenderType = paymentMethod == 'card'
+        ? 'card_recorded'
+        : paymentMethod;
+    if (tenderType != 'cash' && tenderType != 'card_recorded') {
+      throw StateError('Unsupported tender type.');
+    }
     if (kIsWeb) {
       _seedWeb();
       for (final BasketLine line in lines) {
@@ -514,9 +631,7 @@ class RetailDb {
         if (stock < line.quantity)
           throw StateError('Not enough stock for ${line.product.name}.');
       }
-      final DateTime now = DateTime.now();
       final int saleId = ++_webSaleId;
-      final String saleNumber = 'S${now.millisecondsSinceEpoch}';
       final double total = lines.fold<double>(
         0,
         (double sum, BasketLine line) => sum + line.total,
@@ -535,7 +650,10 @@ class RetailDb {
         'payment_method': paymentMethod,
         'status': 'completed',
         'sync_status': 'pending',
-        'created_at': now.toIso8601String(),
+        'created_at': occurredAt.toIso8601String(),
+        'sale_uid': saleUid,
+        'device_uuid': session.deviceUuid,
+        'occurred_at_utc': occurredAt.toIso8601String(),
       });
       for (final BasketLine line in lines) {
         final int index = _webProducts.indexWhere(
@@ -545,6 +663,7 @@ class RetailDb {
             (_webProducts[index]['stock'] as num).toDouble() - line.quantity;
         _webSaleLines.add(<String, Object?>{
           'sale_id': saleId,
+          'line_uid': uuid.v4(),
           'product_id': line.product.id,
           'barcode': line.product.barcode,
           'product_name': line.product.name,
@@ -561,12 +680,12 @@ class RetailDb {
           'reference': saleNumber,
           'note': 'POS sale',
           'sync_status': 'pending',
-          'created_at': now.toIso8601String(),
+          'created_at': occurredAt.toIso8601String(),
         });
       }
       return saleId;
     }
-    final Database db = await database;
+    final Database db = databaseOverride ?? await database;
     return db.transaction((Transaction txn) async {
       for (final BasketLine line in lines) {
         final List<Map<String, Object?>> rows = await txn.query(
@@ -590,8 +709,6 @@ class RetailDb {
         if (stock < line.quantity)
           throw StateError('Not enough stock for ${line.product.name}.');
       }
-      final DateTime now = DateTime.now();
-      final String saleNumber = 'S${now.millisecondsSinceEpoch}';
       final double total = lines.fold<double>(
         0,
         (double sum, BasketLine line) => sum + line.total,
@@ -609,11 +726,21 @@ class RetailDb {
         'payment_method': paymentMethod,
         'status': 'completed',
         'sync_status': 'pending',
-        'created_at': now.toIso8601String(),
+        'created_at': occurredAt.toIso8601String(),
+        'sale_uid': saleUid,
+        'device_uuid': session.deviceUuid,
+        'occurred_at_utc': occurredAt.toIso8601String(),
+        'currency_code': 'AUD',
+        'subtotal_decimal': total.toStringAsFixed(2),
+        'manual_discount_decimal': '0.00',
+        'tax_decimal': '0.00',
+        'total_decimal': total.toStringAsFixed(2),
+        'receipt_contract_version': 'm3.receipt.v1',
       });
       for (final BasketLine line in lines) {
         await txn.insert('sale_lines', <String, Object?>{
           'sale_id': saleId,
+          'line_uid': uuid.v4(),
           'product_id': line.product.id,
           'barcode': line.product.barcode,
           'product_name': line.product.name,
@@ -627,19 +754,42 @@ class RetailDb {
           'tax_code': line.product.taxCode,
           'tax_rate_basis_points': line.product.taxRateBasisPoints,
           'tax_inclusive': 1,
+          'original_unit_price': line.product.priceExact,
+          'manual_discount_amount': '0.00',
+          'taxable_amount': line.total.toStringAsFixed(2),
+          'net_amount': null,
+          'tax_amount': null,
+          'gross_amount': line.total.toStringAsFixed(2),
+          'currency_code': 'AUD',
         });
         await txn.insert('stock_movements', <String, Object?>{
           'product_id': line.product.id,
           'movement_type': 'sale',
           'quantity': -line.quantity,
           'quantity_decimal': (-line.quantity).toStringAsFixed(3),
-          'reference': saleNumber,
+          'reference': saleUid,
           'note': 'POS sale',
           'sync_status': 'pending',
-          'created_at': now.toIso8601String(),
+          'created_at': occurredAt.toIso8601String(),
           'server_product_id': line.product.id,
         });
       }
+      await txn.insert('sale_tenders', <String, Object?>{
+        'tender_uid': uuid.v4(),
+        'sale_id': saleId,
+        'tender_type': tenderType,
+        'currency_code': 'AUD',
+        'amount_due': total.toStringAsFixed(2),
+        'amount_tendered': total.toStringAsFixed(2),
+        'change_due': '0.00',
+        'recorded_at_utc': occurredAt.toIso8601String(),
+      });
+      await txn.insert('sale_outbox', <String, Object?>{
+        'sale_id': saleId,
+        'state': 'pending',
+        'attempt_count': 0,
+        'created_at_utc': occurredAt.toIso8601String(),
+      });
       return saleId;
     });
   }

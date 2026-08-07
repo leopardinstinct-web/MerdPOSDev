@@ -178,6 +178,11 @@ release window and is due for removal in the third compatible release.
 
 ## Current product milestone
 
+M2.1–M2.7 are complete and merged. M3 — Barcode POS and durable sales — is
+approved for sequential implementation beginning with M3.1 durable sale model.
+There is no required M2.8. Production reconciliation, migrations, and
+deployment remain separate approval boundaries.
+
 M2.1 — Catalogue identity and lifecycle foundation is implemented in source as
 an additive, preconditioned migration draft plus isolated synthetic MariaDB
 tests. It preserves existing product/category IDs and historical references,

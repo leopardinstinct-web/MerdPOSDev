@@ -195,6 +195,21 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
   tenant/store, resolution, lifecycle, serialization, stock, and schema tests.
 - `M2_4_CATALOGUE_SNAPSHOT_SCHEMA.md` — exact request/response, resolution,
   ordering, serialization, revision, and compatibility contract.
+- `backend/sql/019_incremental_catalogue_sync.sql` and incremental catalogue
+  endpoint/tests — M2.6 opaque-cursor paging, retention, replay, and full-resync
+  fallback foundation.
+- `M2_5_FLUTTER_CATALOGUE_SYNC_DECISIONS.md`,
+  `M2_6_INCREMENTAL_CATALOGUE_SYNC_DECISIONS.md`, and
+  `M2_7_STOCK_SYNC_OPERATIONAL_HARDENING_DECISIONS.md` — binding implemented M2
+  device catalogue and stock-convergence decisions.
+- `backend/sql/020_durable_sale_model.sql` — source-only additive M3.1 UUID sale
+  identity, exact snapshot, occurrence/acceptance time, and tender foundation.
+- `backend/tests/durable_sale_model_migration_test.php` and
+  `backend/tests/run_durable_sale_model.php` — isolated M3.1 preservation,
+  identity, exact tender, constraint, and precondition tests.
+- `M3_IMPLEMENTATION_DECISIONS.md` and `M3_1_DURABLE_SALE_CONTRACT.md` — approved
+  M3 decomposition, withheld operating decisions, and durable sale/receipt
+  data contract.
 - `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
   Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
 - `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual

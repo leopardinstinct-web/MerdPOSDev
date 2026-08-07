@@ -435,6 +435,8 @@ void main() {
           'pending',
         );
         expect(await _count(legacy, 'retail_sync_state'), 1);
+        expect(await _count(legacy, 'sale_tenders'), 0);
+        expect(await _count(legacy, 'sale_outbox'), 0);
         final movementColumns = await legacy.rawQuery(
           'PRAGMA table_info(stock_movements)',
         );

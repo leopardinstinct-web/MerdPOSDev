@@ -117,6 +117,9 @@ to issue grants.
   movements using prepared statements.
 - Output: `success`, version `retail-sync-v3-stock-convergence`, aggregate
   synchronized counts, contract version, and per-record movement outcomes.
+- M3.1 adds the source schema and local outbox foundation for UUID-based durable
+  sales. Runtime per-sale UUID ingestion and acknowledgement are deliberately
+  deferred to M3.4; the existing endpoint contract is not silently changed.
 
 ### `sync_catalogue.php`
 
