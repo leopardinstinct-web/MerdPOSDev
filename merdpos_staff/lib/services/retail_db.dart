@@ -1,7 +1,26 @@
 part of merdpos_staff;
 
+class RetailSyncHealth {
+  const RetailSyncHealth({
+    required this.status,
+    required this.pendingMovements,
+    required this.rejectedMovements,
+    this.lastSuccessAtUtc,
+    this.lastErrorMessage,
+  });
+
+  final String status;
+  final int pendingMovements;
+  final int rejectedMovements;
+  final String? lastSuccessAtUtc;
+  final String? lastErrorMessage;
+
+  bool get needsAttention =>
+      status == 'failed' || rejectedMovements > 0 || pendingMovements > 0;
+}
+
 class RetailDb {
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
   static const bool developmentCatalogueFixtures = bool.fromEnvironment(
     'MERDPOS_DEVELOPMENT_CATALOGUE_FIXTURES',
     defaultValue: false,
@@ -88,6 +107,7 @@ class RetailDb {
     await _createTransactionTables(db);
     await _createCatalogueTables(db);
     await _createIncrementalCatalogueTables(db);
+    await _createStockSyncTables(db);
   }
 
   static Future<void> _createTransactionTables(DatabaseExecutor db) async {
@@ -144,8 +164,13 @@ class RetailDb {
       reference TEXT NOT NULL,
       note TEXT,
       sync_status TEXT NOT NULL DEFAULT 'pending',
-      created_at TEXT NOT NULL
-      ,server_product_id INTEGER
+      created_at TEXT NOT NULL,
+      server_product_id INTEGER,
+      quantity_decimal TEXT,
+      server_movement_id INTEGER,
+      acknowledged_at_utc TEXT,
+      rejection_code TEXT,
+      rejection_message TEXT
     )''');
   }
 
@@ -189,6 +214,24 @@ class RetailDb {
       );
     }
     if (oldVersion < 3) await _createIncrementalCatalogueTables(db);
+    if (oldVersion < 4) {
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN quantity_decimal TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN server_movement_id INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN acknowledged_at_utc TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN rejection_code TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN rejection_message TEXT',
+      );
+      await _createStockSyncTables(db);
+    }
   }
 
   static Future<void> _createCatalogueTables(DatabaseExecutor db) async {
@@ -318,6 +361,21 @@ class RetailDb {
     );
   }
 
+  static Future<void> _createStockSyncTables(DatabaseExecutor db) async {
+    await db.execute('''CREATE TABLE retail_sync_state(
+      singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+      last_attempt_at_utc TEXT,
+      last_success_at_utc TEXT,
+      last_attempt_status TEXT NOT NULL DEFAULT 'never',
+      last_error_message TEXT,
+      pending_movement_count INTEGER NOT NULL DEFAULT 0,
+      rejected_movement_count INTEGER NOT NULL DEFAULT 0
+    )''');
+    await db.execute(
+      "INSERT INTO retail_sync_state(singleton,last_attempt_status) VALUES(1,'never')",
+    );
+  }
+
   static Future<void> _seed(Database db) async {
     final int count =
         Sqflite.firstIntValue(
@@ -355,7 +413,7 @@ class RetailDb {
         p.primary_barcode AS barcode,
         CAST(p.stock_balance AS REAL) + COALESCE((
           SELECT SUM(sm.quantity) FROM stock_movements sm
-          WHERE sm.server_product_id=p.id AND sm.sync_status='pending'
+          WHERE sm.server_product_id=p.id AND sm.sync_status IN ('pending','rejected')
         ),0) AS stock
       FROM products p
       WHERE p.sellable=1 AND (
@@ -499,6 +557,7 @@ class RetailDb {
           'product_id': line.product.id,
           'movement_type': 'sale',
           'quantity': -line.quantity,
+          'quantity_decimal': (-line.quantity).toStringAsFixed(3),
           'reference': saleNumber,
           'note': 'POS sale',
           'sync_status': 'pending',
@@ -522,7 +581,7 @@ class RetailDb {
           rows.first['stock_balance'].toString(),
         );
         final List<Map<String, Object?>> pendingRows = await txn.rawQuery(
-          "SELECT COALESCE(SUM(quantity),0) AS quantity FROM stock_movements WHERE server_product_id=? AND sync_status='pending'",
+          "SELECT COALESCE(SUM(quantity),0) AS quantity FROM stock_movements WHERE server_product_id=? AND sync_status IN ('pending','rejected')",
           <Object?>[line.product.id],
         );
         final double pending = (pendingRows.single['quantity'] as num)
@@ -573,6 +632,7 @@ class RetailDb {
           'product_id': line.product.id,
           'movement_type': 'sale',
           'quantity': -line.quantity,
+          'quantity_decimal': (-line.quantity).toStringAsFixed(3),
           'reference': saleNumber,
           'note': 'POS sale',
           'sync_status': 'pending',
@@ -676,6 +736,7 @@ class RetailDb {
         'product_id': productId,
         'movement_type': 'adjustment',
         'quantity': delta,
+        'quantity_decimal': delta.toStringAsFixed(3),
         'reference': const Uuid().v4(),
         'note': note,
         'sync_status': 'pending',
@@ -689,6 +750,7 @@ class RetailDb {
         'product_id': productId,
         'movement_type': 'adjustment',
         'quantity': delta,
+        'quantity_decimal': delta.toStringAsFixed(3),
         'reference': const Uuid().v4(),
         'note': note,
         'sync_status': 'pending',
@@ -699,8 +761,9 @@ class RetailDb {
   }
 
   static Future<Map<String, dynamic>> pendingSyncPayload(
-    AppSession session,
-  ) async {
+    AppSession session, {
+    @visibleForTesting Database? databaseOverride,
+  }) async {
     if (kIsWeb) {
       final List<Map<String, Object?>> pendingSales = _webSales
           .where((Map<String, Object?> row) => row['sync_status'] == 'pending')
@@ -725,7 +788,7 @@ class RetailDb {
         'stock_movements': movements,
       };
     }
-    final Database db = await database;
+    final Database db = databaseOverride ?? await database;
     final List<Map<String, Object?>> salesRows = await db.query(
       'sales',
       where: 'sync_status = ?',
@@ -745,12 +808,22 @@ class RetailDb {
       where: 'sync_status = ?',
       whereArgs: <Object?>['pending'],
     );
+    final List<Map<String, Object?>> exactMovements = movements
+        .map(
+          (Map<String, Object?> movement) => <String, Object?>{
+            ...movement,
+            'quantity_decimal':
+                movement['quantity_decimal'] ??
+                (movement['quantity'] as num).toDouble().toStringAsFixed(3),
+          },
+        )
+        .toList();
     return <String, dynamic>{
       'client_id': session.clientId,
       'store_id': session.storeId,
       'device_uuid': session.deviceUuid,
       'sales': sales,
-      'stock_movements': movements,
+      'stock_movements': exactMovements,
     };
   }
 
@@ -759,11 +832,24 @@ class RetailDb {
     final List<dynamic> sales = payload['sales'] as List<dynamic>;
     final List<dynamic> movements = payload['stock_movements'] as List<dynamic>;
     if (sales.isEmpty && movements.isEmpty) return 0;
-    final Map<String, dynamic> response = await Api.postJson(
-      Uri.parse(kRetailSyncUrl),
-      payload,
-      bearerToken: session.activationToken,
-    );
+    Map<String, dynamic> response;
+    try {
+      response = await Api.postJson(
+        Uri.parse(kRetailSyncUrl),
+        payload,
+        bearerToken: session.activationToken,
+      );
+    } catch (error) {
+      if (!kIsWeb) {
+        final Database db = await database;
+        await db.update('retail_sync_state', <String, Object?>{
+          'last_attempt_at_utc': DateTime.now().toUtc().toIso8601String(),
+          'last_attempt_status': 'failed',
+          'last_error_message': cleanError(error),
+        }, where: 'singleton=1');
+      }
+      rethrow;
+    }
     if (response['success'] != true)
       throw Exception(response['error']?.toString() ?? 'Retail sync failed.');
     if (kIsWeb) {
@@ -776,20 +862,179 @@ class RetailDb {
       return sales.length + movements.length;
     }
     final Database db = await database;
-    await db.transaction((Transaction txn) async {
-      await txn.update(
-        'sales',
-        <String, Object?>{'sync_status': 'synced'},
-        where: 'sync_status = ?',
-        whereArgs: <Object?>['pending'],
-      );
-      await txn.update(
-        'stock_movements',
-        <String, Object?>{'sync_status': 'synced'},
-        where: 'sync_status = ?',
-        whereArgs: <Object?>['pending'],
-      );
+    return applyStockSyncResponse(
+      db,
+      response,
+      submittedSaleIds: sales
+          .map((dynamic row) => (row as Map<String, dynamic>)['id'] as int)
+          .toList(),
+      submittedMovementIds: movements
+          .map((dynamic row) => (row as Map<String, Object?>)['id'] as int)
+          .toList(),
+    );
+  }
+
+  @visibleForTesting
+  static Future<int> applyStockSyncResponse(
+    Database db,
+    Map<String, dynamic> response, {
+    required List<int> submittedSaleIds,
+    required List<int> submittedMovementIds,
+  }) async {
+    if (response['stock_contract_version'] != 'm2.stock.sync.v1') {
+      throw const FormatException('Unsupported stock sync contract.');
+    }
+    final Object? rawOutcomes = response['movement_outcomes'];
+    if (rawOutcomes is! List) {
+      throw const FormatException('Missing stock movement outcomes.');
+    }
+    if (response['synced_sales'] != submittedSaleIds.length) {
+      throw const FormatException('Incomplete sale acknowledgement.');
+    }
+    final Set<int> submitted = submittedMovementIds.toSet();
+    final Set<int> acknowledged = <int>{};
+    final String now = DateTime.now().toUtc().toIso8601String();
+    final int count = await db.transaction((Transaction txn) async {
+      if (submittedSaleIds.isNotEmpty) {
+        await txn.update(
+          'sales',
+          <String, Object?>{'sync_status': 'synced'},
+          where:
+              'sync_status = ? AND id IN (${List<String>.filled(submittedSaleIds.length, '?').join(',')})',
+          whereArgs: <Object?>['pending', ...submittedSaleIds],
+        );
+      }
+      int successful = submittedSaleIds.length;
+      for (final Object? raw in rawOutcomes) {
+        if (raw is! Map) throw const FormatException('Invalid stock outcome.');
+        final Map<String, dynamic> outcome = Map<String, dynamic>.from(raw);
+        final int? localId = outcome['local_id'] as int?;
+        final String result = outcome['outcome']?.toString() ?? '';
+        if (localId == null ||
+            !submitted.contains(localId) ||
+            !acknowledged.add(localId)) {
+          throw const FormatException('Stock outcome does not match request.');
+        }
+        if (result == 'accepted' || result == 'duplicate') {
+          final int? serverMovementId = outcome['server_movement_id'] as int?;
+          final Object? rawBalance = outcome['balance'];
+          if (serverMovementId == null ||
+              serverMovementId <= 0 ||
+              rawBalance is! Map) {
+            throw const FormatException('Incomplete stock acknowledgement.');
+          }
+          await txn.update(
+            'stock_movements',
+            <String, Object?>{
+              'sync_status': 'synced',
+              'server_movement_id': serverMovementId,
+              'acknowledged_at_utc': now,
+              'rejection_code': null,
+              'rejection_message': null,
+            },
+            where: 'id=? AND sync_status=?',
+            whereArgs: <Object?>[localId, 'pending'],
+          );
+          successful++;
+          final Map<String, dynamic> balance = Map<String, dynamic>.from(
+            rawBalance,
+          );
+          final String quantity = balance['quantity']?.toString() ?? '';
+          final int? revision = balance['revision'] as int?;
+          if (!RegExp(r'^-?(?:0|[1-9]\d*)\.\d{3}$').hasMatch(quantity) ||
+              revision == null ||
+              revision < 0) {
+            throw const FormatException('Invalid authoritative balance.');
+          }
+          final List<Map<String, Object?>> movement = await txn.query(
+            'stock_movements',
+            columns: <String>['server_product_id'],
+            where: 'id=?',
+            whereArgs: <Object?>[localId],
+          );
+          if (movement.isEmpty ||
+              movement.single['server_product_id'] == null) {
+            throw const FormatException(
+              'Stock movement has no server product.',
+            );
+          }
+          await txn.update(
+            'products',
+            <String, Object?>{
+              'stock_balance': quantity,
+              'stock': double.parse(quantity),
+              'stock_revision': revision,
+              'negative_stock_exception_json': balance['negative_stock'] == true
+                  ? jsonEncode(balance)
+                  : null,
+            },
+            where: 'id=?',
+            whereArgs: <Object?>[movement.single['server_product_id']],
+          );
+        } else if (result == 'rejected') {
+          await txn.update(
+            'stock_movements',
+            <String, Object?>{
+              'sync_status': 'rejected',
+              'acknowledged_at_utc': now,
+              'rejection_code': outcome['error_code']?.toString(),
+              'rejection_message': outcome['error']?.toString(),
+            },
+            where: 'id=? AND sync_status=?',
+            whereArgs: <Object?>[localId, 'pending'],
+          );
+        } else {
+          throw const FormatException('Unknown stock outcome.');
+        }
+      }
+      if (acknowledged.length != submitted.length) {
+        throw const FormatException('Incomplete stock acknowledgement.');
+      }
+      final int pending = Sqflite.firstIntValue(
+        await txn.rawQuery(
+          "SELECT COUNT(*) FROM stock_movements WHERE sync_status='pending'",
+        ),
+      )!;
+      final int rejected = Sqflite.firstIntValue(
+        await txn.rawQuery(
+          "SELECT COUNT(*) FROM stock_movements WHERE sync_status='rejected'",
+        ),
+      )!;
+      await txn.update('retail_sync_state', <String, Object?>{
+        'last_attempt_at_utc': now,
+        'last_success_at_utc': now,
+        'last_attempt_status': rejected == 0 ? 'healthy' : 'attention',
+        'last_error_message': null,
+        'pending_movement_count': pending,
+        'rejected_movement_count': rejected,
+      }, where: 'singleton=1');
+      return successful;
     });
-    return sales.length + movements.length;
+    return count;
+  }
+
+  static Future<RetailSyncHealth> syncHealth([
+    DatabaseExecutor? executor,
+  ]) async {
+    final DatabaseExecutor db = executor ?? await database;
+    final List<Map<String, Object?>> rows = await db.query(
+      'retail_sync_state',
+      where: 'singleton=1',
+      limit: 1,
+    );
+    final Map<String, Object?> row = rows.single;
+    final List<Map<String, Object?>> counts = await db.rawQuery('''
+      SELECT
+        SUM(CASE WHEN sync_status='pending' THEN 1 ELSE 0 END) pending_count,
+        SUM(CASE WHEN sync_status='rejected' THEN 1 ELSE 0 END) rejected_count
+      FROM stock_movements
+    ''');
+    return RetailSyncHealth(
+      status: row['last_attempt_status']?.toString() ?? 'never',
+      pendingMovements: counts.single['pending_count'] as int? ?? 0,
+      rejectedMovements: counts.single['rejected_count'] as int? ?? 0,
+      lastSuccessAtUtc: row['last_success_at_utc']?.toString(),
+      lastErrorMessage: row['last_error_message']?.toString(),
+    );
   }
 }

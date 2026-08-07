@@ -434,6 +434,20 @@ void main() {
           (await legacy.query('stock_movements')).single['sync_status'],
           'pending',
         );
+        expect(await _count(legacy, 'retail_sync_state'), 1);
+        final movementColumns = await legacy.rawQuery(
+          'PRAGMA table_info(stock_movements)',
+        );
+        expect(
+          movementColumns.map((row) => row['name']),
+          containsAll(<String>[
+            'quantity_decimal',
+            'server_movement_id',
+            'acknowledged_at_utc',
+            'rejection_code',
+            'rejection_message',
+          ]),
+        );
         expect(await _count(legacy, 'products'), 0);
         await _apply(legacy, _snapshot());
         expect(

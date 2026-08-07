@@ -2,6 +2,15 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-07 — M2.7 stock convergence and operational hardening
+
+- Added exact, idempotent device stock movement convergence with per-record
+  acknowledgements and authoritative balance revisions.
+- Added additive SQLite acknowledgement/sync-health state and advisory stale
+  catalogue visibility without catalogue-age checkout blocking.
+- Preserved completed offline sales when accepted stock becomes negative and
+  surfaced the existing server negative-stock exception.
+
 ## 2026-08-06 — M2.4 initial full catalogue API
 
 - Added `POST /api/sync_catalogue.php` using the existing shared device

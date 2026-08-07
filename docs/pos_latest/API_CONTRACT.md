@@ -108,11 +108,15 @@ to issue grants.
 
 - Method: POST JSON (OPTIONS supported).
 - Input: client/store/device credentials, `sales[]`, `stock_movements[]`.
+- M2.7 stock movements include an exact `quantity_decimal` and receive a
+  per-record `accepted`, `duplicate`, or `rejected` acknowledgement under
+  `m2.stock.sync.v1`. Accepted/duplicate outcomes include the authoritative
+  balance, revision, and negative-stock exception state.
 - Auth: active device matching client/store/UUID/token.
 - Behavior: transactionally inserts idempotent retail sales, lines, and stock
   movements using prepared statements.
-- Output: `success`, version `retail-sync-v1`, aggregate synchronized counts.
-- Gap: no per-record acknowledgement/rejection and no inbound master data.
+- Output: `success`, version `retail-sync-v3-stock-convergence`, aggregate
+  synchronized counts, contract version, and per-record movement outcomes.
 
 ### `sync_catalogue.php`
 
