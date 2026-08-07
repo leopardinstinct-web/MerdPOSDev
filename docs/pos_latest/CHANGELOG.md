@@ -2,6 +2,20 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-07 — M3.3 checkout and tender
+
+- Added exact tax-inclusive checkout calculations and atomic local persistence
+  for sale, lines, ordered tenders, stock movements, and sale outbox state.
+- Added pure cash, card-recorded, and real cash/card split tender with exact
+  remaining-balance and deterministic final-cash change rules.
+- Migrated SQLite additively to v6, preserving M3.1 single tenders as sequence
+  1, and added conflict-safe duplicate-completion handling.
+- Added source-only backend migration 021 and disposable MariaDB tests so M3.4
+  can retain real ordered tender components without changing ingestion now.
+- Added the TapTouch-inspired tender dialog and local pending-sale outcome;
+  payment terminals, printers, discounts, void/refund, and M3.4 ingestion stay
+  deferred.
+
 ## 2026-08-07 — M3.2.1 POS work-surface refinement
 
 - Reordered the POS surface to Current Order, catalogue-derived Categories,

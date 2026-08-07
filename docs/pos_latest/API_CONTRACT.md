@@ -120,6 +120,11 @@ to issue grants.
 - M3.1 adds the source schema and local outbox foundation for UUID-based durable
   sales. Runtime per-sale UUID ingestion and acknowledgement are deliberately
   deferred to M3.4; the existing endpoint contract is not silently changed.
+- M3.3 stores ordered local `cash` and `card_recorded` tender components with
+  exact decimal amount/change, sequence, actor/device context, and a nullable
+  future external reference. Split tender is not collapsed to a summary
+  tender. M3.4 must preserve this composition when versioning sale ingestion;
+  M3.3 does not change this endpoint payload or perform card authorization.
 
 ### `sync_catalogue.php`
 

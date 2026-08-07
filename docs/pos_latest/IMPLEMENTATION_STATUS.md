@@ -1,6 +1,6 @@
 # Implementation Status — POS LATEST
 
-Source baseline: merged `main` at `5444772` after Milestone 3.2.
+Source baseline: M3.3 checkout/tender branch from merged `main` at `448d12c`.
 Status reflects source only, not production deployment.
 Existing Timesheet is preserved and excluded from new roadmap scoring.
 
@@ -39,15 +39,16 @@ Status meanings:
 | M2.4 initial full catalogue API | Complete | Device-authorized deterministic full snapshot reads M2.1–M2.3 structures with explicit price/tax/sellability/stock semantics and synthetic integration coverage. Flutter/SQLite application and incremental cursors remain missing. |
 | Authoritative product download | Complete | M2.4–M2.7 provide full/incremental tenant-store sync, atomic last-good application, opaque cursors, tombstones, and expired-cursor fallback. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
-| Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |
+| Barcode scanner integration | Complete | M3.2 implements conventional HID/keyboard-wedge scanning with Enter termination, exact aliases, debounce, manual fallback, and focus recovery. |
 | POS basket and quantity controls | Complete | Implemented in `pos_page.dart`. |
 | Stock validation/deduction | Complete | Checked and transactionally deducted locally. |
-| Cash sale recording | Complete | Local tender recording implemented. |
-| Card sale recording | Partial | Tender label recorded; payment integration requires decision. |
+| Cash sale recording | Complete | M3.3 records exact tender, amount tendered, and deterministic change in the atomic local checkout. |
+| Card sale recording | Complete | M3.3 records card payment as `card_recorded`, including cash/card split; no terminal authorization is implied. |
 | M3.1 durable sale model | Complete | SQLite v5 atomically writes UUID sale/line/tender identity, exact snapshot foundations, stock movements, and durable outbox state; migration 020 adds the preserved-history server foundation. Runtime exact checkout and per-sale ingestion remain M3.3/M3.4. |
 | M3.2 scanner and basket | Complete | Exact HID/Enter scans, alias lookup, manual fallback, stable focus, UOM quantities, configuration errors, exact basket totals, non-blocking projected stock, and the first material TapTouch-inspired POS work surface are implemented. |
 | M3.2.1 POS work-surface refinement | Complete | Current Order is fixed left of catalogue-derived category navigation and compact product tiles; local category/search composition, confirmed in-memory Clear, fixed totals/actions, and scanner focus recovery are covered without moving M3.3 tender scope forward. |
-| Tax/discount policy | Partial | M2 tax-inclusive, versioned product-tax policy is approved; rounding and discounts remain undecided and checkout still records zero tax. |
+| M3.3 checkout and tender | Complete | SQLite v6 supports ordered cash/card-recorded components, exact tax-inclusive line rounding, deterministic final-cash change, atomic aggregate persistence, and conflict-safe duplicate completion. M3.4 ingestion remains deferred. |
+| Tax/discount policy | Partial | M3.3 applies the approved M2 tax-inclusive per-line rounding and snapshots resolved promotions; manual discount operating policy remains withheld. |
 | Order history | Partial | Summary list exists; full line detail/operations are incomplete. |
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |
 | Refunds/voids | Blocked | Rules and permissions require decision. |
