@@ -10,6 +10,11 @@ class RetailProduct {
     required this.cost,
     required this.stock,
     required this.active,
+    this.unitOfMeasure = 'each',
+    this.priceExact,
+    this.taxCode,
+    this.taxRateBasisPoints,
+    this.configurationIssues = const <String>[],
   });
 
   final int id;
@@ -20,19 +25,38 @@ class RetailProduct {
   final double cost;
   final double stock;
   final bool active;
+  final String unitOfMeasure;
+  final String? priceExact;
+  final String? taxCode;
+  final int? taxRateBasisPoints;
+  final List<String> configurationIssues;
 
   double get margin => price - cost;
 
   factory RetailProduct.fromMap(Map<String, Object?> map) => RetailProduct(
-        id: map['id'] as int,
-        barcode: map['barcode']?.toString() ?? '',
-        name: map['name']?.toString() ?? '',
-        category: map['category']?.toString() ?? 'General',
-        price: (map['price'] as num?)?.toDouble() ?? 0,
-        cost: (map['cost'] as num?)?.toDouble() ?? 0,
-        stock: (map['stock'] as num?)?.toDouble() ?? 0,
-        active: (map['active'] as int? ?? 1) == 1,
-      );
+    id: map['id'] as int,
+    barcode:
+        map['barcode']?.toString() ?? map['primary_barcode']?.toString() ?? '',
+    name: map['name']?.toString() ?? '',
+    category: map['category']?.toString() ?? 'General',
+    price: (map['price'] as num?)?.toDouble() ?? 0,
+    cost: (map['cost'] as num?)?.toDouble() ?? 0,
+    stock: (map['stock'] as num?)?.toDouble() ?? 0,
+    active: (map['active'] as int? ?? 1) == 1,
+    unitOfMeasure: map['unit_of_measure']?.toString() ?? 'each',
+    priceExact: map['resolved_price']?.toString(),
+    taxCode: map['tax_code']?.toString(),
+    taxRateBasisPoints: map['tax_rate_basis_points'] as int?,
+    configurationIssues: _decodeIssues(map['not_sellable_reasons_json']),
+  );
+
+  static List<String> _decodeIssues(Object? value) {
+    if (value is! String || value.isEmpty) return const <String>[];
+    final Object? decoded = jsonDecode(value);
+    return decoded is List
+        ? decoded.map((item) => item.toString()).toList(growable: false)
+        : const <String>[];
+  }
 }
 
 class BasketLine {

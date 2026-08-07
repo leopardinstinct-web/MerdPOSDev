@@ -1,7 +1,20 @@
 part of merdpos_staff;
 
 class RetailDb {
+  static const int schemaVersion = 2;
+  static const bool developmentCatalogueFixtures = bool.fromEnvironment(
+    'MERDPOS_DEVELOPMENT_CATALOGUE_FIXTURES',
+    defaultValue: false,
+  );
   static Database? _db;
+
+  @visibleForTesting
+  static Future<void> createSchemaForTesting(Database db) =>
+      _create(db, schemaVersion);
+
+  @visibleForTesting
+  static Future<void> migrateSchemaForTesting(Database db, int oldVersion) =>
+      _upgrade(db, oldVersion, schemaVersion);
 
   static final List<Map<String, Object?>> _webProducts =
       <Map<String, Object?>>[];
@@ -19,12 +32,19 @@ class RetailDb {
     }
     if (_db != null) return _db!;
     final String path = p.join(await getDatabasesPath(), 'merdpos_retail.db');
-    _db = await openDatabase(path, version: 1, onCreate: _create);
-    await _seed(_db!);
+    _db = await openDatabase(
+      path,
+      version: schemaVersion,
+      onConfigure: (Database db) => db.execute('PRAGMA foreign_keys = ON'),
+      onCreate: _create,
+      onUpgrade: _upgrade,
+    );
+    if (developmentCatalogueFixtures) await _seed(_db!);
     return _db!;
   }
 
   static void _seedWeb() {
+    if (!developmentCatalogueFixtures) return;
     if (_webProducts.isNotEmpty) return;
     final String now = DateTime.now().toIso8601String();
     final List<List<Object>> rows = <List<Object>>[
@@ -65,7 +85,12 @@ class RetailDb {
   }
 
   static Future<void> _create(Database db, int version) async {
-    await db.execute('''CREATE TABLE products(
+    await _createTransactionTables(db);
+    await _createCatalogueTables(db);
+  }
+
+  static Future<void> _createTransactionTables(DatabaseExecutor db) async {
+    await db.execute('''CREATE TABLE legacy_products(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       barcode TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
@@ -102,6 +127,12 @@ class RetailDb {
       unit_price REAL NOT NULL,
       unit_cost REAL NOT NULL,
       line_total REAL NOT NULL,
+      server_product_id INTEGER,
+      catalogue_unit_price TEXT,
+      unit_of_measure TEXT,
+      tax_code TEXT,
+      tax_rate_basis_points INTEGER,
+      tax_inclusive INTEGER,
       FOREIGN KEY(sale_id) REFERENCES sales(id)
     )''');
     await db.execute('''CREATE TABLE stock_movements(
@@ -113,7 +144,151 @@ class RetailDb {
       note TEXT,
       sync_status TEXT NOT NULL DEFAULT 'pending',
       created_at TEXT NOT NULL
+      ,server_product_id INTEGER
     )''');
+  }
+
+  static Future<void> _upgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion > schemaVersion) {
+      throw StateError(
+        'Retail database schema $oldVersion is newer than supported schema $schemaVersion.',
+      );
+    }
+    if (oldVersion < 2) {
+      // openDatabase runs onUpgrade in its own transaction.
+      await db.execute('ALTER TABLE products RENAME TO legacy_products');
+      await db.execute(
+        'ALTER TABLE sale_lines ADD COLUMN server_product_id INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE sale_lines ADD COLUMN catalogue_unit_price TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE sale_lines ADD COLUMN unit_of_measure TEXT',
+      );
+      await db.execute('ALTER TABLE sale_lines ADD COLUMN tax_code TEXT');
+      await db.execute(
+        'ALTER TABLE sale_lines ADD COLUMN tax_rate_basis_points INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE sale_lines ADD COLUMN tax_inclusive INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE stock_movements ADD COLUMN server_product_id INTEGER',
+      );
+      await _createCatalogueTables(db);
+    }
+  }
+
+  static Future<void> _createCatalogueTables(DatabaseExecutor db) async {
+    await db.execute('''CREATE TABLE catalogue_categories(
+      server_id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      status TEXT NOT NULL
+    )''');
+    await db.execute('''CREATE TABLE products(
+      id INTEGER PRIMARY KEY,
+      category_id INTEGER,
+      sku TEXT,
+      sku_normalized TEXT,
+      name TEXT NOT NULL,
+      description TEXT,
+      unit_of_measure TEXT NOT NULL CHECK(unit_of_measure IN ('each','kilogram','litre')),
+      lifecycle TEXT NOT NULL CHECK(lifecycle IN ('active','disabled','archived','tombstoned')),
+      archived_at_utc TEXT,
+      tombstoned_at_utc TEXT,
+      primary_barcode TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT '',
+      resolved_price TEXT,
+      price REAL,
+      cost REAL NOT NULL DEFAULT 0,
+      stock_balance TEXT NOT NULL,
+      stock REAL NOT NULL,
+      stock_revision INTEGER NOT NULL,
+      store_available INTEGER NOT NULL CHECK(store_available IN (0,1)),
+      reorder_level TEXT,
+      tax_code_id INTEGER,
+      tax_code TEXT,
+      tax_rate_version_id INTEGER,
+      tax_rate_basis_points INTEGER,
+      tax_inclusive INTEGER,
+      sellable INTEGER NOT NULL CHECK(sellable IN (0,1)),
+      not_sellable_reasons_json TEXT NOT NULL,
+      negative_stock_exception_json TEXT,
+      active INTEGER NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(category_id) REFERENCES catalogue_categories(server_id)
+    )''');
+    await db.execute('''CREATE TABLE catalogue_barcodes(
+      server_id INTEGER PRIMARY KEY,
+      product_id INTEGER NOT NULL,
+      barcode TEXT NOT NULL UNIQUE,
+      is_primary INTEGER NOT NULL CHECK(is_primary IN (0,1)),
+      FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+    )''');
+    await db.execute('''CREATE TABLE catalogue_tax_codes(
+      server_id INTEGER PRIMARY KEY, code TEXT NOT NULL, name TEXT NOT NULL, status TEXT NOT NULL
+    )''');
+    await db.execute('''CREATE TABLE catalogue_tax_rates(
+      server_id INTEGER PRIMARY KEY, tax_code_id INTEGER NOT NULL,
+      rate_basis_points INTEGER NOT NULL, effective_from_utc TEXT NOT NULL, effective_to_utc TEXT,
+      FOREIGN KEY(tax_code_id) REFERENCES catalogue_tax_codes(server_id)
+    )''');
+    await db.execute('''CREATE TABLE catalogue_product_tax_assignments(
+      server_id INTEGER PRIMARY KEY, product_id INTEGER NOT NULL, tax_code_id INTEGER NOT NULL,
+      effective_from_utc TEXT NOT NULL, effective_to_utc TEXT,
+      FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE,
+      FOREIGN KEY(tax_code_id) REFERENCES catalogue_tax_codes(server_id)
+    )''');
+    await db.execute('''CREATE TABLE catalogue_effective_prices(
+      server_id INTEGER PRIMARY KEY, product_id INTEGER NOT NULL, scope TEXT NOT NULL,
+      store_id INTEGER, price_type TEXT NOT NULL, precedence_rank INTEGER NOT NULL,
+      unit_price TEXT NOT NULL, currency_code TEXT NOT NULL,
+      effective_from_utc TEXT NOT NULL, effective_to_utc TEXT,
+      promotion_name TEXT, campaign_reference TEXT,
+      FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+    )''');
+    await db.execute('''CREATE TABLE catalogue_warnings(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL, product_id INTEGER,
+      details_json TEXT, FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+    )''');
+    await db.execute('''CREATE TABLE catalogue_sync_state(
+      singleton INTEGER PRIMARY KEY CHECK(singleton=1), contract_version TEXT,
+      snapshot_revision TEXT, cursor_seed TEXT, snapshot_generated_at_utc TEXT,
+      committed_at_utc TEXT, last_attempt_at_utc TEXT, last_attempt_status TEXT NOT NULL,
+      last_error_code TEXT, last_error_message TEXT, stale INTEGER NOT NULL DEFAULT 0
+    )''');
+    await db.execute(
+      "INSERT INTO catalogue_sync_state(singleton,last_attempt_status,stale) VALUES(1,'never',0)",
+    );
+    await db.execute('''CREATE TABLE catalogue_tombstones(
+      entity_type TEXT NOT NULL, server_id INTEGER NOT NULL, tombstoned_at_utc TEXT,
+      purge_after_cursor TEXT, PRIMARY KEY(entity_type,server_id)
+    )''');
+    for (final String table in <String>[
+      'categories',
+      'products',
+      'barcodes',
+      'tax_codes',
+      'tax_rates',
+      'product_tax_assignments',
+      'effective_prices',
+      'warnings',
+    ]) {
+      await db.execute(
+        'CREATE TABLE catalogue_stage_$table(payload_json TEXT NOT NULL)',
+      );
+    }
+    await db.execute(
+      'CREATE INDEX catalogue_barcodes_product_idx ON catalogue_barcodes(product_id)',
+    );
+    await db.execute(
+      'CREATE INDEX catalogue_prices_product_idx ON catalogue_effective_prices(product_id,precedence_rank)',
+    );
   }
 
   static Future<void> _seed(Database db) async {
@@ -123,36 +298,9 @@ class RetailDb {
         ) ??
         0;
     if (count > 0) return;
-    final String now = DateTime.now().toIso8601String();
-    final List<List<Object>> rows = <List<Object>>[
-      <Object>['930000000001', 'Still Water 600ml', 'Drinks', 3.50, 1.20, 48],
-      <Object>['930000000002', 'Cola 375ml', 'Drinks', 4.00, 1.60, 36],
-      <Object>['930000000003', 'Energy Drink 500ml', 'Drinks', 6.50, 3.20, 24],
-      <Object>['930000000004', 'Salted Chips 175g', 'Snacks', 5.50, 2.40, 20],
-      <Object>[
-        '930000000005',
-        'Chocolate Bar',
-        'Confectionery',
-        3.20,
-        1.10,
-        42,
-      ],
-      <Object>['930000000006', 'Mint Gum', 'Confectionery', 2.80, 0.90, 30],
-    ];
-    final Batch batch = db.batch();
-    for (final List<Object> row in rows) {
-      batch.insert('products', <String, Object?>{
-        'barcode': row[0],
-        'name': row[1],
-        'category': row[2],
-        'price': row[3],
-        'cost': row[4],
-        'stock': row[5],
-        'active': 1,
-        'updated_at': now,
-      });
-    }
-    await batch.commit(noResult: true);
+    // Development fixtures are intentionally not synthesized in SQLite.
+    // Developers can opt in to the web-only fixture with the compile-time flag;
+    // native development should use a synthetic M2.4 snapshot.
   }
 
   static Future<List<RetailProduct>> searchProducts(String query) async {
@@ -174,14 +322,23 @@ class RetailDb {
     }
     final Database db = await database;
     final String q = query.trim();
-    final List<Map<String, Object?>> rows = await db.query(
-      'products',
-      where: q.isEmpty
-          ? 'active = 1'
-          : 'active = 1 AND (name LIKE ? OR barcode LIKE ? OR category LIKE ?)',
-      whereArgs: q.isEmpty ? null : <Object?>['%$q%', '%$q%', '%$q%'],
-      orderBy: 'name ASC',
-      limit: 100,
+    final List<Map<String, Object?>> rows = await db.rawQuery(
+      '''
+      SELECT p.*,
+        p.primary_barcode AS barcode,
+        CAST(p.stock_balance AS REAL) + COALESCE((
+          SELECT SUM(sm.quantity) FROM stock_movements sm
+          WHERE sm.server_product_id=p.id AND sm.sync_status='pending'
+        ),0) AS stock
+      FROM products p
+      WHERE p.sellable=1 AND (
+        ?='' OR p.name LIKE ? OR p.sku LIKE ? OR p.category LIKE ? OR EXISTS(
+          SELECT 1 FROM catalogue_barcodes b WHERE b.product_id=p.id AND b.barcode LIKE ?
+        )
+      )
+      ORDER BY p.name ASC LIMIT 100
+    ''',
+      <Object?>[q, '%$q%', '%$q%', '%$q%', '%$q%'],
     );
     return rows.map(RetailProduct.fromMap).toList();
   }
@@ -195,6 +352,10 @@ class RetailDb {
     required double cost,
     required double stock,
   }) async {
+    throw UnsupportedError(
+      'Catalogue products are server-owned and cannot be created locally.',
+    );
+    /* Legacy web-only implementation retained below for source compatibility.
     if (kIsWeb) {
       _seedWeb();
       final Map<String, Object?> values = <String, Object?>{
@@ -247,7 +408,7 @@ class RetailDb {
         where: 'id = ?',
         whereArgs: <Object?>[id],
       );
-    }
+    } */
   }
 
   static Future<int> completeSale({
@@ -324,13 +485,22 @@ class RetailDb {
       for (final BasketLine line in lines) {
         final List<Map<String, Object?>> rows = await txn.query(
           'products',
-          columns: <String>['stock'],
+          columns: <String>['stock_balance'],
           where: 'id = ?',
           whereArgs: <Object?>[line.product.id],
           limit: 1,
         );
         if (rows.isEmpty) throw StateError('Product no longer exists.');
-        final double stock = (rows.first['stock'] as num).toDouble();
+        final double serverStock = double.parse(
+          rows.first['stock_balance'].toString(),
+        );
+        final List<Map<String, Object?>> pendingRows = await txn.rawQuery(
+          "SELECT COALESCE(SUM(quantity),0) AS quantity FROM stock_movements WHERE server_product_id=? AND sync_status='pending'",
+          <Object?>[line.product.id],
+        );
+        final double pending = (pendingRows.single['quantity'] as num)
+            .toDouble();
+        final double stock = serverStock + pending;
         if (stock < line.quantity)
           throw StateError('Not enough stock for ${line.product.name}.');
       }
@@ -365,11 +535,13 @@ class RetailDb {
           'unit_price': line.product.price,
           'unit_cost': line.product.cost,
           'line_total': line.total,
+          'server_product_id': line.product.id,
+          'catalogue_unit_price': line.product.priceExact,
+          'unit_of_measure': line.product.unitOfMeasure,
+          'tax_code': line.product.taxCode,
+          'tax_rate_basis_points': line.product.taxRateBasisPoints,
+          'tax_inclusive': 1,
         });
-        await txn.rawUpdate(
-          'UPDATE products SET stock = stock - ?, updated_at = ? WHERE id = ?',
-          <Object?>[line.quantity, now.toIso8601String(), line.product.id],
-        );
         await txn.insert('stock_movements', <String, Object?>{
           'product_id': line.product.id,
           'movement_type': 'sale',
@@ -378,6 +550,7 @@ class RetailDb {
           'note': 'POS sale',
           'sync_status': 'pending',
           'created_at': now.toIso8601String(),
+          'server_product_id': line.product.id,
         });
       }
       return saleId;
@@ -485,10 +658,6 @@ class RetailDb {
     }
     final Database db = await database;
     await db.transaction((Transaction txn) async {
-      await txn.rawUpdate(
-        'UPDATE products SET stock = stock + ?, updated_at = ? WHERE id = ?',
-        <Object?>[delta, DateTime.now().toIso8601String(), productId],
-      );
       await txn.insert('stock_movements', <String, Object?>{
         'product_id': productId,
         'movement_type': 'adjustment',
@@ -497,6 +666,7 @@ class RetailDb {
         'note': note,
         'sync_status': 'pending',
         'created_at': DateTime.now().toIso8601String(),
+        'server_product_id': productId,
       });
     });
   }
