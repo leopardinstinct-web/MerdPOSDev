@@ -1,7 +1,7 @@
 part of merdpos_staff;
 
 class RetailDb {
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
   static const bool developmentCatalogueFixtures = bool.fromEnvironment(
     'MERDPOS_DEVELOPMENT_CATALOGUE_FIXTURES',
     defaultValue: false,
@@ -87,6 +87,7 @@ class RetailDb {
   static Future<void> _create(Database db, int version) async {
     await _createTransactionTables(db);
     await _createCatalogueTables(db);
+    await _createIncrementalCatalogueTables(db);
   }
 
   static Future<void> _createTransactionTables(DatabaseExecutor db) async {
@@ -182,6 +183,12 @@ class RetailDb {
       );
       await _createCatalogueTables(db);
     }
+    if (oldVersion >= 2 && oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE catalogue_sync_state ADD COLUMN snapshot_json TEXT',
+      );
+    }
+    if (oldVersion < 3) await _createIncrementalCatalogueTables(db);
   }
 
   static Future<void> _createCatalogueTables(DatabaseExecutor db) async {
@@ -259,6 +266,7 @@ class RetailDb {
     await db.execute('''CREATE TABLE catalogue_sync_state(
       singleton INTEGER PRIMARY KEY CHECK(singleton=1), contract_version TEXT,
       snapshot_revision TEXT, cursor_seed TEXT, snapshot_generated_at_utc TEXT,
+      snapshot_json TEXT,
       committed_at_utc TEXT, last_attempt_at_utc TEXT, last_attempt_status TEXT NOT NULL,
       last_error_code TEXT, last_error_message TEXT, stale INTEGER NOT NULL DEFAULT 0
     )''');
@@ -288,6 +296,25 @@ class RetailDb {
     );
     await db.execute(
       'CREATE INDEX catalogue_prices_product_idx ON catalogue_effective_prices(product_id,precedence_rank)',
+    );
+  }
+
+  static Future<void> _createIncrementalCatalogueTables(
+    DatabaseExecutor db,
+  ) async {
+    await db.execute('''CREATE TABLE catalogue_incremental_pages(
+      batch_token TEXT NOT NULL,
+      page_index INTEGER NOT NULL,
+      page_count INTEGER NOT NULL,
+      source_cursor TEXT NOT NULL,
+      target_cursor TEXT,
+      target_snapshot_revision TEXT NOT NULL,
+      response_json TEXT NOT NULL,
+      received_at_utc TEXT NOT NULL,
+      PRIMARY KEY(batch_token,page_index)
+    )''');
+    await db.execute(
+      'CREATE INDEX catalogue_incremental_source_idx ON catalogue_incremental_pages(source_cursor,batch_token)',
     );
   }
 
