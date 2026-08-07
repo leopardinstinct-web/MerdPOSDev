@@ -253,13 +253,26 @@ function m24_response_schema_test(): void
     $encoded = json_encode($response, JSON_THROW_ON_ERROR);
     $decoded = json_decode($encoded, true, 64, JSON_THROW_ON_ERROR);
     m2_assert_same($response, $decoded, 'Snapshot is not stable JSON data.');
+    $productionHostname = implode('.', ['app', 'merdpos', 'com']);
+    $forbiddenNetworkTokens = [
+        'http' . '://',
+        'https' . '://',
+        'curl_' . 'init',
+        'stream_socket_' . 'client',
+        'fsock' . 'open',
+    ];
     foreach ([
         __DIR__ . '/../api/sync_catalogue.php',
         __DIR__ . '/../api/includes/catalogue_snapshot.php',
         __FILE__,
+        __DIR__ . '/run_catalogue_snapshot.php',
     ] as $path) {
         $source = file_get_contents($path);
-        m2_assert(is_string($source) && !str_contains($source, 'app.merdpos.com'), 'M2.4 test/runtime source references the production host.');
+        m2_assert(is_string($source), 'M2.4 safety check could not read a source file.');
+        m2_assert(!str_contains($source, $productionHostname), 'M2.4 test/runtime source references the production host.');
+        foreach ($forbiddenNetworkTokens as $token) {
+            m2_assert(!str_contains($source, $token), 'M2.4 synthetic/runtime path contains a direct network dependency.');
+        }
     }
 }
 
