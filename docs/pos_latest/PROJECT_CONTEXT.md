@@ -204,6 +204,13 @@ It does not reinterpret the legacy movement table or copy
 `retail_store_inventory.quantity`. No runtime API, admin, Flutter, SQLite,
 checkout, receiving, inventory, or sync behavior changes in this milestone.
 
+M2.4 — Initial full catalogue API adds a device-authorized read-only endpoint
+and synthetic integration coverage over the M2.1–M2.3 foundations. It returns
+deterministically ordered tenant/store catalogue content, explicit sellability
+reasons, resolved effective price/tax, authoritative stock, a content revision,
+and an opaque future seed. It does not modify Flutter, SQLite, last-good state,
+checkout, outbound sync, or incremental cursor behavior.
+
 ## Product-owner UX benchmark and visual direction
 
 TapTouch is the preferred functional and visual benchmark for future admin,

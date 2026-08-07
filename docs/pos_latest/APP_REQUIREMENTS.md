@@ -71,6 +71,10 @@ prevent an approved change from causing a regression.
 - Server returns per-record acknowledgement/rejection; client marks only
   acknowledged records synced.
 - Products, prices, tax, and stock require server-to-device synchronization.
+- A clean authorized device requests the versioned M2.4 full catalogue snapshot.
+  The response includes all lifecycle/configuration records deterministically,
+  retains last-good compatibility, and marks incomplete products unsellable
+  with explicit reasons rather than omitting them or inventing fallbacks.
 - Completed offline sales remain accepted. Resulting negative server-ledger
   stock is flagged for review rather than rewriting or rejecting the sale.
 - Device projected stock equals the last accepted server balance plus pending

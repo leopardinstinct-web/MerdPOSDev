@@ -187,6 +187,14 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/tests/stock_ledger_balance_migration_test.php` and
   `backend/tests/run_stock_ledger_balance.php` — local-only synthetic M2.3
   migration, behavior, preservation, tenant, and precondition tests.
+- `backend/api/sync_catalogue.php` and
+  `backend/api/includes/catalogue_snapshot.php` — device-authorized M2.4 full
+  catalogue endpoint and deterministic read/serialization service.
+- `backend/tests/catalogue_snapshot_integration_test.php` and
+  `backend/tests/run_catalogue_snapshot.php` — synthetic M2.4 authorization,
+  tenant/store, resolution, lifecycle, serialization, stock, and schema tests.
+- `M2_4_CATALOGUE_SNAPSHOT_SCHEMA.md` — exact request/response, resolution,
+  ordering, serialization, revision, and compatibility contract.
 - `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
   Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
 - `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual

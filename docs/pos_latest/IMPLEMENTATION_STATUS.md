@@ -36,7 +36,8 @@ Status meanings:
 | M2.1 catalogue identity/lifecycle foundation | Complete | Additive migration draft and synthetic MariaDB tests preserve IDs/references, add zero-to-many exact-text barcode aliases, enforce normalized client SKU identity, and protect lifecycle references. Production execution remains separately gated. |
 | M2.2 effective pricing/tax foundation | Complete | Shadow migration draft and synthetic MariaDB tests define AUD settings, approved units, effective price/tax history, overlap protection, and future sale snapshots. No runtime reader/writer uses it; production reconciliation and execution remain gated. |
 | M2.3 stock ledger/balance foundation | Complete | Branch adds immutable shadow movements, maintained balances, idempotency, transfer/reversal links, negative-stock exceptions, reconciliation boundaries, and passing synthetic tests. Runtime and production cutover remain gated. |
-| Authoritative product download | Missing | No inbound catalogue endpoint/sync. |
+| M2.4 initial full catalogue API | Complete | Device-authorized deterministic full snapshot reads M2.1–M2.3 structures with explicit price/tax/sellability/stock semantics and synthetic integration coverage. Flutter/SQLite application and incremental cursors remain missing. |
+| Authoritative product download | Partial | M2.4 backend full-snapshot endpoint exists; Flutter/SQLite application is not implemented. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
 | Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |
 | POS basket and quantity controls | Complete | Implemented in `pos_page.dart`. |

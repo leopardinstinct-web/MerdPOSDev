@@ -2,6 +2,23 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-06 — M2.4 initial full catalogue API
+
+- Added `POST /api/sync_catalogue.php` using the existing shared device
+  authorization policy and server-side matched device scope.
+- Added deterministic full-snapshot serialization for M2.1 identity/lifecycle,
+  M2.2 effective/resolved price and tax, and M2.3 authoritative stock/negative
+  exceptions, with exact decimal/barcode/UTC contracts.
+- Included disabled, archived, tombstoned, barcode-free, and incomplete products
+  with explicit sellability reasons; no zero-price or `NO_TAX` fallback.
+- Added content-derived revision and opaque future seed without implementing
+  paging, incremental cursors, or `last_sync` advancement.
+- Added synthetic integration and CI coverage for authorization/isolation,
+  deterministic ordering/retries, price/tax boundaries and precedence,
+  lifecycle, configuration warnings, stock, serialization, and schema shape.
+- Carried forward the supplied TapTouch benchmark/original MerdPOS design
+  direction documentation. No Flutter, SQLite, admin UI, or visual change.
+
 ## 2026-08-06 — M2.3 stock ledger and server balance foundation
 
 - Added a visibly preconditioned, non-automatically-idempotent migration draft

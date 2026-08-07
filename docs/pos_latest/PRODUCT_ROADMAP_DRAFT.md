@@ -75,9 +75,9 @@ shared-hosting clock/schema differences.
 
 **Status:** In progress. M2.1 supplies catalogue identity/lifecycle foundations;
 M2.2 supplies the effective pricing/tax shadow schema; M2.3 supplies the
-immutable stock-ledger and maintained-balance shadow foundation. None changes
-runtime endpoint or Flutter behavior. Runtime integration, synchronization,
-and production schema reconciliation remain gated.
+immutable stock-ledger and maintained-balance foundation; M2.4 supplies the
+first device-authorized full catalogue read API. Flutter/SQLite application,
+incremental synchronization, and production schema reconciliation remain gated.
 
 **Objective:** Replace demonstration data with authoritative store retail data.
 
@@ -116,6 +116,14 @@ legacy-inventory reconciliation. Existing quantities are not backfilled and no
 runtime cutover occurs. Future inventory/stock UI must follow the supplied
 TapTouch benchmark selectively under the original MerdPOS token system; Flutter
 redesign is a separate milestone.
+
+### M2.4 implementation boundary
+
+The first versioned full snapshot is deterministic, tenant/store scoped,
+read-only, explicit about incomplete configuration, and carries an opaque seed
+for later compatibility. It does not page, advance a cursor or `last_sync`, or
+apply data to Flutter/SQLite. Device transactional last-good application remains
+later M2 work.
 
 ## M3 — Barcode POS and durable sales
 
