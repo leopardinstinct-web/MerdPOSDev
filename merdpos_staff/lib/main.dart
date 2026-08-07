@@ -25,6 +25,7 @@ part 'services/employee_service.dart';
 part 'services/primary_login_store.dart';
 part 'services/timesheet_parser.dart';
 part 'services/catalogue_sync.dart';
+part 'services/catalogue_incremental_sync.dart';
 part 'services/retail_db.dart';
 part 'screens/setup_page.dart';
 part 'screens/login_page.dart';

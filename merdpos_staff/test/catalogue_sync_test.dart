@@ -183,6 +183,219 @@ void main() {
   );
 
   test(
+    'incremental pages remain invisible until final atomic commit',
+    () async {
+      final Map<String, dynamic> full = _snapshot();
+      await _apply(db, full);
+      final AppSession session = _session();
+      final Map<String, dynamic> changedProduct = Map<String, dynamic>.from(
+        ((full['snapshot'] as Map<String, dynamic>)['products']
+                    as List<dynamic>)
+                .first
+            as Map<String, dynamic>,
+      )..['name'] = 'Incrementally updated';
+      int calls = 0;
+      final CatalogueFetcher fetcher = (_, body, __) async {
+        calls++;
+        if (calls == 1) {
+          expect(body['cursor'], 'm2f1_synthetic');
+          return _incrementalPage(
+            pageIndex: 0,
+            pageCount: 2,
+            events: <Map<String, dynamic>>[
+              <String, dynamic>{
+                'entity_type': 'product',
+                'operation': 'upsert',
+                'server_id': 1001,
+                'payload': changedProduct,
+              },
+            ],
+          );
+        }
+        expect(
+          (await db.query('products', where: 'id=1001')).single['name'],
+          'Each product',
+        );
+        expect(body['batch_token'], 'test-batch');
+        return _incrementalPage(
+          pageIndex: 1,
+          pageCount: 2,
+          events: <Map<String, dynamic>>[
+            <String, dynamic>{
+              'entity_type': 'warning_set',
+              'operation': 'replace',
+              'server_id': 0,
+              'payload': <dynamic>[],
+            },
+          ],
+        );
+      };
+      await CatalogueSync.sync(session, databaseOverride: db, fetcher: fetcher);
+      expect(
+        (await db.query('products', where: 'id=1001')).single['name'],
+        'Incrementally updated',
+      );
+      expect(
+        (await CatalogueSync.health(db)).revision,
+        'sha256:${List<String>.filled(64, 'c').join()}',
+      );
+      expect(
+        (await db.query('catalogue_sync_state')).single['cursor_seed'],
+        'm2c1_target',
+      );
+      expect(await _count(db, 'catalogue_incremental_pages'), 0);
+    },
+  );
+
+  test(
+    'interrupted incremental batch preserves last-good and retries safely',
+    () async {
+      final Map<String, dynamic> full = _snapshot();
+      await _apply(db, full);
+      final AppSession session = _session();
+      int calls = 0;
+      await expectLater(
+        CatalogueSync.sync(
+          session,
+          databaseOverride: db,
+          fetcher: (_, __, ___) async {
+            calls++;
+            if (calls == 1) {
+              return _incrementalPage(
+                pageIndex: 0,
+                pageCount: 2,
+                events: <Map<String, dynamic>>[],
+              );
+            }
+            throw Exception('synthetic interruption');
+          },
+        ),
+        throwsA(anything),
+      );
+      expect(
+        (await db.query('catalogue_sync_state')).single['cursor_seed'],
+        'm2f1_synthetic',
+      );
+      expect(await _count(db, 'products'), 8);
+      expect(await _count(db, 'catalogue_incremental_pages'), 1);
+
+      int retryCalls = 0;
+      await CatalogueSync.sync(
+        session,
+        databaseOverride: db,
+        fetcher: (_, __, ___) async {
+          retryCalls++;
+          return _incrementalPage(
+            batchToken: 'test-batch',
+            pageIndex: retryCalls - 1,
+            pageCount: 2,
+            events: <Map<String, dynamic>>[],
+          );
+        },
+      );
+      expect(
+        (await db.query('catalogue_sync_state')).single['cursor_seed'],
+        'm2c1_target',
+      );
+    },
+  );
+
+  test(
+    'expired cursor falls back to a complete full resynchronization',
+    () async {
+      await _apply(db, _snapshot());
+      int calls = 0;
+      await CatalogueSync.sync(
+        _session(),
+        databaseOverride: db,
+        fetcher: (_, body, __) async {
+          calls++;
+          if (calls == 1) {
+            expect(
+              body['contract_version'],
+              CatalogueIncrementalSync.contractVersion,
+            );
+            return <String, dynamic>{
+              'success': false,
+              'error_code': 'catalogue_cursor_expired',
+              'error': 'Synthetic expiry.',
+            };
+          }
+          expect(body['contract_version'], CatalogueSync.contractVersion);
+          return _snapshot(revisionDigit: 'd')
+            ..['cursor_seed'] = 'm2c1_resynced';
+        },
+      );
+      expect(calls, 2);
+      expect(
+        (await db.query('catalogue_sync_state')).single['cursor_seed'],
+        'm2c1_resynced',
+      );
+    },
+  );
+
+  test(
+    'product tombstone is retained unsellable without touching pending data',
+    () async {
+      await _apply(db, _snapshot());
+      await db.insert('stock_movements', <String, Object?>{
+        'product_id': 1001,
+        'server_product_id': 1001,
+        'movement_type': 'sale',
+        'quantity': -1.0,
+        'reference': 'PENDING-TOMBSTONE',
+        'note': 'Synthetic pending movement',
+        'sync_status': 'pending',
+        'created_at': '2026-08-07T00:00:00Z',
+      });
+      await CatalogueSync.sync(
+        _session(),
+        databaseOverride: db,
+        fetcher: (_, __, ___) async => _incrementalPage(
+          pageIndex: 0,
+          pageCount: 1,
+          events: <Map<String, dynamic>>[
+            <String, dynamic>{
+              'entity_type': 'product',
+              'operation': 'tombstone',
+              'server_id': 1001,
+              'payload': null,
+            },
+            <String, dynamic>{
+              'entity_type': 'tax_assignment',
+              'operation': 'tombstone',
+              'server_id': 9001,
+              'payload': null,
+            },
+          ],
+        ),
+      );
+      final Map<String, Object?> product = (await db.query(
+        'products',
+        where: 'id=1001',
+      )).single;
+      expect(product['lifecycle'], 'tombstoned');
+      expect(product['sellable'], 0);
+      expect(
+        await _count(
+          db,
+          'catalogue_tombstones',
+          where: "entity_type='product' AND server_id=1001",
+        ),
+        1,
+      );
+      expect(
+        await _count(
+          db,
+          'stock_movements',
+          where: "reference='PENDING-TOMBSTONE' AND sync_status='pending'",
+        ),
+        1,
+      );
+    },
+  );
+
+  test(
     'v1 migration preserves sales, sale lines, movements, identifiers and status',
     () async {
       await db.close();
@@ -265,6 +478,42 @@ Future<void> _apply(Database db, Map<String, dynamic> snapshot) =>
       expectedStoreId: 11,
       expectedDeviceUuid: 'synthetic-device',
     );
+
+AppSession _session() => AppSession(
+  clientId: 1,
+  clientName: 'Synthetic',
+  storeId: 11,
+  storeName: 'Test Store',
+  deviceUuid: 'synthetic-device',
+  activationToken: 'synthetic-token',
+);
+
+Map<String, dynamic> _incrementalPage({
+  String batchToken = 'test-batch',
+  required int pageIndex,
+  required int pageCount,
+  required List<Map<String, dynamic>> events,
+}) => <String, dynamic>{
+  'success': true,
+  'api': 'sync_catalogue.php',
+  'contract_version': CatalogueIncrementalSync.contractVersion,
+  'sync_type': 'incremental',
+  'context': <String, dynamic>{
+    'client_id': 1,
+    'store_id': 11,
+    'device_uuid': 'synthetic-device',
+  },
+  'source_cursor': 'm2f1_synthetic',
+  'batch_token': batchToken,
+  'page_index': pageIndex,
+  'page_count': pageCount,
+  'events': events,
+  'has_more': pageIndex < pageCount - 1,
+  'next_page_index': pageIndex < pageCount - 1 ? pageIndex + 1 : null,
+  'next_cursor': pageIndex == pageCount - 1 ? 'm2c1_target' : null,
+  'target_snapshot_revision': 'sha256:${List<String>.filled(64, 'c').join()}',
+  'server_time_utc': '2026-08-07T01:00:00.000000Z',
+};
 
 Future<int> _count(DatabaseExecutor db, String table, {String? where}) async =>
     (await db.rawQuery(

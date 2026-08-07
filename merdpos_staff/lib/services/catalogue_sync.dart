@@ -55,6 +55,20 @@ class CatalogueSync {
     Uri? endpoint,
     @visibleForTesting Database? databaseOverride,
   }) async {
+    return CatalogueIncrementalSync.sync(
+      session,
+      fetcher: fetcher,
+      endpoint: endpoint,
+      databaseOverride: databaseOverride,
+    );
+  }
+
+  static Future<CatalogueSyncHealth> fullSync(
+    AppSession session, {
+    CatalogueFetcher? fetcher,
+    Uri? endpoint,
+    @visibleForTesting Database? databaseOverride,
+  }) async {
     final Database db = databaseOverride ?? await RetailDb.database;
     final String attemptAt = DateTime.now().toUtc().toIso8601String();
     try {
@@ -566,12 +580,32 @@ class CatalogueSync {
       });
     }
     await _clearStage(txn);
+    final Object? incrementalTombstones = c.response['_incremental_tombstones'];
+    if (incrementalTombstones is List) {
+      for (final Object? value in incrementalTombstones) {
+        final Map<String, dynamic>? tombstone = _nullableMap(value);
+        if (tombstone == null) continue;
+        await txn.rawInsert(
+          '''INSERT INTO catalogue_tombstones(entity_type,server_id,tombstoned_at_utc,purge_after_cursor)
+             VALUES(?,?,?,?) ON CONFLICT(entity_type,server_id) DO UPDATE SET
+             tombstoned_at_utc=excluded.tombstoned_at_utc,
+             purge_after_cursor=excluded.purge_after_cursor''',
+          <Object?>[
+            tombstone['entity_type']?.toString(),
+            tombstone['server_id'],
+            tombstone['tombstoned_at_utc']?.toString(),
+            tombstone['purge_after_cursor']?.toString(),
+          ],
+        );
+      }
+    }
     await txn.update('catalogue_sync_state', <String, Object?>{
       'contract_version': contractVersion,
       'snapshot_revision': c.revision,
       'cursor_seed': c.response['cursor_seed']?.toString(),
       'snapshot_generated_at_utc': c.response['snapshot_generated_at_utc']
           ?.toString(),
+      'snapshot_json': jsonEncode(c.snapshot),
       'committed_at_utc': DateTime.now().toUtc().toIso8601String(),
       'last_attempt_at_utc': attempted,
       'last_attempt_status': 'success',

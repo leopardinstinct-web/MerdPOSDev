@@ -138,6 +138,7 @@ jobs:
           php backend/tests/run_effective_pricing_tax.php
           php backend/tests/run_stock_ledger_balance.php
           php backend/tests/run_catalogue_snapshot.php
+          php backend/tests/run_incremental_catalogue.php
 
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests

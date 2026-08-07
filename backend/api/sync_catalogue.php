@@ -6,6 +6,7 @@ require_once __DIR__ . '/includes/api_response.php';
 require_once __DIR__ . '/includes/request.php';
 require_once __DIR__ . '/includes/device_auth.php';
 require_once __DIR__ . '/includes/catalogue_snapshot.php';
+require_once __DIR__ . '/includes/catalogue_incremental.php';
 
 $requestId = merd_request_id();
 try {
@@ -17,11 +18,18 @@ try {
     merd_request_require_method($_SERVER, 'POST');
     merd_request_require_json_content_type($_SERVER);
     $auth = merd_device_authenticate_request($pdo, $_SERVER, $body);
+    $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    if (($body['contract_version'] ?? null) === MERD_CATALOGUE_INCREMENTAL_CONTRACT_VERSION) {
+        merd_api_send(merd_catalogue_handle_incremental($pdo, $auth, $body, $now));
+    }
     merd_catalogue_validate_request($body);
-    merd_api_send(merd_catalogue_full_snapshot(
+    $response = merd_catalogue_full_snapshot($pdo, $auth, $now);
+    merd_api_send(merd_catalogue_register_snapshot(
         $pdo,
-        $auth,
-        new DateTimeImmutable('now', new DateTimeZone('UTC'))
+        $response,
+        (int)$auth['device']['client_id'],
+        (int)$auth['device']['store_id'],
+        $now
     ));
 } catch (MerdRequestException $e) {
     merd_api_fail($e->errorCode, $e->getMessage(), $e->status, $requestId);
