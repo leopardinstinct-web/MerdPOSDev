@@ -15,6 +15,7 @@ class PosPage extends StatefulWidget {
     this.healthLookup,
     this.catalogueHealthLookup,
   });
+
   final AppSession session;
   final Employee cashier;
   final PosProductSearch? productSearch;
@@ -31,9 +32,10 @@ class _PosPageState extends State<PosPage> {
   final FocusNode _scannerFocus = FocusNode(debugLabel: 'POS scanner');
   final ScannerInputBuffer _scanner = ScannerInputBuffer();
   final PosBasket _basket = PosBasket();
-  List<RetailProduct> _products = <RetailProduct>[];
+  List<RetailProduct> _catalogue = <RetailProduct>[];
   RetailSyncHealth? _health;
   CatalogueSyncHealth? _catalogueHealth;
+  String? _selectedCategory;
   bool _loading = true;
   bool _checkingOut = false;
   String _scannerStatus = 'Scanner ready';
@@ -53,20 +55,48 @@ class _PosPageState extends State<PosPage> {
     super.dispose();
   }
 
-  Future<void> _load([String q = '']) async {
+  Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     final List<Object> results = await Future.wait<Object>(<Future<Object>>[
-      widget.productSearch?.call(q) ?? RetailDb.searchProducts(q),
+      widget.productSearch?.call('') ?? RetailDb.posCatalogueProducts(),
       widget.healthLookup?.call() ?? RetailDb.syncHealth(),
       widget.catalogueHealthLookup?.call() ?? CatalogueSync.health(),
     ]);
     if (!mounted) return;
     setState(() {
-      _products = results[0] as List<RetailProduct>;
+      _catalogue = results[0] as List<RetailProduct>;
       _health = results[1] as RetailSyncHealth;
       _catalogueHealth = results[2] as CatalogueSyncHealth;
       _loading = false;
     });
+  }
+
+  List<String> get _categories {
+    final Set<String> values = _catalogue
+        .map((product) => product.category.trim())
+        .where((category) => category.isNotEmpty)
+        .toSet();
+    final List<String> sorted = values.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return sorted;
+  }
+
+  List<RetailProduct> get _visibleProducts {
+    final String query = _search.text.trim().toLowerCase();
+    return _catalogue
+        .where((product) {
+          if (_selectedCategory != null &&
+              product.category != _selectedCategory)
+            return false;
+          if (query.isEmpty) return true;
+          return product.name.toLowerCase().contains(query) ||
+              (product.sku?.toLowerCase().contains(query) ?? false) ||
+              product.barcode.toLowerCase().contains(query) ||
+              product.barcodeAliases.any(
+                (alias) => alias.toLowerCase().contains(query),
+              );
+        })
+        .toList(growable: false);
   }
 
   void _recoverScannerFocus() {
@@ -101,8 +131,14 @@ class _PosPageState extends State<PosPage> {
       _setScannerStatus('Unknown barcode: $barcode', error: true);
       return;
     }
+    _addProduct(product, barcodeUsed: barcode);
+  }
+
+  void _addProduct(RetailProduct product, {String? barcodeUsed}) {
     try {
-      setState(() => _basket.add(product, barcodeUsed: barcode));
+      setState(
+        () => _basket.add(product, barcodeUsed: barcodeUsed ?? product.barcode),
+      );
       _setScannerStatus('${product.name} added', error: false);
     } on BasketValidationException catch (error) {
       _setScannerStatus(error.message, error: true);
@@ -122,7 +158,7 @@ class _PosPageState extends State<PosPage> {
     String entered = '';
     final String? barcode = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text('Enter barcode'),
         content: TextField(
           key: const Key('manual-barcode-field'),
@@ -148,21 +184,12 @@ class _PosPageState extends State<PosPage> {
     if (barcode != null && barcode.isNotEmpty) await _scan(barcode);
   }
 
-  void _addProduct(RetailProduct product) {
-    try {
-      setState(() => _basket.add(product, barcodeUsed: product.barcode));
-      _setScannerStatus('${product.name} added', error: false);
-    } on BasketValidationException catch (error) {
-      _setScannerStatus(error.message, error: true);
-    }
-  }
-
   Future<void> _editQuantity(int index) async {
     final BasketLine line = _basket.lines[index];
     String entered = _quantityText(line);
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: Text('Quantity • ${line.product.name}'),
         content: TextFormField(
           key: const Key('quantity-field'),
@@ -199,6 +226,40 @@ class _PosPageState extends State<PosPage> {
     }
   }
 
+  Future<void> _clearBasket() async {
+    if (_basket.lines.isEmpty) {
+      _recoverScannerFocus();
+      return;
+    }
+    final bool confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Clear current order?'),
+            content: const Text(
+              'This removes all items from the in-progress basket only.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Keep items'),
+              ),
+              FilledButton(
+                key: const Key('confirm-clear-basket'),
+                onPressed: () => Navigator.pop(context, true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _PosColors.error,
+                ),
+                child: const Text('Clear basket'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (confirmed && mounted) setState(_basket.clear);
+    _recoverScannerFocus();
+  }
+
   Future<void> _checkout(String method) async {
     if (_basket.lines.isEmpty) return;
     setState(() => _checkingOut = true);
@@ -210,8 +271,8 @@ class _PosPageState extends State<PosPage> {
         paymentMethod: method,
       );
       if (!mounted) return;
-      setState(() => _basket.clear());
-      await _load(_search.text);
+      setState(_basket.clear);
+      await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -228,380 +289,101 @@ class _PosPageState extends State<PosPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Focus(
-      focusNode: _scannerFocus,
-      autofocus: true,
-      onKeyEvent: (_, event) => _onKey(event),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _recoverScannerFocus,
-        child: ColoredBox(
-          color: const Color(0xFFF4F6F8),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final bool compact = constraints.maxWidth < 1050;
-              return compact
-                  ? Column(
-                      children: <Widget>[
-                        Expanded(child: _cataloguePane()),
-                        SizedBox(height: 330, child: _basketPane()),
-                      ],
-                    )
-                  : Row(
-                      children: <Widget>[
-                        Expanded(flex: 3, child: _cataloguePane()),
-                        SizedBox(width: 410, child: _basketPane()),
-                      ],
-                    );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _cataloguePane() => Padding(
-    padding: const EdgeInsets.all(24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'Point of sale',
-                    style: TextStyle(
-                      color: _PosColors.ink,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${widget.session.storeName}  •  ${widget.cashier.fullName}  •  ${widget.session.deviceUuid}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _PosColors.muted),
-                  ),
-                ],
-              ),
-            ),
-            _StatusPill(
-              label: _catalogueHealth?.stale == true
-                  ? 'Catalogue stale • offline ready'
-                  : _health?.needsAttention == true
-                  ? 'Sync attention'
-                  : 'Catalogue available',
-              warning:
-                  _catalogueHealth?.stale == true ||
-                  _health?.needsAttention == true,
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _scannerError
-                ? _PosColors.errorSoft
-                : _PosColors.successSoft,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _scannerError ? _PosColors.error : _PosColors.success,
-            ),
-          ),
-          child: Row(
-            children: <Widget>[
-              Icon(
-                _scannerError ? Icons.error_outline : Icons.qr_code_scanner,
-                color: _scannerError ? _PosColors.error : _PosColors.success,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  _scannerStatus,
-                  key: const Key('scanner-status'),
-                  style: TextStyle(
-                    color: _scannerError ? _PosColors.error : _PosColors.ink,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: _manualBarcode,
-                icon: const Icon(Icons.keyboard),
-                label: const Text('Enter barcode'),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _search,
-          onChanged: _load,
-          style: const TextStyle(color: _PosColors.ink),
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            labelText: 'Search products, SKU or barcode',
-            fillColor: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 14),
-        Expanded(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 230,
-                    mainAxisExtent: 158,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: _products.length,
-                  itemBuilder: (_, int index) => _ProductTile(
-                    product: _products[index],
-                    onTap: () => _addProduct(_products[index]),
-                  ),
-                ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _basketPane() => ColoredBox(
-    color: Colors.white,
-    child: SafeArea(
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
-            child: Row(
+  Widget build(BuildContext context) => Focus(
+    focusNode: _scannerFocus,
+    autofocus: true,
+    onKeyEvent: (_, event) => _onKey(event),
+    child: GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: _recoverScannerFocus,
+      child: ColoredBox(
+        color: _PosColors.workspace,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 980) return _compactLayout();
+            final double orderWidth = (constraints.maxWidth * .34).clamp(
+              350,
+              460,
+            );
+            return Row(
               children: <Widget>[
-                const Icon(
-                  Icons.shopping_basket_outlined,
-                  color: _PosColors.brand,
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Current sale',
-                  style: TextStyle(
-                    color: _PosColors.ink,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${_basket.lines.length} lines',
-                  style: const TextStyle(color: _PosColors.muted),
-                ),
+                SizedBox(width: orderWidth, child: _orderPanel()),
+                const VerticalDivider(width: 1, color: _PosColors.border),
+                SizedBox(width: 150, child: _categoryRail()),
+                const VerticalDivider(width: 1, color: _PosColors.border),
+                Expanded(child: _productsPanel()),
               ],
-            ),
-          ),
-          const Divider(height: 1, color: _PosColors.border),
-          Expanded(
-            child: _basket.lines.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(
-                          Icons.qr_code_scanner,
-                          size: 44,
-                          color: _PosColors.muted,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Scan an item to begin',
-                          style: TextStyle(
-                            color: _PosColors.ink,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          'Scanner ready • Enter terminator',
-                          style: TextStyle(color: _PosColors.muted),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: _basket.lines.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, color: _PosColors.border),
-                    itemBuilder: (_, int index) => _basketLine(index),
-                  ),
-          ),
-          const Divider(height: 1, color: _PosColors.border),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const Text(
-                      'TOTAL',
-                      style: TextStyle(
-                        color: _PosColors.muted,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    Text(
-                      '\$${_basket.totalExact}',
-                      key: const Key('basket-total'),
-                      style: const TextStyle(
-                        color: _PosColors.ink,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _checkingOut || _basket.lines.isEmpty
-                            ? null
-                            : () => _checkout('cash'),
-                        icon: const Icon(Icons.payments_outlined),
-                        label: const Text('Cash'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _checkingOut || _basket.lines.isEmpty
-                            ? null
-                            : () => _checkout('card'),
-                        icon: const Icon(Icons.credit_card),
-                        label: const Text('Card'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     ),
   );
 
-  Widget _basketLine(int index) {
-    final BasketLine line = _basket.lines[index];
-    final double projected = _basket.projectedStock(line);
-    final bool insufficient = _basket.insufficientStock(line);
-    final bool low = _basket.lowStock(line);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      line.product.name,
-                      style: const TextStyle(
-                        color: _PosColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${line.barcodeUsed.isEmpty ? 'No barcode' : line.barcodeUsed}  •  ${line.product.unitOfMeasure}  •  \$${line.product.priceExact ?? line.product.price.toStringAsFixed(2)}  •  ${line.product.taxCode == 'NO_TAX' ? 'NO_TAX' : '${line.product.taxCode} tax inclusive'}',
-                      style: const TextStyle(
-                        color: _PosColors.muted,
-                        fontSize: 12,
-                      ),
-                    ),
-                    if (line.product.promotionName != null)
-                      Text(
-                        line.product.promotionName!,
-                        style: const TextStyle(
-                          color: _PosColors.brand,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              IconButton(
-                key: Key('remove-line-$index'),
-                tooltip: 'Remove line',
-                onPressed: () => setState(() => _basket.removeAt(index)),
-                icon: const Icon(Icons.delete_outline, color: _PosColors.error),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: <Widget>[
-              OutlinedButton.icon(
-                onPressed: () => _editQuantity(index),
-                icon: const Icon(Icons.edit, size: 17),
-                label: Text(_quantityText(line)),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  try {
-                    setState(
-                      () => _basket.setQuantity(index, line.quantity + 1),
-                    );
-                  } on BasketValidationException catch (error) {
-                    _setScannerStatus(error.message, error: true);
-                  }
-                },
-                icon: const Icon(Icons.add_circle_outline),
-                tooltip: 'Add one',
-              ),
-              const Spacer(),
-              Text(
-                '\$${_basket.lineTotalExact(line)}',
-                style: const TextStyle(
-                  color: _PosColors.ink,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            'Projected stock ${projected.toStringAsFixed(line.product.unitOfMeasure == 'each' ? 0 : 3)}${insufficient
-                ? ' • insufficient'
-                : low
-                ? ' • low'
-                : ''}',
-            style: TextStyle(
-              color: insufficient
-                  ? _PosColors.error
-                  : low
-                  ? _PosColors.warning
-                  : _PosColors.muted,
-              fontSize: 12,
-              fontWeight: insufficient || low
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _compactLayout() => Column(
+    children: <Widget>[
+      Expanded(child: _productsPanel()),
+      SizedBox(height: 360, child: _orderPanel()),
+    ],
+  );
+
+  Widget _orderPanel() => PosCurrentOrderPanel(
+    basket: _basket,
+    checkingOut: _checkingOut,
+    onEditQuantity: _editQuantity,
+    onRemoveLine: (index) => setState(() => _basket.removeAt(index)),
+    onIncrement: (index) {
+      try {
+        setState(
+          () => _basket.setQuantity(index, _basket.lines[index].quantity + 1),
+        );
+      } on BasketValidationException catch (error) {
+        _setScannerStatus(error.message, error: true);
+      }
+    },
+    onClear: _clearBasket,
+    onCash: () => _checkout('cash'),
+    onCard: () => _checkout('card'),
+    quantityText: _quantityText,
+  );
+
+  Widget _categoryRail() => PosCategoryRail(
+    categories: _categories,
+    selectedCategory: _selectedCategory,
+    onSelected: (category) {
+      setState(() => _selectedCategory = category);
+      _recoverScannerFocus();
+    },
+  );
+
+  Widget _productsPanel() => PosProductGrid(
+    loading: _loading,
+    products: _visibleProducts,
+    searchController: _search,
+    selectedCategory: _selectedCategory,
+    scannerStatus: _scannerStatus,
+    scannerError: _scannerError,
+    catalogueStatus: _catalogueHealth?.stale == true
+        ? 'Catalogue stale • offline ready'
+        : _health?.needsAttention == true
+        ? 'Sync attention'
+        : 'Catalogue available',
+    catalogueWarning:
+        _catalogueHealth?.stale == true || _health?.needsAttention == true,
+    storeContext:
+        '${widget.session.storeName} • ${widget.cashier.fullName} • ${widget.session.deviceUuid}',
+    onSearchChanged: (_) => setState(() {}),
+    onSearchSubmitted: (_) => WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _recoverScannerFocus(),
+    ),
+    onClearSearch: () {
+      _search.clear();
+      setState(() {});
+      _recoverScannerFocus();
+    },
+    onManualBarcode: _manualBarcode,
+    onProductTap: _addProduct,
+  );
 
   String _quantityText(BasketLine line) => line.product.unitOfMeasure == 'each'
       ? line.quantity.toStringAsFixed(0)
@@ -611,93 +393,13 @@ class _PosPageState extends State<PosPage> {
             .replaceFirst(RegExp(r'\.$'), '');
 }
 
-class _ProductTile extends StatelessWidget {
-  const _ProductTile({required this.product, required this.onTap});
-  final RetailProduct product;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(12),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _PosColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              product.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _PosColors.ink,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              product.category,
-              style: const TextStyle(color: _PosColors.muted, fontSize: 12),
-            ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  '\$${product.priceExact ?? product.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: _PosColors.brand,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Text(
-                  '${product.stock.toStringAsFixed(product.unitOfMeasure == 'each' ? 0 : 3)} ${product.unitOfMeasure}',
-                  style: const TextStyle(color: _PosColors.muted, fontSize: 11),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label, required this.warning});
-  final String label;
-  final bool warning;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(
-      color: warning ? _PosColors.warningSoft : _PosColors.successSoft,
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Text(
-      label,
-      style: TextStyle(
-        color: warning ? _PosColors.warning : _PosColors.success,
-        fontWeight: FontWeight.w800,
-      ),
-    ),
-  );
-}
-
 class _PosColors {
+  static const Color workspace = Color(0xFFF4F6F8);
   static const Color ink = Color(0xFF152033);
   static const Color muted = Color(0xFF64748B);
   static const Color border = Color(0xFFD9E0E8);
   static const Color brand = Color(0xFF176B87);
+  static const Color brandSoft = Color(0xFFE8F3F7);
   static const Color success = Color(0xFF19705A);
   static const Color successSoft = Color(0xFFE8F5F0);
   static const Color warning = Color(0xFF9A5A00);

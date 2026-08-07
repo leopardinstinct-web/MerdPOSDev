@@ -212,6 +212,10 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
   data contract.
 - `M3_2_SCANNER_BASKET_DECISIONS.md` — exact HID scanner, barcode alias,
   quantity, projected-stock visibility, and TapTouch-inspired POS decisions.
+- `M3_2_1_POS_WORK_SURFACE_DECISIONS.md` and focused Flutter widgets
+  `pos_current_order_panel.dart`, `pos_category_rail.dart`, and
+  `pos_product_grid.dart` — four-zone POS composition, local category/search,
+  confirmed in-memory Clear, and fixed order actions.
 - `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
   Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
 - `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual

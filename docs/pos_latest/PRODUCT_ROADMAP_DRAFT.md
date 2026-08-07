@@ -4,7 +4,7 @@ Status: M0–M2 source implementation is complete and merged. M3 is approved for
 sequential implementation. Production reconciliation, migrations, and
 deployment remain separately gated.
 
-Source baseline: merged `main` at `ab99440` after Milestone 2.7.
+Source baseline: merged `main` at `5444772` after Milestone 3.2.
 
 Timesheet rule: preserve existing behavior; no new Timesheet development.
 
@@ -128,8 +128,9 @@ later M2 work.
 
 ## M3 — Barcode POS and durable sales
 
-**Status:** Approved. Sequential implementation begins with M3.1 durable sale
-model and proceeds only after each preceding M3 pull request is merged.
+**Status:** M3.1 and M3.2 are complete and merged. M3.2.1 refines only the POS
+work surface before M3.3 exact checkout/tender work; sequential merge gates
+remain in force.
 
 **Objective:** Complete reliable offline cash/card sale recording.
 

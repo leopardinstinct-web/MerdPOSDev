@@ -1,6 +1,6 @@
 # Implementation Status — POS LATEST
 
-Source baseline: merged `main` at `ab99440` after Milestone 2.7.
+Source baseline: merged `main` at `5444772` after Milestone 3.2.
 Status reflects source only, not production deployment.
 Existing Timesheet is preserved and excluded from new roadmap scoring.
 
@@ -46,6 +46,7 @@ Status meanings:
 | Card sale recording | Partial | Tender label recorded; payment integration requires decision. |
 | M3.1 durable sale model | Complete | SQLite v5 atomically writes UUID sale/line/tender identity, exact snapshot foundations, stock movements, and durable outbox state; migration 020 adds the preserved-history server foundation. Runtime exact checkout and per-sale ingestion remain M3.3/M3.4. |
 | M3.2 scanner and basket | Complete | Exact HID/Enter scans, alias lookup, manual fallback, stable focus, UOM quantities, configuration errors, exact basket totals, non-blocking projected stock, and the first material TapTouch-inspired POS work surface are implemented. |
+| M3.2.1 POS work-surface refinement | Complete | Current Order is fixed left of catalogue-derived category navigation and compact product tiles; local category/search composition, confirmed in-memory Clear, fixed totals/actions, and scanner focus recovery are covered without moving M3.3 tender scope forward. |
 | Tax/discount policy | Partial | M2 tax-inclusive, versioned product-tax policy is approved; rounding and discounts remain undecided and checkout still records zero tax. |
 | Order history | Partial | Summary list exists; full line detail/operations are incomplete. |
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |

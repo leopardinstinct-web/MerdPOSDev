@@ -2,6 +2,16 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-07 — M3.2.1 POS work-surface refinement
+
+- Reordered the POS surface to Current Order, catalogue-derived Categories,
+  and high-density Products beside the existing persistent dark navigation.
+- Added composable offline category/search filtering, a confirmed in-memory
+  Clear action, fixed total/actions, disabled Notes/Customer shells, and compact
+  touch product tiles with reserved future media space.
+- Extracted focused POS widgets while preserving M3.2 scanner/basket semantics
+  and deferring checkout/tender changes to M3.3.
+
 ## 2026-08-07 — M3.2 scanner and basket
 
 - Added exact HID/keyboard-wedge barcode buffering with Enter termination,

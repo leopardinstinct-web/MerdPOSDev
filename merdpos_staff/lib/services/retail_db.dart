@@ -529,6 +529,38 @@ class RetailDb {
     return rows.map(RetailProduct.fromMap).toList();
   }
 
+  static Future<List<RetailProduct>> posCatalogueProducts([
+    DatabaseExecutor? executor,
+  ]) async {
+    if (kIsWeb) {
+      _seedWeb();
+      return _webProducts.map(RetailProduct.fromMap).toList(growable: false)
+        ..sort((a, b) => a.name.compareTo(b.name));
+    }
+    final DatabaseExecutor db = executor ?? await database;
+    final List<Map<String, Object?>> rows = await db.rawQuery('''
+      SELECT p.*, p.primary_barcode AS barcode,
+        GROUP_CONCAT(b.barcode, char(31)) AS barcode_aliases,
+        ep.price_type, ep.server_id AS price_version_id,
+        ep.promotion_name, ep.campaign_reference,
+        CAST(p.stock_balance AS REAL) + COALESCE((
+          SELECT SUM(sm.quantity) FROM stock_movements sm
+          WHERE sm.server_product_id=p.id
+            AND sm.sync_status IN ('pending','rejected')
+        ),0) AS stock
+      FROM products p
+      LEFT JOIN catalogue_barcodes b ON b.product_id=p.id
+      LEFT JOIN catalogue_effective_prices ep ON ep.server_id=(
+        SELECT ep2.server_id FROM catalogue_effective_prices ep2
+        WHERE ep2.product_id=p.id
+        ORDER BY ep2.precedence_rank ASC, ep2.server_id ASC LIMIT 1
+      )
+      GROUP BY p.id
+      ORDER BY p.name ASC
+    ''');
+    return rows.map(RetailProduct.fromMap).toList(growable: false);
+  }
+
   static Future<RetailProduct?> productByExactBarcode(
     String barcode, [
     DatabaseExecutor? executor,
