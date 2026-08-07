@@ -1,12 +1,13 @@
 # M3 Barcode POS and Durable Sales — Implementation Decisions
 
-Status: approved roadmap; M3.1 is merged and M3.2 is implemented in source. Each later M3
+Status: approved roadmap; M3.1 and M3.2 are merged and M3.2.1 is implemented in source. Each later M3
 sub-milestone starts only after the preceding pull request is merged.
 
 ## Reviewable decomposition
 
 1. M3.1 — durable sale model.
 2. M3.2 — HID scanner and basket behavior.
+   - M3.2.1 — POS work-surface refinement only.
 3. M3.3 — exact checkout and single tender.
 4. M3.4 — durable sale synchronization and per-sale acknowledgement.
 5. M3.5 — order detail, restart hardening, and completion of the

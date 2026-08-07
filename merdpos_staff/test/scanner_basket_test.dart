@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merdpos_staff/main.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -149,6 +150,13 @@ void main() {
         expect((await RetailDb.productByExactBarcode('ALIAS-2', db))?.id, 10);
         expect(await RetailDb.productByExactBarcode('123', db), isNull);
         expect(await RetailDb.productByExactBarcode('', db), isNull);
+        final List<RetailProduct> catalogue =
+            await RetailDb.posCatalogueProducts(db);
+        expect(catalogue, hasLength(2));
+        expect(
+          catalogue.singleWhere((product) => product.id == 10).barcodeAliases,
+          containsAll(<String>['000123', 'ALIAS-2']),
+        );
       } finally {
         await db.close();
       }
@@ -200,7 +208,7 @@ void main() {
       expect(find.text('Catalogue stale • offline ready'), findsOneWidget);
       expect(FocusManager.instance.primaryFocus?.debugLabel, 'POS scanner');
 
-      await tester.tap(find.text('Enter barcode'));
+      await tester.tap(find.text('Barcode'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('manual-barcode-field')),
@@ -213,9 +221,135 @@ void main() {
       expect(FocusManager.instance.primaryFocus?.debugLabel, 'POS scanner');
     },
   );
+
+  testWidgets(
+    'category search scanner and confirmed clear preserve basket semantics',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(1500, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final List<RetailProduct> products = <RetailProduct>[
+        _product(
+          id: 1,
+          name: 'Still Water',
+          category: 'Drinks',
+          barcode: '0001',
+        ),
+        _product(id: 2, name: 'Cola', category: 'Drinks', barcode: '0002'),
+        _product(
+          id: 3,
+          name: 'Potato Chips',
+          category: 'Snacks',
+          barcode: '0003',
+        ),
+      ];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PosPage(
+              session: AppSession(
+                clientId: 1,
+                clientName: 'Synthetic',
+                storeId: 2,
+                storeName: 'Test Store',
+                deviceUuid: 'device-test',
+                activationToken: 'synthetic',
+              ),
+              cashier: const Employee(
+                id: 3,
+                fullName: 'Test Cashier',
+                userId: '3',
+                roleName: 'Staff',
+                hourlyRate: '0',
+              ),
+              productSearch: (_) async => products,
+              barcodeLookup: (barcode) async => products
+                  .where((product) => product.barcode == barcode)
+                  .firstOrNull,
+              healthLookup: () async => const RetailSyncHealth(
+                status: 'healthy',
+                pendingMovements: 0,
+                rejectedMovements: 0,
+              ),
+              catalogueHealthLookup: () async => const CatalogueSyncHealth(
+                status: 'success',
+                stale: false,
+                revision: 'synthetic',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('product-1')), findsOneWidget);
+      expect(find.byKey(const Key('product-2')), findsOneWidget);
+      expect(find.byKey(const Key('product-3')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('category-Drinks')));
+      await tester.pump();
+      expect(find.byKey(const Key('product-1')), findsOneWidget);
+      expect(find.byKey(const Key('product-2')), findsOneWidget);
+      expect(find.byKey(const Key('product-3')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('product-1')));
+      await tester.pump();
+      expect(find.byKey(const Key('basket-lines')), findsOneWidget);
+      expect(find.text('Still Water'), findsWidgets);
+      expect(find.text(r'$2.50'), findsWidgets);
+
+      await tester.tap(find.byKey(const Key('category-Snacks')));
+      await tester.pump();
+      expect(find.byKey(const Key('product-3')), findsOneWidget);
+      expect(find.byKey(const Key('product-1')), findsNothing);
+      expect(find.byKey(const Key('basket-lines')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('category-all')));
+      await tester.pump();
+      expect(find.byKey(const Key('product-1')), findsOneWidget);
+      expect(find.byKey(const Key('product-3')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('category-Drinks')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const Key('product-search')), 'Cola');
+      await tester.pump();
+      expect(find.byKey(const Key('product-2')), findsOneWidget);
+      expect(find.byKey(const Key('product-1')), findsNothing);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'POS scanner');
+
+      for (final String character in '0002'.split('')) {
+        await tester.sendKeyEvent(
+          LogicalKeyboardKey(character.codeUnitAt(0)),
+          character: character,
+        );
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Cola added'), findsOneWidget);
+      expect(find.text(r'$5.00'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('clear-basket')));
+      await tester.pumpAndSettle();
+      expect(find.text('Clear current order?'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('confirm-clear-basket')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('basket-lines')), findsNothing);
+      expect(find.text(r'$0.00'), findsOneWidget);
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'POS scanner');
+      final OutlinedButton clear = tester.widget(
+        find.byKey(const Key('clear-basket')),
+      );
+      expect(clear.onPressed, isNull);
+    },
+  );
 }
 
 RetailProduct _product({
+  int id = 1,
+  String name = 'Synthetic product',
+  String category = 'Test',
+  String barcode = '000123',
   String uom = 'each',
   String price = '2.50',
   double stock = 10,
@@ -225,10 +359,10 @@ RetailProduct _product({
   int? taxRate = 1000,
   String? promotion,
 }) => RetailProduct(
-  id: 1,
-  barcode: '000123',
-  name: 'Synthetic product',
-  category: 'Test',
+  id: id,
+  barcode: barcode,
+  name: name,
+  category: category,
   price: price.isEmpty ? 0 : double.parse(price),
   cost: 1,
   stock: stock,

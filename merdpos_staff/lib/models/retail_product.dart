@@ -21,6 +21,8 @@ class RetailProduct {
     this.priceVersionId,
     this.promotionName,
     this.campaignReference,
+    this.sku,
+    this.barcodeAliases = const <String>[],
     this.configurationIssues = const <String>[],
   });
 
@@ -43,6 +45,8 @@ class RetailProduct {
   final int? priceVersionId;
   final String? promotionName;
   final String? campaignReference;
+  final String? sku;
+  final List<String> barcodeAliases;
   final List<String> configurationIssues;
 
   double get margin => price - cost;
@@ -68,6 +72,8 @@ class RetailProduct {
     priceVersionId: map['price_version_id'] as int?,
     promotionName: map['promotion_name']?.toString(),
     campaignReference: map['campaign_reference']?.toString(),
+    sku: map['sku']?.toString(),
+    barcodeAliases: _decodeAliases(map['barcode_aliases']),
     configurationIssues: _decodeIssues(map['not_sellable_reasons_json']),
   );
 
@@ -77,6 +83,14 @@ class RetailProduct {
     return decoded is List
         ? decoded.map((item) => item.toString()).toList(growable: false)
         : const <String>[];
+  }
+
+  static List<String> _decodeAliases(Object? value) {
+    if (value is! String || value.isEmpty) return const <String>[];
+    return value
+        .split('\u001f')
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
   }
 }
 
