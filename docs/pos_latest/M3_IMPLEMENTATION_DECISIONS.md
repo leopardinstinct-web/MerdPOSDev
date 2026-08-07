@@ -1,6 +1,6 @@
 # M3 Barcode POS and Durable Sales — Implementation Decisions
 
-Status: approved roadmap; M3.1 implementation in progress. Each later M3
+Status: approved roadmap; M3.1 is merged and M3.2 is implemented in source. Each later M3
 sub-milestone starts only after the preceding pull request is merged.
 
 ## Reviewable decomposition
@@ -9,8 +9,12 @@ sub-milestone starts only after the preceding pull request is merged.
 2. M3.2 — HID scanner and basket behavior.
 3. M3.3 — exact checkout and single tender.
 4. M3.4 — durable sale synchronization and per-sale acknowledgement.
-5. M3.5 — order detail, restart hardening, and the first material
+5. M3.5 — order detail, restart hardening, and completion of the
    TapTouch-inspired MerdPOS POS treatment.
+
+M3.2 is the first material TapTouch-inspired POS work-surface implementation;
+M3.5 completes order detail and operational hardening without reopening that
+direction.
 
 ## Automatically adopted M3.1 decisions
 

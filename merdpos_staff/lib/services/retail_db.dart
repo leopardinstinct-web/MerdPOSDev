@@ -529,6 +529,44 @@ class RetailDb {
     return rows.map(RetailProduct.fromMap).toList();
   }
 
+  static Future<RetailProduct?> productByExactBarcode(
+    String barcode, [
+    DatabaseExecutor? executor,
+  ]) async {
+    if (barcode.isEmpty) return null;
+    if (kIsWeb) {
+      _seedWeb();
+      final matches = _webProducts.where(
+        (row) => row['barcode']?.toString() == barcode,
+      );
+      return matches.isEmpty ? null : RetailProduct.fromMap(matches.first);
+    }
+    final DatabaseExecutor db = executor ?? await database;
+    final List<Map<String, Object?>> rows = await db.rawQuery(
+      '''
+      SELECT p.*, b.barcode AS barcode,
+        ep.price_type, ep.server_id AS price_version_id,
+        ep.promotion_name, ep.campaign_reference,
+        CAST(p.stock_balance AS REAL) + COALESCE((
+          SELECT SUM(sm.quantity) FROM stock_movements sm
+          WHERE sm.server_product_id=p.id
+            AND sm.sync_status IN ('pending','rejected')
+        ),0) AS stock
+      FROM catalogue_barcodes b
+      JOIN products p ON p.id=b.product_id
+      LEFT JOIN catalogue_effective_prices ep ON ep.server_id=(
+        SELECT ep2.server_id FROM catalogue_effective_prices ep2
+        WHERE ep2.product_id=p.id
+        ORDER BY ep2.precedence_rank ASC, ep2.server_id ASC LIMIT 1
+      )
+      WHERE b.barcode=?
+      LIMIT 1
+      ''',
+      <Object?>[barcode],
+    );
+    return rows.isEmpty ? null : RetailProduct.fromMap(rows.single);
+  }
+
   static Future<void> saveProduct({
     int? id,
     required String barcode,
@@ -665,7 +703,7 @@ class RetailDb {
           'sale_id': saleId,
           'line_uid': uuid.v4(),
           'product_id': line.product.id,
-          'barcode': line.product.barcode,
+          'barcode': line.barcodeUsed,
           'product_name': line.product.name,
           'quantity': line.quantity,
           'unit_price': line.product.price,
@@ -742,7 +780,7 @@ class RetailDb {
           'sale_id': saleId,
           'line_uid': uuid.v4(),
           'product_id': line.product.id,
-          'barcode': line.product.barcode,
+          'barcode': line.barcodeUsed,
           'product_name': line.product.name,
           'quantity': line.quantity,
           'unit_price': line.product.price,

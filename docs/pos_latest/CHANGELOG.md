@@ -2,6 +2,16 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-07 — M3.2 scanner and basket
+
+- Added exact HID/keyboard-wedge barcode buffering with Enter termination,
+  duplicate-event debounce, manual entry, and focus recovery.
+- Added exact canonical-alias lookup, UOM-aware basket quantity rules,
+  configuration validation, exact line totals, and non-blocking projected-stock
+  visibility.
+- Materially applied the original TapTouch-inspired MerdPOS POS direction to
+  the scanner-first catalogue and stable basket work surface.
+
 ## 2026-08-07 — M3.1 durable sale model
 
 - Reconciled authoritative status through merged M2.7 and recorded that no

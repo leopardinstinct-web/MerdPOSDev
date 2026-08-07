@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -26,6 +27,7 @@ part 'services/primary_login_store.dart';
 part 'services/timesheet_parser.dart';
 part 'services/catalogue_sync.dart';
 part 'services/catalogue_incremental_sync.dart';
+part 'services/scanner_basket.dart';
 part 'services/retail_db.dart';
 part 'screens/setup_page.dart';
 part 'screens/login_page.dart';
