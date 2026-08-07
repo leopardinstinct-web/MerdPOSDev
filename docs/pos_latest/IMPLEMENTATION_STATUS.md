@@ -45,6 +45,7 @@ Status meanings:
 | Cash sale recording | Complete | Local tender recording implemented. |
 | Card sale recording | Partial | Tender label recorded; payment integration requires decision. |
 | M3.1 durable sale model | Complete | SQLite v5 atomically writes UUID sale/line/tender identity, exact snapshot foundations, stock movements, and durable outbox state; migration 020 adds the preserved-history server foundation. Runtime exact checkout and per-sale ingestion remain M3.3/M3.4. |
+| M3.2 scanner and basket | Complete | Exact HID/Enter scans, alias lookup, manual fallback, stable focus, UOM quantities, configuration errors, exact basket totals, non-blocking projected stock, and the first material TapTouch-inspired POS work surface are implemented. |
 | Tax/discount policy | Partial | M2 tax-inclusive, versioned product-tax policy is approved; rounding and discounts remain undecided and checkout still records zero tax. |
 | Order history | Partial | Summary list exists; full line detail/operations are incomplete. |
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |
@@ -67,7 +68,7 @@ Status meanings:
 | Admin sales/devices/reports | Partial | Basic read/report pages; device revocation absent. |
 | Audit logging | Partial | Admin actions logged; coverage/context/retention undefined. |
 | Role/permission model | Blocked | ADMIN gate exists; detailed matrix requires decision. |
-| TapTouch-inspired MerdPOS direction | Planned | Approved tokens/brief and supplied benchmark supersede Blue Ice. M3.5 is the first approved material Flutter POS treatment. |
+| TapTouch-inspired MerdPOS direction | Partial | M3.2 materially implements the scanner-first light POS work surface within persistent dark navigation. Broader order-detail and hardening treatment remains M3.5. |
 | Fonts/logo/design assets | Partial | Montserrat declared but not packaged; prism/logo assets absent. |
 | Settings/version screen | Partial | Settings placeholder; home shows app label only. |
 | Production application ID | Missing | Still `com.example.merdpos_staff`. |

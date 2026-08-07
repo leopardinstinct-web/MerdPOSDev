@@ -56,6 +56,7 @@ void main() {
       expect(lines, hasLength(1));
       expect(lines.single['line_uid'], matches(_uuid));
       expect(lines.single['server_product_id'], 1001);
+      expect(lines.single['barcode'], '000123-ALIAS');
       expect(lines.single['catalogue_unit_price'], '7.1234');
       expect(lines.single['unit_of_measure'], 'each');
       expect(tender['tender_uid'], matches(_uuid));
@@ -165,6 +166,7 @@ Future<int> _complete(Database db, {required String tender}) =>
             taxCode: 'GST',
             taxRateBasisPoints: 1000,
           ),
+          barcodeUsed: '000123-ALIAS',
         ),
       ],
       paymentMethod: tender,

@@ -210,6 +210,8 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `M3_IMPLEMENTATION_DECISIONS.md` and `M3_1_DURABLE_SALE_CONTRACT.md` — approved
   M3 decomposition, withheld operating decisions, and durable sale/receipt
   data contract.
+- `M3_2_SCANNER_BASKET_DECISIONS.md` — exact HID scanner, barcode alias,
+  quantity, projected-stock visibility, and TapTouch-inspired POS decisions.
 - `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
   Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
 - `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual

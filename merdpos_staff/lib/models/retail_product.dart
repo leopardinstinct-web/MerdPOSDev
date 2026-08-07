@@ -14,6 +14,13 @@ class RetailProduct {
     this.priceExact,
     this.taxCode,
     this.taxRateBasisPoints,
+    this.lifecycle = 'active',
+    this.storeAvailable = true,
+    this.sellable = true,
+    this.priceType,
+    this.priceVersionId,
+    this.promotionName,
+    this.campaignReference,
     this.configurationIssues = const <String>[],
   });
 
@@ -29,6 +36,13 @@ class RetailProduct {
   final String? priceExact;
   final String? taxCode;
   final int? taxRateBasisPoints;
+  final String lifecycle;
+  final bool storeAvailable;
+  final bool sellable;
+  final String? priceType;
+  final int? priceVersionId;
+  final String? promotionName;
+  final String? campaignReference;
   final List<String> configurationIssues;
 
   double get margin => price - cost;
@@ -47,6 +61,13 @@ class RetailProduct {
     priceExact: map['resolved_price']?.toString(),
     taxCode: map['tax_code']?.toString(),
     taxRateBasisPoints: map['tax_rate_basis_points'] as int?,
+    lifecycle: map['lifecycle']?.toString() ?? 'active',
+    storeAvailable: (map['store_available'] as int? ?? 1) == 1,
+    sellable: (map['sellable'] as int? ?? 1) == 1,
+    priceType: map['price_type']?.toString(),
+    priceVersionId: map['price_version_id'] as int?,
+    promotionName: map['promotion_name']?.toString(),
+    campaignReference: map['campaign_reference']?.toString(),
     configurationIssues: _decodeIssues(map['not_sellable_reasons_json']),
   );
 
@@ -60,8 +81,10 @@ class RetailProduct {
 }
 
 class BasketLine {
-  BasketLine({required this.product, this.quantity = 1});
+  BasketLine({required this.product, this.quantity = 1, String? barcodeUsed})
+    : barcodeUsed = barcodeUsed ?? product.barcode;
   final RetailProduct product;
+  final String barcodeUsed;
   double quantity;
   double get total => product.price * quantity;
 }
