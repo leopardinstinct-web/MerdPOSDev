@@ -4,6 +4,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api_response.php';
 require_once __DIR__ . '/includes/request.php';
 require_once __DIR__ . '/includes/device_auth.php';
+require_once __DIR__ . '/includes/stock_convergence.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -58,7 +59,9 @@ try {
       (retail_sale_id,product_id,barcode,product_name,quantity,unit_price,unit_cost,line_total)
       VALUES (?,?,?,?,?,?,?,?)");
     $employeeCheck = $pdo->prepare("SELECT id FROM employees WHERE id=? AND client_id=? AND status='active' LIMIT 1");
-    $productCheck = $pdo->prepare("SELECT id FROM retail_products WHERE id=? AND client_id=? AND status='active' LIMIT 1");
+    // Historical offline sale lines retain their canonical product reference
+    // even when lifecycle changed after the sale was completed.
+    $productCheck = $pdo->prepare("SELECT id FROM retail_products WHERE id=? AND client_id=? LIMIT 1");
 
     $syncedSales = 0;
     foreach ($sales as $sale) {
@@ -89,25 +92,28 @@ try {
         $syncedSales++;
     }
 
-    $moveInsert = $pdo->prepare("INSERT IGNORE INTO retail_stock_movements
-      (client_id,store_id,product_id,movement_type,quantity,reference_code,note,device_uuid,moved_at)
-      VALUES (?,?,?,?,?,?,?,?,?)");
     $syncedMoves = 0;
+    $movementOutcomes = [];
     foreach ($movements as $move) {
         if (!is_array($move)) continue;
-        $ref = clean_text($move['reference'] ?? '',191);
-        $productId = positive_int($move['product_id'] ?? null);
-        if ($ref === '' || !$productId) continue;
-        $productCheck->execute([$productId,$clientId]);
-        if (!$productCheck->fetchColumn()) throw new MerdRequestException('invalid_request',400,'Invalid request.');
-        $movedAt = clean_timestamp($move['created_at'] ?? null);
-        $moveInsert->execute([$clientId,$storeId,$productId,clean_text($move['movement_type'] ?? 'adjustment',40),decimal_value($move['quantity'] ?? 0),$ref,clean_text($move['note'] ?? '',255),$deviceUuid,$movedAt]);
-        $syncedMoves++;
+        try {
+            $outcome = merd_stock_apply_device_movement($pdo, $auth, $move);
+            $movementOutcomes[] = $outcome;
+            if ($outcome['outcome'] === 'accepted') $syncedMoves++;
+        } catch (MerdRequestException $exception) {
+            $localId = filter_var($move['id'] ?? null, FILTER_VALIDATE_INT);
+            $movementOutcomes[] = [
+                'local_id' => $localId === false ? null : (int)$localId,
+                'outcome' => 'rejected',
+                'error_code' => $exception->errorCode,
+                'error' => $exception->getMessage(),
+            ];
+        }
     }
 
     merd_device_touch_last_sync($pdo, $auth);
     $pdo->commit();
-    reply(['success'=>true,'api'=>'sync_retail.php','version'=>'retail-sync-v2-secure-device','synced_sales'=>$syncedSales,'synced_movements'=>$syncedMoves]);
+    reply(['success'=>true,'api'=>'sync_retail.php','version'=>'retail-sync-v3-stock-convergence','stock_contract_version'=>MERD_STOCK_SYNC_CONTRACT_VERSION,'synced_sales'=>$syncedSales,'synced_movements'=>$syncedMoves,'movement_outcomes'=>$movementOutcomes]);
 } catch (MerdRequestException $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
     merd_api_fail($e->errorCode, $e->getMessage(), $e->status);
