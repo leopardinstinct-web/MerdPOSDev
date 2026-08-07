@@ -128,9 +128,9 @@ later M2 work.
 
 ## M3 — Barcode POS and durable sales
 
-**Status:** M3.1 and M3.2 are complete and merged. M3.2.1 refines only the POS
-work surface before M3.3 exact checkout/tender work; sequential merge gates
-remain in force.
+**Status:** M3.1, M3.2, and M3.2.1 are complete and merged. M3.3 exact checkout
+and cash/card split-tender support is implemented in source; M3.4 does not
+start before the M3.3 pull request is merged.
 
 **Objective:** Complete reliable offline cash/card sale recording.
 
