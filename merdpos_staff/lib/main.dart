@@ -24,6 +24,7 @@ part 'services/auth_service.dart';
 part 'services/employee_service.dart';
 part 'services/primary_login_store.dart';
 part 'services/timesheet_parser.dart';
+part 'services/catalogue_sync.dart';
 part 'services/retail_db.dart';
 part 'screens/setup_page.dart';
 part 'screens/login_page.dart';
@@ -42,7 +43,8 @@ part 'utils/helpers.dart';
 
 const String kAppVersion = '1.1.0-retail-v1';
 const String kApiBaseUrl = 'https://app.merdpos.com/api';
-const String kRequestActivationGrantUrl = '$kApiBaseUrl/request_activation_grant.php';
+const String kRequestActivationGrantUrl =
+    '$kApiBaseUrl/request_activation_grant.php';
 const String kActivateDeviceUrl = '$kApiBaseUrl/activate_device.php';
 const String kGetEmployeesUrl = '$kApiBaseUrl/get_employees.php';
 const String kLoginUrl = '$kApiBaseUrl/login.php';
@@ -50,6 +52,7 @@ const String kSyncEmployeeLogsUrl = '$kApiBaseUrl/sync_employee_logs.php';
 const String kChangePasswordUrl = '$kApiBaseUrl/change_password.php';
 const String kTimesheetApiUrl = '$kApiBaseUrl/get_timesheet.php';
 const String kRetailSyncUrl = '$kApiBaseUrl/sync_retail.php';
+const String kCatalogueSyncUrl = '$kApiBaseUrl/sync_catalogue.php';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,10 +107,20 @@ class _AppBootstrapState extends State<AppBootstrap> {
       _session = session;
       _loading = false;
     });
+    if (session != null && !kIsWeb) unawaited(_refreshCatalogue(session));
   }
 
   Future<void> _onConfigured(AppSession session) async {
     setState(() => _session = session);
+    if (!kIsWeb) unawaited(_refreshCatalogue(session));
+  }
+
+  Future<void> _refreshCatalogue(AppSession session) async {
+    try {
+      await CatalogueSync.sync(session);
+    } catch (_) {
+      // Startup and activation remain usable offline with the last-good snapshot.
+    }
   }
 
   Future<void> _clearSetup() async {
