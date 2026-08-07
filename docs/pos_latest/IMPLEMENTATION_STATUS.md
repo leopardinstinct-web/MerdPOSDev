@@ -1,6 +1,6 @@
 # Implementation Status — POS LATEST
 
-Source baseline: merged `main` at `4104092` after Milestone 2.2.
+Source baseline: merged `main` at `ab99440` after Milestone 2.7.
 Status reflects source only, not production deployment.
 Existing Timesheet is preserved and excluded from new roadmap scoring.
 
@@ -31,42 +31,43 @@ Status meanings:
 | Durable PIN lockout | Partial | Login/password integration and deterministic tests are complete; production behavior is unavailable until migration 012 is reconciled, approved, and deployed. |
 | Secure app token storage | Complete | Milestone 2B uses maintained Android-backed secure storage with verified legacy migration and a two-release compatibility value. |
 | Token lifecycle policy | Partial | Source enforcement and Flutter bearer transport/controlled reactivation are complete; production behavior is unavailable until migrations 013–015 are reconciled, approved, and deployed. |
-| Local product catalogue | Partial | SQLite catalogue exists but is demo-seeded/local only. |
+| Local product catalogue | Complete | M2.5–M2.7 provide canonical server-ID SQLite catalogue, exact aliases, last-good offline data, lifecycle/configuration sellability, and authoritative stock snapshots; production demo seeding is gated off. |
 | M2 catalogue product policy | Complete | Product owner approved identity, ownership, category, pricing, tax, stock, lifecycle, and cursor-sync policy; lower-level contract details remain open. |
 | M2.1 catalogue identity/lifecycle foundation | Complete | Additive migration draft and synthetic MariaDB tests preserve IDs/references, add zero-to-many exact-text barcode aliases, enforce normalized client SKU identity, and protect lifecycle references. Production execution remains separately gated. |
 | M2.2 effective pricing/tax foundation | Complete | Shadow migration draft and synthetic MariaDB tests define AUD settings, approved units, effective price/tax history, overlap protection, and future sale snapshots. No runtime reader/writer uses it; production reconciliation and execution remain gated. |
 | M2.3 stock ledger/balance foundation | Complete | Branch adds immutable shadow movements, maintained balances, idempotency, transfer/reversal links, negative-stock exceptions, reconciliation boundaries, and passing synthetic tests. Runtime and production cutover remain gated. |
 | M2.4 initial full catalogue API | Complete | Device-authorized deterministic full snapshot reads M2.1–M2.3 structures with explicit price/tax/sellability/stock semantics and synthetic integration coverage. Flutter/SQLite application and incremental cursors remain missing. |
-| Authoritative product download | Partial | M2.4 backend full-snapshot endpoint exists; Flutter/SQLite application is not implemented. |
+| Authoritative product download | Complete | M2.4–M2.7 provide full/incremental tenant-store sync, atomic last-good application, opaque cursors, tombstones, and expired-cursor fallback. |
 | Barcode/name/category search | Complete | Local search exists; hardware scanner acceptance remains later. |
 | Barcode scanner integration | Blocked | Target scanner/hardware behavior requires decision. |
 | POS basket and quantity controls | Complete | Implemented in `pos_page.dart`. |
 | Stock validation/deduction | Complete | Checked and transactionally deducted locally. |
 | Cash sale recording | Complete | Local tender recording implemented. |
 | Card sale recording | Partial | Tender label recorded; payment integration requires decision. |
+| M3.1 durable sale model | Complete | SQLite v5 atomically writes UUID sale/line/tender identity, exact snapshot foundations, stock movements, and durable outbox state; migration 020 adds the preserved-history server foundation. Runtime exact checkout and per-sale ingestion remain M3.3/M3.4. |
 | Tax/discount policy | Partial | M2 tax-inclusive, versioned product-tax policy is approved; rounding and discounts remain undecided and checkout still records zero tax. |
 | Order history | Partial | Summary list exists; full line detail/operations are incomplete. |
 | Receipts | Blocked | Format, printer, and legal requirements require decision. |
 | Refunds/voids | Blocked | Rules and permissions require decision. |
 | Local inventory adjustments | Complete | Local adjustment and stock movement implemented. |
-| Server inventory ledger/reconciliation | Partial | M2.3 shadow foundation exists; legacy upload/runtime convergence and reviewed inventory reconciliation remain unimplemented. |
+| Server inventory ledger/reconciliation | Partial | M2.3 and M2.7 provide immutable ledger writes, maintained balances, idempotent device convergence, and negative-stock visibility. Reviewed legacy opening/reconciliation operations remain later inventory scope. |
 | Suppliers | Partial | Admin create/list foundation exists. |
 | Purchase orders | Partial | Basic single-product creation and receiving exists. |
 | Multi-line/partial receiving | Partial | Schema supports lines; UI/workflow is incomplete. |
 | Same-day financial summary | Partial | Local device-only revenue/transactions/margin. |
 | Historical/consolidated reports | Partial | Basic admin store sales summaries only. |
 | Outbound retail sync | Partial | Transactional aggregate sync exists. |
-| Per-record acknowledgement | Missing | Server returns aggregate counts only. |
-| Bidirectional synchronization | Missing | No inbound product/price/stock synchronization. |
+| Per-record acknowledgement | Complete | M2.7 returns accepted/duplicate/rejected stock outcomes and applies complete acknowledgement sets atomically. Durable per-sale acknowledgement is M3.4. |
+| Bidirectional synchronization | Partial | M2 provides catalogue/price/tax/stock inbound sync and stock outbound convergence. Durable sale synchronization is M3.4. |
 | Conflict handling | Partial | M2 master-data authority and completed-offline-sale/negative-stock policy are approved; broader M4 conflicts remain undecided. |
-| Retry idempotency | Partial | Unique keys/ignore inserts exist; client acknowledgement is unsafe. |
+| Retry idempotency | Partial | Catalogue and stock paths are replay-safe through M2. Durable sale identity and acknowledgement remain M3 scope. |
 | Admin authentication/session/CSRF | Complete | ADMIN check, CSRF, regeneration, timeout implemented. |
 | Admin product/category/inventory | Partial | Basic forms/listing; full CRUD/permissions incomplete. |
 | Admin suppliers/purchasing | Partial | Basic workflows only. |
 | Admin sales/devices/reports | Partial | Basic read/report pages; device revocation absent. |
 | Audit logging | Partial | Admin actions logged; coverage/context/retention undefined. |
 | Role/permission model | Blocked | ADMIN gate exists; detailed matrix requires decision. |
-| TapTouch-inspired MerdPOS direction | Planned | Approved tokens/brief and supplied benchmark supersede Blue Ice for future UI; implemented Flutter remains unchanged pending dedicated review. |
+| TapTouch-inspired MerdPOS direction | Planned | Approved tokens/brief and supplied benchmark supersede Blue Ice. M3.5 is the first approved material Flutter POS treatment. |
 | Fonts/logo/design assets | Partial | Montserrat declared but not packaged; prism/logo assets absent. |
 | Settings/version screen | Partial | Settings placeholder; home shows app label only. |
 | Production application ID | Missing | Still `com.example.merdpos_staff`. |

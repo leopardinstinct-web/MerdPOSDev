@@ -1,9 +1,10 @@
 # POS LATEST Product Roadmap — Draft
 
-Status: M0 and M1 source implementation approved and merged; the eight M2
-catalogue-policy decisions are approved, with contract details still gated.
+Status: M0–M2 source implementation is complete and merged. M3 is approved for
+sequential implementation. Production reconciliation, migrations, and
+deployment remain separately gated.
 
-Source baseline: merge commit `561a551`
+Source baseline: merged `main` at `ab99440` after Milestone 2.7.
 
 Timesheet rule: preserve existing behavior; no new Timesheet development.
 
@@ -73,11 +74,11 @@ shared-hosting clock/schema differences.
 
 ## M2 — Canonical catalogue and inbound synchronization
 
-**Status:** In progress. M2.1 supplies catalogue identity/lifecycle foundations;
-M2.2 supplies the effective pricing/tax shadow schema; M2.3 supplies the
-immutable stock-ledger and maintained-balance foundation; M2.4 supplies the
-first device-authorized full catalogue read API. Flutter/SQLite application,
-incremental synchronization, and production schema reconciliation remain gated.
+**Status:** Source-complete through merged M2.1–M2.7: identity/lifecycle,
+effective price/tax, stock ledger/balances, full and incremental catalogue
+sync, Flutter/SQLite last-good application, tombstones, stock convergence, and
+operational sync health. Production schema reconciliation and deployment
+remain separately gated. There is no required M2.8.
 
 **Objective:** Replace demonstration data with authoritative store retail data.
 
@@ -126,6 +127,9 @@ apply data to Flutter/SQLite. Device transactional last-good application remains
 later M2 work.
 
 ## M3 — Barcode POS and durable sales
+
+**Status:** Approved. Sequential implementation begins with M3.1 durable sale
+model and proceeds only after each preceding M3 pull request is merged.
 
 **Objective:** Complete reliable offline cash/card sale recording.
 

@@ -2,6 +2,17 @@
 
 Use this file to record every meaningful change.
 
+## 2026-08-07 — M3.1 durable sale model
+
+- Reconciled authoritative status through merged M2.7 and recorded that no
+  M2.8 is required.
+- Added UUIDv4 sale/line/tender identities, separate receipt numbers, additive
+  SQLite v5 exact snapshot fields, one-tender storage, and durable sale outbox.
+- Made new local sale, lines, tender, stock movements, and outbound state one
+  atomic transaction with restart and induced-failure coverage.
+- Added source-only migration 020 and synthetic MariaDB coverage without
+  changing runtime backend ingestion or executing a production migration.
+
 ## 2026-08-07 — M2.7 stock convergence and operational hardening
 
 - Added exact, idempotent device stock movement convergence with per-record

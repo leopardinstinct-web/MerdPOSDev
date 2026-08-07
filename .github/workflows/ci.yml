@@ -140,6 +140,7 @@ jobs:
           php backend/tests/run_catalogue_snapshot.php
           php backend/tests/run_incremental_catalogue.php
           php backend/tests/run_stock_convergence.php
+          php backend/tests/run_durable_sale_model.php
 
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests
