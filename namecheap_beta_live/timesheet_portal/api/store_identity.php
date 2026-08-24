@@ -5,8 +5,9 @@ require_once __DIR__ . '/../includes/beta_api.php';
 
 function store_identity_actor(PDO $pdo, array $sessionUser): array
 {
+    $authClientId = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
     $stmt = $pdo->prepare('SELECT id,client_id,full_name,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
-    $stmt->execute([(int)$sessionUser['id'], (int)$sessionUser['client_id']]);
+    $stmt->execute([(int)$sessionUser['id'], $authClientId]);
     $actor = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!is_array($actor) || strtolower((string)$actor['status']) !== 'active') {
         throw new MerdWorkforceException('account_inactive', 'Your account is inactive.');
@@ -16,6 +17,8 @@ function store_identity_actor(PDO $pdo, array $sessionUser): array
         json_response(['success' => false, 'error' => 'DEV access required for store identifiers.'], 403);
     }
     $actor['employee_type'] = $role;
+    $actor['auth_client_id'] = $authClientId;
+    $actor['client_id'] = (int)$sessionUser['client_id'];
     return $actor;
 }
 
@@ -46,8 +49,7 @@ function store_identity_code(string $value): string
 function store_identity_load(PDO $pdo, int $clientId): array
 {
     $stmt = $pdo->prepare(
-        "SELECT id,store_name,store_code,status FROM stores WHERE client_id=? "
-        . "ORDER BY CASE WHEN status='active' THEN 0 ELSE 1 END,store_name"
+        "SELECT id,store_name,store_code,status FROM stores WHERE client_id=? ORDER BY id ASC"
     );
     $stmt->execute([$clientId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -84,6 +86,7 @@ try {
             'success' => true,
             'csrf' => csrf_token(),
             'actor_role' => 'DEV',
+            'active_client_id' => $clientId,
             'stores' => store_identity_load($pdo, $clientId),
             'rules' => [
                 'store_code_min_length' => 2,
@@ -208,6 +211,7 @@ try {
         'message' => $auditAction === 'store.create' ? 'Store created.' : 'Store saved.',
         'csrf' => csrf_token(),
         'store_id' => (int)$id,
+        'active_client_id' => $clientId,
         'stores' => store_identity_load($pdo, $clientId),
     ]);
 } catch (Throwable $e) {
