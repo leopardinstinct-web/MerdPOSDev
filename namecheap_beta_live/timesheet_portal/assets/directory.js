@@ -17,6 +17,15 @@
     return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || ''}</svg>`;
   };
 
+  function ensureStylesheet() {
+    if (document.querySelector('link[data-directory-access-css]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'assets/directory-access.css';
+    link.dataset.directoryAccessCss = '1';
+    document.head.appendChild(link);
+  }
+
   async function api(url, options = {}) {
     const response = await fetch(url, options);
     const text = await response.text();
@@ -52,7 +61,7 @@
         if (!label.querySelector('.store-access-hint')) {
           const hint = document.createElement('p');
           hint.className = 'form-hint store-access-hint';
-          hint.textContent = 'Attendance access: All active stores. This field only sets the employee’s default/log store.';
+          hint.textContent = 'Used as the employee’s default/log store. Store permissions are configured separately below.';
           label.appendChild(hint);
         }
       }
@@ -60,7 +69,67 @@
 
     const description = employeeRoot?.closest('.directory-card')?.querySelector('.directory-toolbar p');
     if (description) {
-      description.textContent = 'Accounts, all-store attendance access, default/log store, access level and pay rate.';
+      description.textContent = 'Accounts, default/log store, allowed stores, access level and pay rate.';
+    }
+  }
+
+  function ensureStoreAccessControls() {
+    const defaultStore = document.getElementById('employeeStore');
+    if (!defaultStore || document.getElementById('employeeStoreAccessMode')) return;
+    const defaultLabel = defaultStore.closest('label');
+    if (!defaultLabel) return;
+
+    const block = document.createElement('div');
+    block.className = 'store-access-block';
+    block.innerHTML = `
+      <label>Store access
+        <select name="store_access_mode" id="employeeStoreAccessMode" required>
+          <option value="all">All active stores</option>
+          <option value="selected">Selected stores</option>
+        </select>
+        <p class="form-hint">Choose All stores, or Selected stores to allow one store or any combination of stores.</p>
+      </label>
+      <div id="employeeStoreChoicesWrap" hidden>
+        <div class="store-access-heading"><span>Allowed stores</span><span>Select one or more</span></div>
+        <div id="employeeStoreChoices" class="store-choice-grid"></div>
+      </div>`;
+    defaultLabel.insertAdjacentElement('afterend', block);
+
+    document.getElementById('employeeStoreAccessMode')?.addEventListener('change', () => {
+      syncStoreAccessVisibility(true);
+    });
+    defaultStore.addEventListener('change', () => {
+      if (document.getElementById('employeeStoreAccessMode')?.value !== 'selected') return;
+      const checkbox = document.querySelector(`#employeeStoreChoices input[value="${CSS.escape(defaultStore.value)}"]`);
+      if (checkbox) checkbox.checked = true;
+    });
+  }
+
+  function activeStores() {
+    return (directory?.stores || []).filter(store => String(store.status).toLowerCase() === 'active');
+  }
+
+  function renderStoreChoices(selectedIds = []) {
+    const root = document.getElementById('employeeStoreChoices');
+    if (!root || !directory) return;
+    const selected = new Set((selectedIds || []).map(Number));
+    root.innerHTML = activeStores().map(store => `
+      <label class="store-choice">
+        <input type="checkbox" name="store_ids" value="${Number(store.id)}" ${selected.has(Number(store.id)) ? 'checked' : ''}>
+        <span>${esc(store.store_name)}</span>
+      </label>`).join('');
+  }
+
+  function syncStoreAccessVisibility(selectDefault = false) {
+    const mode = document.getElementById('employeeStoreAccessMode');
+    const wrap = document.getElementById('employeeStoreChoicesWrap');
+    if (!mode || !wrap) return;
+    const selectedMode = mode.value === 'selected';
+    wrap.hidden = !selectedMode;
+    if (selectedMode && selectDefault && !document.querySelector('#employeeStoreChoices input:checked')) {
+      const defaultId = document.getElementById('employeeStore')?.value || '';
+      const checkbox = document.querySelector(`#employeeStoreChoices input[value="${CSS.escape(defaultId)}"]`);
+      if (checkbox) checkbox.checked = true;
     }
   }
 
@@ -73,6 +142,7 @@
       renderStores();
       populateEmployeeStoreOptions();
       clarifyStoreMeaning();
+      ensureStoreAccessControls();
     } catch (error) {
       const html = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
       if (employeeRoot) employeeRoot.innerHTML = html;
@@ -94,28 +164,57 @@
     return `<span class="entity-role role-${esc(normalized.toLowerCase())}">${esc(normalized)}</span>`;
   }
 
+  function storeById(id) {
+    return (directory?.stores || []).find(store => Number(store.id) === Number(id));
+  }
+
+  function employeeStoreNames(employee) {
+    if (String(employee.store_access_mode || 'all') !== 'selected') return [];
+    return (employee.assigned_store_ids || []).map(id => storeById(id)?.store_name).filter(Boolean);
+  }
+
+  function storeAccessPill(employee) {
+    if (String(employee.store_access_mode || 'all') !== 'selected') {
+      return '<span class="store-access-summary">All stores</span>';
+    }
+    const count = (employee.assigned_store_ids || []).length;
+    return `<span class="store-access-summary">${count} ${count === 1 ? 'store' : 'stores'}</span>`;
+  }
+
   function renderEmployees(filter = '') {
     if (!employeeRoot || !directory) return;
     const query = String(filter).trim().toLowerCase();
-    const rows = (directory.employees || []).filter(e => !query || [e.full_name,e.user_id,e.store_name,e.employee_type,e.status,'all stores'].some(v => String(v || '').toLowerCase().includes(query)));
+    const rows = (directory.employees || []).filter(employee => {
+      const assignedNames = employeeStoreNames(employee).join(' ');
+      return !query || [employee.full_name,employee.user_id,employee.store_name,employee.employee_type,employee.status,assignedNames,employee.store_access_mode === 'all' ? 'all stores' : 'selected stores']
+        .some(value => String(value || '').toLowerCase().includes(query));
+    });
     if (!rows.length) {
       employeeRoot.innerHTML = '<div class="entity-empty">No employees match this search.</div>';
       return;
     }
-    employeeRoot.innerHTML = rows.map(employee => `
+    employeeRoot.innerHTML = rows.map(employee => {
+      const accessNames = employeeStoreNames(employee);
+      const accessText = employee.store_access_mode === 'selected'
+        ? (accessNames.length ? accessNames.join(', ') : 'No stores selected')
+        : 'All active stores';
+      return `
       <article class="entity-row ${employee.status === 'inactive' ? 'is-muted' : ''}">
         <div class="entity-avatar">${esc(initials(employee.full_name))}</div>
         <div class="entity-copy">
           <div class="entity-title-line"><strong>${esc(employee.full_name)}</strong>${employee.self ? '<span class="you-chip">You</span>' : ''}</div>
-          <div class="entity-sub">ID ${esc(employee.user_id)} · All active stores · Default/log: ${esc(employee.store_name || 'Not set')}</div>
+          <div class="entity-sub">ID ${esc(employee.user_id)} · Default/log: ${esc(employee.store_name || 'Not set')}</div>
+          <div class="entity-sub">Allowed: ${esc(accessText)}</div>
         </div>
         <div class="entity-meta">
           ${rolePill(employee.employee_type)}
+          ${storeAccessPill(employee)}
           <span class="entity-rate">${money(employee.hourly_rate)}/hr</span>
           ${statusPill(employee.status)}
         </div>
         <button type="button" class="icon-text-btn" data-edit-employee="${Number(employee.id)}" ${employee.editable ? '' : 'disabled'}>${icon('edit')}<span>Edit</span></button>
-      </article>`).join('');
+      </article>`;
+    }).join('');
     employeeRoot.querySelectorAll('[data-edit-employee]').forEach(button => button.addEventListener('click', () => openEmployee(Number(button.dataset.editEmployee))));
   }
 
@@ -161,6 +260,7 @@
     const dialog = document.getElementById('employeeDialog');
     const form = document.getElementById('employeeAdminForm');
     if (!dialog || !form || !directory) return;
+    ensureStoreAccessControls();
     form.reset();
     const employee = id ? (directory.employees || []).find(e => Number(e.id) === Number(id)) : null;
     form.elements.id.value = employee ? employee.id : '';
@@ -173,6 +273,12 @@
     clarifyStoreMeaning();
     if (employee?.store_id) form.elements.store_id.value = employee.store_id;
     form.elements.new_password.value = '';
+
+    const accessMode = document.getElementById('employeeStoreAccessMode');
+    if (accessMode) accessMode.value = employee?.store_access_mode || 'all';
+    renderStoreChoices(employee?.assigned_store_ids || []);
+    syncStoreAccessVisibility(false);
+
     document.getElementById('employeeDialogTitle').textContent = employee ? `Edit ${employee.full_name}` : 'Add employee';
     document.getElementById('employeePasswordHint').textContent = employee ? 'Leave blank to keep the current password.' : 'Required for a new employee. Use 4–20 digits.';
     const selfGuard = document.getElementById('employeeSelfGuard');
@@ -206,6 +312,8 @@
     if (action === 'save_employee') {
       if (form.elements.employee_type.disabled) values.employee_type = form.elements.employee_type.value;
       if (form.elements.status.disabled) values.status = form.elements.status.value;
+      values.store_access_mode = document.getElementById('employeeStoreAccessMode')?.value || 'all';
+      values.store_ids = Array.from(document.querySelectorAll('#employeeStoreChoices input[name="store_ids"]:checked')).map(input => Number(input.value));
     }
     values.action = action;
     values.csrf = directory.csrf;
@@ -232,6 +340,9 @@
     }
   }
 
+  ensureStylesheet();
+  ensureStoreAccessControls();
+  clarifyStoreMeaning();
   document.getElementById('addEmployeeBtn')?.addEventListener('click', () => openEmployee());
   document.getElementById('addStoreBtn')?.addEventListener('click', () => openStore());
   document.getElementById('employeeAdminForm')?.addEventListener('submit', event => { event.preventDefault(); saveForm(event.currentTarget, 'save_employee'); });
@@ -240,6 +351,5 @@
   document.getElementById('storeSearch')?.addEventListener('input', event => renderStores(event.target.value));
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
 
-  clarifyStoreMeaning();
   loadDirectory();
 })();
