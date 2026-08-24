@@ -15,6 +15,14 @@
     document.head.appendChild(link);
   }
 
+  function ensureStoreIdentityModule() {
+    if (document.querySelector('script[data-store-identity-module]')) return;
+    const script = document.createElement('script');
+    script.src = 'assets/store-identity.js';
+    script.dataset.storeIdentityModule = '1';
+    document.body.appendChild(script);
+  }
+
   async function api(url, options = {}) {
     const response = await fetch(url, options);
     const text = await response.text();
@@ -291,6 +299,7 @@
   }
 
   ensureStyles();
+  ensureStoreIdentityModule();
   createPanel();
   if (!mountTab()) {
     const observer = new MutationObserver(() => {
