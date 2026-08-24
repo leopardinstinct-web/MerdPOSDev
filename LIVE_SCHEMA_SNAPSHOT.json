@@ -7,7 +7,7 @@ Content-Type: application/json
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 30,
+    "table_count": 32,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -2288,6 +2288,329 @@ Content-Type: application/json
                 }
             ],
             "foreign_keys": []
+        },
+        {
+            "name": "employee_store_access",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "access_mode",
+                    "position": 4,
+                    "data_type": "enum",
+                    "column_type": "enum('all','selected')",
+                    "nullable": false,
+                    "default": "'all'",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 7,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_employee_store_access_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employee_store_access_actor",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "updated_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employee_store_access_mode",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "access_mode",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_employee_store_access",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_employee_store_access_actor",
+                    "column": "updated_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                },
+                {
+                    "constraint": "fk_employee_store_access_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_employee_store_access_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "employee_store_assignments",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 5,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_employee_store_assignment_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_employee_store_assignment_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employee_store_assignment_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employee_store_assignment_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_employee_store_assignment",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_employee_store_assignment_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_employee_store_assignment_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_employee_store_assignment_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
         },
         {
             "name": "financial_day_accounts",
