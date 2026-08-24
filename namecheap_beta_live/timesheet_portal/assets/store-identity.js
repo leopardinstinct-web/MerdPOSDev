@@ -6,7 +6,8 @@
 
   let state = null;
   let isDev = false;
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let patchTimers = [];
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 
   async function api(url, options = {}) {
     const response = await fetch(url, options);
@@ -122,8 +123,14 @@
         if (timingLine) timingLine.insertAdjacentElement('beforebegin', line);
         else copy.appendChild(line);
       }
-      line.textContent = `Code ${store.store_code} · ID ${store.id}`;
+      const nextText = `Code ${store.store_code} · ID ${store.id}`;
+      if (line.textContent !== nextText) line.textContent = nextText;
     });
+  }
+
+  function queuePatchRows() {
+    patchTimers.forEach(clearTimeout);
+    patchTimers = [0, 40, 120, 300, 800].map(delay => setTimeout(patchRows, delay));
   }
 
   function restoreStoresPanel() {
@@ -159,7 +166,10 @@
         }
       });
     }
+    if (event.target.closest('[data-panel="storesPanel"]')) queuePatchRows();
   });
+
+  document.getElementById('storeSearch')?.addEventListener('input', queuePatchRows);
 
   form.addEventListener('submit', async event => {
     if (!isDev || !state) return;
@@ -206,11 +216,8 @@
       if (!isDev) return;
       ensureStyles();
       ensureFields();
-      patchRows();
+      queuePatchRows();
       restoreStoresPanel();
-
-      const observer = new MutationObserver(() => patchRows());
-      observer.observe(storeRoot, {childList:true,subtree:true});
     } catch (error) {
       if (error.status !== 403) console.error('MERDPOS store identity:', error);
     }
