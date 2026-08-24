@@ -1,0 +1,109 @@
+/* MERDPOS weekly store timing editor. Uses the universal shell tokens. */
+.timings-card { max-width:980px; }
+.timing-page-head { margin-bottom:14px!important; }
+.timing-controls {
+  display:flex;
+  align-items:end;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.timing-controls > label { min-width:260px;flex:0 1 360px; }
+.timing-controls .secondary-btn { min-height:42px; }
+.timing-scope-note {
+  margin:0 0 12px;
+  padding:9px 11px;
+  border:1px solid var(--ui-border);
+  border-radius:8px;
+  background:#F8FAFC;
+  color:var(--ui-muted);
+  font-size:11px;
+}
+.timing-scope-note.is-warning {
+  background:var(--ui-amber-soft);
+  border-color:#F0D9A3;
+  color:#7B5200;
+}
+.timing-grid {
+  display:grid;
+  grid-template-columns:minmax(140px,1.2fr) 100px minmax(130px,1fr) minmax(130px,1fr);
+  align-items:center;
+  gap:10px;
+}
+.timing-grid-head {
+  padding:8px 12px;
+  color:var(--ui-muted);
+  background:#F6F8FB;
+  border:1px solid var(--ui-border);
+  border-bottom:0;
+  border-radius:8px 8px 0 0;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+#timingRows {
+  border:1px solid var(--ui-border);
+  border-radius:0 0 8px 8px;
+  overflow:hidden;
+}
+.timing-row {
+  min-height:58px;
+  padding:8px 12px;
+  background:#fff;
+  border-bottom:1px solid var(--ui-border);
+}
+.timing-row:last-child { border-bottom:0; }
+.timing-row > strong { font-size:12px;color:var(--ui-text); }
+.timing-row label { margin:0!important; }
+.timing-row input[type="time"] { width:100%;min-height:38px!important; }
+.timing-closed {
+  display:flex!important;
+  align-items:center;
+  gap:7px;
+  color:var(--ui-muted)!important;
+  font-size:11px!important;
+}
+.timing-closed input[type="checkbox"] {
+  width:17px!important;
+  height:17px!important;
+  min-height:0!important;
+  margin:0!important;
+  accent-color:var(--ui-brand);
+}
+.mobile-field-label { display:none; }
+.timing-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:12px;
+}
+#timingStatus.is-error { color:var(--ui-red)!important; }
+
+@media (max-width:720px) {
+  .timings-card { max-width:none; }
+  .timing-controls { align-items:stretch; }
+  .timing-controls > label { flex:1 0 100%;min-width:0; }
+  .timing-grid-head { display:none; }
+  #timingRows { border:0;border-radius:0;display:grid;gap:8px;overflow:visible; }
+  .timing-row {
+    grid-template-columns:1fr auto;
+    gap:9px 12px;
+    padding:12px;
+    border:1px solid var(--ui-border)!important;
+    border-radius:10px;
+  }
+  .timing-row > strong { font-size:13px; }
+  .timing-closed { justify-self:end; }
+  .timing-row > label:not(.timing-closed) { grid-column:span 1; }
+  .mobile-field-label { display:block;margin-bottom:4px;color:var(--ui-muted);font-size:9px;text-transform:uppercase;letter-spacing:.04em; }
+  .timing-footer { align-items:stretch;flex-direction:column; }
+  .timing-footer .primary-btn { width:100%; }
+}
+
+@media (max-width:430px) {
+  .timing-row { grid-template-columns:1fr; }
+  .timing-closed { justify-self:start; }
+  .timing-row > label:not(.timing-closed) { grid-column:1; }
+}
