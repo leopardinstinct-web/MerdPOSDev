@@ -3,6 +3,16 @@
   const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const money=value=>Number(value||0).toLocaleString(undefined,{style:'currency',currency:'AUD'});
 
+  function ensureShellAssets(){
+    if(!document.querySelector('link[href$="assets/shell.css"]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css';document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[src$="assets/navigation.js"]')){
+      const script=document.createElement('script');script.src='assets/navigation.js';script.defer=true;document.body.appendChild(script);
+    }
+  }
+  ensureShellAssets();
+
   function activatePanel(id){
     document.querySelectorAll('.portal-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.panel===id));
     document.querySelectorAll('.portal-panel').forEach(panel=>panel.hidden=panel.id!==id);
@@ -10,7 +20,10 @@
 
   async function json(url){
     const response=await fetch(url,{headers:{'Accept':'application/json'}});
-    const data=await response.json();
+    const text=await response.text();
+    let data;
+    try{data=text?JSON.parse(text):null;}catch(_){throw new Error(`MERDPOS API returned invalid data (${response.status}).`);}
+    if(!data)throw new Error(`MERDPOS API returned an empty response (${response.status}).`);
     if(!data.success)throw new Error(data.error||'Request failed');
     return data;
   }
