@@ -9,6 +9,8 @@ Merged source baseline: `4104092e6c2243d07c82c18947d6f819191cd1e4` (`4104092`)
 Current planning state: Milestone 1 is source-complete through merged Milestone
 2B. Production use of its security controls remains deployment-gated.
 
+Beta branch state — 2026-08-24: `beta/qr-attendance-disputes-financials` now contains source for QR attendance, employee-confirmed POS handover disputes, SUPER-gated shift corrections, portal password changes, and SQL-validated/offline-queued financials mirrored to the existing Sheets. This user-approved beta explicitly extends `timesheet_portal/`; the earlier roadmap exclusion does not apply to this scoped branch. Nothing has been migrated or deployed.
+
 ## Authority
 
 GitHub source is authoritative for implemented behavior. This directory is the

@@ -8,12 +8,21 @@ class SecondaryLoginDialog extends StatefulWidget {
   State<SecondaryLoginDialog> createState() => _SecondaryLoginDialogState();
 }
 
+enum SecondaryLoginChoice { additional, replacePrevious }
+
+class SecondaryLoginResult {
+  const SecondaryLoginResult(this.employee, this.choice);
+  final Employee employee;
+  final SecondaryLoginChoice choice;
+}
+
 class _SecondaryLoginDialogState extends State<SecondaryLoginDialog> {
   final TextEditingController _userIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _loggingIn = false;
   String? _error;
   _CredentialField _activeField = _CredentialField.userId;
+  Employee? _authenticatedEmployee;
 
   TextEditingController get _activeController {
     return _activeField == _CredentialField.userId ? _userIdController : _passwordController;
@@ -48,7 +57,7 @@ class _SecondaryLoginDialogState extends State<SecondaryLoginDialog> {
         return;
       }
       if (!mounted) return;
-      Navigator.of(context).pop(employee);
+      setState(() => _authenticatedEmployee = employee);
     } catch (e) {
       if (mounted) setState(() => _error = cleanError(e));
     } finally {
@@ -85,12 +94,17 @@ class _SecondaryLoginDialogState extends State<SecondaryLoginDialog> {
   @override
   Widget build(BuildContext context) {
     final bool canUsePad = !_loggingIn;
+    final Employee? authenticated = _authenticatedEmployee;
     return AlertDialog(
-      title: const Text('Add secondary user'),
+      title: Text(authenticated == null ? 'Sign in another user' : 'How should this user sign in?'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 360,
-          child: Column(
+          child: authenticated != null ? Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('${authenticated.fullName} has been verified.'),
+            const SizedBox(height: 10),
+            Text('Keep ${widget.primaryEmployee.fullName} signed in, or report that they forgot to log out?'),
+          ]) : Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _NumericLoginField(
@@ -123,9 +137,12 @@ class _SecondaryLoginDialogState extends State<SecondaryLoginDialog> {
       ),
       actions: [
         TextButton(onPressed: _loggingIn ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(
+        if (authenticated != null) ...[
+          OutlinedButton(onPressed: () => Navigator.of(context).pop(SecondaryLoginResult(authenticated, SecondaryLoginChoice.replacePrevious)), child: const Text('Previous user forgot')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(SecondaryLoginResult(authenticated, SecondaryLoginChoice.additional)), child: const Text('Add as additional user')),
+        ] else FilledButton(
           onPressed: canUsePad ? _login : null,
-          child: _loggingIn ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Add user'),
+          child: _loggingIn ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Continue'),
         ),
       ],
     );

@@ -487,3 +487,15 @@ Fixed:
 Still open:
 - Confirm SQL migration `backend/sql/001_employee_auth_attempts.sql` has been run before relying on lockout behavior.
 - Continue endpoint audit for prepared statements and generic errors as future maintenance.
+
+2026-08-24 — Financial accounts allowed impossible Cash OUT
+
+Issue: the legacy financial interface could record Petty Cash OUT even when opening and Cash IN were both zero. Browser-only Apps Script calls had no atomic shared balance check.
+
+Beta fix: SQL now locks the store/date/account rows and rejects any Cash OUT above `opening + confirmed IN - confirmed OUT`. The portal also shows the available balance and overlays same-device offline entries, but the server remains authoritative. Closing is single-use and validated before Google Sheets delivery.
+
+2026-08-24 — POS replacement bypassed the previous employee
+
+Issue: replacing a forgotten POS user could silently imply an attendance OUT.
+
+Beta fix: the replacement creates an `awaiting_employee` missing-OUT dispute. The previous employee must confirm it before it enters the SUPER queue. Only SUPER approval can change the attendance shift and `Time Sheet` mirror.

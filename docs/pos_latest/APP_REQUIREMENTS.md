@@ -129,3 +129,13 @@ prevent an approved change from causing a regression.
 - Update contracts, changelog, manifest, status, and handover docs with changes.
 - No commit, push, merge, migration, deployment, credential use, or production
   data change without the corresponding explicit approval.
+
+## Approved QR workforce/financial beta requirements — 2026-08-24
+
+- First valid authorised POS QR scan creates IN; the next fresh QR creates OUT. Replay returns the original receipt.
+- A POS replacement first requires the new user to choose additional user or previous user forgot. A forgotten-user report requires previous-employee confirmation, then SUPER approval, before any attendance correction.
+- Employees may propose, correct, delete or cancel disputed shifts. Only SUPER approval may alter the `Time Sheet` mirror.
+- The portal keeps the existing Timesheet Portal colors and exposes four simple sections: Attendance, Timesheet, Disputes and Financials.
+- Financials retains Daily Cash Statement, Cash In / Out and Daily Cash Closing. Available balance is `opening + accepted IN - accepted OUT`; no account may go negative and a day may close once only.
+- Offline financial entries must remain locally queued, be idempotent, and pass the same authoritative SQL validation after reconnecting.
+- Google Sheets remains the beta reporting/operational mirror; SQL is the concurrency, approval and idempotency authority.

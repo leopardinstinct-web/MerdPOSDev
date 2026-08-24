@@ -1,8 +1,13 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 if (current_user()) {
-    header('Location: dashboard.php');
+    start_app_session();
+    header('Location: ' . (isset($_SESSION['pending_qr']) ? 'scan.php' : 'dashboard.php'));
     exit;
+}
+start_app_session();
+if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
+    $_SESSION['pending_qr'] = $_GET['q'];
 }
 ?>
 <!doctype html>
@@ -18,7 +23,7 @@ if (current_user()) {
     <section class="login-card">
       <div class="brand-mark">TS</div>
       <h1>Timesheet Portal</h1>
-      <p class="muted">Log in to view your weekly Monday–Sunday timesheet.</p>
+      <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Log in to complete your POS attendance scan.' : 'Timesheets, attendance, disputes and store financials.' ?></p>
 
       <form id="loginForm" autocomplete="off">
         <label for="user_id">User ID</label>
@@ -43,7 +48,7 @@ if (current_user()) {
         const res = await fetch('api/login.php', { method: 'POST', body: formData });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Login failed');
-        window.location.href = 'dashboard.php';
+        window.location.href = data.next || 'dashboard.php';
       } catch (err) {
         error.textContent = err.message;
         error.hidden = false;

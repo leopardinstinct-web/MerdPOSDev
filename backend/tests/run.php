@@ -8,6 +8,7 @@ require_once __DIR__ . '/auth_lockout_test.php';
 require_once __DIR__ . '/security_foundation_test.php';
 require_once __DIR__ . '/endpoint_integration_test.php';
 require_once __DIR__ . '/endpoint_hardening_test.php';
+require_once __DIR__ . '/workforce_beta_test.php';
 
 $passed = 0;
 $failed = 0;

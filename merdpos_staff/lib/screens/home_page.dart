@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
     _primaryEmployee = widget.primaryEmployee;
     _employees = _mergeEmployee(widget.employees, widget.primaryEmployee);
     unawaited(_loadSyncHealth());
+    unawaited(PosHandoverService.flush(widget.session));
   }
 
   void _showInfo(String m) =>
@@ -92,14 +93,28 @@ class _HomePageState extends State<HomePage> {
       _showInfo('Maximum 2 users allowed at the same time.');
       return false;
     }
-    final employee = await showDialog<Employee>(
+    final result = await showDialog<SecondaryLoginResult>(
       context: context,
       builder: (_) => SecondaryLoginDialog(
         session: widget.session,
         primaryEmployee: _primaryEmployee,
       ),
     );
-    if (employee == null) return false;
+    if (result == null) return false;
+    final employee = result.employee;
+    if (result.choice == SecondaryLoginChoice.replacePrevious) {
+      final previous = _primaryEmployee;
+      await PrimaryLoginStore.save(employee);
+      await PosHandoverService.queueAndSync(widget.session, previous, employee);
+      if (!mounted) return false;
+      setState(() {
+        _primaryEmployee = employee;
+        _secondaryEmployee = null;
+        _employees = _mergeEmployee(_employees, employee);
+        _message = '${employee.fullName} is now the active user. ${previous.fullName} was reported for SUPER review.';
+      });
+      return true;
+    }
     setState(() {
       _secondaryEmployee = employee;
       _employees = _mergeEmployee(_employees, employee);

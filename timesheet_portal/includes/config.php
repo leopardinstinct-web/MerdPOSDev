@@ -1,8 +1,8 @@
 <?php
 /**
  * Timesheet Portal Configuration
- * Shared-link Google Sheet CSV mode. No Google API is used.
- * The app only reads from Google Sheets.
+ * Google Sheets remains the payroll/report mirror. Transactional beta actions
+ * use the existing MerdPOS SQL connection and a durable Sheets outbox.
  */
 
 // Your shared Google Sheet ID.
@@ -23,6 +23,9 @@ define('CSV_CACHE_SECONDS', 60);
 
 // Session settings.
 define('SESSION_NAME', 'TIMESHEET_PORTAL_SESSION');
+define('SESSION_IDLE_SECONDS', 1800);
+define('BACKEND_CONFIG_PATH', __DIR__ . '/../../backend/api/config.php');
+define('PORTAL_CLIENT_ID', 1);
 
 // Employee Setup fixed column positions, 0-based.
 // Column A = employee name, Column B = role, Column C = user id, Column D = password.

@@ -4,8 +4,18 @@ require_once __DIR__ . '/config.php';
 function start_app_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        session_set_cookie_params([
+            'lifetime' => 0, 'path' => '/', 'secure' => $secure,
+            'httponly' => true, 'samesite' => 'Lax',
+        ]);
         session_name(SESSION_NAME);
         session_start();
+        if (isset($_SESSION['last_seen']) && time() - (int)$_SESSION['last_seen'] > SESSION_IDLE_SECONDS) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+        }
+        $_SESSION['last_seen'] = time();
     }
 }
 
@@ -32,6 +42,33 @@ function login_user(array $user): void
     start_app_session();
     session_regenerate_id(true);
     $_SESSION['user'] = $user;
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+function csrf_token(): string
+{
+    start_app_session();
+    if (!isset($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    return (string)$_SESSION['csrf'];
+}
+
+function require_csrf(array $input): void
+{
+    $provided = (string)($input['csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
+    if ($provided === '' || !hash_equals(csrf_token(), $provided)) {
+        json_response(['success' => false, 'error' => 'Your session expired. Refresh and try again.'], 419);
+    }
+}
+
+function request_input(): array
+{
+    $input = $_POST;
+    $raw = file_get_contents('php://input');
+    if (!$input && $raw !== '') {
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) $input = $decoded;
+    }
+    return $input;
 }
 
 function logout_user(): void

@@ -24,6 +24,7 @@ part 'services/device_token_store.dart';
 part 'services/auth_service.dart';
 part 'services/employee_service.dart';
 part 'services/primary_login_store.dart';
+part 'services/pos_handover_service.dart';
 part 'services/timesheet_parser.dart';
 part 'services/catalogue_sync.dart';
 part 'services/catalogue_incremental_sync.dart';
@@ -57,6 +58,7 @@ const String kLoginUrl = '$kApiBaseUrl/login.php';
 const String kSyncEmployeeLogsUrl = '$kApiBaseUrl/sync_employee_logs.php';
 const String kChangePasswordUrl = '$kApiBaseUrl/change_password.php';
 const String kTimesheetApiUrl = '$kApiBaseUrl/get_timesheet.php';
+const String kPosHandoverUrl = '$kApiBaseUrl/report_pos_handover.php';
 const String kRetailSyncUrl = '$kApiBaseUrl/sync_retail.php';
 const String kCatalogueSyncUrl = '$kApiBaseUrl/sync_catalogue.php';
 

@@ -726,3 +726,13 @@ Tested:
 Open issues:
 - `config.php` remains in repo by user instruction; remove and rotate credentials as soon as practical.
 - Namecheap deployment must receive all backend files before the new Flutter build is used.
+
+2026-08-24 — QR workforce, disputes and financials beta
+
+- Added an offline Ed25519 QR attendance display app and server-side QR replay/shift controls.
+- Extended the Timesheet Portal with live attendance, employee disputes, SUPER approvals, password change and the existing three-part financial interface.
+- Added employee-confirmed POS handover disputes before SUPER escalation.
+- Added SQL financial day accounts and ledger entries. Cash OUT is transactionally blocked above `opening + IN - OUT`; closing is single-use and opens the next day.
+- Added a signed, idempotent Apps Script/Google Sheets outbox bridge.
+- Added migration `021_workforce_financial_beta.sql`, tests and gated deployment/rollback documentation.
+- Source only on `beta/qr-attendance-disputes-financials`; no migration, Sheet mutation or deployment was performed.

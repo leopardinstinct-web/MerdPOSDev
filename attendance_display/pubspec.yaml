@@ -1,0 +1,24 @@
+name: merdpos_attendance_display
+description: Offline signed QR attendance display for authorised MerdPOS devices.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cryptography: ^2.9.0
+  flutter_secure_storage: ^10.0.0
+  http: ^1.2.2
+  qr_flutter: ^4.1.0
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

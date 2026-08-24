@@ -189,3 +189,15 @@ Milestone 1 does not change endpoint behavior or `version_check.php`. PHP CI
 uses syntax parsing only and never executes endpoint files. App/API version
 reporting remains a separate approved feature milestone after the CI foundation
 passes.
+
+## QR workforce and financial beta endpoints
+
+- `register_attendance_key.php` — activated-device POST; registers/rotates the display device Ed25519 public key.
+- `workforce_status.php` — activated-device GET; client-scoped working-now data.
+- `report_pos_handover.php` — activated-device POST; records a locally retryable POS replacement and creates an employee-confirmation dispute only when the previous user has an open attendance shift at that store.
+- Timesheet Portal `attendance_scan.php` — authenticated session POST; verifies and consumes a short-lived signed QR, then returns an idempotent IN/OUT receipt.
+- Timesheet Portal `disputes.php` — employee create/cancel/handover-confirm actions and same-client SUPER decisions. `awaiting_employee` is not actionable or visible in the SUPER queue.
+- Timesheet Portal `financials.php` — GET statement and idempotent POST for `open_day`, `cash_in`, `cash_out`, or `z_report`. Normal users require an open shift at the selected store; SQL balance and closing checks are authoritative.
+- Timesheet Portal `change_password.php` — current-password and CSRF protected 6–20 digit password change; rotates session and CSRF state.
+
+New write results commit to SQL with an outbox event. `sync_google_sheets.php` signs batches to the dedicated Apps Script deployment; event IDs provide target-level idempotency.

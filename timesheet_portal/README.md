@@ -1,22 +1,23 @@
 # Timesheet Portal - PHP + JS
 
-This is a simple PHP + JavaScript website for employees to log in and view weekly Monday-Sunday timesheets from a shared Google Sheet link.
+The workforce/financial beta extends this same responsive design with QR attendance, live working staff, a simple employee-to-SUPER dispute queue, offline financial drafts and secure password change. Transactional writes use SQL and mirror to the existing Google Sheets through the durable outbox documented in `docs/pos_latest/BETA_WORKFORCE_FINANCIALS.md`.
+
+This is a PHP + JavaScript employee portal. Historical weekly reports still read the current Sheet CSV shape during the beta transition; authentication and all new transactional actions use SQL.
 
 ## What it does
 
-- Uses shared Google Sheet CSV export links. No Google API is used.
-- Reads these tabs only:
+- Reads historical reporting data from these tabs:
   - `Time Sheet`
   - `PayRate`
   - `Start Time`
   - `Employee Setup`
-- Employee Setup columns:
-  - Column A = Employee name
-  - Column B = Role
-  - Column C = numeric User ID
-  - Column D = numeric Password
-- If Column B is `SUPER`, that user sees a consolidated report for all employees.
+- Login uses active SQL employee accounts and hashed passwords.
+- SUPER users see consolidated reports, live staff and approval queues.
 - Normal users see only their own employee-wise report.
+- QR scanning automatically toggles IN/OUT and rejects replay.
+- POS handover disputes require the previous employee's confirmation before they enter the SUPER queue.
+- Pending disputes never change `Time Sheet`; SUPER approval applies the change.
+- Financial drafts survive phone disconnection and wait for a server receipt. SQL prevents negative Register/Petty Cash balances and duplicate closing.
 - Default view is the current calendar week, Monday-Sunday.
 - Previous/Next buttons and a week dropdown are included.
 - Wages are visible.
@@ -31,13 +32,14 @@ Then open:
 
 ## Server requirements
 
-- PHP 7.4 or newer recommended
+- PHP 8.1 or newer
+- PDO MySQL and Sodium extensions
 - PHP sessions enabled
 - cURL enabled, or `allow_url_fopen` enabled
 
-## Google Sheet sharing requirement
+## Transitional Google Sheet read requirement
 
-Because this version does not use the Google API, the Google Sheet must be shared so the server can read CSV exports from the link.
+Historical reporting currently uses CSV exports. The cutover plan must remove legacy password values from `Employee Setup`; password authentication no longer uses Sheet data.
 
 Google Sheet ID is configured in:
 
@@ -47,31 +49,23 @@ Current spreadsheet ID:
 
 `1JyWMrqyRq3nh-uTpaVhd_XNyfeRFKrdQ09xMxRsGOQA`
 
-## Security note
+## Write path
 
-This no-API version is useful for quick deployment, but it is not the most secure long-term approach because the sheet must be readable through a shared link. For payroll and passwords, the stronger version should use a backend-only Google service account or a proper database.
-
-## Read-only rule
-
-This app does not write to Google Sheets. It only fetches CSV data and calculates reports in PHP memory.
+Portal writes commit to SQL first. A cron worker sends signed, idempotent events to the dedicated Apps Script bridge, which mirrors approved attendance and financial data into the existing worksheets.
 
 ## Main files
 
 - `index.php` - numeric login page
 - `dashboard.php` - timesheet dashboard
-- `api/login.php` - validates login against Employee Setup
+- `api/login.php` - validates a hashed SQL employee credential with rate limiting
+- `api/attendance_scan.php` - validates and consumes a signed POS QR
+- `api/disputes.php` - employee proposals/cancellation and SUPER decisions
+- `api/financials.php` - idempotent financial receipts
+- `api/change_password.php` - current-password verified password change
 - `api/weeks.php` - returns available weeks
 - `api/timesheet.php` - generates filtered report data
 - `includes/timesheet_logic.php` - rounding, pairing, late flagging, summaries
 - `assets/app.js` - frontend rendering and navigation
 - `assets/styles.css` - responsive PDF-style design
 
-## Login troubleshooting
-
-If login fails, open:
-
-`/api/check_sheet.php`
-
-It should say `Sheet read OK` and show headers including `NAME, TYPE, USER_ID, PASSWORD`.
-
-Do not open `/api/login.php` directly. It is only for the login form.
+Do not open API files directly. They are session-protected portal endpoints.

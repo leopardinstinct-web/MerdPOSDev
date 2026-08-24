@@ -122,3 +122,13 @@ separately approved and completed.
 - Secret disclosure in code, documentation, logs, chat, tests, or commits.
 - Unapproved production API/database access, migrations, or deployment.
 - Weakening or bypassing existing authorization for convenience.
+
+## Workforce/financial beta security boundary — 2026-08-24
+
+- QR payloads contain no employee secret and require an authorised device Ed25519 signature, short expiry and per-employee replay guard.
+- Attendance and financial writes use UTC server acceptance time, tenant/store binding, prepared statements and database transactions.
+- Negative Register/Petty Cash balances are rejected under row lock; offline/browser calculations never override the server result.
+- A POS handover cannot write attendance. It requires previous-employee confirmation followed by same-client SUPER approval.
+- Approved Sheet corrections are delivered only through HMAC-authenticated, nonce-protected outbox batches. Sheet event IDs and deletion tombstones prevent duplicate/destructive replay.
+- Password changes never write plaintext credentials to Google Sheets.
+- Migration, Apps Script deployment, secrets, cron, production database access and worksheet mutation remain separately approval-gated.

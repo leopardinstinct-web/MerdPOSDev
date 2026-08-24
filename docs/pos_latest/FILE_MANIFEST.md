@@ -155,6 +155,18 @@ Sensitive local-only files:
 - `backend/api/.deployed_version` — ignored deployment marker.
 - `.env`, `*.local.php` — never commit.
 
+## QR workforce and financial beta — 2026-08-24
+
+- `attendance_display/` — standalone offline signed-QR Flutter/Android source.
+- `backend/sql/021_workforce_financial_beta.sql` — attendance, disputes, financial day/ledger and Sheet outbox schema.
+- `backend/api/includes/workforce_beta.php` — transactional workforce/financial domain service.
+- `backend/api/register_attendance_key.php`, `workforce_status.php`, `report_pos_handover.php` — device endpoints.
+- `backend/cli/sync_google_sheets.php` — retryable signed outbox worker.
+- `apps_script/workforce_financial_beta/` — dedicated Sheet mirror deployment source.
+- `timesheet_portal/api/{attendance_scan,beta_state,change_password,disputes,financials}.php`, `scan.php`, `assets/beta.js` — responsive employee/SUPER beta UI and APIs.
+- `merdpos_staff/lib/services/pos_handover_service.dart` plus secondary-login/home changes — additional-user vs forgotten-user choice with offline report retry.
+- `docs/pos_latest/BETA_WORKFORCE_FINANCIALS.md` — cutover, verification and rollback runbook.
+
 `backend/api/config.sample.php` is tracked with safe empty placeholders. The
 previous real-looking value is treated as historically exposed and already
 rotated. Do not reproduce or test it. Git-history cleanup is deferred.
