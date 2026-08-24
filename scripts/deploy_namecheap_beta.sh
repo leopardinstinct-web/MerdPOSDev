@@ -29,8 +29,9 @@ rsync -az \
   "$REPO/namecheap_beta_live/backend/" \
   "$LIVE/backend/"
 
-# Apply only migrations already validated against the live beta schema.
+# Apply migrations validated against the live beta schema snapshot.
 php "$LIVE/backend/cli/apply_022_management_roles.php"
+php "$LIVE/backend/cli/apply_023_employee_store_access.php"
 
 # Only deploy the portal once validated migrations have succeeded.
 rsync -az \
