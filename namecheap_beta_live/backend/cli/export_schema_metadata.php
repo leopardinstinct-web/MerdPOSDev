@@ -12,7 +12,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 try {
     $tablesStmt = $pdo->query(
-        "SELECT TABLE_NAME,TABLE_TYPE,ENGINE,TABLE_ROWS "
+        "SELECT TABLE_NAME,TABLE_TYPE,ENGINE "
         . "FROM information_schema.TABLES "
         . "WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME"
     );
@@ -94,7 +94,6 @@ try {
             'name' => $tableName,
             'type' => (string)$tableRow['TABLE_TYPE'],
             'engine' => $tableRow['ENGINE'],
-            'approx_rows' => $tableRow['TABLE_ROWS'] === null ? null : (int)$tableRow['TABLE_ROWS'],
             'columns' => $columns,
             'indexes' => array_values($indexes),
             'foreign_keys' => $foreignKeys,
@@ -102,7 +101,7 @@ try {
     }
 
     $payload = [
-        'generated_at_utc' => gmdate('c'),
+        'snapshot_kind' => 'schema_metadata_only',
         'server_version' => (string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
         'table_count' => count($tables),
         'tables' => $tables,
