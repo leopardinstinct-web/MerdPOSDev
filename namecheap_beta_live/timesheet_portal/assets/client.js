@@ -2,7 +2,24 @@
   const root = document.getElementById('clientOverview');
   if (!root) return;
 
+  const clientTab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function activatePanel(panelId, sourceTab = null) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return false;
+    document.querySelectorAll('.portal-tab').forEach(tab => {
+      tab.classList.toggle('active', sourceTab ? tab === sourceTab : tab.dataset.panel === panelId);
+    });
+    document.querySelectorAll('.portal-panel').forEach(candidate => {
+      candidate.hidden = candidate.id !== panelId;
+    });
+    return true;
+  }
+
+  // Client/Account is created dynamically by navigation.js, after beta.js binds
+  // the original portal tabs. Give this dynamic tab its own explicit router.
+  clientTab?.addEventListener('click', () => activatePanel('clientPanel', clientTab));
 
   async function api(url) {
     const response = await fetch(url, {headers:{'Accept':'application/json'}});
@@ -10,7 +27,10 @@
     let data = null;
     if (text) {
       try { data = JSON.parse(text); }
-      catch (_) { throw new Error(`Client API returned invalid data (${response.status}).`); }
+      catch (_) {
+        const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 160);
+        throw new Error(`Client API returned invalid data (${response.status})${snippet ? ': ' + snippet : '.'}`);
+      }
     }
     if (!data) throw new Error(`Client API returned an empty response (${response.status}).`);
     if (!data.success) throw new Error(data.error || `Request failed (${response.status})`);
