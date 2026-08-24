@@ -15,6 +15,7 @@ try {
 
     $tables = [
         'employees', 'stores', 'employee_store_access', 'employee_store_assignments',
+        'employee_hourly_rate_history', 'store_weekly_hours', 'store_shift_start_times',
         'employee_logs', 'attendance_shifts', 'attendance_disputes',
         'attendance_account_flags', 'financial_day_accounts', 'financial_ledger_entries',
         'financial_submissions', 'google_sheet_outbox', 'retail_sales',
