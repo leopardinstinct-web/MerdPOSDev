@@ -1,7 +1,7 @@
 (function () {
   if (!document.querySelector('script[data-id-order]')) {
     const sortScript = document.createElement('script');
-    sortScript.src = 'assets/id-order.js?v=20260825a';
+    sortScript.src = 'assets/id-order.js?v=20260825b';
     sortScript.dataset.idOrder = '1';
     document.body.appendChild(sortScript);
   }
