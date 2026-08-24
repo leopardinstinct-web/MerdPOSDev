@@ -1,114 +1,81 @@
 /*
- * MERDPOS table system
- * Scan-first hierarchy for timesheets, disputes, attendance and financial tables.
- * Loaded after legacy and typography styles so report-specific colors stay consistent.
+ * MERDPOS app-style data surfaces
+ * Inspired by modern mobile finance/product UI: quiet tables, strong spacing,
+ * selective accent colour, and summary information presented as cards.
  */
 
 :root {
-  --table-head:#163A63;
-  --table-head-border:#214C7D;
-  --table-head-text:#FFFFFF;
-  --table-text:#1B2A3A;
-  --table-muted:#607286;
-  --table-border:#D8E2EC;
-  --table-row-alt:#F8FAFD;
-  --table-row-hover:#F1F6FC;
-
-  --hours-bg:#E4EFFF;
-  --hours-border:#5A8FE8;
-  --hours-text:#173E78;
-
-  --wage-bg:#E2F5EA;
-  --wage-border:#43A978;
-  --wage-text:#155E3C;
-
-  --grand-bg:#14385F;
-  --grand-text:#FFFFFF;
-  --grand-accent:#62B0FF;
-
-  --late-bg:#FFF1F0;
-  --late-text:#8C2D25;
+  --data-ink:#162235;
+  --data-muted:#728096;
+  --data-border:#E4E9F1;
+  --data-soft:#F8FAFC;
+  --data-hover:#F4F7FB;
+  --data-blue:#315EF4;
+  --data-blue-soft:#EEF3FF;
+  --data-blue-border:#D7E1FF;
+  --data-green:#16835B;
+  --data-green-soft:#ECF8F3;
+  --data-green-border:#CDEBDF;
+  --data-red:#B5443C;
+  --data-red-soft:#FFF2F1;
+  --data-shadow:0 8px 26px rgba(30,42,62,.07);
 }
 
-/* Container */
+/* Quiet table shell: the information, not the chrome, should dominate. */
+.merd-shell .table-scroll.app-table-shell,
 .merd-shell .table-scroll {
   width:100%;
   overflow-x:auto;
   overflow-y:hidden;
   background:#fff;
-  border:1px solid var(--table-border) !important;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(28,48,72,.04);
+  border:1px solid var(--data-border) !important;
+  border-radius:16px;
+  box-shadow:none;
   -webkit-overflow-scrolling:touch;
 }
 
-/* Base table */
 .merd-shell table {
   width:100%;
   border-collapse:separate;
   border-spacing:0;
   background:#fff !important;
-  color:var(--table-text) !important;
+  color:var(--data-ink) !important;
 }
 
-.merd-shell th,
-.merd-shell td {
-  border:0 !important;
-  border-right:1px solid var(--table-border) !important;
-  border-bottom:1px solid var(--table-border) !important;
-  padding:11px 12px;
-  vertical-align:middle;
-  line-height:1.35;
-}
-
-.merd-shell th:last-child,
-.merd-shell td:last-child {
-  border-right:0 !important;
-}
-
-.merd-shell tbody tr:last-child td {
-  border-bottom:0 !important;
-}
-
-/* Column header: strong, readable, consistent everywhere */
+/* Neutral column labels instead of a heavy banner. */
 .merd-shell thead th,
 .merd-shell .summary-table th {
-  background:var(--table-head) !important;
-  color:var(--table-head-text) !important;
-  border-color:var(--table-head-border) !important;
-  font-size:12px !important;
+  background:#F7F9FC !important;
+  color:#5F6E82 !important;
+  border:0 !important;
+  border-bottom:1px solid var(--data-border) !important;
+  padding:12px 14px;
+  font-size:11px !important;
+  line-height:1.25;
   font-weight:600 !important;
-  letter-spacing:.01em !important;
-  text-transform:none !important;
+  letter-spacing:.035em !important;
+  text-transform:uppercase !important;
   white-space:nowrap;
 }
 
-.merd-shell thead th:first-child {
-  border-top-left-radius:12px;
-}
-
-.merd-shell thead th:last-child {
-  border-top-right-radius:12px;
-}
-
-/* Normal rows */
-.merd-shell tbody tr:not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) td {
-  background:#fff !important;
-  color:var(--table-text) !important;
-}
-
-.merd-shell tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) td {
-  background:var(--table-row-alt) !important;
-}
-
-.merd-shell tbody tr:not(.green-total):not(.hours-row):not(.wage-row):not(.late-row):hover td {
-  background:var(--table-row-hover) !important;
-}
+.merd-shell thead th:first-child { border-top-left-radius:15px; }
+.merd-shell thead th:last-child { border-top-right-radius:15px; }
 
 .merd-shell td {
+  background:#fff !important;
+  color:var(--data-ink) !important;
+  border:0 !important;
+  border-bottom:1px solid var(--data-border) !important;
+  padding:13px 14px;
   font-size:13px;
   font-weight:400;
+  line-height:1.35;
+  vertical-align:middle;
 }
+
+.merd-shell tbody tr:last-child td { border-bottom:0 !important; }
+
+.merd-shell tbody tr:not(.late-row):hover td { background:var(--data-hover) !important; }
 
 .merd-shell td.num,
 .merd-shell th.num {
@@ -116,134 +83,273 @@
   font-variant-numeric:tabular-nums;
 }
 
-/* Hours subtotal: cool blue, clearly distinct from wage */
-.merd-shell tr.hours-row td {
-  background:var(--hours-bg) !important;
-  color:var(--hours-text) !important;
-  font-weight:600 !important;
-  border-top:2px solid var(--hours-border) !important;
-  border-bottom:1px solid #C9DAF4 !important;
-}
-
-.merd-shell tr.hours-row td:first-child {
-  box-shadow:inset 4px 0 0 var(--hours-border);
-}
-
-.merd-shell tr.hours-row td:last-child {
-  color:#103F83 !important;
-  font-weight:700 !important;
-}
-
-/* Wage subtotal: green with stronger semantic cue */
-.merd-shell tr.wage-row td {
-  background:var(--wage-bg) !important;
-  color:var(--wage-text) !important;
-  font-weight:600 !important;
-  border-top:2px solid var(--wage-border) !important;
-  border-bottom:1px solid #BFE4CF !important;
-}
-
-.merd-shell tr.wage-row td:first-child {
-  box-shadow:inset 4px 0 0 var(--wage-border);
-}
-
-.merd-shell tr.wage-row td:last-child {
-  color:#0D6B40 !important;
-  font-weight:700 !important;
-}
-
-/* True grand totals: final/authoritative band */
-.merd-shell .summary-table tr.green-total td {
-  background:var(--grand-bg) !important;
-  color:var(--grand-text) !important;
-  font-weight:650 !important;
-  border-top:2px solid var(--grand-accent) !important;
-  border-bottom:0 !important;
-}
-
-.merd-shell .summary-table tr.green-total td:first-child {
-  box-shadow:inset 4px 0 0 var(--grand-accent);
-}
-
-.merd-shell .summary-table tr.green-total strong,
-.merd-shell tr.green-total strong {
-  color:inherit !important;
-}
-
-/* Late / exception rows */
+/* Late rows use a small semantic cue instead of flooding the row with red. */
 .merd-shell tr.late-row td {
-  background:var(--late-bg) !important;
-  color:var(--late-text) !important;
+  background:#fff !important;
+  color:var(--data-ink) !important;
+}
+.merd-shell tr.late-row td:first-child {
+  box-shadow:inset 3px 0 0 #E46C63;
+}
+.merd-shell tr.late-row:hover td { background:var(--data-red-soft) !important; }
+
+/* Report totals are app metrics, not spreadsheet footer rows. */
+.report-metrics {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
 }
 
-/* Employee sections */
-.merd-shell .employee-name {
-  margin:22px 0 9px;
-  color:#25384D !important;
-  font-size:15px !important;
-  font-weight:650 !important;
+.report-metric {
+  position:relative;
+  min-width:0;
+  padding:16px 17px 15px;
+  border-radius:16px;
+  border:1px solid var(--data-border);
+  background:#fff;
+  overflow:hidden;
 }
 
+.report-metric:before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  border-radius:4px;
+}
+
+.report-metric-blue {
+  background:linear-gradient(135deg,#F7F9FF 0%,var(--data-blue-soft) 100%);
+  border-color:var(--data-blue-border);
+}
+.report-metric-blue:before { background:var(--data-blue); }
+
+.report-metric-green {
+  background:linear-gradient(135deg,#F8FCFA 0%,var(--data-green-soft) 100%);
+  border-color:var(--data-green-border);
+}
+.report-metric-green:before { background:var(--data-green); }
+
+.report-metric-label {
+  display:block;
+  margin-bottom:6px;
+  color:var(--data-muted);
+  font-size:11px;
+  line-height:1.2;
+  font-weight:600;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+}
+
+.report-metric strong {
+  display:block;
+  color:var(--data-ink) !important;
+  font-size:22px;
+  line-height:1.05;
+  font-weight:700 !important;
+  letter-spacing:-.025em;
+  font-variant-numeric:tabular-nums;
+}
+
+.report-metric-blue strong { color:#244BC6 !important; }
+.report-metric-green strong { color:#126846 !important; }
+
+.report-metric small {
+  display:block;
+  margin-top:6px;
+  color:var(--data-muted) !important;
+  font-size:11px;
+  line-height:1.25;
+}
+
+.report-metrics-summary { margin-bottom:22px; }
+.employee-metrics { margin-top:10px; }
+
+/* Employee sections read as self-contained cards. */
 .merd-shell .employee-section {
-  border-bottom:0;
-  margin-bottom:26px;
+  margin:0 0 30px;
+  padding:0;
+  border:0;
 }
 
-/* Small status chips inside tables stay visually above the row */
+.merd-shell .employee-name {
+  margin:22px 0 10px;
+  color:var(--data-ink) !important;
+  font-size:16px !important;
+  line-height:1.25;
+  font-weight:650 !important;
+  letter-spacing:-.01em;
+}
+
+/* Other operational tables keep the same calm visual language. */
+.merd-shell #recentShifts table,
+.merd-shell #disputeList table,
+.merd-shell #attendanceFlags table,
+.merd-shell #financialEntries table {
+  background:#fff !important;
+}
+
+.merd-shell .balance-row td {
+  background:#F6F9FD !important;
+  color:#274360 !important;
+  font-weight:600 !important;
+}
+
 .merd-shell table .warn-pill,
 .merd-shell table .status-pill {
-  font-size:11px;
+  font-size:10.5px;
   line-height:1;
   font-weight:600;
 }
 
-/* Financial table emphasis */
-.merd-shell .balance-row td {
-  background:#EEF4FB !important;
-  color:#173E68 !important;
-  font-weight:650 !important;
-  border-top:2px solid #8EADD0 !important;
-}
-
-/* Mobile: preserve readable cells; scroll rather than crush columns */
+/*
+ * Mobile detail view: shift records become cards instead of a 980px spreadsheet.
+ * data-label values are provided by app.js so each value stays understandable.
+ */
 @media (max-width:720px) {
-  .merd-shell .table-scroll {
-    border-radius:12px;
+  .merd-shell .employee-shifts-shell {
+    overflow:visible;
+    background:transparent;
+    border:0 !important;
+    border-radius:0;
   }
 
-  .merd-shell .detail-table {
-    min-width:980px;
+  .merd-shell .detail-table,
+  .merd-shell .detail-table tbody {
+    display:block;
+    width:100%;
+    min-width:0 !important;
+    background:transparent !important;
   }
 
+  .merd-shell .detail-table thead {
+    display:none;
+  }
+
+  .merd-shell .detail-table tbody {
+    display:grid;
+    gap:12px;
+  }
+
+  .merd-shell .detail-table tr.shift-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    column-gap:16px;
+    row-gap:12px;
+    padding:15px;
+    background:#fff;
+    border:1px solid var(--data-border);
+    border-radius:17px;
+    box-shadow:var(--data-shadow);
+  }
+
+  .merd-shell .detail-table tr.shift-row:hover {
+    background:#fff;
+  }
+
+  .merd-shell .detail-table tr.shift-row.late-row {
+    border-color:#F1D0CC;
+    box-shadow:inset 3px 0 0 #E46C63,var(--data-shadow);
+  }
+
+  .merd-shell .detail-table tr.shift-row td {
+    display:block;
+    min-width:0;
+    padding:0 !important;
+    border:0 !important;
+    background:transparent !important;
+    color:var(--data-ink) !important;
+    font-size:13px;
+    overflow-wrap:anywhere;
+  }
+
+  .merd-shell .detail-table tr.shift-row td::before {
+    content:attr(data-label);
+    display:block;
+    margin-bottom:3px;
+    color:var(--data-muted);
+    font-size:9px;
+    line-height:1.2;
+    font-weight:600;
+    letter-spacing:.055em;
+    text-transform:uppercase;
+  }
+
+  .merd-shell .detail-table tr.shift-row td:nth-child(1),
+  .merd-shell .detail-table tr.shift-row td:nth-child(2) {
+    padding-bottom:9px !important;
+    border-bottom:1px solid #EDF1F6 !important;
+    font-weight:600;
+  }
+
+  .merd-shell .detail-table tr.shift-row td:nth-child(9) {
+    color:var(--data-blue) !important;
+    font-weight:700;
+    text-align:left;
+  }
+
+  .report-metrics {
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+  }
+
+  .report-metric {
+    padding:14px 14px 13px;
+    border-radius:15px;
+  }
+
+  .report-metric strong { font-size:20px; }
+
+  /* Larger summary/operational tables still scroll horizontally where needed. */
   .merd-shell .summary-table,
   .merd-shell #recentShifts table,
   .merd-shell #disputeList table,
   .merd-shell #attendanceFlags table,
   .merd-shell #financialEntries table {
-    min-width:620px;
+    min-width:610px;
   }
 
-  .merd-shell th,
-  .merd-shell td {
-    padding:10px 11px;
+  .merd-shell thead th,
+  .merd-shell .summary-table th {
+    padding:11px 12px;
+    font-size:10px !important;
   }
 
-  .merd-shell thead th {
-    font-size:11.5px !important;
+  .merd-shell td { padding:12px; }
+}
+
+@media (max-width:420px) {
+  .merd-shell .detail-table tr.shift-row {
+    column-gap:12px;
+    padding:14px;
+  }
+
+  .report-metrics {
+    grid-template-columns:1fr;
   }
 }
 
+/* PDF remains conventional and dense even though phone UI becomes cards. */
 @media print {
-  .merd-shell thead th {
-    background:var(--table-head) !important;
-    color:#fff !important;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+  .merd-shell .detail-table,
+  .merd-shell .detail-table thead,
+  .merd-shell .detail-table tbody {
+    display:table;
+    width:100%;
   }
 
-  .merd-shell tr.hours-row td,
-  .merd-shell tr.wage-row td,
-  .merd-shell tr.green-total td {
+  .merd-shell .detail-table thead { display:table-header-group; }
+  .merd-shell .detail-table tbody { display:table-row-group; }
+  .merd-shell .detail-table tr.shift-row { display:table-row; }
+  .merd-shell .detail-table tr.shift-row td { display:table-cell; }
+  .merd-shell .detail-table tr.shift-row td::before { display:none; }
+
+  .report-metrics { break-inside:avoid; }
+  .report-metric {
+    box-shadow:none;
     -webkit-print-color-adjust:exact;
     print-color-adjust:exact;
   }
