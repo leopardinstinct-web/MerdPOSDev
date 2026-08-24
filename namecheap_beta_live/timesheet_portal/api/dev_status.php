@@ -14,10 +14,11 @@ try {
     $serverVersion = (string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
     $tables = [
-        'employees', 'stores', 'employee_logs', 'attendance_shifts',
-        'attendance_disputes', 'attendance_account_flags', 'financial_day_accounts',
-        'financial_ledger_entries', 'financial_submissions', 'google_sheet_outbox',
-        'retail_sales', 'retail_sale_lines', 'retail_store_inventory'
+        'employees', 'stores', 'employee_store_access', 'employee_store_assignments',
+        'employee_logs', 'attendance_shifts', 'attendance_disputes',
+        'attendance_account_flags', 'financial_day_accounts', 'financial_ledger_entries',
+        'financial_submissions', 'google_sheet_outbox', 'retail_sales',
+        'retail_sale_lines', 'retail_store_inventory'
     ];
 
     $counts = [];
