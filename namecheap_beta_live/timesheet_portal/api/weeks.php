@@ -1,15 +1,15 @@
 <?php
-require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/timesheet_logic.php';
 
-$user = require_login();
+$user = beta_require_active_user();
+$clientId = (int)$user['client_id'];
 
 try {
     $pdo = portal_db();
     $employeeFilter = $user['is_super'] ? null : $user['name'];
-    $params = [];
-    $sql = 'SELECT user_name, log_type, log_date FROM employee_logs WHERE client_id=1';
+    $params = [$clientId];
+    $sql = 'SELECT user_name, log_type, log_date FROM employee_logs WHERE client_id=?';
     if ($employeeFilter !== null) {
         $sql .= ' AND LOWER(user_name)=LOWER(?)';
         $params[] = $employeeFilter;
@@ -36,9 +36,10 @@ try {
     json_response([
         'success' => true,
         'source' => 'sql_employee_logs',
+        'client_id' => $clientId,
         'current_week' => monday_of_week(),
         'weeks' => $out,
     ]);
 } catch (Throwable $e) {
-    json_response(['success' => false, 'error' => $e->getMessage()], 500);
+    json_response(['success' => false, 'error' => 'The available weeks could not be loaded.'], 500);
 }
