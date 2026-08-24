@@ -3,13 +3,16 @@
   --shell-rail:#111936;
   --shell-rail-hover:#1B2852;
   --shell-rail-active:#0F87F5;
-  --shell-sub:#D6E4FF;
-  --shell-sub-muted:#AEBEDB;
+  --shell-sub-bg:#182441;
+  --shell-sub-active:#293B63;
+  --shell-sub:#E2EBFF;
+  --shell-sub-muted:#C3D0E8;
   --shell-workspace:#F3F5F8;
   --shell-line:#DDE3EB;
   --shell-ink:#172334;
   --shell-muted:#66768A;
   --shell-blue:#1C4587;
+  --shell-ease:cubic-bezier(.22,.61,.36,1);
 }
 
 body.merd-shell { background:var(--shell-workspace)!important; }
@@ -25,13 +28,16 @@ body.merd-shell { background:var(--shell-workspace)!important; }
 .merd-topbar .merd-logo-lockup strong { font-size:20px; }
 .merd-topbar .merd-logo-lockup small { font-size:8px; }
 
-/* Desktop: one expanded TapTouch-style dark sidebar. */
+/* Desktop: compact icon rail by default; expands automatically when used. */
 .app-frame {
   min-height:calc(100vh - 56px);
   display:grid;
-  grid-template-columns:224px minmax(0,1fr);
+  grid-template-columns:60px minmax(0,1fr);
   align-items:stretch;
+  transition:grid-template-columns .24s var(--shell-ease);
 }
+.app-frame.nav-expanded { grid-template-columns:224px minmax(0,1fr); }
+.app-frame.nav-collapsed { grid-template-columns:60px minmax(0,1fr); }
 
 .app-rail {
   position:sticky;
@@ -43,9 +49,11 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   align-items:stretch;
   gap:2px;
   padding:10px 0 18px;
+  overflow-x:hidden;
   overflow-y:auto;
   background:var(--shell-rail);
   border-right:1px solid #202C50;
+  box-shadow:2px 0 8px rgba(10,17,39,.08);
 }
 
 .rail-section {
@@ -67,10 +75,17 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   color:#EEF4FF!important;
   cursor:pointer;
   text-align:left;
+  transition:background-color .16s ease,color .16s ease,padding .24s var(--shell-ease);
 }
 .rail-group-btn:hover { background:var(--shell-rail-hover)!important;color:#fff!important; }
 .rail-group-btn.active { background:var(--shell-rail-active)!important;color:#fff!important; }
-.rail-group-btn .ui-icon { width:20px;height:20px;stroke-width:1.9; }
+.rail-group-btn .ui-icon {
+  width:20px;
+  height:20px;
+  stroke-width:1.9;
+  transition:transform .2s var(--shell-ease);
+}
+.rail-group-btn:hover .ui-icon { transform:translateX(1px); }
 .rail-group-btn .rail-label {
   display:block;
   min-width:0;
@@ -81,24 +96,54 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   font-size:13px;
   line-height:1.2;
   font-weight:600;
+  opacity:1;
+  transform:translateX(0);
+  transition:opacity .15s ease,transform .22s var(--shell-ease);
 }
 .rail-chevron {
   color:#8FA4CA;
   font-size:18px;
   line-height:1;
+  opacity:1;
   transform:rotate(0deg);
-  transition:transform .16s ease;
+  transition:transform .2s var(--shell-ease),opacity .14s ease;
 }
 .rail-group-btn.active .rail-chevron { color:#fff;transform:rotate(90deg); }
 
-/* Sub-items stay inside the same dark sidebar, using a lighter treatment. */
+.app-frame.nav-collapsed .rail-group-btn {
+  grid-template-columns:24px 0 0;
+  gap:0;
+  padding-left:19px!important;
+  padding-right:17px!important;
+}
+.app-frame.nav-collapsed .rail-label,
+.app-frame.nav-collapsed .rail-chevron {
+  width:0;
+  opacity:0;
+  overflow:hidden;
+  transform:translateX(-8px);
+  pointer-events:none;
+}
+
+/* Secondary items remain inside the same dark sidebar, but are visibly lighter. */
 .sidebar-group {
   display:grid;
-  gap:1px;
-  padding:3px 8px 6px 40px;
-  background:#0E1630;
+  gap:2px;
+  max-height:190px;
+  padding:5px 8px 7px 40px;
+  overflow:hidden;
+  opacity:1;
+  background:var(--shell-sub-bg);
+  transition:max-height .23s var(--shell-ease),opacity .16s ease,padding .23s var(--shell-ease);
 }
 .sidebar-group[hidden] { display:none!important; }
+.app-frame.nav-collapsed .sidebar-group {
+  max-height:0;
+  padding-top:0;
+  padding-bottom:0;
+  opacity:0;
+  pointer-events:none;
+}
 .sidebar-group .portal-tab {
   width:100%;
   min-height:36px;
@@ -108,26 +153,34 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   gap:8px;
   padding:8px 10px!important;
   border:0!important;
-  border-radius:5px!important;
+  border-radius:6px!important;
   background:transparent!important;
   color:var(--shell-sub-muted)!important;
   box-shadow:none!important;
   font-size:12px!important;
   font-weight:500!important;
   text-align:left;
+  transition:background-color .15s ease,color .15s ease,transform .18s var(--shell-ease);
 }
-.sidebar-group .portal-tab .ui-icon { width:15px;height:15px; }
+.sidebar-group .portal-tab .ui-icon { width:15px;height:15px;opacity:.92; }
 .sidebar-group .portal-tab:hover:not(.active) {
-  background:rgba(255,255,255,.055)!important;
-  color:#F5F8FF!important;
+  background:rgba(255,255,255,.075)!important;
+  color:#FFFFFF!important;
+  transform:translateX(2px);
 }
 .sidebar-group .portal-tab.active {
-  background:rgba(255,255,255,.10)!important;
+  background:var(--shell-sub-active)!important;
   color:var(--shell-sub)!important;
   font-weight:650!important;
-  box-shadow:inset 2px 0 0 #8FC7FF!important;
+  box-shadow:inset 2px 0 0 #9ED0FF!important;
 }
 .sidebar-group .portal-tab .nav-badge { margin-left:auto!important; }
+
+.submenu-enter { animation:submenuSlide .22s var(--shell-ease); }
+@keyframes submenuSlide {
+  from { opacity:0; transform:translateY(-5px); }
+  to { opacity:1; transform:translateY(0); }
+}
 
 /* Single main content workspace. */
 .app-workspace.merd-page-shell {
@@ -139,6 +192,11 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   background:var(--shell-workspace);
 }
 .portal-panel { min-width:0; }
+.portal-panel.panel-enter { animation:panelSlideFade .24s var(--shell-ease); }
+@keyframes panelSlideFade {
+  from { opacity:.35; transform:translateX(9px); }
+  to { opacity:1; transform:translateX(0); }
+}
 
 /* Universal surfaces: same treatment across every tab. */
 .merd-shell .controls-card,
@@ -210,9 +268,11 @@ body.merd-shell { background:var(--shell-workspace)!important; }
 /* Original horizontal nav is transformed by navigation.js. */
 .merd-nav { display:none!important; }
 
-@media (max-width:1050px) {
-  .app-frame { grid-template-columns:196px minmax(0,1fr); }
+@media (max-width:1050px) and (min-width:821px) {
+  .app-frame.nav-expanded { grid-template-columns:196px minmax(0,1fr); }
+  .app-frame.nav-collapsed { grid-template-columns:58px minmax(0,1fr); }
   .rail-group-btn { padding-left:12px!important;padding-right:10px!important; }
+  .app-frame.nav-collapsed .rail-group-btn { padding-left:18px!important;padding-right:16px!important; }
   .sidebar-group { padding-left:35px; }
   .app-workspace.merd-page-shell { padding:14px!important; }
   .management-hero { grid-template-columns:1fr!important; }
@@ -225,7 +285,12 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   .merd-topbar { min-height:58px!important; }
   .merd-topbar .merd-logo-lockup small { display:none; }
 
-  .app-frame { display:block;min-height:auto; }
+  .app-frame,
+  .app-frame.nav-expanded,
+  .app-frame.nav-collapsed {
+    display:block;
+    min-height:auto;
+  }
   .app-workspace.merd-page-shell { padding:62px 10px 28px!important; }
 
   .app-rail {
@@ -245,6 +310,7 @@ body.merd-shell { background:var(--shell-workspace)!important; }
     overflow:visible;
     border:0;
     border-top:1px solid #243154;
+    box-shadow:0 -2px 8px rgba(10,17,39,.12);
   }
 
   .rail-section {
@@ -254,7 +320,8 @@ body.merd-shell { background:var(--shell-workspace)!important; }
     justify-content:center;
   }
 
-  .rail-group-btn {
+  .rail-group-btn,
+  .app-frame.nav-collapsed .rail-group-btn {
     width:100%;
     min-width:0;
     min-height:52px;
@@ -267,19 +334,24 @@ body.merd-shell { background:var(--shell-workspace)!important; }
     text-align:center;
   }
   .rail-group-btn .ui-icon { width:20px;height:20px; }
-  .rail-group-btn .rail-label {
+  .rail-group-btn .rail-label,
+  .app-frame.nav-collapsed .rail-label {
     display:block;
+    width:auto;
     max-width:68px;
     overflow:hidden;
     text-overflow:ellipsis;
     color:inherit;
+    opacity:1;
+    transform:none;
     font-size:8.5px;
     line-height:1;
     white-space:nowrap;
   }
   .rail-chevron { display:none; }
 
-  .sidebar-group {
+  .sidebar-group,
+  .app-frame.nav-collapsed .sidebar-group {
     display:none;
     position:fixed;
     top:58px;
@@ -288,9 +360,11 @@ body.merd-shell { background:var(--shell-workspace)!important; }
     z-index:45;
     width:100%;
     min-height:48px;
+    max-height:none;
     padding:6px 8px;
     overflow-x:auto;
     overflow-y:hidden;
+    opacity:1;
     background:#fff;
     border-bottom:1px solid var(--shell-line);
     box-shadow:0 2px 5px rgba(22,35,52,.04);
@@ -298,6 +372,11 @@ body.merd-shell { background:var(--shell-workspace)!important; }
   .sidebar-group.active:not([hidden]) {
     display:flex;
     gap:5px;
+    animation:mobileSubmenuIn .18s ease-out;
+  }
+  @keyframes mobileSubmenuIn {
+    from { opacity:0; transform:translateY(-4px); }
+    to { opacity:1; transform:translateY(0); }
   }
   .sidebar-group .portal-tab {
     width:auto;
@@ -310,6 +389,7 @@ body.merd-shell { background:var(--shell-workspace)!important; }
     color:#53647A!important;
     box-shadow:none!important;
     white-space:nowrap;
+    transform:none!important;
   }
   .sidebar-group .portal-tab.active {
     background:#EAF0F8!important;
@@ -343,4 +423,21 @@ body.merd-shell { background:var(--shell-workspace)!important; }
 
   .week-picker-row { grid-template-columns:1fr!important; }
   .week-picker-label { display:none!important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-frame,
+  .rail-group-btn,
+  .rail-group-btn .ui-icon,
+  .rail-label,
+  .rail-chevron,
+  .sidebar-group,
+  .sidebar-group .portal-tab {
+    transition:none!important;
+  }
+  .submenu-enter,
+  .portal-panel.panel-enter,
+  .sidebar-group.active:not([hidden]) {
+    animation:none!important;
+  }
 }
