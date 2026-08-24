@@ -10,6 +10,42 @@
   const oldNav = main?.querySelector('.merd-nav');
   if (!main || !oldNav || document.querySelector('.app-frame')) return;
 
+  const isDev = !!oldNav.querySelector('.dev-tab');
+  if (isDev && !oldNav.querySelector('[data-panel="clientPanel"]')) {
+    const clientGroup = document.createElement('div');
+    clientGroup.className = 'nav-group';
+    clientGroup.innerHTML = `
+      <span class="nav-group-label">Client</span>
+      <button class="portal-tab" data-panel="clientPanel">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M8 19h4"/></svg>
+        <span>Account</span>
+      </button>`;
+
+    const operationsGroup = Array.from(oldNav.querySelectorAll('.nav-group')).find(group =>
+      String(group.querySelector('.nav-group-label')?.textContent || '').trim().toLowerCase() === 'operations'
+    );
+    if (operationsGroup) oldNav.insertBefore(clientGroup, operationsGroup);
+    else oldNav.appendChild(clientGroup);
+
+    const panel = document.createElement('section');
+    panel.id = 'clientPanel';
+    panel.className = 'portal-panel';
+    panel.hidden = true;
+    panel.innerHTML = `
+      <section class="directory-card directory-layout">
+        <div class="directory-toolbar">
+          <div><h2>Client</h2><p>Parent account for stores, employees and POS devices.</p></div>
+        </div>
+        <div id="clientOverview"><div class="entity-empty">Loading client…</div></div>
+      </section>`;
+    main.appendChild(panel);
+
+    const clientScript = document.createElement('script');
+    clientScript.src = 'assets/client.js?v=20260825a';
+    clientScript.dataset.clientModule = '1';
+    document.body.appendChild(clientScript);
+  }
+
   const rawGroups = Array.from(oldNav.querySelectorAll('.nav-group'));
   if (!rawGroups.length) return;
 
@@ -20,12 +56,13 @@
   };
   const titles = {
     home: 'Home',
+    client: 'Client',
     operations: 'Operations',
     workforce: 'Workforce',
     finance: 'Finance',
     system: 'System',
   };
-  const order = ['home', 'operations', 'workforce', 'finance', 'system'];
+  const order = ['home', 'client', 'operations', 'workforce', 'finance', 'system'];
   const desktopQuery = window.matchMedia('(min-width: 821px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
