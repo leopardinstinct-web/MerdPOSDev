@@ -28,10 +28,11 @@ rsync -az \
   "$REPO/namecheap_beta_live/backend/" \
   "$LIVE/backend/"
 
-# Apply required idempotent schema/data migration before exposing the new portal UI.
+# Apply required idempotent schema/data migrations before exposing the new portal UI.
 php "$LIVE/backend/cli/apply_022_management_roles.php"
+php "$LIVE/backend/cli/apply_023_employee_store_access.php"
 
-# Only deploy the portal once the migration has succeeded.
+# Only deploy the portal once migrations have succeeded.
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
