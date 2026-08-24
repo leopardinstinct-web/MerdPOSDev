@@ -1,0 +1,250 @@
+/*
+ * MERDPOS table system
+ * Scan-first hierarchy for timesheets, disputes, attendance and financial tables.
+ * Loaded after legacy and typography styles so report-specific colors stay consistent.
+ */
+
+:root {
+  --table-head:#163A63;
+  --table-head-border:#214C7D;
+  --table-head-text:#FFFFFF;
+  --table-text:#1B2A3A;
+  --table-muted:#607286;
+  --table-border:#D8E2EC;
+  --table-row-alt:#F8FAFD;
+  --table-row-hover:#F1F6FC;
+
+  --hours-bg:#E4EFFF;
+  --hours-border:#5A8FE8;
+  --hours-text:#173E78;
+
+  --wage-bg:#E2F5EA;
+  --wage-border:#43A978;
+  --wage-text:#155E3C;
+
+  --grand-bg:#14385F;
+  --grand-text:#FFFFFF;
+  --grand-accent:#62B0FF;
+
+  --late-bg:#FFF1F0;
+  --late-text:#8C2D25;
+}
+
+/* Container */
+.merd-shell .table-scroll {
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  background:#fff;
+  border:1px solid var(--table-border) !important;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(28,48,72,.04);
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Base table */
+.merd-shell table {
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  background:#fff !important;
+  color:var(--table-text) !important;
+}
+
+.merd-shell th,
+.merd-shell td {
+  border:0 !important;
+  border-right:1px solid var(--table-border) !important;
+  border-bottom:1px solid var(--table-border) !important;
+  padding:11px 12px;
+  vertical-align:middle;
+  line-height:1.35;
+}
+
+.merd-shell th:last-child,
+.merd-shell td:last-child {
+  border-right:0 !important;
+}
+
+.merd-shell tbody tr:last-child td {
+  border-bottom:0 !important;
+}
+
+/* Column header: strong, readable, consistent everywhere */
+.merd-shell thead th,
+.merd-shell .summary-table th {
+  background:var(--table-head) !important;
+  color:var(--table-head-text) !important;
+  border-color:var(--table-head-border) !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+  letter-spacing:.01em !important;
+  text-transform:none !important;
+  white-space:nowrap;
+}
+
+.merd-shell thead th:first-child {
+  border-top-left-radius:12px;
+}
+
+.merd-shell thead th:last-child {
+  border-top-right-radius:12px;
+}
+
+/* Normal rows */
+.merd-shell tbody tr:not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) td {
+  background:#fff !important;
+  color:var(--table-text) !important;
+}
+
+.merd-shell tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) td {
+  background:var(--table-row-alt) !important;
+}
+
+.merd-shell tbody tr:not(.green-total):not(.hours-row):not(.wage-row):not(.late-row):hover td {
+  background:var(--table-row-hover) !important;
+}
+
+.merd-shell td {
+  font-size:13px;
+  font-weight:400;
+}
+
+.merd-shell td.num,
+.merd-shell th.num {
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Hours subtotal: cool blue, clearly distinct from wage */
+.merd-shell tr.hours-row td {
+  background:var(--hours-bg) !important;
+  color:var(--hours-text) !important;
+  font-weight:600 !important;
+  border-top:2px solid var(--hours-border) !important;
+  border-bottom:1px solid #C9DAF4 !important;
+}
+
+.merd-shell tr.hours-row td:first-child {
+  box-shadow:inset 4px 0 0 var(--hours-border);
+}
+
+.merd-shell tr.hours-row td:last-child {
+  color:#103F83 !important;
+  font-weight:700 !important;
+}
+
+/* Wage subtotal: green with stronger semantic cue */
+.merd-shell tr.wage-row td {
+  background:var(--wage-bg) !important;
+  color:var(--wage-text) !important;
+  font-weight:600 !important;
+  border-top:2px solid var(--wage-border) !important;
+  border-bottom:1px solid #BFE4CF !important;
+}
+
+.merd-shell tr.wage-row td:first-child {
+  box-shadow:inset 4px 0 0 var(--wage-border);
+}
+
+.merd-shell tr.wage-row td:last-child {
+  color:#0D6B40 !important;
+  font-weight:700 !important;
+}
+
+/* True grand totals: final/authoritative band */
+.merd-shell .summary-table tr.green-total td {
+  background:var(--grand-bg) !important;
+  color:var(--grand-text) !important;
+  font-weight:650 !important;
+  border-top:2px solid var(--grand-accent) !important;
+  border-bottom:0 !important;
+}
+
+.merd-shell .summary-table tr.green-total td:first-child {
+  box-shadow:inset 4px 0 0 var(--grand-accent);
+}
+
+.merd-shell .summary-table tr.green-total strong,
+.merd-shell tr.green-total strong {
+  color:inherit !important;
+}
+
+/* Late / exception rows */
+.merd-shell tr.late-row td {
+  background:var(--late-bg) !important;
+  color:var(--late-text) !important;
+}
+
+/* Employee sections */
+.merd-shell .employee-name {
+  margin:22px 0 9px;
+  color:#25384D !important;
+  font-size:15px !important;
+  font-weight:650 !important;
+}
+
+.merd-shell .employee-section {
+  border-bottom:0;
+  margin-bottom:26px;
+}
+
+/* Small status chips inside tables stay visually above the row */
+.merd-shell table .warn-pill,
+.merd-shell table .status-pill {
+  font-size:11px;
+  line-height:1;
+  font-weight:600;
+}
+
+/* Financial table emphasis */
+.merd-shell .balance-row td {
+  background:#EEF4FB !important;
+  color:#173E68 !important;
+  font-weight:650 !important;
+  border-top:2px solid #8EADD0 !important;
+}
+
+/* Mobile: preserve readable cells; scroll rather than crush columns */
+@media (max-width:720px) {
+  .merd-shell .table-scroll {
+    border-radius:12px;
+  }
+
+  .merd-shell .detail-table {
+    min-width:980px;
+  }
+
+  .merd-shell .summary-table,
+  .merd-shell #recentShifts table,
+  .merd-shell #disputeList table,
+  .merd-shell #attendanceFlags table,
+  .merd-shell #financialEntries table {
+    min-width:620px;
+  }
+
+  .merd-shell th,
+  .merd-shell td {
+    padding:10px 11px;
+  }
+
+  .merd-shell thead th {
+    font-size:11.5px !important;
+  }
+}
+
+@media print {
+  .merd-shell thead th {
+    background:var(--table-head) !important;
+    color:#fff !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  .merd-shell tr.hours-row td,
+  .merd-shell tr.wage-row td,
+  .merd-shell tr.green-total td {
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
