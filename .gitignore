@@ -24,3 +24,35 @@ backend/api/config.php
 
 # Local PHP configuration overrides
 *.local.php
+# Namecheap server-only secrets/data
+**/config.php
+**/.env
+**/.env.*
+**/.deployed_version
+**/imports/
+*.csv
+*.log
+*.dump
+*.sql.gz
+
+# Namecheap server-only secrets/data
+**/config.php
+**/.env
+**/.env.*
+**/.deployed_version
+**/imports/
+*.csv
+*.log
+*.dump
+*.sql.gz
+
+# Namecheap server-only secrets and operational data
+**/config.php
+**/.env
+**/.env.*
+**/.deployed_version
+**/imports/
+*.csv
+*.log
+*.dump
+*.sql.gz
