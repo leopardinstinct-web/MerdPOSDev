@@ -19,6 +19,8 @@
     system: 'System',
   };
   const order = ['home', 'operations', 'workforce', 'finance', 'system'];
+  const desktopQuery = window.matchMedia('(min-width: 821px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   rawGroups.sort((a, b) => {
     const aKey = groupKey(a.querySelector('.nav-group-label')?.textContent || '');
@@ -29,7 +31,7 @@
   });
 
   const frame = document.createElement('div');
-  frame.className = 'app-frame';
+  frame.className = 'app-frame nav-collapsed';
   const rail = document.createElement('aside');
   rail.className = 'app-rail';
   rail.setAttribute('aria-label', 'MERDPOS navigation');
@@ -40,6 +42,47 @@
   main.classList.add('app-workspace');
 
   const sections = [];
+  let collapseTimer = null;
+  let suppressNextTabCollapse = false;
+
+  const clearCollapseTimer = () => {
+    if (collapseTimer !== null) {
+      window.clearTimeout(collapseTimer);
+      collapseTimer = null;
+    }
+  };
+
+  const expandRail = () => {
+    if (!desktopQuery.matches) return;
+    clearCollapseTimer();
+    frame.classList.add('nav-expanded');
+    frame.classList.remove('nav-collapsed');
+  };
+
+  const collapseRail = (delay = 0) => {
+    if (!desktopQuery.matches) return;
+    clearCollapseTimer();
+    collapseTimer = window.setTimeout(() => {
+      if (rail.matches(':focus-within')) return;
+      frame.classList.remove('nav-expanded');
+      frame.classList.add('nav-collapsed');
+      collapseTimer = null;
+    }, reducedMotion.matches ? 0 : delay);
+  };
+
+  const animatePanel = tab => {
+    if (reducedMotion.matches) return;
+    const panelId = tab?.dataset?.panel;
+    if (!panelId) return;
+    window.setTimeout(() => {
+      const panel = document.getElementById(panelId);
+      if (!panel || panel.hidden) return;
+      panel.classList.remove('panel-enter');
+      void panel.offsetWidth;
+      panel.classList.add('panel-enter');
+      window.setTimeout(() => panel.classList.remove('panel-enter'), 280);
+    }, 0);
+  };
 
   rawGroups.forEach((rawGroup, index) => {
     const labelNode = rawGroup.querySelector('.nav-group-label');
@@ -83,6 +126,11 @@
       section.button.setAttribute('aria-expanded', active ? 'true' : 'false');
       section.subgroup.classList.toggle('active', active);
       section.subgroup.hidden = !active;
+      if (active && !reducedMotion.matches) {
+        section.subgroup.classList.remove('submenu-enter');
+        void section.subgroup.offsetWidth;
+        section.subgroup.classList.add('submenu-enter');
+      }
     });
 
     if (openFirst) {
@@ -90,18 +138,56 @@
       if (!section) return;
       const current = section.subgroup.querySelector('.portal-tab.active');
       const first = current || section.subgroup.querySelector('.portal-tab');
-      if (first) first.click();
+      if (first && !current) {
+        suppressNextTabCollapse = true;
+        first.click();
+      }
     }
   }
 
   sections.forEach(section => {
-    section.button.addEventListener('click', () => setGroup(section.key, true));
+    section.button.addEventListener('click', () => {
+      expandRail();
+      setGroup(section.key, true);
+    });
+
     section.subgroup.querySelectorAll('.portal-tab').forEach(tab => {
-      tab.addEventListener('click', () => setGroup(section.key, false));
+      tab.addEventListener('click', () => {
+        setGroup(section.key, false);
+        animatePanel(tab);
+        if (suppressNextTabCollapse) {
+          suppressNextTabCollapse = false;
+          return;
+        }
+        collapseRail(220);
+      });
     });
   });
+
+  rail.addEventListener('pointerenter', expandRail);
+  rail.addEventListener('pointerleave', () => collapseRail(320));
+  rail.addEventListener('focusin', expandRail);
+  rail.addEventListener('focusout', event => {
+    if (!rail.contains(event.relatedTarget)) collapseRail(140);
+  });
+
+  document.addEventListener('pointerdown', event => {
+    if (desktopQuery.matches && !rail.contains(event.target)) collapseRail(0);
+  });
+
+  const syncResponsiveMode = () => {
+    clearCollapseTimer();
+    if (desktopQuery.matches) {
+      frame.classList.remove('nav-expanded');
+      frame.classList.add('nav-collapsed');
+    } else {
+      frame.classList.remove('nav-collapsed', 'nav-expanded');
+    }
+  };
+  desktopQuery.addEventListener?.('change', syncResponsiveMode);
 
   const initiallyActive = rail.querySelector('.portal-tab.active');
   const initialGroup = initiallyActive?.closest('[data-sidebar-group]')?.dataset.sidebarGroup || sections[0]?.key;
   if (initialGroup) setGroup(initialGroup, false);
+  syncResponsiveMode();
 })();
