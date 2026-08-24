@@ -164,7 +164,7 @@ try {
         $name = trim((string)($input['full_name'] ?? ''));
         $userId = preg_replace('/\D+/', '', (string)($input['user_id'] ?? ''));
         $storeId = (int)($input['store_id'] ?? 0);
-        $role = strtoupper(trim((string)($input['employee_type'] ?? 'USER'));
+        $role = strtoupper(trim((string)($input['employee_type'] ?? 'USER')));
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
         $rateText = trim((string)($input['hourly_rate'] ?? '0'));
         $newPassword = preg_replace('/\D+/', '', (string)($input['new_password'] ?? ''));
