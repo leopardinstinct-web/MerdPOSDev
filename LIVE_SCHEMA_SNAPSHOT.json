@@ -1,0 +1,5017 @@
+{
+    "snapshot_kind": "schema_metadata_only",
+    "server_version": "11.4.12-MariaDB-cll-lve-log",
+    "table_count": 30,
+    "tables": [
+        {
+            "name": "admin_audit_logs",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "entity_type",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "entity_id",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "details",
+                    "position": 7,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "ip_address",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_audit_client_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "attendance_account_flags",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "open_shift_id",
+                    "position": 5,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "attempted_store_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "attempted_device_id",
+                    "position": 7,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "reason",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 9,
+                    "data_type": "enum",
+                    "column_type": "enum('open','resolved')",
+                    "nullable": false,
+                    "default": "'open'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "resolved_by_employee_id",
+                    "position": 11,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "resolved_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "resolution_note",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "open_employee_guard",
+                    "position": 14,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": "STORED GENERATED"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_attendance_flag_device",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "attempted_device_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_flag_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_flag_resolver",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "resolved_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_flag_shift",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "open_shift_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_flag_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "attempted_store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_flags_queue",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_flag_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_one_open_flag",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "open_employee_guard",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_attendance_flag_device",
+                    "column": "attempted_device_id",
+                    "references_table": "devices",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_flag_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_flag_resolver",
+                    "column": "resolved_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_flag_shift",
+                    "column": "open_shift_id",
+                    "references_table": "attendance_shifts",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_flag_store",
+                    "column": "attempted_store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "attendance_device_keys",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "device_id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "public_key_b64",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "key_version",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "1",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 6,
+                    "data_type": "enum",
+                    "column_type": "enum('active','revoked')",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "registered_at",
+                    "position": 7,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "revoked_at",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_attendance_key_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_keys_scope",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_attendance_key_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_key_device",
+                    "column": "device_id",
+                    "references_table": "devices",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_key_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "attendance_disputes",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "shift_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "proposed_store_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "dispute_type",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('missing_out','wrong_in','wrong_out','wrong_store','delete_shift','new_shift','other')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "requested_clock_in_at",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "requested_clock_out_at",
+                    "position": 9,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "reason",
+                    "position": 10,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "origin",
+                    "position": 11,
+                    "data_type": "enum",
+                    "column_type": "enum('employee','pos_handover')",
+                    "nullable": false,
+                    "default": "'employee'",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 12,
+                    "data_type": "enum",
+                    "column_type": "enum('awaiting_employee','pending','approved','rejected','cancelled')",
+                    "nullable": false,
+                    "default": "'pending'",
+                    "extra": ""
+                },
+                {
+                    "name": "submitted_at",
+                    "position": 13,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "employee_confirmed_at",
+                    "position": 14,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "decided_by_employee_id",
+                    "position": 15,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "decided_at",
+                    "position": 16,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "decision_note",
+                    "position": 17,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "applied_at",
+                    "position": 18,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "before_snapshot",
+                    "position": 19,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "after_snapshot",
+                    "position": 20,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_dispute_decider",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "decided_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_dispute_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_dispute_proposed_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "proposed_store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_dispute_shift",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "shift_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_dispute_queue",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "submitted_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_dispute_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_dispute_decider",
+                    "column": "decided_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_dispute_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_dispute_proposed_store",
+                    "column": "proposed_store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_dispute_shift",
+                    "column": "shift_id",
+                    "references_table": "attendance_shifts",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "attendance_qr_uses",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "token_hash",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "shift_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 5,
+                    "data_type": "enum",
+                    "column_type": "enum('IN','OUT')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "used_at",
+                    "position": 6,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_attendance_qr_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_qr_shift",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "shift_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_qr_employee",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "token_hash",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_attendance_qr_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_qr_shift",
+                    "column": "shift_id",
+                    "references_table": "attendance_shifts",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "attendance_shifts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "clock_in_at",
+                    "position": 7,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "clock_out_at",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 9,
+                    "data_type": "enum",
+                    "column_type": "enum('open','closed','void')",
+                    "nullable": false,
+                    "default": "'open'",
+                    "extra": ""
+                },
+                {
+                    "name": "close_reason",
+                    "position": 10,
+                    "data_type": "enum",
+                    "column_type": "enum('qr','approved_dispute','super_override','none')",
+                    "nullable": false,
+                    "default": "'none'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                },
+                {
+                    "name": "open_employee_guard",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": "STORED GENERATED"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_attendance_shift_device",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_shift_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_attendance_shift_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_employee_time",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "clock_in_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_attendance_working",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "clock_in_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_one_open_shift",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "open_employee_guard",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_attendance_shift_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_attendance_shift_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_shift_device",
+                    "column": "device_id",
+                    "references_table": "devices",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_shift_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_attendance_shift_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "clients",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "name",
+                    "position": 2,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_code",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "setup_key",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(100)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 5,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": true,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "client_code",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_code",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "devices",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_name",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "activation_token",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": true,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "last_sync",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "client_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "device_uuid",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "store_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "devices_ibfk_1",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "devices_ibfk_2",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "employees",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "full_name",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "user_id",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "login_password",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(100)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "employee_type",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(20)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "pin_code",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(20)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_name",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "'Staff'",
+                    "extra": ""
+                },
+                {
+                    "name": "hourly_rate",
+                    "position": 10,
+                    "data_type": "decimal",
+                    "column_type": "decimal(10,2)",
+                    "nullable": true,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 11,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": true,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 12,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "client_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "store_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "employees_ibfk_1",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "employees_ibfk_2",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "employee_auth_attempts",
+            "type": "BASE TABLE",
+            "engine": "MyISAM",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_id",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(100)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(30)",
+                    "nullable": false,
+                    "default": "'login'",
+                    "extra": ""
+                },
+                {
+                    "name": "failed_attempts",
+                    "position": 8,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "locked_until",
+                    "position": 9,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "last_failed_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "last_success_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 12,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 13,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_employee_auth_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employee_auth_locked_until",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "locked_until",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uniq_employee_auth_attempt",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "user_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "action",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "employee_auth_failure_events",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_id",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "occurred_at",
+                    "position": 7,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_auth_failure_retention",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "occurred_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_auth_failure_window",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "user_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "action",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "occurred_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "employee_auth_global_locks",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_id",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "locked_until",
+                    "position": 6,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 7,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 8,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_auth_global_expiry",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "locked_until",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_auth_global_lock",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "user_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "action",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "employee_logs",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_name",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_name",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "log_type",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('IN','OUT')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "log_date",
+                    "position": 8,
+                    "data_type": "date",
+                    "column_type": "date",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "log_time",
+                    "position": 9,
+                    "data_type": "time",
+                    "column_type": "time",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "log_datetime",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "local_log_id",
+                    "position": 12,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "synced_at",
+                    "position": 13,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 14,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_employee_datetime",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "log_datetime",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_store_datetime",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "log_datetime",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "unique_device_log",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "local_log_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "financial_day_accounts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "business_date",
+                    "position": 4,
+                    "data_type": "date",
+                    "column_type": "date",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "account",
+                    "position": 5,
+                    "data_type": "enum",
+                    "column_type": "enum('Register','Petty Cash')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "opening_amount",
+                    "position": 6,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "in_total",
+                    "position": 7,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "out_total",
+                    "position": 8,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "closing_amount",
+                    "position": 9,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 10,
+                    "data_type": "enum",
+                    "column_type": "enum('open','closed')",
+                    "nullable": false,
+                    "default": "'open'",
+                    "extra": ""
+                },
+                {
+                    "name": "opened_by_employee_id",
+                    "position": 11,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "closed_by_submission_id",
+                    "position": 12,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "opened_at",
+                    "position": 13,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "closed_at",
+                    "position": 14,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_financial_day_closer",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "closed_by_submission_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_financial_day_opener",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "opened_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_financial_day_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_financial_day_status",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "business_date",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_financial_day_account",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "business_date",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "account",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_financial_day_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_day_closer",
+                    "column": "closed_by_submission_id",
+                    "references_table": "financial_submissions",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_day_opener",
+                    "column": "opened_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_day_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "financial_ledger_entries",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "submission_id",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "line_no",
+                    "position": 3,
+                    "data_type": "smallint",
+                    "column_type": "smallint(5) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "business_date",
+                    "position": 6,
+                    "data_type": "date",
+                    "column_type": "date",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "account",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('Register','Petty Cash')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "entry_type",
+                    "position": 8,
+                    "data_type": "enum",
+                    "column_type": "enum('OPENING','IN','OUT','CLOSING')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "head",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(120)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "amount",
+                    "position": 10,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_financial_ledger_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_financial_ledger_statement",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "business_date",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "account",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_financial_submission_line",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "submission_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "line_no",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_financial_ledger_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_ledger_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_ledger_submission",
+                    "column": "submission_id",
+                    "references_table": "financial_submissions",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "financial_submissions",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "submission_type",
+                    "position": 6,
+                    "data_type": "enum",
+                    "column_type": "enum('open_day','cash_in','cash_out','z_report')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "business_date",
+                    "position": 7,
+                    "data_type": "date",
+                    "column_type": "date",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "payload",
+                    "position": 8,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "payload_hash",
+                    "position": 9,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 10,
+                    "data_type": "enum",
+                    "column_type": "enum('accepted','sheet_pending','sheet_synced','sheet_failed','void')",
+                    "nullable": false,
+                    "default": "'accepted'",
+                    "extra": ""
+                },
+                {
+                    "name": "accepted_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "sheet_synced_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_financial_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_financial_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_financial_store_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "business_date",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_financial_submission_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_financial_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_financial_store",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "google_sheet_outbox",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "event_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "event_type",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "aggregate_type",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "aggregate_id",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "payload",
+                    "position": 7,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 8,
+                    "data_type": "enum",
+                    "column_type": "enum('pending','processing','synced','failed')",
+                    "nullable": false,
+                    "default": "'pending'",
+                    "extra": ""
+                },
+                {
+                    "name": "attempts",
+                    "position": 9,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "available_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "locked_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "synced_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "last_error",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 14,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_sheet_outbox_aggregate",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "aggregate_type",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "aggregate_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_sheet_outbox_ready",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "available_at",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_sheet_outbox_event",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "event_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "retail_categories",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "name",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(120)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(20)",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 5,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_category_name",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "name",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "retail_products",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "category_id",
+                    "position": 3,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "sku",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "barcode",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "name",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "description",
+                    "position": 7,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "cost_price",
+                    "position": 8,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "sell_price",
+                    "position": 9,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "tax_rate",
+                    "position": 10,
+                    "data_type": "decimal",
+                    "column_type": "decimal(6,3)",
+                    "nullable": false,
+                    "default": "0.000",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(20)",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 12,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 13,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_product_category",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "category_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_product_barcode",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "barcode",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_product_category",
+                    "column": "category_id",
+                    "references_table": "retail_categories",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "retail_purchase_orders",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "supplier_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "po_number",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(30)",
+                    "nullable": false,
+                    "default": "'draft'",
+                    "extra": ""
+                },
+                {
+                    "name": "notes",
+                    "position": 7,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "ordered_at",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "received_at",
+                    "position": 9,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_by",
+                    "position": 10,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 11,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 12,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_po_supplier",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "supplier_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_po_number",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "po_number",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_po_supplier",
+                    "column": "supplier_id",
+                    "references_table": "retail_suppliers",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "retail_purchase_order_lines",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "purchase_order_id",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "product_id",
+                    "position": 3,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "quantity_ordered",
+                    "position": 4,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": "0.000",
+                    "extra": ""
+                },
+                {
+                    "name": "quantity_received",
+                    "position": 5,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": "0.000",
+                    "extra": ""
+                },
+                {
+                    "name": "unit_cost",
+                    "position": 6,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_po_line_header",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "purchase_order_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_po_line_product",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "product_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_po_line_header",
+                    "column": "purchase_order_id",
+                    "references_table": "retail_purchase_orders",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_po_line_product",
+                    "column": "product_id",
+                    "references_table": "retail_products",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "retail_sales",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "local_sale_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "sale_number",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "cashier_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "cashier_name",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(190)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "subtotal",
+                    "position": 8,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "discount",
+                    "position": 9,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "tax",
+                    "position": 10,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "total",
+                    "position": 11,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "payment_method",
+                    "position": 12,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": "'completed'",
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 14,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "sold_at",
+                    "position": 15,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 16,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_retail_sales_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "sold_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_retail_sale_device",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "sale_number",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "retail_sale_lines",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "retail_sale_id",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "product_id",
+                    "position": 3,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "barcode",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "product_name",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "quantity",
+                    "position": 6,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "unit_price",
+                    "position": 7,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "unit_cost",
+                    "position": 8,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": "0.00",
+                    "extra": ""
+                },
+                {
+                    "name": "line_total",
+                    "position": 9,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_retail_line_sale",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "retail_sale_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_retail_line_product",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "product_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_retail_line_sale",
+                    "column": "retail_sale_id",
+                    "references_table": "retail_sales",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "retail_stock_movements",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "product_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "movement_type",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(40)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "quantity",
+                    "position": 6,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "reference_code",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "note",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "moved_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 11,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_retail_stock_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "moved_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_retail_movement_device",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "reference_code",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "product_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "movement_type",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "retail_store_inventory",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "product_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "quantity",
+                    "position": 5,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": "0.000",
+                    "extra": ""
+                },
+                {
+                    "name": "reorder_level",
+                    "position": 6,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,3)",
+                    "nullable": false,
+                    "default": "0.000",
+                    "extra": ""
+                },
+                {
+                    "name": "store_price",
+                    "position": 7,
+                    "data_type": "decimal",
+                    "column_type": "decimal(12,2)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 8,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_inventory_product",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "product_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_store_product",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "product_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_inventory_product",
+                    "column": "product_id",
+                    "references_table": "retail_products",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "retail_suppliers",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "name",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(190)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "contact_name",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(190)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "phone",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(60)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "email",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(190)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "address",
+                    "position": 7,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(20)",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_supplier_name",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "name",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "security_audit_events",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "device_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "event_type",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "outcome",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "actor_type",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "actor_id",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "request_id",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "ip_address",
+                    "position": 10,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_agent",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "metadata",
+                    "position": 12,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 13,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_security_client_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_security_event_date",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "event_type",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_security_retention",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "shifts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "employee_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "local_shift_id",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "clock_in",
+                    "position": 7,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "clock_out",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "break_minutes",
+                    "position": 9,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "total_minutes",
+                    "position": 10,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 11,
+                    "data_type": "enum",
+                    "column_type": "enum('open','closed')",
+                    "nullable": true,
+                    "default": "'open'",
+                    "extra": ""
+                },
+                {
+                    "name": "synced_at",
+                    "position": 12,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "client_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "employee_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "store_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "unique_local_shift",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_uuid",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "local_shift_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "shifts_ibfk_1",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "shifts_ibfk_2",
+                    "column": "store_id",
+                    "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "shifts_ibfk_3",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "stores",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_name",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_code",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 5,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": true,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "client_id",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "stores_ibfk_1",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "store_shift_start_times",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_name",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "shift_start_time",
+                    "position": 5,
+                    "data_type": "time",
+                    "column_type": "time",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_store_shift_start",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        }
+    ]
+}
