@@ -1,4 +1,11 @@
 (function () {
+  if (!document.querySelector('script[data-id-order]')) {
+    const sortScript = document.createElement('script');
+    sortScript.src = 'assets/id-order.js?v=20260825a';
+    sortScript.dataset.idOrder = '1';
+    document.body.appendChild(sortScript);
+  }
+
   const main = document.querySelector('main.merd-page-shell');
   const oldNav = main?.querySelector('.merd-nav');
   if (!main || !oldNav || document.querySelector('.app-frame')) return;
