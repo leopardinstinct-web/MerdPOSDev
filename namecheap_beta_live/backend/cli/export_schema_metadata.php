@@ -1,7 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Some shared-hosting bootstrap code emits HTTP/CORS header text even under CLI.
+// Capture and discard that bootstrap noise so the published schema file remains
+// strict JSON and never includes anything except sanitized metadata.
+ob_start();
 require_once dirname(__DIR__) . '/api/config.php';
+if (ob_get_level() > 0) ob_end_clean();
 
 if (!isset($pdo) || !($pdo instanceof PDO)) {
     fwrite(STDERR, "Database connection unavailable.\n");
