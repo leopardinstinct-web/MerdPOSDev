@@ -10,7 +10,7 @@
     const paths = {
       plus:'<path d="M12 5v14M5 12h14"/>',
       edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
-      user:'<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>',
+      user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
       store:'<path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>',
       search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'
     };
@@ -42,6 +42,28 @@
     if (message && !isError) setTimeout(() => { root.hidden = true; }, 3500);
   }
 
+  function clarifyStoreMeaning() {
+    const select = document.getElementById('employeeStore');
+    if (select) {
+      const label = select.closest('label');
+      if (label) {
+        const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+        if (textNode) textNode.nodeValue = 'Default / Log Store';
+        if (!label.querySelector('.store-access-hint')) {
+          const hint = document.createElement('p');
+          hint.className = 'form-hint store-access-hint';
+          hint.textContent = 'Attendance access: All active stores. This field only sets the employee’s default/log store.';
+          label.appendChild(hint);
+        }
+      }
+    }
+
+    const description = employeeRoot?.closest('.directory-card')?.querySelector('.directory-toolbar p');
+    if (description) {
+      description.textContent = 'Accounts, all-store attendance access, default/log store, access level and pay rate.';
+    }
+  }
+
   async function loadDirectory() {
     try {
       if (employeeRoot) employeeRoot.innerHTML = '<div class="entity-empty">Loading employees…</div>';
@@ -50,6 +72,7 @@
       renderEmployees();
       renderStores();
       populateEmployeeStoreOptions();
+      clarifyStoreMeaning();
     } catch (error) {
       const html = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
       if (employeeRoot) employeeRoot.innerHTML = html;
@@ -147,6 +170,7 @@
     form.elements.status.value = employee?.status || 'active';
     populateRoles(employee?.employee_type || 'USER');
     populateEmployeeStoreOptions();
+    clarifyStoreMeaning();
     if (employee?.store_id) form.elements.store_id.value = employee.store_id;
     form.elements.new_password.value = '';
     document.getElementById('employeeDialogTitle').textContent = employee ? `Edit ${employee.full_name}` : 'Add employee';
@@ -196,6 +220,7 @@
       renderEmployees(document.getElementById('employeeSearch')?.value || '');
       renderStores(document.getElementById('storeSearch')?.value || '');
       populateEmployeeStoreOptions();
+      clarifyStoreMeaning();
       form.closest('dialog')?.close();
       notice(action === 'save_employee' ? 'Employee saved.' : 'Store saved.');
       document.getElementById('refreshBetaBtn')?.click();
@@ -215,5 +240,6 @@
   document.getElementById('storeSearch')?.addEventListener('input', event => renderStores(event.target.value));
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
 
+  clarifyStoreMeaning();
   loadDirectory();
 })();
