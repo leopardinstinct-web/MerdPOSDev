@@ -8,6 +8,59 @@
     return Number.isSafeInteger(number) ? number : null;
   };
 
+  const sortObjects = (rows, key = 'id') => {
+    if (!Array.isArray(rows)) return rows;
+    rows.sort((a, b) => {
+      const ak = numericId(a?.[key]);
+      const bk = numericId(b?.[key]);
+      if (ak === null && bk === null) return 0;
+      if (ak === null) return 1;
+      if (bk === null) return -1;
+      return ak - bk;
+    });
+    return rows;
+  };
+
+  function normalizePayload(url, payload) {
+    if (!payload || typeof payload !== 'object') return payload;
+    const path = String(url || '');
+    if (path.includes('admin_directory.php')) {
+      sortObjects(payload.stores, 'id');
+      sortObjects(payload.employees, 'id');
+    }
+    if (path.includes('store_timings.php') || path.includes('store_identity.php')) {
+      sortObjects(payload.stores, 'id');
+    }
+    if (path.includes('beta_state.php')) {
+      sortObjects(payload.stores, 'id');
+      sortObjects(payload.management?.financial_by_store, 'store_id');
+      sortObjects(payload.management?.sales_by_store, 'store_id');
+    }
+    return payload;
+  }
+
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async function (...args) {
+    const response = await originalFetch(...args);
+    const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || response.url || '');
+    if (!/(admin_directory|store_timings|store_identity|beta_state)\.php(?:\?|$)/.test(url)) return response;
+    try {
+      const clone = response.clone();
+      const text = await clone.text();
+      if (!text) return response;
+      const payload = normalizePayload(url, JSON.parse(text));
+      const headers = new Headers(response.headers);
+      headers.set('Content-Type', 'application/json; charset=utf-8');
+      return new Response(JSON.stringify(payload), {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    } catch (_) {
+      return response;
+    }
+  };
+
   function reorder(parent, nodes, keyFn) {
     if (!parent || nodes.length < 2) return;
     const current = nodes.slice();
@@ -52,7 +105,7 @@
   function sortExplicitDataGroups() {
     document.querySelectorAll('[data-store-id], [data-employee-id]').forEach(node => {
       const parent = node.parentElement;
-      if (!parent || parent.dataset.idOrderHandled === '1') return;
+      if (!parent) return;
       const siblings = Array.from(parent.children).filter(child => child.hasAttribute('data-store-id') || child.hasAttribute('data-employee-id'));
       if (siblings.length < 2) return;
       const keyName = siblings.some(child => child.hasAttribute('data-store-id')) ? 'storeId' : 'employeeId';
@@ -86,6 +139,7 @@
 
   window.MERDPOS_ID_ORDER = {
     apply: applyIdOrder,
+    normalizePayload,
     stores: 'stores.id ASC',
     employees: 'employees.id ASC',
   };
