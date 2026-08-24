@@ -24,6 +24,21 @@ function fmtHours(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function fmtShortDate(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return '—';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const date = new Date(text + 'T00:00:00');
+  if (Number.isNaN(date.getTime())) return text;
+  return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
+}
+
+function fmtClock(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return '—';
+  return /^\d{2}:\d{2}:\d{2}$/.test(text) ? text.slice(0, 5) : text;
+}
+
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
@@ -226,48 +241,50 @@ function renderPersonalSummary(report) {
     </section>`;
 }
 
+function inlineStat(label, value, tone = '') {
+  return `<div class="employee-stat ${tone ? `employee-stat-${tone}` : ''}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
 function renderEmployeeSection(emp, showWages, showEmployeeHeading = true) {
   const rows = emp.rows.map(r => `
-    <tr class="shift-row ${r.is_late ? 'late-row' : ''}">
-      <td data-label="Employee">${escapeHtml(r.user_name)}</td>
-      <td data-label="Store">${escapeHtml(r.store_name)}</td>
-      <td data-label="In date">${escapeHtml(r.in_date)}</td>
-      <td data-label="Actual in">${escapeHtml(r.actual_in_time)}</td>
-      <td data-label="Rounded in">${escapeHtml(r.rounded_in_time)}</td>
-      <td data-label="Out date">${escapeHtml(r.out_date)}</td>
-      <td data-label="Actual out">${escapeHtml(r.actual_out_time)}</td>
-      <td data-label="Rounded out">${escapeHtml(r.rounded_out_time)}</td>
-      <td data-label="Hours" class="num">${fmtHours(r.total_hours)}</td>
+    <tr class="compact-shift-row ${r.is_late ? 'late-row' : ''}">
+      <td class="shift-store" data-label="Store"><strong>${escapeHtml(r.store_name)}</strong></td>
+      <td class="shift-clock" data-label="Clock in">
+        <div class="clock-cell"><strong>${escapeHtml(fmtShortDate(r.in_date))} · ${escapeHtml(fmtClock(r.actual_in_time))}</strong><span>Rounded ${escapeHtml(fmtClock(r.rounded_in_time))}</span></div>
+      </td>
+      <td class="shift-clock" data-label="Clock out">
+        <div class="clock-cell"><strong>${escapeHtml(fmtShortDate(r.out_date))} · ${escapeHtml(fmtClock(r.actual_out_time))}</strong><span>Rounded ${escapeHtml(fmtClock(r.rounded_out_time))}</span></div>
+      </td>
+      <td class="shift-hours num" data-label="Hours"><strong>${fmtHours(r.total_hours)}</strong></td>
     </tr>`).join('');
 
-  const employeeHeading = showEmployeeHeading ? `<h2 class="employee-name">${escapeHtml(emp.employee_name)}</h2>` : '';
-  const wageValue = emp.pay_rate === null ? 'Rate missing' : '$' + fmtMoney(emp.total_wage);
-  const wageDetail = emp.pay_rate === null ? 'Set a pay rate' : '$' + fmtMoney(emp.pay_rate) + '/hour';
+  const shiftCount = emp.rows ? emp.rows.length : 0;
+  const employeeName = escapeHtml(emp.employee_name);
+  const initial = escapeHtml((String(emp.employee_name || '?').trim().charAt(0) || '?').toUpperCase());
+  const rateText = emp.pay_rate === null ? 'Missing' : '$' + fmtMoney(emp.pay_rate) + '/hr';
+  const wageText = emp.pay_rate === null ? '—' : '$' + fmtMoney(emp.total_wage);
 
   return `
-    <section class="employee-section ${showEmployeeHeading ? '' : 'single-user-section'}">
-      ${employeeHeading}
-      <div class="table-scroll app-table-shell employee-shifts-shell">
-        <table class="detail-table app-data-table">
-          <thead>
-            <tr>
-              <th>Employee</th>
-              <th>Store</th>
-              <th>In date</th>
-              <th>Actual in</th>
-              <th>Rounded in</th>
-              <th>Out date</th>
-              <th>Actual out</th>
-              <th>Rounded out</th>
-              <th>Hours</th>
-            </tr>
-          </thead>
+    <section class="employee-section employee-report-card ${showEmployeeHeading ? '' : 'single-user-section'}">
+      <header class="employee-card-header">
+        <div class="employee-identity">
+          <span class="employee-avatar">${initial}</span>
+          <div>
+            ${showEmployeeHeading ? `<h2 class="employee-name">${employeeName}</h2>` : `<h2 class="employee-name">Your shifts</h2>`}
+            <span class="employee-shift-count">${shiftCount} shift${shiftCount === 1 ? '' : 's'}</span>
+          </div>
+        </div>
+        <div class="employee-inline-stats">
+          ${inlineStat('Hours', fmtHours(emp.total_hours), 'hours')}
+          ${showWages ? inlineStat('Wage', wageText, 'wage') : ''}
+          ${showWages ? inlineStat('Rate', rateText, 'rate') : ''}
+        </div>
+      </header>
+      <div class="table-scroll compact-shifts-shell">
+        <table class="compact-shift-table">
+          <thead><tr><th>Store</th><th>Clock in</th><th>Clock out</th><th class="num">Hours</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-      </div>
-      <div class="report-metrics employee-metrics">
-        ${metricCard('Hours worked', fmtHours(emp.total_hours), 'blue', `${emp.rows.length} shift${emp.rows.length === 1 ? '' : 's'}`)}
-        ${showWages ? metricCard('Wage', wageValue, 'green', wageDetail) : ''}
       </div>
     </section>`;
 }
