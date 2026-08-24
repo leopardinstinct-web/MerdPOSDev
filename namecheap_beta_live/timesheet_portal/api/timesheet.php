@@ -93,5 +93,6 @@ try {
     $report['source'] = 'sql_employee_logs';
     json_response(['success' => true, 'report' => $report]);
 } catch (Throwable $e) {
-    json_response(['success' => false, 'error' => $e->getMessage()], 500);
+    error_log('MERDPOS timesheet generation failed: ' . get_class($e));
+    json_response(['success' => false, 'error' => 'The timesheet could not be generated.'], 500);
 }
