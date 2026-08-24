@@ -22,7 +22,28 @@ function start_app_session(): void
 function current_user(): ?array
 {
     start_app_session();
-    return $_SESSION['user'] ?? null;
+    $identity = $_SESSION['user'] ?? null;
+    if (!is_array($identity)) return null;
+
+    $user = $identity;
+    $homeClientId = (int)($identity['client_id'] ?? 0);
+    $role = strtoupper((string)($identity['role'] ?? $identity['actual_employee_type'] ?? $identity['employee_type'] ?? 'USER'));
+
+    // Keep the authenticated tenant immutable. DEV may separately choose an
+    // active client context for management data without impersonating a user
+    // from that client or changing the employee row they authenticated against.
+    $user['auth_client_id'] = $homeClientId;
+    $user['home_client_id'] = $homeClientId;
+    $activeClientId = $homeClientId;
+    if ($role === 'DEV' && isset($_SESSION['dev_active_client_id'])) {
+        $candidate = filter_var($_SESSION['dev_active_client_id'], FILTER_VALIDATE_INT);
+        if ($candidate !== false && $candidate > 0) $activeClientId = (int)$candidate;
+    }
+    $user['client_id'] = $activeClientId;
+    $user['active_client_id'] = $activeClientId;
+    $user['is_cross_client_context'] = $role === 'DEV' && $activeClientId !== $homeClientId;
+
+    return $user;
 }
 
 function require_login(): array
@@ -42,7 +63,21 @@ function login_user(array $user): void
     start_app_session();
     session_regenerate_id(true);
     $_SESSION['user'] = $user;
+    unset($_SESSION['dev_active_client_id']);
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+function set_dev_active_client_id(int $clientId): void
+{
+    start_app_session();
+    if ($clientId <= 0) throw new InvalidArgumentException('Invalid client context.');
+    $_SESSION['dev_active_client_id'] = $clientId;
+}
+
+function clear_dev_active_client_id(): void
+{
+    start_app_session();
+    unset($_SESSION['dev_active_client_id']);
 }
 
 function csrf_token(): string
