@@ -115,6 +115,12 @@ function directory_normalize_store_ids(mixed $value): array
     return array_values($ids);
 }
 
+function directory_valid_date(string $value): bool
+{
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+    return $date instanceof DateTimeImmutable && $date->format('Y-m-d') === $value;
+}
+
 function directory_load_state(PDO $pdo, array $actor): array
 {
     $clientId = (int)$actor['client_id'];
@@ -148,6 +154,20 @@ function directory_load_state(PDO $pdo, array $actor): array
         $assignmentMap[(int)$row['employee_id']][] = (int)$row['store_id'];
     }
 
+    $rateStmt = $pdo->prepare(
+        'SELECT employee_id,hourly_rate,effective_from FROM employee_hourly_rate_history '
+        . 'WHERE client_id=? ORDER BY employee_id,effective_from'
+    );
+    $rateStmt->execute([$clientId]);
+    $rateMap = [];
+    foreach ($rateStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $rateMap[(int)$row['employee_id']][] = [
+            'hourly_rate' => (float)$row['hourly_rate'],
+            'effective_from' => (string)$row['effective_from'],
+        ];
+    }
+
+    $today = date('Y-m-d');
     $actorRank = directory_role_rank((string)$actor['employee_type']);
     foreach ($employees as &$employee) {
         $employeeId = (int)$employee['id'];
@@ -158,12 +178,21 @@ function directory_load_state(PDO $pdo, array $actor): array
         $employee['assigned_store_ids'] = $mode === 'selected' ? ($assignmentMap[$employeeId] ?? []) : [];
         $employee['editable'] = $targetRank <= $actorRank;
         $employee['self'] = $employeeId === (int)$actor['id'];
+        $employee['rate_history'] = $rateMap[$employeeId] ?? [];
+        $employee['next_rate'] = null;
+        foreach ($employee['rate_history'] as $rateRow) {
+            if ($rateRow['effective_from'] > $today) {
+                $employee['next_rate'] = $rateRow;
+                break;
+            }
+        }
     }
     unset($employee);
 
     return [
         'success' => true,
         'csrf' => csrf_token(),
+        'today' => $today,
         'actor' => [
             'id' => (int)$actor['id'],
             'role' => (string)$actor['employee_type'],
@@ -192,10 +221,10 @@ try {
         $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
         $name = trim((string)($input['full_name'] ?? ''));
         $userId = preg_replace('/\D+/', '', (string)($input['user_id'] ?? ''));
-        $storeId = (int)($input['store_id'] ?? 0);
         $role = strtoupper(trim((string)($input['employee_type'] ?? 'USER')));
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
         $rateText = trim((string)($input['hourly_rate'] ?? '0'));
+        $rateEffective = trim((string)($input['rate_effective_date'] ?? ''));
         $newPassword = preg_replace('/\D+/', '', (string)($input['new_password'] ?? ''));
         $storeAccessMode = strtolower(trim((string)($input['store_access_mode'] ?? 'all')));
         $selectedStoreIds = directory_normalize_store_ids($input['store_ids'] ?? []);
@@ -205,9 +234,10 @@ try {
         if (!in_array($status, ['active', 'inactive'], true)) throw new MerdWorkforceException('invalid_status', 'Choose active or inactive.');
         if (!in_array($storeAccessMode, ['all', 'selected'], true)) throw new MerdWorkforceException('invalid_store_access', 'Choose all stores or selected stores.');
         if (!is_numeric($rateText) || (float)$rateText < 0 || (float)$rateText > 9999) throw new MerdWorkforceException('invalid_rate', 'Enter a valid hourly rate.');
+        if ($rateEffective === '' || !directory_valid_date($rateEffective)) throw new MerdWorkforceException('invalid_rate_date', 'Choose a valid effective date for the hourly rate.');
         directory_assert_target_role((string)$actor['employee_type'], $role);
 
-        $storeRowsStmt = $pdo->prepare('SELECT id,status FROM stores WHERE client_id=?');
+        $storeRowsStmt = $pdo->prepare('SELECT id,status FROM stores WHERE client_id=? ORDER BY id');
         $storeRowsStmt->execute([(int)$actor['client_id']]);
         $validStores = [];
         $activeStores = [];
@@ -216,24 +246,11 @@ try {
             $validStores[$sid] = true;
             if (strtolower((string)$storeRow['status']) === 'active') $activeStores[$sid] = true;
         }
-        if (!isset($validStores[$storeId])) throw new MerdWorkforceException('invalid_store', 'Choose a valid default / log store.');
+        if (!$activeStores) throw new MerdWorkforceException('no_active_stores', 'At least one active store is required.');
 
-        if ($storeAccessMode === 'selected') {
-            if (!$selectedStoreIds) throw new MerdWorkforceException('store_access_empty', 'Select at least one allowed store.');
-            foreach ($selectedStoreIds as $selectedStoreId) {
-                if (!isset($activeStores[$selectedStoreId])) {
-                    throw new MerdWorkforceException('invalid_store_access', 'Selected store access can only include active stores.');
-                }
-            }
-            if (!in_array($storeId, $selectedStoreIds, true)) {
-                throw new MerdWorkforceException('default_store_not_allowed', 'The default / log store must also be one of the allowed stores.');
-            }
-        } else {
-            $selectedStoreIds = [];
-        }
-
+        $existing = null;
         if ($id !== null) {
-            $stmt = $pdo->prepare('SELECT id,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id,employee_type,status,store_id,hourly_rate FROM employees WHERE id=? AND client_id=? LIMIT 1');
             $stmt->execute([$id, (int)$actor['client_id']]);
             $existing = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!is_array($existing)) throw new MerdWorkforceException('employee_not_found', 'Employee not found.');
@@ -245,6 +262,20 @@ try {
             }
         } elseif ($newPassword === '') {
             throw new MerdWorkforceException('password_required', 'Set a numeric password for the new employee.');
+        }
+
+        if ($storeAccessMode === 'selected') {
+            if (!$selectedStoreIds) throw new MerdWorkforceException('store_access_empty', 'Select at least one allowed store.');
+            foreach ($selectedStoreIds as $selectedStoreId) {
+                if (!isset($activeStores[$selectedStoreId])) {
+                    throw new MerdWorkforceException('invalid_store_access', 'Selected store access can only include active stores.');
+                }
+            }
+            $storeId = (int)$selectedStoreIds[0];
+        } else {
+            $existingStoreId = is_array($existing) ? (int)($existing['store_id'] ?? 0) : 0;
+            $storeId = isset($validStores[$existingStoreId]) ? $existingStoreId : (int)array_key_first($activeStores);
+            $selectedStoreIds = [];
         }
 
         if ($newPassword !== '' && (strlen($newPassword) < 4 || strlen($newPassword) > 20)) {
@@ -262,27 +293,27 @@ try {
         $pdo->beginTransaction();
         try {
             $roleName = directory_role_name($role);
-            $rate = number_format((float)$rateText, 2, '.', '');
+            $requestedRate = number_format((float)$rateText, 2, '.', '');
             if ($id === null) {
                 $hash = password_hash($newPassword, PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare(
                     'INSERT INTO employees (client_id,store_id,full_name,user_id,login_password,employee_type,pin_code,role_name,hourly_rate,status) VALUES (?,?,?,?,?,?,?,?,?,?)'
                 );
-                $stmt->execute([(int)$actor['client_id'], $storeId, $name, $userId, $hash, $role, $hash, $roleName, $rate, $status]);
+                $stmt->execute([(int)$actor['client_id'], $storeId, $name, $userId, $hash, $role, $hash, $roleName, $requestedRate, $status]);
                 $id = (int)$pdo->lastInsertId();
                 $auditAction = 'employee.create';
             } else {
                 if ($newPassword !== '') {
                     $hash = password_hash($newPassword, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare(
-                        'UPDATE employees SET store_id=?,full_name=?,user_id=?,employee_type=?,role_name=?,hourly_rate=?,status=?,login_password=?,pin_code=? WHERE id=? AND client_id=?'
+                        'UPDATE employees SET store_id=?,full_name=?,user_id=?,employee_type=?,role_name=?,status=?,login_password=?,pin_code=? WHERE id=? AND client_id=?'
                     );
-                    $stmt->execute([$storeId, $name, $userId, $role, $roleName, $rate, $status, $hash, $hash, $id, (int)$actor['client_id']]);
+                    $stmt->execute([$storeId, $name, $userId, $role, $roleName, $status, $hash, $hash, $id, (int)$actor['client_id']]);
                 } else {
                     $stmt = $pdo->prepare(
-                        'UPDATE employees SET store_id=?,full_name=?,user_id=?,employee_type=?,role_name=?,hourly_rate=?,status=? WHERE id=? AND client_id=?'
+                        'UPDATE employees SET store_id=?,full_name=?,user_id=?,employee_type=?,role_name=?,status=? WHERE id=? AND client_id=?'
                     );
-                    $stmt->execute([$storeId, $name, $userId, $role, $roleName, $rate, $status, $id, (int)$actor['client_id']]);
+                    $stmt->execute([$storeId, $name, $userId, $role, $roleName, $status, $id, (int)$actor['client_id']]);
                 }
                 $auditAction = 'employee.update';
             }
@@ -304,6 +335,24 @@ try {
                 }
             }
 
+            $rateStmt = $pdo->prepare(
+                'INSERT INTO employee_hourly_rate_history (client_id,employee_id,hourly_rate,effective_from,changed_by_employee_id) '
+                . 'VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE hourly_rate=VALUES(hourly_rate),'
+                . 'changed_by_employee_id=VALUES(changed_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+            );
+            $rateStmt->execute([(int)$actor['client_id'], $id, $requestedRate, $rateEffective, (int)$actor['id']]);
+
+            $currentRateStmt = $pdo->prepare(
+                'SELECT hourly_rate FROM employee_hourly_rate_history '
+                . 'WHERE client_id=? AND employee_id=? AND effective_from<=CURDATE() '
+                . 'ORDER BY effective_from DESC,id DESC LIMIT 1'
+            );
+            $currentRateStmt->execute([(int)$actor['client_id'], $id]);
+            $currentRate = $currentRateStmt->fetchColumn();
+            if ($currentRate === false) $currentRate = $requestedRate;
+            $updateCurrentRate = $pdo->prepare('UPDATE employees SET hourly_rate=? WHERE id=? AND client_id=?');
+            $updateCurrentRate->execute([number_format((float)$currentRate, 2, '.', ''), $id, (int)$actor['client_id']]);
+
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -313,11 +362,12 @@ try {
         directory_audit($pdo, $actor, $auditAction, 'employee', (string)$id, [
             'full_name' => $name,
             'user_id' => $userId,
-            'store_id' => $storeId,
+            'internal_store_id' => $storeId,
             'store_access_mode' => $storeAccessMode,
             'store_ids' => $selectedStoreIds,
             'employee_type' => $role,
-            'hourly_rate' => $rate,
+            'hourly_rate' => (float)$rateText,
+            'rate_effective_date' => $rateEffective,
             'status' => $status,
             'password_reset' => $newPassword !== '',
         ]);
@@ -328,14 +378,9 @@ try {
         $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
         $name = trim((string)($input['store_name'] ?? ''));
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
-        $shiftStart = trim((string)($input['shift_start_time'] ?? ''));
 
         if ($name === '' || mb_strlen($name) > 150) throw new MerdWorkforceException('invalid_store_name', 'Enter a store name.');
         if (!in_array($status, ['active', 'inactive'], true)) throw new MerdWorkforceException('invalid_status', 'Choose active or inactive.');
-        if ($shiftStart !== '' && !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $shiftStart)) {
-            throw new MerdWorkforceException('invalid_shift_start', 'Enter a valid shift start time.');
-        }
-        if (strlen($shiftStart) === 5) $shiftStart .= ':00';
 
         $dup = $pdo->prepare('SELECT id FROM stores WHERE client_id=? AND LOWER(TRIM(store_name))=LOWER(TRIM(?)) AND (? IS NULL OR id<>?) LIMIT 1');
         $dup->execute([(int)$actor['client_id'], $name, $id, $id]);
@@ -381,20 +426,10 @@ try {
                 $args[] = (int)$actor['client_id'];
                 $stmt = $pdo->prepare('UPDATE stores SET ' . implode(',', $assign) . ' WHERE id=? AND client_id=?');
                 $stmt->execute($args);
+                $legacyName = $pdo->prepare('UPDATE store_shift_start_times SET store_name=? WHERE client_id=? AND store_id=?');
+                $legacyName->execute([$name, (int)$actor['client_id'], $id]);
                 $auditAction = 'store.update';
             }
-
-            if ($shiftStart !== '') {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO store_shift_start_times (client_id,store_id,store_name,shift_start_time) VALUES (?,?,?,?) '
-                    . 'ON DUPLICATE KEY UPDATE store_name=VALUES(store_name),shift_start_time=VALUES(shift_start_time),updated_at=CURRENT_TIMESTAMP'
-                );
-                $stmt->execute([(int)$actor['client_id'], $id, $name, $shiftStart]);
-            } else {
-                $stmt = $pdo->prepare('DELETE FROM store_shift_start_times WHERE client_id=? AND store_id=?');
-                $stmt->execute([(int)$actor['client_id'], $id]);
-            }
-
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -404,7 +439,6 @@ try {
         directory_audit($pdo, $actor, $auditAction, 'store', (string)$id, [
             'store_name' => $name,
             'status' => $status,
-            'shift_start_time' => $shiftStart,
         ]);
         json_response(directory_load_state($pdo, $actor));
     }
