@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="$HOME/git/MerdPOSDev-beta-mirror"
 LIVE="$HOME/merdpos.com/app/beta"
 BRANCH="namecheap-beta-live"
+SCHEMA_BRANCH="namecheap-live-schema"
 LOCK="$HOME/.merdpos-beta-deploy.lock"
 
 exec 9>"$LOCK"
@@ -42,5 +43,54 @@ rsync -az \
   "$LIVE/timesheet_portal/"
 
 printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(git rev-parse --short HEAD)" > "$LIVE/.beta_deployed_commit"
-
 echo "MERDPOS beta deployed: $(git rev-parse --short HEAD)"
+
+publish_schema_snapshot() {
+  local snapshot_tmp worktree snapshot_path
+  snapshot_tmp="$(mktemp)" || return 1
+  worktree="$HOME/.merdpos-schema-worktree.$$"
+  snapshot_path="LIVE_SCHEMA_SNAPSHOT.json"
+
+  if ! php "$LIVE/backend/cli/export_schema_metadata.php" > "$snapshot_tmp"; then
+    rm -f "$snapshot_tmp"
+    return 1
+  fi
+
+  git -C "$REPO" fetch origin "$SCHEMA_BRANCH" >/dev/null 2>&1 || {
+    rm -f "$snapshot_tmp"
+    return 1
+  }
+
+  rm -rf "$worktree"
+  if ! git -C "$REPO" worktree add --detach "$worktree" "origin/$SCHEMA_BRANCH" >/dev/null 2>&1; then
+    rm -f "$snapshot_tmp"
+    return 1
+  fi
+
+  cp "$snapshot_tmp" "$worktree/$snapshot_path"
+  rm -f "$snapshot_tmp"
+
+  if [[ -n "$(git -C "$worktree" status --porcelain -- "$snapshot_path")" ]]; then
+    git -C "$worktree" add "$snapshot_path"
+    git -C "$worktree" \
+      -c user.name='Namecheap Schema Snapshot' \
+      -c user.email='schema-snapshot@merdpos.local' \
+      commit -m 'Update sanitized Namecheap beta schema snapshot' >/dev/null
+    if ! git -C "$worktree" push origin HEAD:"$SCHEMA_BRANCH" >/dev/null 2>&1; then
+      git -C "$REPO" worktree remove --force "$worktree" >/dev/null 2>&1 || true
+      rm -rf "$worktree"
+      return 1
+    fi
+    echo "Live schema snapshot updated on $SCHEMA_BRANCH."
+  else
+    echo "Live schema snapshot unchanged."
+  fi
+
+  git -C "$REPO" worktree remove --force "$worktree" >/dev/null 2>&1 || true
+  rm -rf "$worktree"
+  return 0
+}
+
+if ! publish_schema_snapshot; then
+  echo "WARNING: live schema snapshot could not be published; beta deployment itself succeeded." >&2
+fi
