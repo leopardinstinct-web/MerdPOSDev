@@ -24,6 +24,7 @@
   function normalizePayload(url, payload) {
     if (!payload || typeof payload !== 'object') return payload;
     const path = String(url || '');
+
     if (path.includes('admin_directory.php')) {
       sortObjects(payload.stores, 'id');
       sortObjects(payload.employees, 'id');
@@ -39,106 +40,106 @@
     return payload;
   }
 
+  // Normalize API arrays before existing renderers consume them. This deliberately
+  // avoids a global MutationObserver so ordering can never trap the page in a DOM loop.
   const originalFetch = window.fetch.bind(window);
   window.fetch = async function (...args) {
     const response = await originalFetch(...args);
     const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || response.url || '');
     if (!/(admin_directory|store_timings|store_identity|beta_state)\.php(?:\?|$)/.test(url)) return response;
+
     try {
-      const clone = response.clone();
-      const text = await clone.text();
+      const text = await response.clone().text();
       if (!text) return response;
       const payload = normalizePayload(url, JSON.parse(text));
       const headers = new Headers(response.headers);
       headers.set('Content-Type', 'application/json; charset=utf-8');
-      return new Response(JSON.stringify(payload), {
+      const normalized = new Response(JSON.stringify(payload), {
         status: response.status,
         statusText: response.statusText,
         headers,
       });
+      queueDomOrder();
+      return normalized;
     } catch (_) {
       return response;
     }
   };
 
-  function reorder(parent, nodes, keyFn) {
-    if (!parent || nodes.length < 2) return;
-    const current = nodes.slice();
-    const sorted = nodes.slice().sort((a, b) => {
-      const ak = keyFn(a);
-      const bk = keyFn(b);
-      if (ak === null && bk === null) return 0;
-      if (ak === null) return -1;
-      if (bk === null) return 1;
-      return ak - bk;
-    });
-    const changed = sorted.some((node, index) => node !== current[index]);
-    if (!changed) return;
-    sorted.forEach(node => parent.appendChild(node));
-  }
-
-  function sortEntityList(rootId, buttonSelector, dataKey) {
+  function reorderRows(rootId, selector, dataKey) {
     const root = document.getElementById(rootId);
     if (!root) return;
-    const rows = Array.from(root.children).filter(node => node.classList?.contains('entity-row'));
-    reorder(root, rows, row => {
-      const button = row.querySelector(buttonSelector);
-      return button ? numericId(button.dataset[dataKey]) : null;
+    const rows = Array.from(root.querySelectorAll(':scope > .entity-row'));
+    if (rows.length < 2) return;
+    const sorted = rows.slice().sort((a, b) => {
+      const aa = a.querySelector(selector);
+      const bb = b.querySelector(selector);
+      const ak = aa ? numericId(aa.dataset[dataKey]) : null;
+      const bk = bb ? numericId(bb.dataset[dataKey]) : null;
+      return (ak ?? Number.MAX_SAFE_INTEGER) - (bk ?? Number.MAX_SAFE_INTEGER);
     });
+    if (sorted.every((row, i) => row === rows[i])) return;
+    sorted.forEach(row => root.appendChild(row));
   }
 
-  function sortKnownSelect(select) {
+  function reorderStoreOptions(select) {
     if (!select) return;
     const identity = `${select.id || ''} ${select.name || ''}`.toLowerCase();
-    if (!identity.includes('store') && !identity.includes('employee')) return;
+    if (!identity.includes('store')) return;
     const options = Array.from(select.options || []);
-    reorder(select, options, option => numericId(option.value));
+    if (options.length < 2) return;
+
+    const synthetic = options.filter(option => numericId(option.value) === null);
+    const real = options.filter(option => numericId(option.value) !== null)
+      .sort((a, b) => numericId(a.value) - numericId(b.value));
+    const sorted = [...synthetic, ...real];
+    if (sorted.every((option, i) => option === options[i])) return;
+    const selected = select.value;
+    sorted.forEach(option => select.appendChild(option));
+    select.value = selected;
   }
 
-  function sortStoreChoices() {
+  function reorderStoreChoices() {
     const root = document.getElementById('employeeStoreChoices');
     if (!root) return;
-    const choices = Array.from(root.children).filter(node => node.classList?.contains('store-choice'));
-    reorder(root, choices, choice => numericId(choice.querySelector('input[name="store_ids"]')?.value));
-  }
-
-  function sortExplicitDataGroups() {
-    document.querySelectorAll('[data-store-id], [data-employee-id]').forEach(node => {
-      const parent = node.parentElement;
-      if (!parent) return;
-      const siblings = Array.from(parent.children).filter(child => child.hasAttribute('data-store-id') || child.hasAttribute('data-employee-id'));
-      if (siblings.length < 2) return;
-      const keyName = siblings.some(child => child.hasAttribute('data-store-id')) ? 'storeId' : 'employeeId';
-      reorder(parent, siblings, child => numericId(child.dataset[keyName]));
+    const choices = Array.from(root.querySelectorAll(':scope > .store-choice'));
+    if (choices.length < 2) return;
+    const sorted = choices.slice().sort((a, b) => {
+      const av = numericId(a.querySelector('input[name="store_ids"]')?.value);
+      const bv = numericId(b.querySelector('input[name="store_ids"]')?.value);
+      return (av ?? Number.MAX_SAFE_INTEGER) - (bv ?? Number.MAX_SAFE_INTEGER);
     });
+    if (sorted.every((choice, i) => choice === choices[i])) return;
+    sorted.forEach(choice => root.appendChild(choice));
   }
 
-  function applyIdOrder() {
-    sortEntityList('storeDirectory', '[data-edit-store]', 'editStore');
-    sortEntityList('employeeDirectory', '[data-edit-employee]', 'editEmployee');
-    sortStoreChoices();
-    document.querySelectorAll('select').forEach(sortKnownSelect);
-    sortExplicitDataGroups();
+  function applyDomOrder() {
+    reorderRows('storeDirectory', '[data-edit-store]', 'editStore');
+    reorderRows('employeeDirectory', '[data-edit-employee]', 'editEmployee');
+    reorderStoreChoices();
+    document.querySelectorAll('select').forEach(reorderStoreOptions);
   }
 
-  let queued = false;
-  function queueApply() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-      queued = false;
-      applyIdOrder();
-    });
+  let timers = [];
+  function queueDomOrder() {
+    timers.forEach(clearTimeout);
+    timers = [0, 40, 120, 300, 800].map(delay => setTimeout(applyDomOrder, delay));
   }
 
-  document.addEventListener('DOMContentLoaded', queueApply, { once: true });
-  queueApply();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', queueDomOrder, { once: true });
+  } else {
+    queueDomOrder();
+  }
 
-  const observer = new MutationObserver(queueApply);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-panel], [data-edit-store], [data-edit-employee], #addStoreBtn, #addEmployeeBtn')) {
+      queueDomOrder();
+    }
+  });
 
   window.MERDPOS_ID_ORDER = {
-    apply: applyIdOrder,
+    apply: applyDomOrder,
     normalizePayload,
     stores: 'stores.id ASC',
     employees: 'employees.id ASC',
