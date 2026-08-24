@@ -25,14 +25,12 @@ try {
     if ($token === '') throw new MerdWorkforceException('missing_qr', 'Scan the current POS QR.');
 
     $pdo = portal_db();
-    $clientId = (int)$user['client_id'];
+    // A DEV client switch changes management data only. Personal attendance
+    // always remains on the tenant that owns the authenticated employee account.
+    $clientId = (int)($user['auth_client_id'] ?? $user['client_id']);
     $employeeId = (int)$user['id'];
     $qr = merd_verify_attendance_qr($pdo, $clientId, $token);
 
-    // Store access restricts starting a new shift. An employee with an already-open
-    // shift may always scan the same store to clock out, even if access was changed
-    // after clock-in. Cross-store scans during an open shift remain handled by the
-    // existing attendance security logic.
     $openStmt = $pdo->prepare(
         "SELECT store_id FROM attendance_shifts WHERE client_id=? AND employee_id=? AND status='open' LIMIT 1"
     );
@@ -42,7 +40,9 @@ try {
         throw new MerdWorkforceException('store_not_allowed', 'You are not assigned to this store. Contact a manager if you need access.');
     }
 
-    $result = merd_attendance_scan($pdo, $user, $token);
+    $attendanceUser = $user;
+    $attendanceUser['client_id'] = $clientId;
+    $result = merd_attendance_scan($pdo, $attendanceUser, $token);
     start_app_session();
     unset($_SESSION['pending_qr']);
     json_response(['success' => true, 'result' => $result]);
