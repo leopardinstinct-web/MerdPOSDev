@@ -16,6 +16,7 @@ git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
+# Deploy backend source first so the server has the matching migration code.
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
@@ -27,6 +28,10 @@ rsync -az \
   "$REPO/namecheap_beta_live/backend/" \
   "$LIVE/backend/"
 
+# Apply required idempotent schema/data migration before exposing the new portal UI.
+php "$LIVE/backend/cli/apply_022_management_roles.php"
+
+# Only deploy the portal once the migration has succeeded.
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
@@ -35,8 +40,6 @@ rsync -az \
   --exclude='*.log' \
   "$REPO/namecheap_beta_live/timesheet_portal/" \
   "$LIVE/timesheet_portal/"
-
-php "$LIVE/backend/cli/apply_022_management_roles.php"
 
 printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(git rev-parse --short HEAD)" > "$LIVE/.beta_deployed_commit"
 
