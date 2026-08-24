@@ -8,18 +8,39 @@ if (!$user) {
 $role = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? $user['employee_type'] ?? 'USER'));
 $isManagement = !empty($user['is_super']);
 $isDev = $role === 'DEV';
+$canDirectory = in_array($role, ['ADMIN', 'SUPER', 'DEV'], true);
+
+function ui_icon(string $name): string
+{
+    $icons = [
+        'home' => '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>',
+        'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'message' => '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/>',
+        'store' => '<path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>',
+        'wallet' => '<path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/><path d="M5 7V5a2 2 0 0 1 2-2h10"/>',
+        'code' => '<path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/>',
+        'key' => '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9"/><path d="m17 6 3 3"/><path d="m15 8 2 2"/>',
+        'logout' => '<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>',
+        'plus' => '<path d="M12 5v14M5 12h14"/>',
+        'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+        'database' => '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+    ];
+    return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">' . ($icons[$name] ?? '') . '</svg>';
+}
 ?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#F4F7FB">
+  <meta name="theme-color" content="#F5F7FB">
   <title>MERDPOS</title>
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="assets/modern.css">
   <link rel="stylesheet" href="assets/typography.css">
   <link rel="stylesheet" href="assets/table-ui.css">
+  <link rel="stylesheet" href="assets/app-ui.css">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
@@ -32,18 +53,39 @@ $isDev = $role === 'DEV';
     </div>
     <div class="topbar-actions">
       <div class="user-line">Signed in as <strong><?= htmlspecialchars($user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($role) ?></span></div>
-      <button id="passwordBtn" class="ghost-btn">Password</button>
-      <button id="logoutBtn" class="ghost-btn">Log out</button>
+      <button id="passwordBtn" class="ghost-btn"><?= ui_icon('key') ?><span>Password</span></button>
+      <button id="logoutBtn" class="ghost-btn"><?= ui_icon('logout') ?><span>Log out</span></button>
     </div>
   </header>
 
   <main class="page-shell merd-page-shell">
     <nav class="portal-tabs merd-nav" aria-label="MERDPOS sections">
-      <button class="portal-tab active" data-panel="dashboardPanel"><span class="nav-icon">⌂</span>Dashboard</button>
-      <button class="portal-tab" data-panel="timesheetPanel"><span class="nav-icon">◷</span>Timesheets <span id="timesheetBell" class="nav-badge" data-dispute-shortcut hidden>0</span></button>
-      <button class="portal-tab" data-panel="disputesPanel"><span class="nav-icon">◇</span>HR / Disputes</button>
-      <button class="portal-tab" data-panel="financialPanel"><span class="nav-icon">◒</span>Financial</button>
-      <?php if ($isDev): ?><span class="nav-spacer"></span><button class="portal-tab dev-tab" data-panel="devPanel"><span class="nav-icon">⌘</span>DEV</button><?php endif; ?>
+      <div class="nav-group">
+        <span class="nav-group-label">Overview</span>
+        <button class="portal-tab active" data-panel="dashboardPanel"><?= ui_icon('home') ?><span>Dashboard</span></button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group-label">Workforce</span>
+        <?php if ($canDirectory): ?><button class="portal-tab" data-panel="employeesPanel"><?= ui_icon('users') ?><span>Employees</span></button><?php endif; ?>
+        <button class="portal-tab" data-panel="timesheetPanel"><?= ui_icon('clock') ?><span>Timesheets</span><span id="timesheetBell" class="nav-badge" data-dispute-shortcut hidden>0</span></button>
+        <button class="portal-tab" data-panel="disputesPanel"><?= ui_icon('message') ?><span>Disputes</span></button>
+      </div>
+      <?php if ($canDirectory): ?>
+      <div class="nav-group">
+        <span class="nav-group-label">Operations</span>
+        <button class="portal-tab" data-panel="storesPanel"><?= ui_icon('store') ?><span>Stores</span></button>
+      </div>
+      <?php endif; ?>
+      <div class="nav-group">
+        <span class="nav-group-label">Finance</span>
+        <button class="portal-tab" data-panel="financialPanel"><?= ui_icon('wallet') ?><span>Financial</span></button>
+      </div>
+      <?php if ($isDev): ?>
+      <div class="nav-group">
+        <span class="nav-group-label">System</span>
+        <button class="portal-tab dev-tab" data-panel="devPanel"><?= ui_icon('code') ?><span>DEV</span></button>
+      </div>
+      <?php endif; ?>
     </nav>
 
     <section id="dashboardPanel" class="portal-panel">
@@ -103,6 +145,21 @@ $isDev = $role === 'DEV';
       <?php if ($isManagement): ?><section id="dashboardSummary" hidden></section><?php endif; ?>
     </section>
 
+    <?php if ($canDirectory): ?>
+    <section id="employeesPanel" class="portal-panel" hidden>
+      <section class="directory-card directory-layout">
+        <div class="directory-toolbar">
+          <div><h2>Employees</h2><p>Accounts, store assignment, access level and pay rate.</p></div>
+          <div class="directory-actions">
+            <label class="search-box" aria-label="Search employees"><?= ui_icon('search') ?><input id="employeeSearch" type="search" placeholder="Search employees"></label>
+            <button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button>
+          </div>
+        </div>
+        <div id="employeeDirectory" class="entity-list"><div class="entity-empty">Loading employees…</div></div>
+      </section>
+    </section>
+    <?php endif; ?>
+
     <section id="timesheetPanel" class="portal-panel" hidden>
       <section class="controls-card timesheet-header-card">
         <div class="week-picker-row">
@@ -132,8 +189,23 @@ $isDev = $role === 'DEV';
       </section>
       <?php endif; ?>
       <section class="controls-card"><div id="disputeList" class="table-scroll"></div></section>
-      <?php if ($isManagement): ?><section class="controls-card"><h2>Attendance security flags</h2><div id="attendanceFlags" class="table-scroll"></div></section><?php endif; ?>
+      <?php if ($isManagement): ?><section class="controls-card"><div class="app-panel-head"><h2>Attendance security flags</h2></div><div id="attendanceFlags" class="table-scroll"></div></section><?php endif; ?>
     </section>
+
+    <?php if ($canDirectory): ?>
+    <section id="storesPanel" class="portal-panel" hidden>
+      <section class="directory-card directory-layout">
+        <div class="directory-toolbar">
+          <div><h2>Stores</h2><p>Store identity, availability and expected shift start.</p></div>
+          <div class="directory-actions">
+            <label class="search-box" aria-label="Search stores"><?= ui_icon('search') ?><input id="storeSearch" type="search" placeholder="Search stores"></label>
+            <button id="addStoreBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add store</button>
+          </div>
+        </div>
+        <div id="storeDirectory" class="entity-list"><div class="entity-empty">Loading stores…</div></div>
+      </section>
+    </section>
+    <?php endif; ?>
 
     <section id="financialPanel" class="portal-panel" hidden>
       <section class="controls-card">
@@ -186,7 +258,7 @@ $isDev = $role === 'DEV';
     <?php if ($isDev): ?>
     <section id="devPanel" class="portal-panel" hidden>
       <section class="controls-card">
-        <div class="mgmt-card-head"><h2>DEV system inspector</h2><span>Read-only diagnostics</span></div>
+        <div class="mgmt-card-head"><h2><?= ui_icon('database') ?> DEV system inspector</h2><span>Read-only diagnostics</span></div>
         <div id="devStatus" class="dev-console"><div class="status-card">Loading system status…</div></div>
         <p class="dev-note">DEV access intentionally provides a read-only SQL/database inspector rather than arbitrary browser SQL execution. Database changes remain migration-controlled and auditable.</p>
       </section>
@@ -206,8 +278,48 @@ $isDev = $role === 'DEV';
     </form>
   </dialog>
 
+  <?php if ($canDirectory): ?>
+  <dialog id="employeeDialog" class="portal-dialog admin-dialog">
+    <form id="employeeAdminForm">
+      <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
+      <div class="admin-dialog-body">
+        <p id="employeeSelfGuard" class="self-guard" hidden>Your own access level and active status are protected here to prevent accidental lockout.</p>
+        <div class="admin-form-grid">
+          <input type="hidden" name="id">
+          <label>Full name<input name="full_name" maxlength="190" required></label>
+          <label>User ID<input name="user_id" inputmode="numeric" pattern="[0-9]*" maxlength="32" required></label>
+          <label>Store<select name="store_id" id="employeeStore" required></select></label>
+          <label>Access level<select name="employee_type" id="employeeRole" required></select></label>
+          <label>Hourly rate<input name="hourly_rate" type="number" min="0" max="9999" step="0.01" required></label>
+          <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+          <label class="full-field">New / reset numeric password<input name="new_password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="20" autocomplete="new-password"><p id="employeePasswordHint" class="form-hint"></p></label>
+        </div>
+        <div class="admin-dialog-footer"><button type="button" class="secondary-btn" data-close-dialog>Cancel</button><button type="submit" class="primary-btn compact-btn">Save employee</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="storeDialog" class="portal-dialog admin-dialog">
+    <form id="storeAdminForm">
+      <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
+      <div class="admin-dialog-body">
+        <div class="admin-form-grid">
+          <input type="hidden" name="id">
+          <label class="full-field">Store name<input name="store_name" maxlength="150" required></label>
+          <label>Expected shift start<input name="shift_start_time" type="time"></label>
+          <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+        </div>
+        <p class="form-hint">Stores are inactivated rather than deleted so historical attendance, payroll and financial records stay intact.</p>
+        <div class="admin-dialog-footer"><button type="button" class="secondary-btn" data-close-dialog>Cancel</button><button type="submit" class="primary-btn compact-btn">Save store</button></div>
+      </div>
+    </form>
+  </dialog>
+  <div id="directoryNotice" class="directory-notice" hidden></div>
+  <?php endif; ?>
+
   <script src="assets/app.js"></script>
   <script src="assets/beta.js"></script>
   <script src="assets/management.js"></script>
+  <?php if ($canDirectory): ?><script src="assets/directory.js"></script><?php endif; ?>
 </body>
 </html>
