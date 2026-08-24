@@ -5391,23 +5391,27 @@
             ],
             "indexes": [
                 {
-                    "name": "client_id",
-                    "unique": false,
-                    "type": "BTREE",
-                    "columns": [
-                        {
-                            "name": "client_id",
-                            "prefix_length": null
-                        }
-                    ]
-                },
-                {
                     "name": "PRIMARY",
                     "unique": true,
                     "type": "BTREE",
                     "columns": [
                         {
                             "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_stores_client_store_code",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "store_code",
                             "prefix_length": null
                         }
                     ]
