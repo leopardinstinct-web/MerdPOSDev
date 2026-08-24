@@ -19,6 +19,7 @@ $isDev = $role === 'DEV';
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="assets/modern.css">
   <link rel="stylesheet" href="assets/typography.css">
+  <link rel="stylesheet" href="assets/table-ui.css">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
