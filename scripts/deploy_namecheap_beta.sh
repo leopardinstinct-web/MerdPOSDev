@@ -1,18 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Cron has a much smaller environment than an interactive shell. Keep every
+# dependency explicit so scheduled deploys behave the same as manual deploys.
+export HOME="${HOME:-/home/dridsheikh}"
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:${PATH:-}"
+export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes"
+
 REPO="$HOME/git/MerdPOSDev-beta-mirror"
 LIVE="$HOME/merdpos.com/app/beta"
 BRANCH="namecheap-beta-live"
 SCHEMA_BRANCH="namecheap-live-schema"
 LOCK="$HOME/.merdpos-beta-deploy.lock"
 
+# Always print a heartbeat before doing any work. The outer cron redirects this
+# to ~/merdpos-beta-deploy.log, so a missing heartbeat means cron never invoked
+# the script at all.
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] MERDPOS beta deploy started (pid $$)"
+
 exec 9>"$LOCK"
 if ! flock -n 9; then
+  echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] deploy skipped: another run holds $LOCK"
   exit 0
 fi
 
+for command_name in git ssh rsync php flock mktemp; do
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "ERROR: required command not found in cron PATH: $command_name" >&2
+    exit 1
+  fi
+done
+
+if [[ ! -r "$HOME/.ssh/merdpos_github" ]]; then
+  echo "ERROR: GitHub deploy key is not readable: $HOME/.ssh/merdpos_github" >&2
+  exit 1
+fi
+
 cd "$REPO"
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] fetching $BRANCH from GitHub"
 git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
@@ -95,3 +120,5 @@ publish_schema_snapshot() {
 if ! publish_schema_snapshot; then
   echo "WARNING: live schema snapshot could not be published; beta deployment itself succeeded." >&2
 fi
+
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] MERDPOS beta deploy finished"
