@@ -7,13 +7,26 @@
   if (!rawGroups.length) return;
 
   const normalise = text => String(text || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const groupKey = label => {
+    const key = normalise(label);
+    return key === 'overview' ? 'home' : key;
+  };
   const titles = {
-    overview: 'Overview',
-    workforce: 'Workforce',
+    home: 'Home',
     operations: 'Operations',
+    workforce: 'Workforce',
     finance: 'Finance',
     system: 'System',
   };
+  const order = ['home', 'operations', 'workforce', 'finance', 'system'];
+
+  rawGroups.sort((a, b) => {
+    const aKey = groupKey(a.querySelector('.nav-group-label')?.textContent || '');
+    const bKey = groupKey(b.querySelector('.nav-group-label')?.textContent || '');
+    const ai = order.indexOf(aKey);
+    const bi = order.indexOf(bKey);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
 
   const frame = document.createElement('div');
   frame.className = 'app-frame';
@@ -23,7 +36,7 @@
   const sidebar = document.createElement('aside');
   sidebar.className = 'app-sidebar';
   sidebar.setAttribute('aria-label', 'Section navigation');
-  sidebar.innerHTML = '<div class="sidebar-heading"><span class="sidebar-eyebrow">MERDPOS</span><strong id="sidebarGroupTitle">Overview</strong></div>';
+  sidebar.innerHTML = '<div class="sidebar-heading"><strong id="sidebarGroupTitle">Home</strong></div>';
 
   main.parentNode.insertBefore(frame, main);
   frame.appendChild(rail);
@@ -36,8 +49,9 @@
 
   rawGroups.forEach((rawGroup, index) => {
     const labelNode = rawGroup.querySelector('.nav-group-label');
-    const label = labelNode?.textContent.trim() || `Section ${index + 1}`;
-    const key = normalise(label) || `section-${index + 1}`;
+    const originalLabel = labelNode?.textContent.trim() || `Section ${index + 1}`;
+    const key = groupKey(originalLabel) || `section-${index + 1}`;
+    const label = titles[key] || originalLabel;
     const tabs = Array.from(rawGroup.querySelectorAll('.portal-tab'));
     if (!tabs.length) return;
 
