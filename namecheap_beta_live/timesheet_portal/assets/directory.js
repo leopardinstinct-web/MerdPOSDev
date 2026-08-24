@@ -170,6 +170,10 @@
 
   async function saveForm(form, action) {
     const values = Object.fromEntries(new FormData(form));
+    if (action === 'save_employee') {
+      if (form.elements.employee_type.disabled) values.employee_type = form.elements.employee_type.value;
+      if (form.elements.status.disabled) values.status = form.elements.status.value;
+    }
     values.action = action;
     values.csrf = directory.csrf;
     try {
