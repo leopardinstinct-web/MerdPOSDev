@@ -25,8 +25,9 @@ function directory_role_name(string $role): string
 
 function directory_actor(PDO $pdo, array $sessionUser): array
 {
+    $authClientId = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
     $stmt = $pdo->prepare('SELECT id,client_id,full_name,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
-    $stmt->execute([(int)$sessionUser['id'], (int)$sessionUser['client_id']]);
+    $stmt->execute([(int)$sessionUser['id'], $authClientId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!is_array($row) || strtolower((string)$row['status']) !== 'active') {
         throw new MerdWorkforceException('account_inactive', 'Your account is inactive.');
@@ -35,6 +36,8 @@ function directory_actor(PDO $pdo, array $sessionUser): array
     if (!in_array($row['employee_type'], ['ADMIN', 'SUPER', 'DEV'], true)) {
         json_response(['success' => false, 'error' => 'ADMIN, SUPER or DEV access required.'], 403);
     }
+    $row['auth_client_id'] = $authClientId;
+    $row['client_id'] = (int)$sessionUser['client_id'];
     return $row;
 }
 
@@ -128,7 +131,7 @@ function directory_load_state(PDO $pdo, array $actor): array
     $storesStmt = $pdo->prepare(
         "SELECT s.id,s.store_name,s.status,COALESCE(t.shift_start_time,'') AS shift_start_time "
         . "FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id "
-        . "WHERE s.client_id=? ORDER BY CASE WHEN s.status='active' THEN 0 ELSE 1 END,s.store_name"
+        . "WHERE s.client_id=? ORDER BY s.id ASC"
     );
     $storesStmt->execute([$clientId]);
     $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -140,7 +143,7 @@ function directory_load_state(PDO $pdo, array $actor): array
         . "FROM employees e "
         . "LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
         . "LEFT JOIN employee_store_access a ON a.employee_id=e.id AND a.client_id=e.client_id "
-        . "WHERE e.client_id=? ORDER BY CASE WHEN e.status='active' THEN 0 ELSE 1 END,e.full_name"
+        . "WHERE e.client_id=? ORDER BY e.id ASC"
     );
     $employeesStmt->execute([$clientId]);
     $employees = $employeesStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -177,7 +180,7 @@ function directory_load_state(PDO $pdo, array $actor): array
         $employee['store_access_mode'] = $mode;
         $employee['assigned_store_ids'] = $mode === 'selected' ? ($assignmentMap[$employeeId] ?? []) : [];
         $employee['editable'] = $targetRank <= $actorRank;
-        $employee['self'] = $employeeId === (int)$actor['id'];
+        $employee['self'] = $clientId === (int)$actor['auth_client_id'] && $employeeId === (int)$actor['id'];
         $employee['rate_history'] = $rateMap[$employeeId] ?? [];
         $employee['next_rate'] = null;
         foreach ($employee['rate_history'] as $rateRow) {
@@ -193,6 +196,7 @@ function directory_load_state(PDO $pdo, array $actor): array
         'success' => true,
         'csrf' => csrf_token(),
         'today' => $today,
+        'active_client_id' => $clientId,
         'actor' => [
             'id' => (int)$actor['id'],
             'role' => (string)$actor['employee_type'],
@@ -257,7 +261,7 @@ try {
             if (directory_role_rank((string)$existing['employee_type']) > directory_role_rank((string)$actor['employee_type'])) {
                 throw new MerdWorkforceException('role_forbidden', 'You cannot edit that employee.');
             }
-            if ($id === (int)$actor['id'] && ($role !== (string)$actor['employee_type'] || $status !== 'active')) {
+            if ((int)$actor['client_id'] === (int)$actor['auth_client_id'] && $id === (int)$actor['id'] && ($role !== (string)$actor['employee_type'] || $status !== 'active')) {
                 throw new MerdWorkforceException('self_protection', 'You cannot change your own access level or deactivate your own account here.');
             }
         } elseif ($newPassword === '') {
