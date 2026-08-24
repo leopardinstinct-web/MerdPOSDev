@@ -91,6 +91,18 @@ function directory_generated_code(string $name): string
     return substr($base, 0, 24) . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
 }
 
+function directory_ensure_shift_table(PDO $pdo): void
+{
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS store_shift_start_times ('
+        . 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,'
+        . 'client_id INT NOT NULL,store_id INT NOT NULL,store_name VARCHAR(150) NOT NULL,'
+        . 'shift_start_time TIME NOT NULL,updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,'
+        . 'UNIQUE KEY uq_store_shift_start (client_id,store_id)'
+        . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+}
+
 function directory_load_state(PDO $pdo, array $actor): array
 {
     $clientId = (int)$actor['client_id'];
@@ -116,7 +128,7 @@ function directory_load_state(PDO $pdo, array $actor): array
     foreach ($employees as &$employee) {
         $targetRank = directory_role_rank((string)$employee['employee_type']);
         $employee['editable'] = $targetRank <= $actorRank;
-        if ((int)$employee['id'] === (int)$actor['id']) $employee['self'] = true;
+        $employee['self'] = (int)$employee['id'] === (int)$actor['id'];
     }
     unset($employee);
 
@@ -137,6 +149,7 @@ try {
     $sessionUser = beta_require_active_user();
     $pdo = portal_db();
     $actor = directory_actor($pdo, $sessionUser);
+    directory_ensure_shift_table($pdo);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         json_response(directory_load_state($pdo, $actor));
@@ -166,7 +179,6 @@ try {
         $storeCheck->execute([$storeId, (int)$actor['client_id']]);
         if (!$storeCheck->fetchColumn()) throw new MerdWorkforceException('invalid_store', 'Choose a valid store.');
 
-        $existing = null;
         if ($id !== null) {
             $stmt = $pdo->prepare('SELECT id,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
             $stmt->execute([$id, (int)$actor['client_id']]);
@@ -256,15 +268,6 @@ try {
         $dup->execute([(int)$actor['client_id'], $name, $id, $id]);
         if ($dup->fetchColumn()) throw new MerdWorkforceException('duplicate_store', 'A store with that name already exists.');
 
-        $pdo->exec(
-            'CREATE TABLE IF NOT EXISTS store_shift_start_times ('
-            . 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,'
-            . 'client_id INT NOT NULL,store_id INT NOT NULL,store_name VARCHAR(150) NOT NULL,'
-            . 'shift_start_time TIME NOT NULL,updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,'
-            . 'UNIQUE KEY uq_store_shift_start (client_id,store_id)'
-            . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-        );
-
         $pdo->beginTransaction();
         try {
             if ($id === null) {
@@ -281,7 +284,7 @@ try {
                 if (isset($columns['slug'])) $values['slug'] = strtolower(directory_generated_code($name));
 
                 foreach ($columns as $field => $meta) {
-                    if (isset($values[$field]) || str_contains(strtolower((string)$meta['Extra']), 'auto_increment')) continue;
+                    if (array_key_exists($field, $values) || str_contains(strtolower((string)$meta['Extra']), 'auto_increment')) continue;
                     if ($meta['Default'] !== null || strtoupper((string)$meta['Null']) === 'YES') continue;
                     if (in_array($field, ['created_at', 'updated_at'], true)) continue;
                     throw new MerdWorkforceException('store_schema_unsupported', 'The store schema requires an additional field: ' . $field . '.');
