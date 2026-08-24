@@ -2,6 +2,7 @@
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const money=value=>Number(value||0).toLocaleString(undefined,{style:'currency',currency:'AUD'});
+  const sortStores=rows=>(Array.isArray(rows)?rows.slice():[]).sort((a,b)=>Number(a?.store_id??a?.id??Number.MAX_SAFE_INTEGER)-Number(b?.store_id??b?.id??Number.MAX_SAFE_INTEGER));
 
   function ensureShellAssets(){
     if(!document.querySelector('link[href$="assets/shell.css"]')){
@@ -9,6 +10,9 @@
     }
     if(!document.querySelector('script[src$="assets/navigation.js"]')){
       const script=document.createElement('script');script.src='assets/navigation.js';script.defer=true;document.body.appendChild(script);
+    }
+    if(!document.querySelector('script[src$="assets/store-order.js"]')){
+      const script=document.createElement('script');script.src='assets/store-order.js';script.defer=true;document.body.appendChild(script);
     }
   }
   ensureShellAssets();
@@ -52,7 +56,8 @@
   }
 
   function renderWorkingBars(working,stores){
-    const counts=new Map((stores||[]).map(store=>[store.store_name,0]));
+    const orderedStores=sortStores(stores||[]);
+    const counts=new Map(orderedStores.map(store=>[store.store_name,0]));
     for(const person of working)counts.set(person.store_name,(counts.get(person.store_name)||0)+1);
     const rows=[...counts].map(([store_name,count])=>({store_name,count}));
     renderBars($('workforceChart'),rows,'store_name',row=>row.count,(row,value)=>String(value));
@@ -70,8 +75,8 @@
       kpi('◫',mgmt.active_employees,'Active employees'),
       kpi('↻',mgmt.sync_attention,'Sync attention',Number(mgmt.sync_attention)>0)
     ].join('');
-    renderWorkingBars(data.working||[],data.stores||[]);
-    const financial=mgmt.financial_by_store||[];
+    renderWorkingBars(data.working||[],sortStores(data.stores||[]));
+    const financial=sortStores(mgmt.financial_by_store||[]);
     renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value));
     renderFinanceRing(financial);
     const date=$('financeChartDate');if(date)date.textContent=mgmt.business_date||'Today';
@@ -95,9 +100,15 @@
   async function load(){
     try{
       const data=await json('api/beta_state.php');
+      data.stores=sortStores(data.stores||[]);
+      if(data.management){
+        data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);
+        data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);
+      }
       updateDisputeBadge(data);
       if(data.is_management)renderManagement(data);
       if(data.is_dev)loadDev();
+      window.MERDPOSStoreOrder?.run?.();
     }catch(_){/* beta.js already owns visible API errors */}
   }
 
