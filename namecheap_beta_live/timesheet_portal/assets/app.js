@@ -63,7 +63,11 @@ function hideStatus() {
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, options);
-  const data = await res.json();
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; }
+  catch (_) { throw new Error(`Timesheet API returned invalid data (${res.status}).`); }
+  if (!data) throw new Error(`Timesheet API returned an empty response (${res.status}).`);
   if (!data.success) throw new Error(data.error || 'Request failed');
   return data;
 }
@@ -228,6 +232,11 @@ function renderEmployeeSummary(report) {
     </div>`;
 }
 
+function rateDisplay(emp) {
+  if (emp.pay_rate_varies) return 'Varies by date';
+  return emp.pay_rate === null ? 'Missing' : '$' + fmtMoney(emp.pay_rate) + '/hr';
+}
+
 function renderPersonalSummary(report) {
   const emp = report.employees[0];
   if (!emp) return '';
@@ -236,7 +245,7 @@ function renderPersonalSummary(report) {
     <section class="stat-grid user-stat-grid">
       <div class="stat-card stat-hours"><span>Total Hours</span><strong>${fmtHours(emp.total_hours)}</strong></div>
       <div class="stat-card stat-wage"><span>Total Wage</span><strong>${fmtMoney(emp.total_wage)}</strong></div>
-      <div class="stat-card stat-rate"><span>Pay Rate</span><strong>${emp.pay_rate === null ? 'Missing' : fmtMoney(emp.pay_rate) + '/hr'}</strong></div>
+      <div class="stat-card stat-rate"><span>Pay Rate</span><strong>${escapeHtml(rateDisplay(emp))}</strong></div>
       <div class="stat-card stat-shifts"><span>Total Shifts</span><strong>${shiftCount}</strong></div>
     </section>`;
 }
@@ -255,14 +264,14 @@ function renderEmployeeSection(emp, showWages, showEmployeeHeading = true) {
       <td class="shift-clock" data-label="Clock out">
         <div class="clock-cell"><strong>${escapeHtml(fmtShortDate(r.out_date))} · ${escapeHtml(fmtClock(r.actual_out_time))}</strong><span>Rounded ${escapeHtml(fmtClock(r.rounded_out_time))}</span></div>
       </td>
-      <td class="shift-hours num" data-label="Hours"><strong>${fmtHours(r.total_hours)}</strong></td>
+      <td class="shift-hours num" data-label="Hours"><strong>${fmtHours(r.total_hours)}</strong>${showWages && r.applied_rate !== null && r.applied_rate !== undefined ? `<small>${escapeHtml('$' + fmtMoney(r.applied_rate) + '/hr')}</small>` : ''}</td>
     </tr>`).join('');
 
   const shiftCount = emp.rows ? emp.rows.length : 0;
   const employeeName = escapeHtml(emp.employee_name);
   const initial = escapeHtml((String(emp.employee_name || '?').trim().charAt(0) || '?').toUpperCase());
-  const rateText = emp.pay_rate === null ? 'Missing' : '$' + fmtMoney(emp.pay_rate) + '/hr';
-  const wageText = emp.pay_rate === null ? '—' : '$' + fmtMoney(emp.total_wage);
+  const rateText = rateDisplay(emp);
+  const wageText = emp.pay_rate === null && !emp.rates_used?.length ? '—' : '$' + fmtMoney(emp.total_wage);
 
   return `
     <section class="employee-section employee-report-card ${showEmployeeHeading ? '' : 'single-user-section'}">
