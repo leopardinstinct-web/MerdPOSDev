@@ -8,7 +8,7 @@ try {
     $isManagement = !empty($user['is_super']);
     $actualRole = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? $user['employee_type'] ?? 'USER'));
 
-    $stores = $pdo->prepare("SELECT id,store_name FROM stores WHERE client_id=? AND status='active' ORDER BY store_name");
+    $stores = $pdo->prepare("SELECT id,store_name FROM stores WHERE client_id=? AND status='active' ORDER BY id");
     $stores->execute([(int)$user['client_id']]);
 
     $shiftWhere = $isManagement ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
@@ -34,14 +34,14 @@ try {
             . "COALESCE(SUM(CASE WHEN f.account='Register' THEN COALESCE(f.closing_amount,f.opening_amount+f.in_total-f.out_total) ELSE 0 END),0) AS register_balance,"
             . "COALESCE(SUM(CASE WHEN f.account='Petty Cash' THEN COALESCE(f.closing_amount,f.opening_amount+f.in_total-f.out_total) ELSE 0 END),0) AS petty_balance "
             . "FROM stores st LEFT JOIN financial_day_accounts f ON f.store_id=st.id AND f.client_id=st.client_id AND f.business_date=? "
-            . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name ORDER BY st.store_name"
+            . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name ORDER BY st.id"
         );
         $financial->execute([$businessDate, (int)$user['client_id']]);
 
         $sales = $pdo->prepare(
             "SELECT st.id AS store_id,st.store_name,COALESCE(SUM(rs.total),0) AS today_sales "
             . "FROM stores st LEFT JOIN retail_sales rs ON rs.store_id=st.id AND rs.client_id=st.client_id AND DATE(rs.sold_at)=? AND rs.status='completed' "
-            . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name ORDER BY st.store_name"
+            . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name ORDER BY st.id"
         );
         $sales->execute([$businessDate, (int)$user['client_id']]);
 
