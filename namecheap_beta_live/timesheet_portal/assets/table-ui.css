@@ -1,35 +1,33 @@
 /*
- * MERDPOS app-style data surfaces
- * Inspired by modern mobile finance/product UI: quiet tables, strong spacing,
- * selective accent colour, and summary information presented as cards.
+ * MERDPOS data + timesheet surfaces
+ * Calm app UI: compact employee cards, quiet tables, strong semantic stats.
  */
 
 :root {
-  --data-ink:#162235;
-  --data-muted:#728096;
-  --data-border:#E4E9F1;
+  --data-ink:#0F172A;
+  --data-muted:#64748B;
+  --data-muted-2:#94A3B8;
+  --data-line:#E7ECF2;
+  --data-line-strong:#D7DEE8;
   --data-soft:#F8FAFC;
-  --data-hover:#F4F7FB;
-  --data-blue:#315EF4;
-  --data-blue-soft:#EEF3FF;
-  --data-blue-border:#D7E1FF;
-  --data-green:#16835B;
-  --data-green-soft:#ECF8F3;
-  --data-green-border:#CDEBDF;
-  --data-red:#B5443C;
-  --data-red-soft:#FFF2F1;
-  --data-shadow:0 8px 26px rgba(30,42,62,.07);
+  --data-soft-blue:#EFF6FF;
+  --data-soft-green:#ECFDF5;
+  --data-blue:#2563EB;
+  --data-blue-dark:#1D4ED8;
+  --data-green:#059669;
+  --data-green-dark:#047857;
+  --data-red:#DC5C52;
+  --data-shadow:0 8px 26px rgba(15,23,42,.055);
 }
 
-/* Quiet table shell: the information, not the chrome, should dominate. */
-.merd-shell .table-scroll.app-table-shell,
+/* Shared table language */
 .merd-shell .table-scroll {
   width:100%;
   overflow-x:auto;
   overflow-y:hidden;
   background:#fff;
-  border:1px solid var(--data-border) !important;
-  border-radius:16px;
+  border:1px solid var(--data-line) !important;
+  border-radius:14px;
   box-shadow:none;
   -webkit-overflow-scrolling:touch;
 }
@@ -42,315 +40,363 @@
   color:var(--data-ink) !important;
 }
 
-/* Neutral column labels instead of a heavy banner. */
 .merd-shell thead th,
 .merd-shell .summary-table th {
-  background:#F7F9FC !important;
-  color:#5F6E82 !important;
+  background:#F8FAFC !important;
+  color:#5C6B7D !important;
   border:0 !important;
-  border-bottom:1px solid var(--data-border) !important;
-  padding:12px 14px;
-  font-size:11px !important;
+  border-bottom:1px solid var(--data-line) !important;
+  padding:11px 14px;
+  font-size:10.5px !important;
   line-height:1.25;
   font-weight:600 !important;
-  letter-spacing:.035em !important;
+  letter-spacing:.045em !important;
   text-transform:uppercase !important;
   white-space:nowrap;
 }
-
-.merd-shell thead th:first-child { border-top-left-radius:15px; }
-.merd-shell thead th:last-child { border-top-right-radius:15px; }
 
 .merd-shell td {
   background:#fff !important;
   color:var(--data-ink) !important;
   border:0 !important;
-  border-bottom:1px solid var(--data-border) !important;
-  padding:13px 14px;
+  border-bottom:1px solid var(--data-line) !important;
+  padding:12px 14px;
   font-size:13px;
+  line-height:1.4;
   font-weight:400;
-  line-height:1.35;
   vertical-align:middle;
 }
 
 .merd-shell tbody tr:last-child td { border-bottom:0 !important; }
+.merd-shell tbody tr:not(.late-row):hover td { background:#FBFCFE !important; }
+.merd-shell td.num,.merd-shell th.num { text-align:right; font-variant-numeric:tabular-nums; }
 
-.merd-shell tbody tr:not(.late-row):hover td { background:var(--data-hover) !important; }
+.merd-shell tr.late-row td { background:#fff !important; }
+.merd-shell tr.late-row td:first-child { box-shadow:inset 3px 0 0 var(--data-red); }
+.merd-shell tr.late-row:hover td { background:#FFF7F6 !important; }
 
-.merd-shell td.num,
-.merd-shell th.num {
-  text-align:right;
-  font-variant-numeric:tabular-nums;
-}
-
-/* Late rows use a small semantic cue instead of flooding the row with red. */
-.merd-shell tr.late-row td {
-  background:#fff !important;
-  color:var(--data-ink) !important;
-}
-.merd-shell tr.late-row td:first-child {
-  box-shadow:inset 3px 0 0 #E46C63;
-}
-.merd-shell tr.late-row:hover td { background:var(--data-red-soft) !important; }
-
-/* Report totals are app metrics, not spreadsheet footer rows. */
+/* Executive summary metrics remain compact and useful. */
 .report-metrics {
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-  margin-top:12px;
+  gap:10px;
+  margin-top:10px;
 }
 
 .report-metric {
-  position:relative;
-  min-width:0;
-  padding:16px 17px 15px;
-  border-radius:16px;
-  border:1px solid var(--data-border);
+  padding:13px 15px;
+  border:1px solid var(--data-line);
+  border-radius:14px;
   background:#fff;
-  overflow:hidden;
 }
 
-.report-metric:before {
-  content:"";
-  position:absolute;
-  left:0;
-  top:0;
-  bottom:0;
-  width:4px;
-  border-radius:4px;
-}
-
-.report-metric-blue {
-  background:linear-gradient(135deg,#F7F9FF 0%,var(--data-blue-soft) 100%);
-  border-color:var(--data-blue-border);
-}
-.report-metric-blue:before { background:var(--data-blue); }
-
-.report-metric-green {
-  background:linear-gradient(135deg,#F8FCFA 0%,var(--data-green-soft) 100%);
-  border-color:var(--data-green-border);
-}
-.report-metric-green:before { background:var(--data-green); }
+.report-metric-blue { background:var(--data-soft-blue); border-color:#D9E6FF; }
+.report-metric-green { background:var(--data-soft-green); border-color:#CFEDE2; }
 
 .report-metric-label {
   display:block;
-  margin-bottom:6px;
+  margin-bottom:4px;
   color:var(--data-muted);
-  font-size:11px;
-  line-height:1.2;
+  font-size:10px;
   font-weight:600;
-  letter-spacing:.025em;
+  letter-spacing:.035em;
   text-transform:uppercase;
 }
 
 .report-metric strong {
   display:block;
   color:var(--data-ink) !important;
-  font-size:22px;
+  font-size:20px;
   line-height:1.05;
   font-weight:700 !important;
-  letter-spacing:-.025em;
   font-variant-numeric:tabular-nums;
 }
 
-.report-metric-blue strong { color:#244BC6 !important; }
-.report-metric-green strong { color:#126846 !important; }
+.report-metric-blue strong { color:var(--data-blue-dark) !important; }
+.report-metric-green strong { color:var(--data-green-dark) !important; }
+.report-metric small { display:block;margin-top:4px;color:var(--data-muted)!important;font-size:10.5px; }
+.report-metrics-summary { margin-bottom:22px; }
 
-.report-metric small {
-  display:block;
-  margin-top:6px;
-  color:var(--data-muted) !important;
-  font-size:11px;
-  line-height:1.25;
+/* Employee report = one cohesive app card, not table + banners. */
+.merd-shell .employee-report-card {
+  margin:0 0 18px;
+  padding:0;
+  border:1px solid var(--data-line);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:var(--data-shadow);
+  overflow:hidden;
 }
 
-.report-metrics-summary { margin-bottom:22px; }
-.employee-metrics { margin-top:10px; }
+.employee-card-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:15px 16px;
+  border-bottom:1px solid var(--data-line);
+  background:#fff;
+}
 
-/* Employee sections read as self-contained cards. */
-.merd-shell .employee-section {
-  margin:0 0 30px;
-  padding:0;
-  border:0;
+.employee-identity {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+
+.employee-avatar {
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:linear-gradient(145deg,#EAF2FF,#F7FAFF);
+  color:#234A9F;
+  border:1px solid #D7E4FB;
+  font-size:15px;
+  font-weight:700;
 }
 
 .merd-shell .employee-name {
-  margin:22px 0 10px;
+  margin:0 !important;
   color:var(--data-ink) !important;
   font-size:16px !important;
-  line-height:1.25;
+  line-height:1.2;
   font-weight:650 !important;
-  letter-spacing:-.01em;
+  letter-spacing:-.012em;
 }
 
-/* Other operational tables keep the same calm visual language. */
+.employee-shift-count {
+  display:block;
+  margin-top:3px;
+  color:var(--data-muted);
+  font-size:11px;
+}
+
+.employee-inline-stats {
+  display:flex;
+  align-items:stretch;
+  gap:7px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.employee-stat {
+  min-width:86px;
+  padding:8px 10px;
+  border-radius:11px;
+  background:var(--data-soft);
+  border:1px solid var(--data-line);
+}
+
+.employee-stat span {
+  display:block;
+  margin-bottom:2px;
+  color:var(--data-muted);
+  font-size:8.5px;
+  line-height:1.15;
+  font-weight:600;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+
+.employee-stat strong {
+  display:block;
+  color:var(--data-ink)!important;
+  font-size:14px;
+  line-height:1.2;
+  font-weight:700!important;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+.employee-stat-hours { background:var(--data-soft-blue);border-color:#D9E6FF; }
+.employee-stat-hours strong { color:var(--data-blue-dark)!important; }
+.employee-stat-wage { background:var(--data-soft-green);border-color:#CFEDE2; }
+.employee-stat-wage strong { color:var(--data-green-dark)!important; }
+.employee-stat-rate { background:#F8FAFC; }
+
+/* The useful desktop table: 4 columns, all information preserved. */
+.merd-shell .compact-shifts-shell {
+  border:0 !important;
+  border-radius:0;
+  overflow-x:hidden;
+}
+
+.compact-shift-table {
+  table-layout:fixed;
+}
+
+.compact-shift-table th:nth-child(1) { width:30%; }
+.compact-shift-table th:nth-child(2),
+.compact-shift-table th:nth-child(3) { width:28%; }
+.compact-shift-table th:nth-child(4) { width:14%; }
+
+.compact-shift-table td {
+  padding-top:12px!important;
+  padding-bottom:12px!important;
+}
+
+.shift-store strong {
+  color:#243347!important;
+  font-weight:600!important;
+}
+
+.clock-cell {
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+
+.clock-cell strong {
+  color:#172033!important;
+  font-size:12.5px;
+  font-weight:600!important;
+  white-space:nowrap;
+}
+
+.clock-cell span {
+  color:var(--data-muted);
+  font-size:10.5px;
+  white-space:nowrap;
+}
+
+.shift-hours strong {
+  color:var(--data-blue-dark)!important;
+  font-size:14px;
+  font-weight:700!important;
+}
+
+/* Other operational tables use the same quiet visual language. */
 .merd-shell #recentShifts table,
 .merd-shell #disputeList table,
 .merd-shell #attendanceFlags table,
-.merd-shell #financialEntries table {
-  background:#fff !important;
-}
+.merd-shell #financialEntries table { background:#fff!important; }
 
-.merd-shell .balance-row td {
-  background:#F6F9FD !important;
-  color:#274360 !important;
-  font-weight:600 !important;
-}
+.merd-shell .balance-row td { background:#F8FAFC!important;color:#274360!important;font-weight:600!important; }
+.merd-shell table .warn-pill,.merd-shell table .status-pill { font-size:10.5px;line-height:1;font-weight:600; }
 
-.merd-shell table .warn-pill,
-.merd-shell table .status-pill {
-  font-size:10.5px;
-  line-height:1;
-  font-weight:600;
-}
-
-/*
- * Mobile detail view: shift records become cards instead of a 980px spreadsheet.
- * data-label values are provided by app.js so each value stays understandable.
- */
+/* Mobile: employee header stacks, each shift becomes a readable card. */
 @media (max-width:720px) {
-  .merd-shell .employee-shifts-shell {
+  .employee-card-header {
+    align-items:flex-start;
+    flex-direction:column;
+    gap:12px;
+    padding:14px;
+  }
+
+  .employee-inline-stats {
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+  }
+
+  .employee-stat { min-width:0;padding:8px 9px; }
+  .employee-stat strong { font-size:13px; }
+
+  .merd-shell .compact-shifts-shell {
     overflow:visible;
     background:transparent;
-    border:0 !important;
-    border-radius:0;
   }
 
-  .merd-shell .detail-table,
-  .merd-shell .detail-table tbody {
+  .compact-shift-table,
+  .compact-shift-table tbody {
     display:block;
     width:100%;
-    min-width:0 !important;
-    background:transparent !important;
+    background:transparent!important;
   }
 
-  .merd-shell .detail-table thead {
-    display:none;
-  }
+  .compact-shift-table thead { display:none; }
 
-  .merd-shell .detail-table tbody {
+  .compact-shift-table tbody {
     display:grid;
-    gap:12px;
+    gap:10px;
+    padding:10px;
+    background:#F8FAFC!important;
   }
 
-  .merd-shell .detail-table tr.shift-row {
+  .compact-shift-table tr.compact-shift-row {
     display:grid;
     grid-template-columns:1fr 1fr;
-    column-gap:16px;
-    row-gap:12px;
-    padding:15px;
+    gap:12px 14px;
+    padding:14px;
+    border:1px solid var(--data-line);
+    border-radius:15px;
     background:#fff;
-    border:1px solid var(--data-border);
-    border-radius:17px;
-    box-shadow:var(--data-shadow);
+    box-shadow:0 4px 14px rgba(15,23,42,.04);
   }
 
-  .merd-shell .detail-table tr.shift-row:hover {
-    background:#fff;
-  }
-
-  .merd-shell .detail-table tr.shift-row.late-row {
-    border-color:#F1D0CC;
-    box-shadow:inset 3px 0 0 #E46C63,var(--data-shadow);
-  }
-
-  .merd-shell .detail-table tr.shift-row td {
+  .compact-shift-table tr.compact-shift-row td {
     display:block;
     min-width:0;
-    padding:0 !important;
-    border:0 !important;
-    background:transparent !important;
-    color:var(--data-ink) !important;
-    font-size:13px;
-    overflow-wrap:anywhere;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    text-align:left!important;
   }
 
-  .merd-shell .detail-table tr.shift-row td::before {
+  .compact-shift-table tr.compact-shift-row td::before {
     content:attr(data-label);
     display:block;
     margin-bottom:3px;
-    color:var(--data-muted);
-    font-size:9px;
-    line-height:1.2;
+    color:var(--data-muted-2);
+    font-size:8.5px;
+    line-height:1.15;
     font-weight:600;
     letter-spacing:.055em;
     text-transform:uppercase;
   }
 
-  .merd-shell .detail-table tr.shift-row td:nth-child(1),
-  .merd-shell .detail-table tr.shift-row td:nth-child(2) {
-    padding-bottom:9px !important;
-    border-bottom:1px solid #EDF1F6 !important;
-    font-weight:600;
+  .compact-shift-table .shift-store {
+    grid-column:1/-1;
+    padding-bottom:10px!important;
+    border-bottom:1px solid var(--data-line)!important;
   }
 
-  .merd-shell .detail-table tr.shift-row td:nth-child(9) {
-    color:var(--data-blue) !important;
-    font-weight:700;
-    text-align:left;
+  .compact-shift-table .shift-hours {
+    grid-column:1/-1;
+    display:flex!important;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:1px;
+    padding:9px 10px!important;
+    border-radius:10px;
+    background:var(--data-soft-blue)!important;
   }
 
-  .report-metrics {
-    grid-template-columns:1fr 1fr;
-    gap:9px;
+  .compact-shift-table .shift-hours::before {
+    margin:0;
+    color:#6280B5;
   }
 
-  .report-metric {
-    padding:14px 14px 13px;
-    border-radius:15px;
-  }
+  .compact-shift-table .shift-hours strong { font-size:15px; }
 
-  .report-metric strong { font-size:20px; }
+  .report-metrics { grid-template-columns:1fr 1fr;gap:8px; }
+  .report-metric { padding:12px 13px; }
+  .report-metric strong { font-size:18px; }
 
-  /* Larger summary/operational tables still scroll horizontally where needed. */
   .merd-shell .summary-table,
   .merd-shell #recentShifts table,
   .merd-shell #disputeList table,
   .merd-shell #attendanceFlags table,
-  .merd-shell #financialEntries table {
-    min-width:610px;
-  }
-
-  .merd-shell thead th,
-  .merd-shell .summary-table th {
-    padding:11px 12px;
-    font-size:10px !important;
-  }
-
-  .merd-shell td { padding:12px; }
+  .merd-shell #financialEntries table { min-width:600px; }
 }
 
-@media (max-width:420px) {
-  .merd-shell .detail-table tr.shift-row {
-    column-gap:12px;
-    padding:14px;
-  }
-
-  .report-metrics {
-    grid-template-columns:1fr;
-  }
+@media (max-width:440px) {
+  .employee-inline-stats { grid-template-columns:1fr 1fr; }
+  .employee-stat-rate { grid-column:1/-1; }
+  .report-metrics { grid-template-columns:1fr; }
 }
 
-/* PDF remains conventional and dense even though phone UI becomes cards. */
 @media print {
-  .merd-shell .detail-table,
-  .merd-shell .detail-table thead,
-  .merd-shell .detail-table tbody {
-    display:table;
-    width:100%;
-  }
-
-  .merd-shell .detail-table thead { display:table-header-group; }
-  .merd-shell .detail-table tbody { display:table-row-group; }
-  .merd-shell .detail-table tr.shift-row { display:table-row; }
-  .merd-shell .detail-table tr.shift-row td { display:table-cell; }
-  .merd-shell .detail-table tr.shift-row td::before { display:none; }
-
-  .report-metrics { break-inside:avoid; }
-  .report-metric {
-    box-shadow:none;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
-  }
+  .merd-shell .employee-report-card { box-shadow:none;break-inside:avoid; }
+  .compact-shift-table { display:table;width:100%; }
+  .compact-shift-table thead { display:table-header-group; }
+  .compact-shift-table tbody { display:table-row-group;padding:0; }
+  .compact-shift-table tr.compact-shift-row { display:table-row; }
+  .compact-shift-table tr.compact-shift-row td { display:table-cell; }
+  .compact-shift-table tr.compact-shift-row td::before { display:none; }
 }
