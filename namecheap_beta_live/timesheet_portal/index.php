@@ -15,10 +15,11 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080C14">
+  <meta name="theme-color" content="#F4F7FB">
   <title>MERDPOS Login</title>
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="assets/modern.css">
+  <link rel="stylesheet" href="assets/typography.css">
 </head>
 <body class="login-body merd-login-body">
   <main class="login-shell">
