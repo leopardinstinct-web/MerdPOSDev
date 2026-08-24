@@ -16,10 +16,38 @@ function beta_api_error(Throwable $error): never
 
 function beta_require_active_user(): array
 {
-    $user=require_login();
-    $stmt=portal_db()->prepare("SELECT status FROM employees WHERE id=? AND client_id=? LIMIT 1");
-    $stmt->execute([(int)$user['id'],(int)$user['client_id']]);
-    if($stmt->fetchColumn()!=='active') throw new MerdWorkforceException('account_inactive','Your account is inactive. Contact a SUPER user.');
+    $user = require_login();
+    $pdo = portal_db();
+    $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
+
+    // Always validate the employee against the tenant they authenticated from,
+    // never against a DEV-selected client context.
+    $stmt = $pdo->prepare("SELECT status,employee_type FROM employees WHERE id=? AND client_id=? LIMIT 1");
+    $stmt->execute([(int)$user['id'], $authClientId]);
+    $actor = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($actor) || strtolower((string)$actor['status']) !== 'active') {
+        throw new MerdWorkforceException('account_inactive','Your account is inactive. Contact a SUPER user.');
+    }
+
+    $role = strtoupper(trim((string)($user['role'] ?? $user['actual_employee_type'] ?? $actor['employee_type'] ?? 'USER')));
+    if ($role === 'DEV') {
+        $contextId = (int)$user['client_id'];
+        $clientStmt = $pdo->prepare('SELECT id FROM clients WHERE id=? LIMIT 1');
+        $clientStmt->execute([$contextId]);
+        if (!$clientStmt->fetchColumn()) {
+            clear_dev_active_client_id();
+            $user['client_id'] = $authClientId;
+            $user['active_client_id'] = $authClientId;
+            $user['is_cross_client_context'] = false;
+        }
+    } else {
+        $user['client_id'] = $authClientId;
+        $user['active_client_id'] = $authClientId;
+        $user['is_cross_client_context'] = false;
+    }
+
+    $user['auth_client_id'] = $authClientId;
+    $user['home_client_id'] = $authClientId;
     return $user;
 }
 
