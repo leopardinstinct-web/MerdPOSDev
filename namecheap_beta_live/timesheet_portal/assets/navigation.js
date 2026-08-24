@@ -52,20 +52,28 @@
     }
   };
 
+  const syncExpandedAria = expanded => {
+    sections.forEach(section => {
+      const active = section.button.classList.contains('active');
+      section.button.setAttribute('aria-expanded', expanded && active ? 'true' : 'false');
+    });
+  };
+
   const expandRail = () => {
     if (!desktopQuery.matches) return;
     clearCollapseTimer();
     frame.classList.add('nav-expanded');
     frame.classList.remove('nav-collapsed');
+    syncExpandedAria(true);
   };
 
   const collapseRail = (delay = 0) => {
     if (!desktopQuery.matches) return;
     clearCollapseTimer();
     collapseTimer = window.setTimeout(() => {
-      if (rail.matches(':focus-within')) return;
       frame.classList.remove('nav-expanded');
       frame.classList.add('nav-collapsed');
+      syncExpandedAria(false);
       collapseTimer = null;
     }, reducedMotion.matches ? 0 : delay);
   };
@@ -120,10 +128,11 @@
   oldNav.remove();
 
   function setGroup(name, openFirst = false) {
+    const drawerExpanded = !desktopQuery.matches || frame.classList.contains('nav-expanded');
     sections.forEach(section => {
       const active = section.key === name;
       section.button.classList.toggle('active', active);
-      section.button.setAttribute('aria-expanded', active ? 'true' : 'false');
+      section.button.setAttribute('aria-expanded', active && drawerExpanded ? 'true' : 'false');
       section.subgroup.classList.toggle('active', active);
       section.subgroup.hidden = !active;
       if (active && !reducedMotion.matches) {
@@ -147,6 +156,15 @@
 
   sections.forEach(section => {
     section.button.addEventListener('click', () => {
+      const sameSectionOpen = desktopQuery.matches
+        && frame.classList.contains('nav-expanded')
+        && section.button.classList.contains('active');
+
+      if (sameSectionOpen) {
+        collapseRail(0);
+        return;
+      }
+
       expandRail();
       setGroup(section.key, true);
     });
@@ -159,18 +177,12 @@
           suppressNextTabCollapse = false;
           return;
         }
-        collapseRail(220);
+        collapseRail(180);
       });
     });
   });
 
-  rail.addEventListener('pointerenter', expandRail);
-  rail.addEventListener('pointerleave', () => collapseRail(320));
-  rail.addEventListener('focusin', expandRail);
-  rail.addEventListener('focusout', event => {
-    if (!rail.contains(event.relatedTarget)) collapseRail(140);
-  });
-
+  // Desktop expansion is intentionally click-only. Hover and focus do not open the drawer.
   document.addEventListener('pointerdown', event => {
     if (desktopQuery.matches && !rail.contains(event.target)) collapseRail(0);
   });
@@ -180,8 +192,10 @@
     if (desktopQuery.matches) {
       frame.classList.remove('nav-expanded');
       frame.classList.add('nav-collapsed');
+      syncExpandedAria(false);
     } else {
       frame.classList.remove('nav-collapsed', 'nav-expanded');
+      syncExpandedAria(true);
     }
   };
   desktopQuery.addEventListener?.('change', syncResponsiveMode);
