@@ -57,6 +57,8 @@ rsync -az \
 # Apply migrations validated against the live beta schema snapshot.
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
+php "$LIVE/backend/cli/apply_024_store_weekly_hours.php"
+php "$LIVE/backend/cli/apply_025_employee_hourly_rate_history.php"
 
 # Only deploy the portal once validated migrations have succeeded.
 rsync -az \
