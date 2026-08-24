@@ -41,7 +41,7 @@
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260825a';
+    clientScript.src = 'assets/client.js?v=20260825b';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
   }
@@ -136,6 +136,18 @@
     }, 0);
   };
 
+  const activateTab = tab => {
+    const panelId = tab?.dataset?.panel;
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if (!panel) return false;
+
+    rail.querySelectorAll('.portal-tab').forEach(item => item.classList.toggle('active', item === tab));
+    main.querySelectorAll('.portal-panel').forEach(candidate => {
+      candidate.hidden = candidate.id !== panelId;
+    });
+    return true;
+  };
+
   rawGroups.forEach((rawGroup, index) => {
     const labelNode = rawGroup.querySelector('.nav-group-label');
     const originalLabel = labelNode?.textContent.trim() || `Section ${index + 1}`;
@@ -215,6 +227,7 @@
 
     section.subgroup.querySelectorAll('.portal-tab').forEach(tab => {
       tab.addEventListener('click', () => {
+        activateTab(tab);
         setGroup(section.key, false);
         animatePanel(tab);
         if (suppressNextTabCollapse) {
