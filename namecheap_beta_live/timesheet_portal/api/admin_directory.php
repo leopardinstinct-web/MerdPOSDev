@@ -103,6 +103,18 @@ function directory_ensure_shift_table(PDO $pdo): void
     );
 }
 
+function directory_normalize_store_ids(mixed $value): array
+{
+    if (!is_array($value)) return [];
+    $ids = [];
+    foreach ($value as $raw) {
+        $id = filter_var($raw, FILTER_VALIDATE_INT);
+        if ($id !== false && $id > 0) $ids[(int)$id] = (int)$id;
+    }
+    ksort($ids);
+    return array_values($ids);
+}
+
 function directory_load_state(PDO $pdo, array $actor): array
 {
     $clientId = (int)$actor['client_id'];
@@ -117,18 +129,35 @@ function directory_load_state(PDO $pdo, array $actor): array
 
     $employeesStmt = $pdo->prepare(
         "SELECT e.id,e.full_name,e.user_id,e.store_id,COALESCE(s.store_name,'') AS store_name,"
-        . "UPPER(COALESCE(e.employee_type,'USER')) AS employee_type,e.role_name,e.hourly_rate,e.status "
-        . "FROM employees e LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
+        . "UPPER(COALESCE(e.employee_type,'USER')) AS employee_type,e.role_name,e.hourly_rate,e.status,"
+        . "COALESCE(a.access_mode,'all') AS store_access_mode "
+        . "FROM employees e "
+        . "LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
+        . "LEFT JOIN employee_store_access a ON a.employee_id=e.id AND a.client_id=e.client_id "
         . "WHERE e.client_id=? ORDER BY CASE WHEN e.status='active' THEN 0 ELSE 1 END,e.full_name"
     );
     $employeesStmt->execute([$clientId]);
     $employees = $employeesStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $assignmentStmt = $pdo->prepare(
+        'SELECT employee_id,store_id FROM employee_store_assignments WHERE client_id=? ORDER BY employee_id,store_id'
+    );
+    $assignmentStmt->execute([$clientId]);
+    $assignmentMap = [];
+    foreach ($assignmentStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $assignmentMap[(int)$row['employee_id']][] = (int)$row['store_id'];
+    }
+
     $actorRank = directory_role_rank((string)$actor['employee_type']);
     foreach ($employees as &$employee) {
+        $employeeId = (int)$employee['id'];
         $targetRank = directory_role_rank((string)$employee['employee_type']);
+        $mode = strtolower((string)($employee['store_access_mode'] ?? 'all'));
+        if (!in_array($mode, ['all', 'selected'], true)) $mode = 'all';
+        $employee['store_access_mode'] = $mode;
+        $employee['assigned_store_ids'] = $mode === 'selected' ? ($assignmentMap[$employeeId] ?? []) : [];
         $employee['editable'] = $targetRank <= $actorRank;
-        $employee['self'] = (int)$employee['id'] === (int)$actor['id'];
+        $employee['self'] = $employeeId === (int)$actor['id'];
     }
     unset($employee);
 
@@ -168,16 +197,40 @@ try {
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
         $rateText = trim((string)($input['hourly_rate'] ?? '0'));
         $newPassword = preg_replace('/\D+/', '', (string)($input['new_password'] ?? ''));
+        $storeAccessMode = strtolower(trim((string)($input['store_access_mode'] ?? 'all')));
+        $selectedStoreIds = directory_normalize_store_ids($input['store_ids'] ?? []);
 
         if ($name === '' || mb_strlen($name) > 190) throw new MerdWorkforceException('invalid_name', 'Enter an employee name.');
         if ($userId === '' || strlen($userId) > 32) throw new MerdWorkforceException('invalid_user_id', 'Enter a numeric User ID.');
         if (!in_array($status, ['active', 'inactive'], true)) throw new MerdWorkforceException('invalid_status', 'Choose active or inactive.');
+        if (!in_array($storeAccessMode, ['all', 'selected'], true)) throw new MerdWorkforceException('invalid_store_access', 'Choose all stores or selected stores.');
         if (!is_numeric($rateText) || (float)$rateText < 0 || (float)$rateText > 9999) throw new MerdWorkforceException('invalid_rate', 'Enter a valid hourly rate.');
         directory_assert_target_role((string)$actor['employee_type'], $role);
 
-        $storeCheck = $pdo->prepare('SELECT id FROM stores WHERE id=? AND client_id=? LIMIT 1');
-        $storeCheck->execute([$storeId, (int)$actor['client_id']]);
-        if (!$storeCheck->fetchColumn()) throw new MerdWorkforceException('invalid_store', 'Choose a valid store.');
+        $storeRowsStmt = $pdo->prepare('SELECT id,status FROM stores WHERE client_id=?');
+        $storeRowsStmt->execute([(int)$actor['client_id']]);
+        $validStores = [];
+        $activeStores = [];
+        foreach ($storeRowsStmt->fetchAll(PDO::FETCH_ASSOC) as $storeRow) {
+            $sid = (int)$storeRow['id'];
+            $validStores[$sid] = true;
+            if (strtolower((string)$storeRow['status']) === 'active') $activeStores[$sid] = true;
+        }
+        if (!isset($validStores[$storeId])) throw new MerdWorkforceException('invalid_store', 'Choose a valid default / log store.');
+
+        if ($storeAccessMode === 'selected') {
+            if (!$selectedStoreIds) throw new MerdWorkforceException('store_access_empty', 'Select at least one allowed store.');
+            foreach ($selectedStoreIds as $selectedStoreId) {
+                if (!isset($activeStores[$selectedStoreId])) {
+                    throw new MerdWorkforceException('invalid_store_access', 'Selected store access can only include active stores.');
+                }
+            }
+            if (!in_array($storeId, $selectedStoreIds, true)) {
+                throw new MerdWorkforceException('default_store_not_allowed', 'The default / log store must also be one of the allowed stores.');
+            }
+        } else {
+            $selectedStoreIds = [];
+        }
 
         if ($id !== null) {
             $stmt = $pdo->prepare('SELECT id,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
@@ -233,6 +286,24 @@ try {
                 }
                 $auditAction = 'employee.update';
             }
+
+            $accessStmt = $pdo->prepare(
+                'INSERT INTO employee_store_access (client_id,employee_id,access_mode,updated_by_employee_id) VALUES (?,?,?,?) '
+                . 'ON DUPLICATE KEY UPDATE access_mode=VALUES(access_mode),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+            );
+            $accessStmt->execute([(int)$actor['client_id'], $id, $storeAccessMode, (int)$actor['id']]);
+
+            $deleteAssignments = $pdo->prepare('DELETE FROM employee_store_assignments WHERE client_id=? AND employee_id=?');
+            $deleteAssignments->execute([(int)$actor['client_id'], $id]);
+            if ($storeAccessMode === 'selected') {
+                $insertAssignment = $pdo->prepare(
+                    'INSERT INTO employee_store_assignments (client_id,employee_id,store_id) VALUES (?,?,?)'
+                );
+                foreach ($selectedStoreIds as $selectedStoreId) {
+                    $insertAssignment->execute([(int)$actor['client_id'], $id, $selectedStoreId]);
+                }
+            }
+
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -243,6 +314,8 @@ try {
             'full_name' => $name,
             'user_id' => $userId,
             'store_id' => $storeId,
+            'store_access_mode' => $storeAccessMode,
+            'store_ids' => $selectedStoreIds,
             'employee_type' => $role,
             'hourly_rate' => $rate,
             'status' => $status,
