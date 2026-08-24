@@ -159,6 +159,15 @@ function renderReport(report) {
   els.report.innerHTML = parts.join('');
 }
 
+function metricCard(label, value, tone = 'blue', detail = '') {
+  return `
+    <article class="report-metric report-metric-${tone}">
+      <span class="report-metric-label">${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      ${detail ? `<small>${escapeHtml(detail)}</small>` : ''}
+    </article>`;
+}
+
 function renderStoreSummary(report) {
   const rows = report.store_summary.map(s => `
     <tr>
@@ -171,14 +180,15 @@ function renderStoreSummary(report) {
   return `
     <div class="summary-block">
       <h2 class="section-title">Executive Summary</h2>
-      <div class="table-scroll">
-        <table class="summary-table">
-          <thead><tr><th>Store Name</th><th>Total Employees Worked</th><th>Total Hours Worked</th><th>Total Amount</th></tr></thead>
-          <tbody>
-            ${rows}
-            <tr class="green-total"><td colspan="3"><strong>Grand Total</strong></td><td class="num"><strong>${fmtMoney(report.grand_total_wage)}</strong></td></tr>
-          </tbody>
+      <div class="table-scroll app-table-shell">
+        <table class="summary-table app-data-table">
+          <thead><tr><th>Store</th><th>Employees</th><th>Total hours</th><th>Total amount</th></tr></thead>
+          <tbody>${rows}</tbody>
         </table>
+      </div>
+      <div class="report-metrics report-metrics-summary">
+        ${metricCard('Total hours', fmtHours(report.grand_total_hours), 'blue', 'All stores')}
+        ${metricCard('Total wages', '$' + fmtMoney(report.grand_total_wage), 'green', 'All stores')}
       </div>
     </div>`;
 }
@@ -194,13 +204,10 @@ function renderEmployeeSummary(report) {
 
   return `
     <div class="summary-block employee-summary-block">
-      <div class="table-scroll">
-        <table class="summary-table employee-summary-table">
-          <thead><tr><th>Employee Name</th><th>Phone Number</th><th>Total Hours</th><th>Total Wage</th></tr></thead>
-          <tbody>
-            ${rows}
-            <tr class="green-total"><td colspan="2"><strong>Grand Total</strong></td><td class="num"><strong>${fmtHours(report.grand_total_hours)}</strong></td><td class="num"><strong>${fmtMoney(report.grand_total_wage)}</strong></td></tr>
-          </tbody>
+      <div class="table-scroll app-table-shell">
+        <table class="summary-table employee-summary-table app-data-table">
+          <thead><tr><th>Employee</th><th>Phone</th><th>Total hours</th><th>Total wage</th></tr></thead>
+          <tbody>${rows}</tbody>
         </table>
       </div>
     </div>`;
@@ -221,50 +228,46 @@ function renderPersonalSummary(report) {
 
 function renderEmployeeSection(emp, showWages, showEmployeeHeading = true) {
   const rows = emp.rows.map(r => `
-    <tr class="${r.is_late ? 'late-row' : ''}">
-      <td>${escapeHtml(r.user_name)}</td>
-      <td>${escapeHtml(r.store_name)}</td>
-      <td>${escapeHtml(r.in_date)}</td>
-      <td>${escapeHtml(r.actual_in_time)}</td>
-      <td>${escapeHtml(r.rounded_in_time)}</td>
-      <td>${escapeHtml(r.out_date)}</td>
-      <td>${escapeHtml(r.actual_out_time)}</td>
-      <td>${escapeHtml(r.rounded_out_time)}</td>
-      <td class="num">${fmtHours(r.total_hours)}</td>
+    <tr class="shift-row ${r.is_late ? 'late-row' : ''}">
+      <td data-label="Employee">${escapeHtml(r.user_name)}</td>
+      <td data-label="Store">${escapeHtml(r.store_name)}</td>
+      <td data-label="In date">${escapeHtml(r.in_date)}</td>
+      <td data-label="Actual in">${escapeHtml(r.actual_in_time)}</td>
+      <td data-label="Rounded in">${escapeHtml(r.rounded_in_time)}</td>
+      <td data-label="Out date">${escapeHtml(r.out_date)}</td>
+      <td data-label="Actual out">${escapeHtml(r.actual_out_time)}</td>
+      <td data-label="Rounded out">${escapeHtml(r.rounded_out_time)}</td>
+      <td data-label="Hours" class="num">${fmtHours(r.total_hours)}</td>
     </tr>`).join('');
 
-  const wageRow = showWages ? `
-    <tr class="wage-row">
-      <td colspan="8"><strong>${escapeHtml(emp.employee_name)}'s Wage @ ${emp.pay_rate === null ? 'Missing Rate' : fmtMoney(emp.pay_rate) + '/hour'}</strong></td>
-      <td class="num"><strong>${fmtMoney(emp.total_wage)}</strong></td>
-    </tr>` : '';
-
   const employeeHeading = showEmployeeHeading ? `<h2 class="employee-name">${escapeHtml(emp.employee_name)}</h2>` : '';
+  const wageValue = emp.pay_rate === null ? 'Rate missing' : '$' + fmtMoney(emp.total_wage);
+  const wageDetail = emp.pay_rate === null ? 'Set a pay rate' : '$' + fmtMoney(emp.pay_rate) + '/hour';
 
   return `
     <section class="employee-section ${showEmployeeHeading ? '' : 'single-user-section'}">
       ${employeeHeading}
-      <div class="table-scroll">
-        <table class="detail-table">
+      <div class="table-scroll app-table-shell employee-shifts-shell">
+        <table class="detail-table app-data-table">
           <thead>
             <tr>
               <th>Employee</th>
               <th>Store</th>
-              <th>In Date</th>
-              <th>Time In (Actual)</th>
-              <th>Time In (Rounded)</th>
-              <th>In Date</th>
-              <th>Time Out (Actual)</th>
-              <th>Time Out (Rounded)</th>
-              <th>Hours Worked</th>
+              <th>In date</th>
+              <th>Actual in</th>
+              <th>Rounded in</th>
+              <th>Out date</th>
+              <th>Actual out</th>
+              <th>Rounded out</th>
+              <th>Hours</th>
             </tr>
           </thead>
-          <tbody>
-            ${rows}
-            <tr class="hours-row"><td colspan="8"><strong>Total Hours for ${escapeHtml(emp.employee_name)}</strong></td><td class="num"><strong>${fmtHours(emp.total_hours)}</strong></td></tr>
-            ${wageRow}
-          </tbody>
+          <tbody>${rows}</tbody>
         </table>
+      </div>
+      <div class="report-metrics employee-metrics">
+        ${metricCard('Hours worked', fmtHours(emp.total_hours), 'blue', `${emp.rows.length} shift${emp.rows.length === 1 ? '' : 's'}`)}
+        ${showWages ? metricCard('Wage', wageValue, 'green', wageDetail) : ''}
       </div>
     </section>`;
 }
@@ -295,7 +298,6 @@ if (!window.__timesheetPortalLoaded) {
   els.select.addEventListener('change', () => {
     if (!navigationLocked()) loadReport(els.select.value);
   });
-
 
   if (els.downloadPdf) {
     els.downloadPdf.addEventListener('click', downloadPdf);
