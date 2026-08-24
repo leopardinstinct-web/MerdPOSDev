@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS store_weekly_hours (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    client_id INT NOT NULL,
+    store_id INT NOT NULL,
+    day_of_week TINYINT UNSIGNED NOT NULL,
+    start_time TIME NULL,
+    end_time TIME NULL,
+    is_closed TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by_employee_id INT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_store_weekly_hours (client_id, store_id, day_of_week),
+    KEY idx_store_weekly_hours_store (store_id, day_of_week),
+    KEY idx_store_weekly_hours_actor (updated_by_employee_id),
+    CONSTRAINT fk_store_weekly_hours_client FOREIGN KEY (client_id) REFERENCES clients(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_store_weekly_hours_store FOREIGN KEY (store_id) REFERENCES stores(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_store_weekly_hours_actor FOREIGN KEY (updated_by_employee_id) REFERENCES employees(id) ON UPDATE RESTRICT ON DELETE SET NULL,
+    CONSTRAINT chk_store_weekly_hours_day CHECK (day_of_week BETWEEN 1 AND 7)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
