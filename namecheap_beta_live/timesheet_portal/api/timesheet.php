@@ -1,19 +1,20 @@
 <?php
-require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/timesheet_logic.php';
 
-$user = require_login();
+$user = beta_require_active_user();
+$clientId = (int)$user['client_id'];
 $weekStart = $_GET['week_start'] ?? monday_of_week();
 $weekStart = monday_of_week($weekStart);
 
-function sql_source_data(PDO $pdo): array
+function sql_source_data(PDO $pdo, int $clientId): array
 {
     $timesheetRows = [];
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         'SELECT user_name, store_name, log_type, log_date, log_time '
-        . 'FROM employee_logs WHERE client_id=1 ORDER BY log_datetime, id'
+        . 'FROM employee_logs WHERE client_id=? ORDER BY log_datetime, id'
     );
+    $stmt->execute([$clientId]);
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $timesheetRows[] = [
             'USER_NAME' => (string)$row['user_name'],
@@ -31,11 +32,19 @@ function sql_source_data(PDO $pdo): array
         ];
     }
 
+    $storeOrder = [];
+    $storeStmt = $pdo->prepare('SELECT id,store_name FROM stores WHERE client_id=? ORDER BY id ASC');
+    $storeStmt->execute([$clientId]);
+    foreach ($storeStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $storeOrder[strtolower(trim((string)$row['store_name']))] = (int)$row['id'];
+    }
+
     $payrateRows = [];
     $employeeSetupRows = [];
-    $stmt = $pdo->query(
-        'SELECT full_name,user_id,employee_type,status,store_id,hourly_rate FROM employees WHERE client_id=1 ORDER BY full_name'
+    $stmt = $pdo->prepare(
+        'SELECT full_name,user_id,employee_type,status,store_id,hourly_rate FROM employees WHERE client_id=? ORDER BY id ASC'
     );
+    $stmt->execute([$clientId]);
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $rate = is_numeric($row['hourly_rate']) ? (string)(float)$row['hourly_rate'] : '';
         $payrateRows[] = [
@@ -55,9 +64,12 @@ function sql_source_data(PDO $pdo): array
 
     $startRows = [];
     try {
-        $stmt = $pdo->query(
-            'SELECT store_name, shift_start_time FROM store_shift_start_times WHERE client_id=1 ORDER BY store_name'
+        $stmt = $pdo->prepare(
+            'SELECT t.store_name,t.shift_start_time FROM store_shift_start_times t '
+            . 'INNER JOIN stores s ON s.id=t.store_id AND s.client_id=t.client_id '
+            . 'WHERE t.client_id=? ORDER BY s.id ASC'
         );
+        $stmt->execute([$clientId]);
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $startRows[] = [
                 'Store Name' => (string)$row['store_name'],
@@ -66,24 +78,27 @@ function sql_source_data(PDO $pdo): array
             ];
         }
     } catch (Throwable $e) {
-        $fallback = [
-            ['Rosebay Tobacco', '06:00:00'],
-            ['Enmore Tobacco', '07:00:00'],
-            ['Marrickville Xpress', '07:00:00'],
-            ['Double Bay Tobacco', '07:00:00'],
-        ];
-        foreach ($fallback as $row) {
-            $startRows[] = ['Store Name' => $row[0], 'Shift Start Time' => $row[1], '_raw' => $row];
+        if ($clientId === 1) {
+            $fallback = [
+                ['Rosebay Tobacco', '06:00:00'],
+                ['Enmore Tobacco', '07:00:00'],
+                ['Marrickville Xpress', '07:00:00'],
+                ['Double Bay Tobacco', '07:00:00'],
+            ];
+            foreach ($fallback as $row) {
+                $startRows[] = ['Store Name' => $row[0], 'Shift Start Time' => $row[1], '_raw' => $row];
+            }
         }
     }
 
     $rateHistory = [];
     try {
-        $stmt = $pdo->query(
+        $stmt = $pdo->prepare(
             'SELECT e.full_name,h.hourly_rate,h.effective_from '
             . 'FROM employee_hourly_rate_history h INNER JOIN employees e ON e.id=h.employee_id AND e.client_id=h.client_id '
-            . 'WHERE h.client_id=1 ORDER BY e.full_name,h.effective_from,h.id'
+            . 'WHERE h.client_id=? ORDER BY e.id,h.effective_from,h.id'
         );
+        $stmt->execute([$clientId]);
         $rateHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
         $rateHistory = [];
@@ -91,11 +106,12 @@ function sql_source_data(PDO $pdo): array
 
     $weeklyHours = [];
     try {
-        $stmt = $pdo->query(
+        $stmt = $pdo->prepare(
             'SELECT s.store_name,h.day_of_week,h.start_time,h.end_time,h.is_closed '
             . 'FROM store_weekly_hours h INNER JOIN stores s ON s.id=h.store_id AND s.client_id=h.client_id '
-            . 'WHERE h.client_id=1 ORDER BY s.store_name,h.day_of_week'
+            . 'WHERE h.client_id=? ORDER BY s.id,h.day_of_week'
         );
+        $stmt->execute([$clientId]);
         $weeklyHours = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
         $weeklyHours = [];
@@ -108,6 +124,7 @@ function sql_source_data(PDO $pdo): array
         'employee_setup' => $employeeSetupRows,
         'rate_history' => $rateHistory,
         'weekly_hours' => $weeklyHours,
+        'store_order' => $storeOrder,
     ];
 }
 
@@ -225,7 +242,13 @@ function apply_schedule_and_effective_rates(array &$report, array $source): void
     unset($summary);
 
     if (!empty($report['is_super'])) {
-        ksort($storeTotals, SORT_NATURAL | SORT_FLAG_CASE);
+        $order = $source['store_order'] ?? [];
+        uksort($storeTotals, function (string $a, string $b) use ($order): int {
+            $ai = $order[strtolower(trim($a))] ?? PHP_INT_MAX;
+            $bi = $order[strtolower(trim($b))] ?? PHP_INT_MAX;
+            if ($ai === $bi) return strcasecmp($a, $b);
+            return $ai <=> $bi;
+        });
         $report['store_summary'] = [];
         foreach ($storeTotals as $store => $totals) {
             $report['store_summary'][] = [
@@ -244,11 +267,12 @@ function apply_schedule_and_effective_rates(array &$report, array $source): void
 
 try {
     $pdo = portal_db();
-    $source = sql_source_data($pdo);
+    $source = sql_source_data($pdo, $clientId);
     $employeeFilter = $user['is_super'] ? null : $user['name'];
     $report = build_report($source, $weekStart, $employeeFilter, (bool)$user['is_super']);
     apply_schedule_and_effective_rates($report, $source);
     $report['source'] = 'sql_employee_logs';
+    $report['client_id'] = $clientId;
     json_response(['success' => true, 'report' => $report]);
 } catch (Throwable $e) {
     error_log('MERDPOS timesheet generation failed: ' . get_class($e));
