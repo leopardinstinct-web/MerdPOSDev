@@ -2,6 +2,13 @@
   const root = document.getElementById('clientOverview');
   if (!root) return;
 
+  if (!document.querySelector('script[data-dev-stores-ui]')) {
+    const devStoresScript = document.createElement('script');
+    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825a';
+    devStoresScript.dataset.devStoresUi = '1';
+    document.body.appendChild(devStoresScript);
+  }
+
   const clientTab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
