@@ -14,10 +14,11 @@ $isDev = $role === 'DEV';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080C14">
+  <meta name="theme-color" content="#F4F7FB">
   <title>MERDPOS</title>
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="assets/modern.css">
+  <link rel="stylesheet" href="assets/typography.css">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
