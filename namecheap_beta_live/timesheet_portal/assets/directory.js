@@ -19,8 +19,17 @@
 
   async function api(url, options = {}) {
     const response = await fetch(url, options);
-    const data = await response.json();
-    if (!data.success) throw new Error(data.error || 'Request failed');
+    const text = await response.text();
+    let data = null;
+    if (text) {
+      try { data = JSON.parse(text); }
+      catch (_) {
+        const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 160);
+        throw new Error(`MERDPOS admin API returned invalid data (${response.status})${snippet ? ': ' + snippet : '.'}`);
+      }
+    }
+    if (!data) throw new Error(`MERDPOS admin API returned an empty response (${response.status}).`);
+    if (!data.success) throw new Error(data.error || `Request failed (${response.status})`);
     return data;
   }
 
