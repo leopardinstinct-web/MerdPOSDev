@@ -74,7 +74,7 @@
   function renderEmployees(filter = '') {
     if (!employeeRoot || !directory) return;
     const query = String(filter).trim().toLowerCase();
-    const rows = (directory.employees || []).filter(e => !query || [e.full_name,e.user_id,e.store_name,e.employee_type,e.status].some(v => String(v || '').toLowerCase().includes(query)));
+    const rows = (directory.employees || []).filter(e => !query || [e.full_name,e.user_id,e.store_name,e.employee_type,e.status,'all stores'].some(v => String(v || '').toLowerCase().includes(query)));
     if (!rows.length) {
       employeeRoot.innerHTML = '<div class="entity-empty">No employees match this search.</div>';
       return;
@@ -84,7 +84,7 @@
         <div class="entity-avatar">${esc(initials(employee.full_name))}</div>
         <div class="entity-copy">
           <div class="entity-title-line"><strong>${esc(employee.full_name)}</strong>${employee.self ? '<span class="you-chip">You</span>' : ''}</div>
-          <div class="entity-sub">ID ${esc(employee.user_id)} · ${esc(employee.store_name || 'No store')}</div>
+          <div class="entity-sub">ID ${esc(employee.user_id)} · All active stores · Default/log: ${esc(employee.store_name || 'Not set')}</div>
         </div>
         <div class="entity-meta">
           ${rolePill(employee.employee_type)}
