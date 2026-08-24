@@ -15,15 +15,20 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Timesheet Login</title>
+  <meta name="theme-color" content="#080C14">
+  <title>MERDPOS Login</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/modern.css">
 </head>
-<body class="login-body">
+<body class="login-body merd-login-body">
   <main class="login-shell">
-    <section class="login-card">
-      <div class="brand-mark">TS</div>
-      <h1>Timesheet Portal</h1>
-      <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Log in to complete your POS attendance scan.' : 'Timesheets, attendance, disputes and store financials.' ?></p>
+    <section class="login-card merd-login-card">
+      <div class="merd-logo-lockup" aria-label="MERDPOS">
+        <div class="merd-logo-mark">M</div>
+        <div><strong>MERD<span>POS</span></strong><small>FUTURE-READY RETAIL</small></div>
+      </div>
+      <h1>Retail operations, connected.</h1>
+      <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Sign in to complete your secure POS attendance scan.' : 'Sign in to MERDPOS to access your workspace.' ?></p>
 
       <form id="loginForm" autocomplete="off">
         <label for="user_id">User ID</label>
@@ -32,7 +37,7 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
         <label for="password">Password</label>
         <input id="password" name="password" inputmode="numeric" pattern="[0-9]*" type="password" placeholder="Numeric Password" required>
 
-        <button type="submit" class="primary-btn">Log In</button>
+        <button type="submit" class="primary-btn">Enter MERDPOS</button>
         <p id="loginError" class="error-message" hidden></p>
       </form>
     </section>
