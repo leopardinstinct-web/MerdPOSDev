@@ -27,10 +27,8 @@
     if(!document.querySelector('script[data-account-menu]')){
       const script=document.createElement('script');script.src='assets/account-menu.js?v=20260825b';script.dataset.accountMenu='1';document.body.appendChild(script);
     }
-    // DEV Store Edit must not depend on opening Client -> Account first. Load the
-    // controller directly from the dashboard and let Client reuse the same module.
     if(document.querySelector('.dev-tab')&&!document.querySelector('script[data-dev-stores-ui]')){
-      const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260825g';script.dataset.devStoresUi='1';document.body.appendChild(script);
+      const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260825h';script.dataset.devStoresUi='1';document.body.appendChild(script);
     }
   }
   ensureShellAssets();
