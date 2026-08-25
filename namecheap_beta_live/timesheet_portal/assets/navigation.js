@@ -41,9 +41,41 @@
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260825c';
+    clientScript.src = 'assets/client.js?v=20260825d';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
+  }
+
+  // Re-shape the legacy navigation before building the modern rail.
+  // Operations owns store/workforce administration; Reports owns timesheets/disputes.
+  const rawByLabel = label => Array.from(oldNav.querySelectorAll('.nav-group')).find(group =>
+    String(group.querySelector('.nav-group-label')?.textContent || '').trim().toLowerCase() === label
+  );
+  const workforceGroup = rawByLabel('workforce');
+  const operationsGroup = rawByLabel('operations');
+  if (workforceGroup) {
+    const employeeTab = workforceGroup.querySelector('[data-panel="employeesPanel"]');
+    if (employeeTab && operationsGroup) {
+      const text = employeeTab.querySelector('span:not(.nav-badge)');
+      if (text) text.textContent = 'Workforce';
+      operationsGroup.appendChild(employeeTab);
+    }
+
+    const reportTabs = Array.from(workforceGroup.querySelectorAll('[data-panel="timesheetPanel"],[data-panel="disputesPanel"]'));
+    if (reportTabs.length) {
+      let reportsGroup = rawByLabel('reports');
+      if (!reportsGroup) {
+        reportsGroup = document.createElement('div');
+        reportsGroup.className = 'nav-group';
+        reportsGroup.innerHTML = '<span class="nav-group-label">Reports</span>';
+        const financeGroup = rawByLabel('finance');
+        if (financeGroup) oldNav.insertBefore(reportsGroup, financeGroup);
+        else oldNav.appendChild(reportsGroup);
+      }
+      reportTabs.forEach(tab => reportsGroup.appendChild(tab));
+    }
+
+    if (!workforceGroup.querySelector('.portal-tab')) workforceGroup.remove();
   }
 
   const rawGroups = Array.from(oldNav.querySelectorAll('.nav-group'));
@@ -58,11 +90,11 @@
     home: 'Home',
     client: 'Client',
     operations: 'Operations',
-    workforce: 'Workforce',
+    reports: 'Reports',
     finance: 'Finance',
     system: 'System',
   };
-  const order = ['home', 'client', 'operations', 'workforce', 'finance', 'system'];
+  const order = ['home', 'client', 'operations', 'reports', 'finance', 'system'];
   const desktopQuery = window.matchMedia('(min-width: 821px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
