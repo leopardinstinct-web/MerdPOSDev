@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 35,
+    "table_count": 36,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -1500,6 +1500,176 @@
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "dashboard_layouts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "employee_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "context_client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "widget_key",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "grid_x",
+                    "position": 5,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_y",
+                    "position": 6,
+                    "data_type": "smallint",
+                    "column_type": "smallint(5) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_w",
+                    "position": 7,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "4",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_h",
+                    "position": 8,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "3",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_dashboard_context",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "context_client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "grid_y",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "grid_x",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_dashboard_employee_client_widget",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "context_client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "widget_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_dashboard_context_client",
+                    "column": "context_client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_dashboard_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
                 }
             ]
         },
