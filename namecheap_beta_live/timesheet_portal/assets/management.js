@@ -1,18 +1,25 @@
 (function(){
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const money=value=>Number(value||0).toLocaleString(undefined,{style:'currency',currency:'AUD'});
+  const money=(value,currency='AUD')=>{
+    try{return Number(value||0).toLocaleString(undefined,{style:'currency',currency:String(currency||'AUD').toUpperCase()});}
+    catch(_){return `${String(currency||'AUD').toUpperCase()} ${Number(value||0).toFixed(2)}`;}
+  };
   const sortStores=rows=>(Array.isArray(rows)?rows.slice():[]).sort((a,b)=>Number(a?.store_id??a?.id??Number.MAX_SAFE_INTEGER)-Number(b?.store_id??b?.id??Number.MAX_SAFE_INTEGER));
+  let displayTimezone=null;
 
   function ensureShellAssets(){
-    if(!document.querySelector('link[href$="assets/shell.css"]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css';document.head.appendChild(link);
+    if(!document.querySelector('link[data-merd-shell]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260825f';link.dataset.merdShell='1';document.head.appendChild(link);
     }
-    if(!document.querySelector('script[src$="assets/navigation.js"]')){
-      const script=document.createElement('script');script.src='assets/navigation.js';script.defer=true;document.body.appendChild(script);
+    if(!document.querySelector('script[data-merd-navigation]')){
+      const script=document.createElement('script');script.src='assets/navigation.js?v=20260825f';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);
     }
-    if(!document.querySelector('script[src$="assets/store-order.js"]')){
-      const script=document.createElement('script');script.src='assets/store-order.js';script.defer=true;document.body.appendChild(script);
+    if(!document.querySelector('script[data-store-order]')){
+      const script=document.createElement('script');script.src='assets/store-order.js?v=20260825c';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);
+    }
+    if(!document.querySelector('script[data-modal-lock]')){
+      const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260825a';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);
     }
   }
   ensureShellAssets();
@@ -34,7 +41,11 @@
 
   function updateClock(){
     const root=$('liveClock');
-    if(root)root.textContent=new Date().toLocaleString([],{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    if(!root)return;
+    const options={weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'};
+    if(displayTimezone)options.timeZone=displayTimezone;
+    try{root.textContent=new Date().toLocaleString([],options);}
+    catch(_){delete options.timeZone;root.textContent=new Date().toLocaleString([],options);}
   }
 
   function kpi(icon,value,label,alert=false){return `<article class="mgmt-kpi${alert?' alert':''}"><span class="kpi-icon">${icon}</span><div class="kpi-value">${esc(value)}</div><div class="kpi-label">${esc(label)}</div></article>`;}
@@ -46,13 +57,19 @@
     root.innerHTML=rows.map(row=>{const value=valueFn(row),pct=Math.max(value>0?3:0,(value/max)*100);return `<div class="chart-row"><div class="chart-label">${esc(row[labelKey])}</div><div class="chart-track"><div class="chart-fill" style="width:${pct.toFixed(1)}%"></div></div><div class="chart-value">${esc(valueLabelFn(row,value))}</div></div>`;}).join('');
   }
 
-  function renderFinanceRing(rows){
+  function renderFinanceRing(rows,defaultCurrency){
     const root=$('financeRingRoot');if(!root)return;
+    const currencies=new Set(rows.map(row=>String(row.currency_code||defaultCurrency||'AUD').toUpperCase()));
+    if(currencies.size>1){
+      root.innerHTML='<div class="empty-card"><h2>Mixed store currencies</h2><p>Store balances are shown individually. A combined cash total is hidden because currencies cannot be summed safely.</p></div>';
+      return;
+    }
+    const currency=[...currencies][0]||String(defaultCurrency||'AUD').toUpperCase();
     const register=rows.reduce((sum,row)=>sum+Number(row.register_balance||0),0);
     const petty=rows.reduce((sum,row)=>sum+Number(row.petty_balance||0),0);
     const total=register+petty;
     const stop=total>0?(register/total)*100:50;
-    root.innerHTML=`<div class="finance-ring" style="--ring-stop:${stop.toFixed(2)}%"></div><div class="finance-legend"><div class="legend-item"><span class="legend-dot"></span><span>Register</span><strong>${esc(money(register))}</strong></div><div class="legend-item"><span class="legend-dot petty"></span><span>Petty Cash</span><strong>${esc(money(petty))}</strong></div><div class="legend-item"><span></span><span>Total</span><strong>${esc(money(total))}</strong></div></div>`;
+    root.innerHTML=`<div class="finance-ring" style="--ring-stop:${stop.toFixed(2)}%"></div><div class="finance-legend"><div class="legend-item"><span class="legend-dot"></span><span>Register</span><strong>${esc(money(register,currency))}</strong></div><div class="legend-item"><span class="legend-dot petty"></span><span>Petty Cash</span><strong>${esc(money(petty,currency))}</strong></div><div class="legend-item"><span></span><span>Total</span><strong>${esc(money(total,currency))}</strong></div></div>`;
   }
 
   function renderWorkingBars(working,stores){
@@ -67,6 +84,8 @@
 
   function renderManagement(data){
     const mgmt=data.management;if(!mgmt)return;
+    displayTimezone=mgmt.timezone||data.client_defaults?.timezone||null;
+    updateClock();
     const pending=pendingDisputes(data);
     const root=$('managementKpis');
     if(root)root.innerHTML=[
@@ -77,8 +96,8 @@
     ].join('');
     renderWorkingBars(data.working||[],sortStores(data.stores||[]));
     const financial=sortStores(mgmt.financial_by_store||[]);
-    renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value));
-    renderFinanceRing(financial);
+    renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value,row.currency_code||mgmt.currency_code));
+    renderFinanceRing(financial,mgmt.currency_code);
     const date=$('financeChartDate');if(date)date.textContent=mgmt.business_date||'Today';
   }
 
