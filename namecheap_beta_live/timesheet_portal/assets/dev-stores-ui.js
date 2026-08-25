@@ -5,6 +5,13 @@
   const searchInput = document.getElementById('storeSearch');
   if (!storeRoot || !searchInput) return;
 
+  if (!document.querySelector('script[data-store-identity-module]')) {
+    const identityScript = document.createElement('script');
+    identityScript.src = 'assets/store-identity.js?v=20260825c';
+    identityScript.dataset.storeIdentityModule = '1';
+    document.body.appendChild(identityScript);
+  }
+
   let stores = [];
   let searchBound = false;
 
@@ -19,9 +26,9 @@
     style.id = 'devStoresUiStyle';
     style.textContent = `
       #storesPanel .directory-toolbar.dev-store-toolbar{align-items:flex-start}
-      #storesPanel .dev-store-heading{display:grid;gap:10px;min-width:min(420px,100%)}
+      #storesPanel .dev-store-heading{display:grid;gap:10px;min-width:min(460px,100%)}
       #storesPanel .dev-store-heading>p{display:none!important}
-      #storesPanel .dev-store-search{width:min(420px,100%);margin:0}
+      #storesPanel .dev-store-search{width:min(460px,100%);margin:0}
       #storesPanel .dev-store-search input{width:100%}
       #storesPanel .dev-store-identity{margin-top:3px}
       @media(max-width:720px){
@@ -55,13 +62,12 @@
     if (headingWrap) {
       headingWrap.classList.add('dev-store-heading');
       headingWrap.querySelector('p')?.remove();
-
       const searchBox = searchInput.closest('.search-box');
       if (searchBox && searchBox.parentElement !== headingWrap) headingWrap.appendChild(searchBox);
       searchBox?.classList.add('dev-store-search');
     }
 
-    searchInput.placeholder = 'Search name, code, ID or status';
+    searchInput.placeholder = 'Search name, code, ID, address or status';
   }
 
   function cleanRows() {
@@ -101,7 +107,8 @@
       const id = numericId(row.querySelector('[data-edit-store]')?.dataset.editStore);
       const store = storeById(id);
       const haystack = store
-        ? [store.store_name, store.store_code, store.id, `id ${store.id}`, `code ${store.store_code}`, store.status].join(' ').toLowerCase()
+        ? [store.store_name, store.store_code, store.id, `id ${store.id}`, `code ${store.store_code}`, store.status, store.address, store.google_maps_url]
+            .join(' ').toLowerCase()
         : (row.textContent || '').toLowerCase();
       row.hidden = !!query && !haystack.includes(query);
     });
@@ -111,7 +118,6 @@
     if (searchBound) return;
     searchBound = true;
     searchInput.addEventListener('input', event => {
-      // DEV uses the richer identifier-aware search instead of the generic directory filter.
       event.stopImmediatePropagation();
       cleanRows();
       applyFilter();
@@ -128,7 +134,6 @@
 
   loadIdentity().finally(() => {
     refreshUi();
-    // Bounded retries cover the normal async directory/identity render sequence without observers.
     [120, 350, 800, 1500].forEach(delay => window.setTimeout(refreshUi, delay));
   });
 })();
