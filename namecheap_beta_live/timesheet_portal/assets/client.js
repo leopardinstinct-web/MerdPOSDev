@@ -4,9 +4,15 @@
 
   if (!document.querySelector('script[data-dev-stores-ui]')) {
     const devStoresScript = document.createElement('script');
-    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825b';
+    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825c';
     devStoresScript.dataset.devStoresUi = '1';
     document.body.appendChild(devStoresScript);
+  }
+  if (!document.querySelector('script[data-defaults-module]')) {
+    const defaultsScript = document.createElement('script');
+    defaultsScript.src = 'assets/defaults.js?v=20260825a';
+    defaultsScript.dataset.defaultsModule = '1';
+    document.body.appendChild(defaultsScript);
   }
 
   const clientTab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
@@ -125,9 +131,7 @@
       if (tab) {
         tab.click();
         window.clearInterval(timer);
-      } else if (attempts > 20) {
-        window.clearInterval(timer);
-      }
+      } else if (attempts > 20) window.clearInterval(timer);
     }, 60);
   }
 
