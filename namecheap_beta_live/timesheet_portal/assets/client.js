@@ -4,7 +4,7 @@
 
   if (!document.querySelector('script[data-dev-stores-ui]')) {
     const devStoresScript = document.createElement('script');
-    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825d';
+    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825e';
     devStoresScript.dataset.devStoresUi = '1';
     document.body.appendChild(devStoresScript);
   }
@@ -13,6 +13,12 @@
     defaultsScript.src = 'assets/defaults.js?v=20260825a';
     defaultsScript.dataset.defaultsModule = '1';
     document.body.appendChild(defaultsScript);
+  }
+  if (!document.querySelector('script[data-roles-module]')) {
+    const rolesScript = document.createElement('script');
+    rolesScript.src = 'assets/roles.js?v=20260825a';
+    rolesScript.dataset.rolesModule = '1';
+    document.body.appendChild(rolesScript);
   }
 
   const clientTab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
