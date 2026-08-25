@@ -35,6 +35,8 @@
       .dev-client-context-card select{height:38px;border:1px solid #CBD8E7;border-radius:9px;background:#fff;color:#152A43;padding:0 34px 0 10px;font:inherit}
       .dev-client-context-note{font-size:11px;color:#64748B;line-height:1.45}
       .client-parent-row{border-left:3px solid #2F80ED}
+      .client-store-list .store-avatar.has-logo{background:#fff!important;padding:3px!important;overflow:hidden}
+      .client-store-list .store-avatar.has-logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:7px;background:#fff}
       @media(max-width:820px){.dev-client-context-card{align-items:stretch;flex-direction:column}.dev-client-context-card label{min-width:0;width:100%}}
     `;
     document.head.appendChild(style);
@@ -55,7 +57,7 @@
   clientTab?.addEventListener('click', () => activatePanel('clientPanel', clientTab));
 
   async function api(url, options = {}) {
-    const response = await fetch(url, {headers:{'Accept':'application/json', ...(options.headers || {})}, ...options});
+    const response = await fetch(url, {cache:'no-store', headers:{'Accept':'application/json', ...(options.headers || {})}, ...options});
     const text = await response.text();
     let data = null;
     if (text) {
@@ -77,6 +79,23 @@
 
   function storeIcon() {
     return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>';
+  }
+
+  function storeAvatar(store) {
+    const logoPath = String(store?.logo_path || '').trim();
+    if (!logoPath) return `<div class="entity-avatar store-avatar">${storeIcon()}</div>`;
+    return `<div class="entity-avatar store-avatar has-logo"><img data-client-store-logo src="${esc(logoPath)}" alt="${esc(store.store_name)} logo"></div>`;
+  }
+
+  function bindLogoFallbacks() {
+    root.querySelectorAll('[data-client-store-logo]').forEach(img => {
+      img.addEventListener('error', () => {
+        const avatar = img.closest('.store-avatar');
+        if (!avatar) return;
+        avatar.classList.remove('has-logo');
+        avatar.innerHTML = storeIcon();
+      }, {once:true});
+    });
   }
 
   function clientOptions(clients, selectedId) {
@@ -178,7 +197,7 @@
       <div class="entity-list client-store-list">
         ${stores.length ? stores.map(store => `
           <article class="entity-row">
-            <div class="entity-avatar store-avatar">${storeIcon()}</div>
+            ${storeAvatar(store)}
             <div class="entity-copy">
               <div class="entity-title-line"><strong>${esc(store.store_name)}</strong></div>
               <div class="entity-sub">Store ID ${Number(store.id)} · Code ${esc(store.store_code)}</div>
@@ -187,6 +206,7 @@
           </article>`).join('') : '<div class="entity-empty">No stores are assigned to this client.</div>'}
       </div>`;
 
+    bindLogoFallbacks();
     root.querySelector('[data-dev-client-select]')?.addEventListener('change', event => switchClient(event.target.value));
     document.getElementById('clientViewStores')?.addEventListener('click', () => {
       document.querySelector('[data-panel="storesPanel"]')?.click();
@@ -208,7 +228,7 @@
   async function load() {
     try {
       root.innerHTML = '<div class="entity-empty">Loading client…</div>';
-      render(await api('api/client_context.php'));
+      render(await api('api/client_context.php?_=' + Date.now()));
     } catch (error) {
       root.innerHTML = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
     }
