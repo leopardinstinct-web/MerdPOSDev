@@ -29,8 +29,11 @@ function client_context_state(PDO $pdo, array $user): array
         throw new MerdWorkforceException('client_not_found', 'Selected client record not found.');
     }
 
+    // Client -> Account is a client-facing summary of the same store records used
+    // by Operations -> Stores. Include the persisted logo path so both screens
+    // render the same store identity instead of falling back to a generic icon.
     $storesStmt = $pdo->prepare(
-        'SELECT id,store_name,store_code,status FROM stores WHERE client_id=? ORDER BY id ASC'
+        'SELECT id,store_name,store_code,status,logo_path FROM stores WHERE client_id=? ORDER BY id ASC'
     );
     $storesStmt->execute([$activeClientId]);
     $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
