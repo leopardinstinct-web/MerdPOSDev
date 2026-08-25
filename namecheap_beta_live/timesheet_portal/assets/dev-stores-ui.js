@@ -11,6 +11,12 @@
     identityScript.dataset.storeIdentityModule = '1';
     document.body.appendChild(identityScript);
   }
+  if (!document.querySelector('script[data-roles-module]')) {
+    const rolesScript = document.createElement('script');
+    rolesScript.src = 'assets/roles.js?v=20260825a';
+    rolesScript.dataset.rolesModule = '1';
+    document.body.appendChild(rolesScript);
+  }
 
   let stores = [];
   let searchBound = false;
@@ -151,8 +157,6 @@
         const title = document.getElementById('storeDialogTitle');
         if (title) title.textContent = `Edit ${store.store_name || 'store'}`;
 
-        // Populate DEV profile fields too when they are already mounted. The
-        // store-identity module will repeat this safely if it runs after us.
         const internalId = document.getElementById('storeInternalId');
         const code = document.getElementById('storeCode');
         const address = document.getElementById('storeAddress');
