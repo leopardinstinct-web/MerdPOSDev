@@ -1,26 +1,20 @@
 (function () {
-  const days = [
-    [1,'Monday'],[2,'Tuesday'],[3,'Wednesday'],[4,'Thursday'],[5,'Friday'],[6,'Saturday'],[7,'Sunday']
-  ];
+  'use strict';
+
+  const storesPanel = document.getElementById('storesPanel');
+  if (!storesPanel) return;
+
+  const days = [[1,'Monday'],[2,'Tuesday'],[3,'Wednesday'],[4,'Thursday'],[5,'Friday'],[6,'Saturday'],[7,'Sunday']];
   let state = null;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const iconClock = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 
   function ensureStyles() {
     if (document.querySelector('link[data-timings-css]')) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'assets/timings.css';
+    link.href = 'assets/timings.css?v=20260825b';
     link.dataset.timingsCss = '1';
     document.head.appendChild(link);
-  }
-
-  function ensureStoreIdentityModule() {
-    if (document.querySelector('script[data-store-identity-module]')) return;
-    const script = document.createElement('script');
-    script.src = 'assets/store-identity.js';
-    script.dataset.storeIdentityModule = '1';
-    document.body.appendChild(script);
   }
 
   async function api(url, options = {}) {
@@ -39,79 +33,33 @@
     return data;
   }
 
-  function createPanel() {
-    if (document.getElementById('timingsPanel')) return;
-    const main = document.querySelector('main.merd-page-shell');
-    if (!main) return;
-    const panel = document.createElement('section');
-    panel.id = 'timingsPanel';
-    panel.className = 'portal-panel';
-    panel.hidden = true;
-    panel.innerHTML = `
-      <section class="controls-card timings-card">
-        <div class="directory-toolbar timing-page-head">
-          <div><h2>Timings</h2><p>Set day-wise store start and end times. End time may be after midnight.</p></div>
+  function createSection() {
+    if (document.getElementById('storeTimingsSection')) return;
+    const section = document.createElement('section');
+    section.id = 'storeTimingsSection';
+    section.className = 'controls-card timings-card store-timings-inline';
+    section.innerHTML = `
+      <div class="directory-toolbar timing-page-head">
+        <div><h2>Weekly timings</h2><p>Opening and closing hours belong to the store. End time may be after midnight.</p></div>
+      </div>
+      <div class="timing-controls">
+        <label>Store<select id="timingTarget"></select></label>
+        <button type="button" id="copyMondayBtn" class="secondary-btn compact-btn">Copy Monday to all days</button>
+      </div>
+      <div id="timingScopeNote" class="timing-scope-note"></div>
+      <form id="timingsForm">
+        <div class="timing-grid timing-grid-head"><span>Day</span><span>Closed</span><span>Start</span><span>End</span></div>
+        <div id="timingRows"></div>
+        <div class="timing-footer">
+          <span id="timingStatus" class="muted"></span>
+          <button type="submit" class="primary-btn compact-btn">Save timings</button>
         </div>
-        <div class="timing-controls">
-          <label>Apply schedule to<select id="timingTarget"></select></label>
-          <button type="button" id="copyMondayBtn" class="secondary-btn compact-btn">Copy Monday to all days</button>
-        </div>
-        <div id="timingScopeNote" class="timing-scope-note"></div>
-        <form id="timingsForm">
-          <div class="timing-grid timing-grid-head"><span>Day</span><span>Closed</span><span>Start</span><span>End</span></div>
-          <div id="timingRows"></div>
-          <div class="timing-footer">
-            <span id="timingStatus" class="muted"></span>
-            <button type="submit" class="primary-btn compact-btn">Save timings</button>
-          </div>
-        </form>
-      </section>`;
-    main.appendChild(panel);
+      </form>`;
+    storesPanel.appendChild(section);
 
     document.getElementById('timingTarget')?.addEventListener('change', renderSelectedSchedule);
     document.getElementById('copyMondayBtn')?.addEventListener('click', copyMondayToAll);
     document.getElementById('timingsForm')?.addEventListener('submit', saveTimings);
-  }
-
-  function findOperationsGroup() {
-    const sidebar = document.querySelector('.sidebar-group[data-sidebar-group="operations"]');
-    if (sidebar) return sidebar;
-    return Array.from(document.querySelectorAll('.nav-group')).find(group =>
-      group.querySelector('.nav-group-label')?.textContent.trim().toLowerCase() === 'operations'
-    ) || null;
-  }
-
-  function mountTab() {
-    if (document.querySelector('[data-panel="timingsPanel"]')) return true;
-    const group = findOperationsGroup();
-    if (!group) return false;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'portal-tab';
-    button.dataset.panel = 'timingsPanel';
-    button.innerHTML = `${iconClock}<span>Timings</span>`;
-    group.appendChild(button);
-    button.addEventListener('click', () => activateTimings(button));
-    return true;
-  }
-
-  function activateTimings(button) {
-    document.querySelectorAll('.portal-tab').forEach(tab => tab.classList.toggle('active', tab === button));
-    document.querySelectorAll('.portal-panel').forEach(panel => { panel.hidden = panel.id !== 'timingsPanel'; });
-
-    const group = button.closest('[data-sidebar-group]');
-    if (group) {
-      document.querySelectorAll('.sidebar-group').forEach(item => {
-        const active = item === group;
-        item.hidden = !active;
-        item.classList.toggle('active', active);
-      });
-      document.querySelectorAll('.rail-group-btn').forEach(rail => rail.classList.toggle('active', rail.dataset.navGroup === 'operations'));
-      const title = document.getElementById('sidebarGroupTitle');
-      if (title) title.textContent = 'Operations';
-    }
-
-    if (!state) load();
   }
 
   function scheduleMap() {
@@ -151,8 +99,11 @@
 
   function selectedSchedule() {
     const target = document.getElementById('timingTarget')?.value || '';
-    const active = (state?.stores || []).filter(store => String(store.status).toLowerCase() === 'active');
+    const active = (state?.stores || [])
+      .filter(store => String(store.status).toLowerCase() === 'active')
+      .slice().sort((a,b) => Number(a.id) - Number(b.id));
     const note = document.getElementById('timingScopeNote');
+
     if (target === 'all') {
       if (!active.length) return days.map(([day]) => blankDay(day));
       const first = normalizedSchedule(active[0].id);
@@ -160,11 +111,12 @@
       if (note) {
         note.className = 'timing-scope-note' + (same ? '' : ' is-warning');
         note.textContent = same
-          ? 'All active stores currently share this schedule. Saving will apply it to every active store.'
-          : `Active stores currently have different schedules. The form is showing ${active[0].store_name}; saving will overwrite all active stores with these times.`;
+          ? 'All active stores currently share this schedule. Saving applies it to every active store.'
+          : `Stores currently have different schedules. This form shows ${active[0].store_name}; saving will overwrite all active stores.`;
       }
       return first;
     }
+
     if (note) {
       note.className = 'timing-scope-note';
       note.textContent = 'Changes apply only to the selected store.';
@@ -188,7 +140,7 @@
     }).join('');
     root.querySelectorAll('.timing-closed-input').forEach(input => input.addEventListener('change', event => {
       const row = event.target.closest('.timing-row');
-      row.querySelectorAll('.timing-start,.timing-end').forEach(field => { field.disabled = event.target.checked; });
+      row?.querySelectorAll('.timing-start,.timing-end').forEach(field => { field.disabled = event.target.checked; });
     }));
   }
 
@@ -197,21 +149,26 @@
     renderRows(selectedSchedule());
   }
 
-  function populateTargets() {
+  function populateTargets(previous = null) {
     const select = document.getElementById('timingTarget');
     if (!select || !state) return;
-    const active = (state.stores || []).filter(store => String(store.status).toLowerCase() === 'active');
-    select.innerHTML = `<option value="all">All active stores</option>` + active.map(store => `<option value="${Number(store.id)}">${esc(store.store_name)}</option>`).join('');
-    if (active.length) select.value = String(active[0].id);
+    const active = (state.stores || [])
+      .filter(store => String(store.status).toLowerCase() === 'active')
+      .slice().sort((a,b) => Number(a.id) - Number(b.id));
+    select.innerHTML = `<option value="all">All active stores</option>` + active
+      .map(store => `<option value="${Number(store.id)}">ID ${Number(store.id)} · ${esc(store.store_name)}</option>`).join('');
+    if (previous === 'all' || active.some(store => String(store.id) === String(previous))) select.value = String(previous);
+    else if (active.length) select.value = String(active[0].id);
+    else select.value = 'all';
   }
 
   function copyMondayToAll() {
-    const monday = document.querySelector('.timing-row[data-day="1"]');
+    const monday = document.querySelector('#storeTimingsSection .timing-row[data-day="1"]');
     if (!monday) return;
     const closed = monday.querySelector('.timing-closed-input').checked;
     const start = monday.querySelector('.timing-start').value;
     const end = monday.querySelector('.timing-end').value;
-    document.querySelectorAll('.timing-row').forEach(row => {
+    document.querySelectorAll('#storeTimingsSection .timing-row').forEach(row => {
       const closedInput = row.querySelector('.timing-closed-input');
       const startInput = row.querySelector('.timing-start');
       const endInput = row.querySelector('.timing-end');
@@ -224,7 +181,7 @@
   }
 
   function collectDays() {
-    return Array.from(document.querySelectorAll('.timing-row')).map(row => {
+    return Array.from(document.querySelectorAll('#storeTimingsSection .timing-row')).map(row => {
       const closed = row.querySelector('.timing-closed-input').checked;
       return {
         day_of_week:Number(row.dataset.day),
@@ -246,22 +203,22 @@
         return;
       }
     }
+
     const button = event.currentTarget.querySelector('[type="submit"]');
     button.disabled = true;
     try {
-      const payload = {
-        action:'save_timings',
-        csrf:state.csrf,
-        scope:target === 'all' ? 'all' : 'store',
-        store_id:target === 'all' ? null : Number(target),
-        days:daysPayload,
-      };
       state = await api('api/store_timings.php', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload),
+        body:JSON.stringify({
+          action:'save_timings',
+          csrf:state.csrf,
+          scope:target === 'all' ? 'all' : 'store',
+          store_id:target === 'all' ? null : Number(target),
+          days:daysPayload,
+        }),
       });
-      populateTargetsAfterSave(target);
+      populateTargets(target);
       renderSelectedSchedule();
       setStatus(state.message || 'Timings saved.');
     } catch (error) {
@@ -271,18 +228,10 @@
     }
   }
 
-  function populateTargetsAfterSave(previous) {
-    const select = document.getElementById('timingTarget');
-    if (!select || !state) return;
-    const active = (state.stores || []).filter(store => String(store.status).toLowerCase() === 'active');
-    select.innerHTML = `<option value="all">All active stores</option>` + active.map(store => `<option value="${Number(store.id)}">${esc(store.store_name)}</option>`).join('');
-    select.value = previous === 'all' || active.some(store => String(store.id) === String(previous)) ? String(previous) : (active[0] ? String(active[0].id) : 'all');
-  }
-
   function setStatus(message, error = false) {
     const root = document.getElementById('timingStatus');
     if (!root) return;
-    root.textContent = message;
+    root.textContent = message || '';
     root.classList.toggle('is-error', error);
   }
 
@@ -299,13 +248,6 @@
   }
 
   ensureStyles();
-  ensureStoreIdentityModule();
-  createPanel();
-  if (!mountTab()) {
-    const observer = new MutationObserver(() => {
-      if (mountTab()) observer.disconnect();
-    });
-    observer.observe(document.body, {childList:true,subtree:true});
-    setTimeout(() => observer.disconnect(), 8000);
-  }
+  createSection();
+  load();
 })();
