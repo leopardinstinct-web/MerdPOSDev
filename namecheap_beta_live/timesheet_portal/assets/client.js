@@ -115,6 +115,22 @@
     if (select) select.innerHTML = clientOptions(data.clients || [], data.active_client_id);
   }
 
+  function restoreClientPanel() {
+    if (sessionStorage.getItem('merdposReturnPanel') !== 'clientPanel') return;
+    sessionStorage.removeItem('merdposReturnPanel');
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      const tab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
+      if (tab) {
+        tab.click();
+        window.clearInterval(timer);
+      } else if (attempts > 20) {
+        window.clearInterval(timer);
+      }
+    }, 60);
+  }
+
   function render(data) {
     state = data;
     ensureStyles();
@@ -178,6 +194,7 @@
         setTimeout(() => { noticeRoot.hidden = true; }, 3500);
       }
     }
+    restoreClientPanel();
   }
 
   async function load() {
