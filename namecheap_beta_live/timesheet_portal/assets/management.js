@@ -21,6 +21,17 @@
     if(!document.querySelector('script[data-modal-lock]')){
       const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260825a';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);
     }
+    if(!document.querySelector('link[data-account-menu-css]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260825a';link.dataset.accountMenuCss='1';document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-account-menu]')){
+      const script=document.createElement('script');script.src='assets/account-menu.js?v=20260825b';script.dataset.accountMenu='1';document.body.appendChild(script);
+    }
+    // DEV Store Edit must not depend on opening Client -> Account first. Load the
+    // controller directly from the dashboard and let Client reuse the same module.
+    if(document.querySelector('.dev-tab')&&!document.querySelector('script[data-dev-stores-ui]')){
+      const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260825g';script.dataset.devStoresUi='1';document.body.appendChild(script);
+    }
   }
   ensureShellAssets();
 
