@@ -7,13 +7,14 @@
 
   if (!document.querySelector('script[data-store-identity-module]')) {
     const identityScript = document.createElement('script');
-    identityScript.src = 'assets/store-identity.js?v=20260825c';
+    identityScript.src = 'assets/store-identity.js?v=20260825d';
     identityScript.dataset.storeIdentityModule = '1';
     document.body.appendChild(identityScript);
   }
 
   let stores = [];
   let searchBound = false;
+  let editFallbackBound = false;
 
   const numericId = value => {
     const n = Number(value);
@@ -124,11 +125,58 @@
     }, true);
   }
 
+  // DEV rows are post-processed by several modules. Use one delegated listener on
+  // the permanent directory container so Edit survives every row re-render.
+  // If directory.js already opened the dialog this is a no-op; otherwise this
+  // provides a safe fallback and store-identity.js fills the DEV-only fields.
+  function bindEditFallback() {
+    if (editFallbackBound) return;
+    editFallbackBound = true;
+    storeRoot.addEventListener('click', event => {
+      const button = event.target.closest('[data-edit-store]');
+      if (!button || !storeRoot.contains(button)) return;
+      const store = storeById(button.dataset.editStore);
+      if (!store) return;
+
+      queueMicrotask(() => {
+        const dialog = document.getElementById('storeDialog');
+        const form = document.getElementById('storeAdminForm');
+        if (!dialog || !form || dialog.open) return;
+
+        form.reset();
+        if (form.elements.id) form.elements.id.value = String(store.id);
+        if (form.elements.store_name) form.elements.store_name.value = store.store_name || '';
+        if (form.elements.status) form.elements.status.value = store.status || 'active';
+
+        const title = document.getElementById('storeDialogTitle');
+        if (title) title.textContent = `Edit ${store.store_name || 'store'}`;
+
+        // Populate DEV profile fields too when they are already mounted. The
+        // store-identity module will repeat this safely if it runs after us.
+        const internalId = document.getElementById('storeInternalId');
+        const code = document.getElementById('storeCode');
+        const address = document.getElementById('storeAddress');
+        const maps = document.getElementById('storeMapsUrl');
+        const preview = document.getElementById('storeLogoPreview');
+        if (internalId) internalId.value = String(store.id);
+        if (code) { code.value = store.store_code || ''; code.dataset.auto = '0'; }
+        if (address) address.value = store.address || '';
+        if (maps) maps.value = store.google_maps_url || '';
+        if (preview) preview.innerHTML = store.logo_path
+          ? `<img src="${String(store.logo_path).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" alt="Store logo">`
+          : 'No logo';
+
+        dialog.showModal();
+      });
+    });
+  }
+
   function refreshUi() {
     ensureStyle();
     cleanHeader();
     cleanRows();
     bindSearch();
+    bindEditFallback();
     applyFilter();
   }
 
