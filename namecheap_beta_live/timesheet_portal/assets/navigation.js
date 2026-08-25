@@ -41,7 +41,7 @@
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260825b';
+    clientScript.src = 'assets/client.js?v=20260825c';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
   }
@@ -239,7 +239,6 @@
     });
   });
 
-  // Desktop expansion is intentionally click-only. Hover and focus do not open the drawer.
   document.addEventListener('pointerdown', event => {
     if (desktopQuery.matches && !rail.contains(event.target)) collapseRail(0);
   });
