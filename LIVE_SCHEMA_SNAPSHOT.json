@@ -1315,6 +1315,24 @@
                     "nullable": true,
                     "default": "current_timestamp()",
                     "extra": ""
+                },
+                {
+                    "name": "default_currency",
+                    "position": 7,
+                    "data_type": "char",
+                    "column_type": "char(3)",
+                    "nullable": false,
+                    "default": "'AUD'",
+                    "extra": ""
+                },
+                {
+                    "name": "default_timezone",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": "'Australia/Sydney'",
+                    "extra": ""
                 }
             ],
             "indexes": [
@@ -5386,6 +5404,51 @@
                     "column_type": "timestamp",
                     "nullable": true,
                     "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "address",
+                    "position": 7,
+                    "data_type": "text",
+                    "column_type": "text",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "google_maps_url",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(2048)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "logo_path",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "currency_code",
+                    "position": 10,
+                    "data_type": "char",
+                    "column_type": "char(3)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "timezone",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": true,
+                    "default": "NULL",
                     "extra": ""
                 }
             ],
