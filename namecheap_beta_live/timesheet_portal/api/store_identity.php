@@ -14,7 +14,7 @@ function store_identity_actor(PDO $pdo, array $sessionUser): array
     }
     $role = strtoupper(trim((string)$actor['employee_type']));
     if ($role !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required for store identifiers.'], 403);
+        json_response(['success' => false, 'error' => 'DEV access required for store profiles.'], 403);
     }
     $actor['employee_type'] = $role;
     $actor['auth_client_id'] = $authClientId;
@@ -46,10 +46,41 @@ function store_identity_code(string $value): string
     return $code;
 }
 
+function store_identity_address(mixed $value): ?string
+{
+    $address = trim((string)$value);
+    if ($address === '') return null;
+    if (mb_strlen($address) > 1000) {
+        throw new MerdWorkforceException('invalid_address', 'Shop address must be 1000 characters or fewer.');
+    }
+    return $address;
+}
+
+function store_identity_maps_url(mixed $value): ?string
+{
+    $url = trim((string)$value);
+    if ($url === '') return null;
+    if (strlen($url) > 2048 || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        throw new MerdWorkforceException('invalid_maps_url', 'Enter a valid Google Maps URL.');
+    }
+    $parts = parse_url($url);
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    $host = strtolower((string)($parts['host'] ?? ''));
+    $path = strtolower((string)($parts['path'] ?? ''));
+    $googleHost = $host === 'maps.app.goo.gl'
+        || $host === 'goo.gl'
+        || preg_match('/(^|\.)google\.[a-z.]+$/', $host) === 1;
+    if ($scheme !== 'https' || !$googleHost || ($host === 'goo.gl' && !str_contains($path, 'maps'))) {
+        throw new MerdWorkforceException('invalid_maps_url', 'Use an HTTPS Google Maps link.');
+    }
+    return $url;
+}
+
 function store_identity_load(PDO $pdo, int $clientId): array
 {
     $stmt = $pdo->prepare(
-        "SELECT id,store_name,store_code,status FROM stores WHERE client_id=? ORDER BY id ASC"
+        'SELECT id,store_name,store_code,status,address,google_maps_url,logo_path,currency_code,timezone '
+        . 'FROM stores WHERE client_id=? ORDER BY id ASC'
     );
     $stmt->execute([$clientId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -93,6 +124,8 @@ try {
                 'store_code_max_length' => 50,
                 'store_code_pattern' => '^[A-Z0-9][A-Z0-9_-]{1,49}$',
                 'store_code_unique_scope' => 'client',
+                'address_max_length' => 1000,
+                'maps_url_https_google_only' => true,
             ],
         ]);
     }
@@ -100,13 +133,15 @@ try {
     $input = request_input();
     require_csrf($input);
     if ((string)($input['action'] ?? '') !== 'save_store') {
-        json_response(['success' => false, 'error' => 'Unsupported store identity action.'], 400);
+        json_response(['success' => false, 'error' => 'Unsupported store profile action.'], 400);
     }
 
     $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
     $name = trim((string)($input['store_name'] ?? ''));
     $status = strtolower(trim((string)($input['status'] ?? 'active')));
     $storeCode = store_identity_code((string)($input['store_code'] ?? ''));
+    $address = store_identity_address($input['address'] ?? null);
+    $mapsUrl = store_identity_maps_url($input['google_maps_url'] ?? null);
 
     if ($name === '' || mb_strlen($name) > 150) {
         throw new MerdWorkforceException('invalid_store_name', 'Enter a store name up to 150 characters.');
@@ -132,8 +167,10 @@ try {
     }
 
     $columns = store_identity_columns($pdo);
-    if (!isset($columns['store_code'])) {
-        throw new MerdWorkforceException('store_schema_unsupported', 'The live stores table does not contain store_code.');
+    foreach (['store_code','address','google_maps_url','logo_path','currency_code','timezone'] as $requiredColumn) {
+        if (!isset($columns[$requiredColumn])) {
+            throw new MerdWorkforceException('store_schema_unsupported', 'Store profile migration is not applied yet: missing ' . $requiredColumn . '.');
+        }
     }
 
     $oldCode = null;
@@ -145,9 +182,10 @@ try {
                 'store_name' => $name,
                 'store_code' => $storeCode,
                 'status' => $status,
+                'address' => $address,
+                'google_maps_url' => $mapsUrl,
             ];
             if (isset($columns['name'])) $values['name'] = $name;
-            if (isset($columns['timezone'])) $values['timezone'] = defined('APP_TIMEZONE') ? APP_TIMEZONE : 'Australia/Sydney';
             if (isset($columns['code'])) $values['code'] = $storeCode;
             if (isset($columns['slug'])) $values['slug'] = strtolower($storeCode);
 
@@ -169,12 +207,12 @@ try {
             $check->execute([$id, $clientId]);
             $existing = $check->fetch(PDO::FETCH_ASSOC);
             if (!is_array($existing)) {
-                throw new MerdWorkforceException('store_not_found', 'Store not found.');
+                throw new MerdWorkforceException('store_not_found', 'Store not found in the working client.');
             }
             $oldCode = (string)$existing['store_code'];
 
-            $assign = ['store_name=?', 'store_code=?', 'status=?'];
-            $args = [$name, $storeCode, $status];
+            $assign = ['store_name=?', 'store_code=?', 'status=?', 'address=?', 'google_maps_url=?'];
+            $args = [$name, $storeCode, $status, $address, $mapsUrl];
             if (isset($columns['name'])) { $assign[] = '`name`=?'; $args[] = $name; }
             if (isset($columns['code'])) { $assign[] = '`code`=?'; $args[] = $storeCode; }
             if (isset($columns['slug'])) { $assign[] = '`slug`=?'; $args[] = strtolower($storeCode); }
@@ -203,6 +241,8 @@ try {
         'store_name' => $name,
         'store_code' => $storeCode,
         'previous_store_code' => $oldCode,
+        'address' => $address,
+        'google_maps_url' => $mapsUrl,
         'status' => $status,
     ]);
 
