@@ -60,6 +60,7 @@ php "$LIVE/backend/cli/apply_023_employee_store_access.php"
 php "$LIVE/backend/cli/apply_024_store_weekly_hours.php"
 php "$LIVE/backend/cli/apply_025_employee_hourly_rate_history.php"
 php "$LIVE/backend/cli/apply_026_store_code_uniqueness.php"
+php "$LIVE/backend/cli/apply_027_store_profile_defaults.php"
 
 # Only deploy the portal once validated migrations have succeeded.
 rsync -az \
