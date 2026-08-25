@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS dashboard_layouts (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  employee_id INT NOT NULL,
+  context_client_id INT NOT NULL,
+  widget_key VARCHAR(64) NOT NULL,
+  grid_x TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  grid_y SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  grid_w TINYINT UNSIGNED NOT NULL DEFAULT 4,
+  grid_h TINYINT UNSIGNED NOT NULL DEFAULT 3,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_dashboard_employee_client_widget (employee_id, context_client_id, widget_key),
+  KEY idx_dashboard_context (context_client_id, employee_id, grid_y, grid_x),
+  CONSTRAINT fk_dashboard_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON UPDATE RESTRICT ON DELETE CASCADE,
+  CONSTRAINT fk_dashboard_context_client FOREIGN KEY (context_client_id) REFERENCES clients(id) ON UPDATE RESTRICT ON DELETE CASCADE,
+  CONSTRAINT chk_dashboard_grid_x CHECK (grid_x BETWEEN 0 AND 11),
+  CONSTRAINT chk_dashboard_grid_y CHECK (grid_y BETWEEN 0 AND 999),
+  CONSTRAINT chk_dashboard_grid_w CHECK (grid_w BETWEEN 1 AND 12),
+  CONSTRAINT chk_dashboard_grid_h CHECK (grid_h BETWEEN 1 AND 20)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
