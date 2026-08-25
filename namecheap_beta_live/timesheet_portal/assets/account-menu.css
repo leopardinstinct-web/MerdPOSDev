@@ -1,0 +1,159 @@
+/* Compact top-right account control. Replaces separate signed-in/password/logout controls. */
+.merd-topbar .topbar-actions{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:0;
+}
+
+.account-menu{
+  position:relative;
+  margin:0;
+}
+
+.account-menu>summary{
+  list-style:none;
+}
+.account-menu>summary::-webkit-details-marker{display:none}
+
+.account-trigger{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  min-height:40px;
+  padding:6px 9px 6px 12px;
+  border:1px solid #D9E3EF;
+  border-radius:12px;
+  background:#FFFFFF;
+  color:#172334;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 2px 8px rgba(23,35,52,.04);
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.account-trigger:hover,
+.account-menu[open] .account-trigger{
+  border-color:#BFCDE0;
+  background:#F9FBFE;
+  box-shadow:0 5px 14px rgba(23,35,52,.07);
+}
+.account-trigger:focus-visible{
+  outline:3px solid rgba(47,111,235,.18);
+  outline-offset:2px;
+}
+
+.account-name{
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:13px;
+  font-weight:700;
+  line-height:1;
+}
+
+.account-role-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:22px;
+  padding:3px 7px;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.07em;
+  line-height:1;
+  text-transform:uppercase;
+  border:1px solid transparent;
+}
+.account-role-badge::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:2px;
+  transform:rotate(45deg);
+  background:currentColor;
+  box-shadow:0 0 0 2px rgba(255,255,255,.55);
+}
+.account-role-dev{
+  color:#4E46B4;
+  background:linear-gradient(135deg,#F0F4FF,#F4EEFF);
+  border-color:#D7D4FA;
+}
+.account-role-super{
+  color:#1C5AA6;
+  background:#ECF5FF;
+  border-color:#C9DFF7;
+}
+.account-role-admin{
+  color:#9B6100;
+  background:#FFF6DF;
+  border-color:#F0D79C;
+}
+.account-role-user{
+  color:#237458;
+  background:#ECF8F3;
+  border-color:#CBEADD;
+}
+
+.account-chevron{
+  width:15px;
+  height:15px;
+  flex:0 0 auto;
+  color:#75859A;
+  transition:transform .16s ease;
+}
+.account-menu[open] .account-chevron{transform:rotate(180deg)}
+
+.account-popover{
+  position:absolute;
+  z-index:1200;
+  top:calc(100% + 8px);
+  right:0;
+  width:210px;
+  padding:6px;
+  border:1px solid #DCE5EF;
+  border-radius:13px;
+  background:#FFFFFF;
+  box-shadow:0 18px 44px rgba(21,35,53,.16);
+}
+.account-menu-item{
+  width:100%;
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#20334C;
+  font:inherit;
+  font-size:12px;
+  font-weight:650;
+  text-align:left;
+  cursor:pointer;
+}
+.account-menu-item:hover,
+.account-menu-item:focus-visible{
+  background:#F2F6FB;
+  outline:none;
+}
+.account-menu-item .ui-icon{
+  width:17px;
+  height:17px;
+  color:#49647F;
+}
+.account-menu-item.is-danger{color:#A32B28}
+.account-menu-item.is-danger .ui-icon{color:#A32B28}
+.account-menu-divider{
+  height:1px;
+  margin:5px 4px;
+  background:#E7EDF4;
+}
+
+@media(max-width:620px){
+  .account-name{max-width:110px}
+  .account-trigger{padding-left:9px;gap:7px}
+  .account-popover{width:min(210px,calc(100vw - 24px))}
+}
