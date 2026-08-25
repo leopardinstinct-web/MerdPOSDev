@@ -5,6 +5,19 @@
     sortScript.dataset.idOrder = '1';
     document.body.appendChild(sortScript);
   }
+  if (!document.querySelector('link[data-dashboard-builder-css]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'assets/dashboard-builder.css?v=20260825a';
+    link.dataset.dashboardBuilderCss = '1';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[data-dashboard-builder]')) {
+    const script = document.createElement('script');
+    script.src = 'assets/dashboard-builder.js?v=20260825a';
+    script.dataset.dashboardBuilder = '1';
+    document.body.appendChild(script);
+  }
 
   const main = document.querySelector('main.merd-page-shell');
   const oldNav = main?.querySelector('.merd-nav');
@@ -119,7 +132,6 @@
 
   const sections = [];
   let collapseTimer = null;
-  let suppressNextTabCollapse = false;
 
   const clearCollapseTimer = () => {
     if (collapseTimer !== null) {
@@ -130,6 +142,10 @@
 
   const syncExpandedAria = expanded => {
     sections.forEach(section => {
+      if (section.direct) {
+        section.button.removeAttribute('aria-expanded');
+        return;
+      }
       const active = section.button.classList.contains('active');
       section.button.setAttribute('aria-expanded', expanded && active ? 'true' : 'false');
     });
@@ -143,15 +159,12 @@
     syncExpandedAria(true);
   };
 
-  const collapseRail = (delay = 0) => {
+  const collapseRail = () => {
     if (!desktopQuery.matches) return;
     clearCollapseTimer();
-    collapseTimer = window.setTimeout(() => {
-      frame.classList.remove('nav-expanded');
-      frame.classList.add('nav-collapsed');
-      syncExpandedAria(false);
-      collapseTimer = null;
-    }, reducedMotion.matches ? 0 : delay);
+    frame.classList.remove('nav-expanded');
+    frame.classList.add('nav-collapsed');
+    syncExpandedAria(false);
   };
 
   const animatePanel = tab => {
@@ -184,42 +197,56 @@
     const labelNode = rawGroup.querySelector('.nav-group-label');
     const originalLabel = labelNode?.textContent.trim() || `Section ${index + 1}`;
     const key = groupKey(originalLabel) || `section-${index + 1}`;
-    const label = titles[key] || originalLabel;
+    const groupLabel = titles[key] || originalLabel;
     const tabs = Array.from(rawGroup.querySelectorAll('.portal-tab'));
     if (!tabs.length) return;
 
+    const direct = tabs.length === 1;
+    const directText = direct
+      ? String(tabs[0].querySelector('span:not(.nav-badge)')?.textContent || groupLabel).trim()
+      : groupLabel;
+    const visibleLabel = key === 'client' ? 'Client' : directText;
+
     const section = document.createElement('section');
-    section.className = 'rail-section';
+    section.className = `rail-section${direct ? ' rail-section-direct' : ''}`;
     section.dataset.navSection = key;
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'rail-group-btn';
+    button.className = `rail-group-btn${direct ? ' rail-direct-btn' : ''}`;
     button.dataset.navGroup = key;
-    button.title = label;
-    button.setAttribute('aria-label', label);
-    button.setAttribute('aria-expanded', 'false');
+    button.title = visibleLabel;
+    button.setAttribute('aria-label', visibleLabel);
+    if (!direct) button.setAttribute('aria-expanded', 'false');
     const sourceIcon = tabs[0].querySelector('.ui-icon');
-    button.innerHTML = `${sourceIcon ? sourceIcon.outerHTML : ''}<span class="rail-label">${label}</span><span class="rail-chevron" aria-hidden="true">›</span>`;
+    button.innerHTML = `${sourceIcon ? sourceIcon.outerHTML : ''}<span class="rail-label">${visibleLabel}</span>${direct ? '' : '<span class="rail-chevron" aria-hidden="true">›</span>'}`;
 
     const subgroup = document.createElement('div');
-    subgroup.className = 'sidebar-group';
+    subgroup.className = `sidebar-group${direct ? ' sidebar-direct-proxy' : ''}`;
     subgroup.dataset.sidebarGroup = key;
     tabs.forEach(tab => subgroup.appendChild(tab));
+    if (direct) {
+      subgroup.hidden = true;
+      tabs[0].hidden = true;
+    }
 
     section.appendChild(button);
     section.appendChild(subgroup);
     rail.appendChild(section);
-    sections.push({ key, button, subgroup, tabs });
+    sections.push({ key, button, subgroup, tabs, direct, directTab: direct ? tabs[0] : null });
   });
 
   oldNav.remove();
 
-  function setGroup(name, openFirst = false) {
+  function setGroup(name) {
     const drawerExpanded = !desktopQuery.matches || frame.classList.contains('nav-expanded');
     sections.forEach(section => {
       const active = section.key === name;
       section.button.classList.toggle('active', active);
+      if (section.direct) {
+        section.subgroup.hidden = true;
+        return;
+      }
       section.button.setAttribute('aria-expanded', active && drawerExpanded ? 'true' : 'false');
       section.subgroup.classList.toggle('active', active);
       section.subgroup.hidden = !active;
@@ -229,50 +256,32 @@
         section.subgroup.classList.add('submenu-enter');
       }
     });
-
-    if (openFirst) {
-      const section = sections.find(item => item.key === name);
-      if (!section) return;
-      const current = section.subgroup.querySelector('.portal-tab.active');
-      const first = current || section.subgroup.querySelector('.portal-tab');
-      if (first && !current) {
-        suppressNextTabCollapse = true;
-        first.click();
-      }
-    }
   }
 
   sections.forEach(section => {
     section.button.addEventListener('click', () => {
-      const sameSectionOpen = desktopQuery.matches
-        && frame.classList.contains('nav-expanded')
-        && section.button.classList.contains('active');
-
-      if (sameSectionOpen) {
-        collapseRail(0);
+      expandRail();
+      if (section.direct) {
+        section.directTab?.click();
         return;
       }
-
-      expandRail();
-      setGroup(section.key, true);
+      // Parent click only opens the group. It intentionally does not navigate.
+      setGroup(section.key);
     });
 
-    section.subgroup.querySelectorAll('.portal-tab').forEach(tab => {
+    section.tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         activateTab(tab);
-        setGroup(section.key, false);
+        setGroup(section.key);
         animatePanel(tab);
-        if (suppressNextTabCollapse) {
-          suppressNextTabCollapse = false;
-          return;
-        }
-        collapseRail(180);
+        // Navigation remains open after selecting an item. Only an outside click closes it.
+        expandRail();
       });
     });
   });
 
   document.addEventListener('pointerdown', event => {
-    if (desktopQuery.matches && !rail.contains(event.target)) collapseRail(0);
+    if (desktopQuery.matches && !rail.contains(event.target)) collapseRail();
   });
 
   const syncResponsiveMode = () => {
@@ -290,6 +299,6 @@
 
   const initiallyActive = rail.querySelector('.portal-tab.active');
   const initialGroup = initiallyActive?.closest('[data-sidebar-group]')?.dataset.sidebarGroup || sections[0]?.key;
-  if (initialGroup) setGroup(initialGroup, false);
+  if (initialGroup) setGroup(initialGroup);
   syncResponsiveMode();
 })();
