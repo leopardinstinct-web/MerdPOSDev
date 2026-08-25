@@ -26,12 +26,10 @@
     style.textContent = `
       .dev-client-context-card{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:14px 16px;margin:0 0 14px;border:1px solid #DCE5F0;border-radius:14px;background:#F8FBFF}
       .dev-client-context-card label{display:flex;flex-direction:column;gap:6px;min-width:min(360px,100%);font-size:11px;font-weight:700;color:#53677F}
-      .dev-client-context-card select,.dev-client-top-select{height:38px;border:1px solid #CBD8E7;border-radius:9px;background:#fff;color:#152A43;padding:0 34px 0 10px;font:inherit}
+      .dev-client-context-card select{height:38px;border:1px solid #CBD8E7;border-radius:9px;background:#fff;color:#152A43;padding:0 34px 0 10px;font:inherit}
       .dev-client-context-note{font-size:11px;color:#64748B;line-height:1.45}
-      .dev-client-top-context{display:flex;align-items:center;gap:7px;margin-right:4px;padding:4px 6px 4px 9px;border:1px solid #D8E2EE;border-radius:10px;background:#F8FAFD;color:#53677F;font-size:10px;font-weight:700;white-space:nowrap}
-      .dev-client-top-select{height:30px;max-width:190px;font-size:11px;font-weight:600}
       .client-parent-row{border-left:3px solid #2F80ED}
-      @media(max-width:820px){.dev-client-top-context{display:none}.dev-client-context-card{align-items:stretch;flex-direction:column}.dev-client-context-card label{min-width:0;width:100%}}
+      @media(max-width:820px){.dev-client-context-card{align-items:stretch;flex-direction:column}.dev-client-context-card label{min-width:0;width:100%}}
     `;
     document.head.appendChild(style);
   }
@@ -82,12 +80,28 @@
     }).join('');
   }
 
+  function syncSidebarClientLabel(client) {
+    const code = String(client?.client_code || '').trim() || String(client?.id || '');
+    if (!code) return;
+    const labelText = `Client: ${code}`;
+    const apply = () => {
+      const button = document.querySelector('.rail-group-btn[data-nav-group="client"]');
+      if (button) {
+        const label = button.querySelector('.rail-label');
+        if (label) label.textContent = labelText;
+        button.title = labelText;
+        button.setAttribute('aria-label', labelText);
+      }
+    };
+    [0,80,240,600].forEach(delay => window.setTimeout(apply, delay));
+  }
+
   async function switchClient(clientId) {
     if (!state || Number(clientId) === Number(state.active_client_id)) return;
     const selected = (state.clients || []).find(client => Number(client.id) === Number(clientId));
     const label = selected ? selected.name : `Client ${clientId}`;
     try {
-      document.querySelectorAll('[data-dev-client-select]').forEach(select => { select.disabled = true; });
+      document.querySelectorAll('#clientOverview [data-dev-client-select]').forEach(select => { select.disabled = true; });
       await api('api/client_context.php', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -98,27 +112,11 @@
       window.location.reload();
     } catch (error) {
       alert(error.message);
-      document.querySelectorAll('[data-dev-client-select]').forEach(select => {
+      document.querySelectorAll('#clientOverview [data-dev-client-select]').forEach(select => {
         select.disabled = false;
         select.value = String(state.active_client_id);
       });
     }
-  }
-
-  function renderTopContext(data) {
-    const actions = document.querySelector('.topbar-actions');
-    if (!actions) return;
-    let wrap = document.getElementById('devClientTopContext');
-    if (!wrap) {
-      wrap = document.createElement('label');
-      wrap.id = 'devClientTopContext';
-      wrap.className = 'dev-client-top-context';
-      wrap.innerHTML = '<span>Working client</span><select class="dev-client-top-select" data-dev-client-select aria-label="Working client"></select>';
-      actions.insertAdjacentElement('afterbegin', wrap);
-      wrap.querySelector('select')?.addEventListener('change', event => switchClient(event.target.value));
-    }
-    const select = wrap.querySelector('select');
-    if (select) select.innerHTML = clientOptions(data.clients || [], data.active_client_id);
   }
 
   function restoreClientPanel() {
@@ -138,8 +136,8 @@
   function render(data) {
     state = data;
     ensureStyles();
-    renderTopContext(data);
     const client = data.client || {};
+    syncSidebarClientLabel(client);
     const clients = (data.clients || []).slice().sort((a,b) => Number(a.id) - Number(b.id));
     const stores = (data.stores || []).slice().sort((a,b) => Number(a.id) - Number(b.id));
     const counts = data.counts || {};
