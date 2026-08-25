@@ -4,7 +4,7 @@
 
   if (!document.querySelector('script[data-dev-stores-ui]')) {
     const devStoresScript = document.createElement('script');
-    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825e';
+    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825f';
     devStoresScript.dataset.devStoresUi = '1';
     document.body.appendChild(devStoresScript);
   }
