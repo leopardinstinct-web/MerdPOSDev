@@ -3,13 +3,11 @@
 
   const storeRoot = document.getElementById('storeDirectory');
   const searchInput = document.getElementById('storeSearch');
-  const dialog = document.getElementById('storeDialog');
-  const form = document.getElementById('storeAdminForm');
-  if (!storeRoot || !searchInput || !dialog || !form) return;
+  if (!storeRoot || !searchInput) return;
 
   if (!document.querySelector('script[data-store-identity-module]')) {
     const script = document.createElement('script');
-    script.src = 'assets/store-identity.js?v=20260825d';
+    script.src = 'assets/store-identity.js?v=20260825e';
     script.dataset.storeIdentityModule = '1';
     document.body.appendChild(script);
   }
@@ -22,16 +20,11 @@
 
   let stores = [];
   let searchBound = false;
-  let clickBound = false;
 
   const numericId = value => {
     const n = Number(value);
     return Number.isFinite(n) ? n : 0;
   };
-
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
 
   function ensureStyle() {
     if (document.getElementById('devStoresUiStyle')) return;
@@ -72,21 +65,6 @@
     return stores.find(store => numericId(store.id) === numericId(id)) || null;
   }
 
-  function storeFromRow(button) {
-    const row = button.closest('.entity-row');
-    const name = row?.querySelector('.entity-title-line strong')?.textContent?.trim() || 'Store';
-    const active = /active/i.test(row?.querySelector('.entity-status')?.textContent || '');
-    return {
-      id:numericId(button.dataset.editStore),
-      store_name:name,
-      status:active ? 'active' : 'inactive',
-      store_code:'',
-      address:'',
-      google_maps_url:'',
-      logo_path:''
-    };
-  }
-
   function cleanHeader() {
     const toolbar = storeRoot.closest('.directory-card')?.querySelector('.directory-toolbar');
     if (!toolbar) return;
@@ -104,13 +82,16 @@
 
   function cleanRows() {
     const rows = Array.from(storeRoot.querySelectorAll('.entity-row'));
-    rows.sort((a,b) => {
+    const sorted = rows.slice().sort((a,b) => {
       const aid = numericId(a.querySelector('[data-edit-store]')?.dataset.editStore);
       const bid = numericId(b.querySelector('[data-edit-store]')?.dataset.editStore);
       return aid - bid;
-    }).forEach(row => storeRoot.appendChild(row));
+    });
+    if (!sorted.every((row,index) => row === rows[index])) {
+      sorted.forEach(row => storeRoot.appendChild(row));
+    }
 
-    rows.forEach(row => {
+    sorted.forEach(row => {
       const button = row.querySelector('[data-edit-store]');
       if (!button) return;
       const store = storeById(button.dataset.editStore);
@@ -150,77 +131,11 @@
     if (searchBound) return;
     searchBound = true;
     searchInput.addEventListener('input', event => {
+      // DEV search owns this field so the legacy name/status-only filter does not
+      // replace the rows and discard the richer search result.
       event.stopImmediatePropagation();
       cleanRows();
       applyFilter();
-    }, true);
-  }
-
-  function fillBase(store) {
-    form.reset();
-    if (form.elements.id) form.elements.id.value = String(store.id || '');
-    if (form.elements.store_name) form.elements.store_name.value = store.store_name || '';
-    if (form.elements.status) form.elements.status.value = store.status || 'active';
-    const title = document.getElementById('storeDialogTitle');
-    if (title) title.textContent = `Edit ${store.store_name || 'store'}`;
-  }
-
-  function fillDevFields(store) {
-    const internalId = document.getElementById('storeInternalId');
-    const code = document.getElementById('storeCode');
-    const address = document.getElementById('storeAddress');
-    const maps = document.getElementById('storeMapsUrl');
-    const logo = document.getElementById('storeLogoFile');
-    const preview = document.getElementById('storeLogoPreview');
-    if (internalId) internalId.value = String(store.id || '');
-    if (code) { code.value = store.store_code || ''; code.dataset.auto = '0'; }
-    if (address) address.value = store.address || '';
-    if (maps) maps.value = store.google_maps_url || '';
-    if (logo) logo.value = '';
-    if (preview) preview.innerHTML = store.logo_path ? `<img src="${esc(store.logo_path)}" alt="Store logo">` : 'No logo';
-  }
-
-  function openImmediately(button) {
-    const id = numericId(button.dataset.editStore);
-    const store = storeById(id) || storeFromRow(button);
-    fillBase(store);
-    fillDevFields(store);
-    if (!dialog.open) dialog.showModal();
-
-    // Enrichment is deliberately non-blocking. The dialog is already visible.
-    loadStores().then(() => {
-      const fresh = storeById(id);
-      if (!fresh || !dialog.open || numericId(form.elements.id?.value) !== id) return;
-      fillBase(fresh);
-      fillDevFields(fresh);
-      [40,120,300,700].forEach(delay => window.setTimeout(() => {
-        if (dialog.open && numericId(form.elements.id?.value) === id) fillDevFields(fresh);
-      }, delay));
-      cleanRows();
-      applyFilter();
-    }).catch(error => {
-      console.error('MERDPOS store editor refresh:', error);
-    });
-  }
-
-  function bindEdit() {
-    if (clickBound) return;
-    clickBound = true;
-
-    // Capture at document level and open synchronously. This prevents legacy
-    // row handlers or async modules from making the DEV Edit button inert.
-    document.addEventListener('click', event => {
-      const button = event.target.closest?.('[data-edit-store]');
-      if (!button || !storeRoot.contains(button)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      try {
-        openImmediately(button);
-      } catch (error) {
-        console.error('MERDPOS store editor open:', error);
-        alert(error?.message || 'Store could not be opened for editing.');
-      }
     }, true);
   }
 
@@ -229,11 +144,11 @@
     cleanHeader();
     cleanRows();
     bindSearch();
-    bindEdit();
     applyFilter();
   }
 
-  bindEdit();
+  // Store Edit is intentionally NOT handled here. directory.js owns Edit exactly
+  // like Workforce Edit; store-identity.js only enriches the dialog after it opens.
   refreshUi();
   loadStores().catch(error => console.error('MERDPOS stores:', error)).finally(() => {
     refreshUi();
