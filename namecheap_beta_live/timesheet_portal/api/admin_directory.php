@@ -2,15 +2,14 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
+require_once __DIR__ . '/../includes/role_authority.php';
 
 function directory_role_rank(string $role): int
 {
-    return match (strtoupper($role)) {
-        'DEV' => 30,
-        'SUPER' => 20,
-        'ADMIN' => 10,
-        default => 0,
-    };
+    $role = strtoupper(trim($role));
+    if ($role === 'DEV') return 1000;
+    $map = $GLOBALS['directory_role_authority'] ?? merd_role_authority_defaults();
+    return merd_role_authority_level($map, $role);
 }
 
 function directory_role_name(string $role): string
@@ -43,12 +42,10 @@ function directory_actor(PDO $pdo, array $sessionUser): array
 
 function directory_allowed_roles(string $actorRole): array
 {
-    return match (strtoupper($actorRole)) {
-        'DEV' => ['USER', 'ADMIN', 'SUPER', 'DEV'],
-        'SUPER' => ['USER', 'ADMIN', 'SUPER'],
-        'ADMIN' => ['USER', 'ADMIN'],
-        default => ['USER'],
-    };
+    $actorRole = strtoupper(trim($actorRole));
+    if ($actorRole === 'DEV') return ['USER', 'ADMIN', 'SUPER', 'DEV'];
+    $map = $GLOBALS['directory_role_authority'] ?? merd_role_authority_defaults();
+    return merd_role_authority_assignable($map, $actorRole);
 }
 
 function directory_assert_target_role(string $actorRole, string $targetRole): void
@@ -200,6 +197,7 @@ function directory_load_state(PDO $pdo, array $actor): array
         'actor' => [
             'id' => (int)$actor['id'],
             'role' => (string)$actor['employee_type'],
+            'authority_level' => directory_role_rank((string)$actor['employee_type']),
             'allowed_roles' => directory_allowed_roles((string)$actor['employee_type']),
         ],
         'employees' => $employees,
@@ -211,6 +209,7 @@ try {
     $sessionUser = beta_require_active_user();
     $pdo = portal_db();
     $actor = directory_actor($pdo, $sessionUser);
+    $GLOBALS['directory_role_authority'] = merd_role_authority_map($pdo, (int)$actor['client_id']);
     directory_ensure_shift_table($pdo);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
