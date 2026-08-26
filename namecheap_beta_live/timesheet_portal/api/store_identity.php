@@ -5,21 +5,10 @@ require_once __DIR__ . '/../includes/beta_api.php';
 
 function store_identity_actor(PDO $pdo, array $sessionUser): array
 {
-    $authClientId = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
-    $stmt = $pdo->prepare('SELECT id,client_id,full_name,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
-    $stmt->execute([(int)$sessionUser['id'], $authClientId]);
-    $actor = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($actor) || strtolower((string)$actor['status']) !== 'active') {
-        throw new MerdWorkforceException('account_inactive', 'Your account is inactive.');
-    }
-    $role = strtoupper(trim((string)$actor['employee_type']));
-    if ($role !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required for store profiles.'], 403);
-    }
-    $actor['employee_type'] = $role;
-    $actor['auth_client_id'] = $authClientId;
-    $actor['client_id'] = (int)$sessionUser['client_id'];
-    return $actor;
+    beta_require_permission($sessionUser, 'stores.profile.manage', $pdo);
+    $sessionUser['full_name'] = (string)($sessionUser['full_name'] ?? $sessionUser['name'] ?? '');
+    $sessionUser['auth_client_id'] = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
+    return $sessionUser;
 }
 
 function store_identity_columns(PDO $pdo): array
@@ -116,7 +105,8 @@ try {
         json_response([
             'success' => true,
             'csrf' => csrf_token(),
-            'actor_role' => 'DEV',
+            'actor_role' => (string)($actor['role_label'] ?? $actor['role_name'] ?? 'Developer'),
+            'actor_loa' => (int)($actor['authority_level'] ?? 0),
             'active_client_id' => $clientId,
             'stores' => store_identity_load($pdo, $clientId),
             'rules' => [
