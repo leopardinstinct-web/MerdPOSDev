@@ -18,7 +18,9 @@ try {
         'employee_logs', 'attendance_shifts', 'attendance_disputes',
         'attendance_account_flags', 'financial_day_accounts', 'financial_ledger_entries',
         'financial_submissions', 'google_sheet_outbox', 'retail_sales',
-        'retail_sale_lines', 'retail_store_inventory'
+        'retail_sale_lines', 'retail_store_inventory',
+        'client_legacy_sources', 'client_migration_state', 'legacy_migration_batches',
+        'legacy_migration_stage_rows', 'legacy_migration_records', 'legacy_migration_conflicts'
     ];
 
     $counts = [];
