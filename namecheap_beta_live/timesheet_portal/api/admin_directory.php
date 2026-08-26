@@ -21,28 +21,13 @@ function directory_audit(PDO $pdo, array $actor, string $action, string $entityT
 
 function directory_actor(PDO $pdo, array $sessionUser): array
 {
-    $authClientId = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
-    $stmt = $pdo->prepare(
-        'SELECT e.id,e.client_id,e.full_name,e.employee_type,e.client_role_id,e.status,'
-        . 'r.role_key,r.role_label,r.base_role,r.authority_level '
-        . 'FROM employees e LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id '
-        . 'WHERE e.id=? AND e.client_id=? LIMIT 1'
-    );
-    $stmt->execute([(int)$sessionUser['id'], $authClientId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($row) || strtolower((string)$row['status']) !== 'active') throw new MerdWorkforceException('account_inactive', 'Your account is inactive.');
-
-    $baseRole = strtoupper(trim((string)($row['base_role'] ?: $row['employee_type'])));
-    if (!in_array($baseRole, ['ADMIN','SUPER','DEV'], true)) json_response(['success'=>false,'error'=>'ADMIN, SUPER or DEV access required.'],403);
-    $row['employee_type'] = $baseRole;
-    $row['authority_level'] = $baseRole === 'DEV' ? 1000 : max(1,(int)($row['authority_level'] ?: 0));
-    $row['auth_client_id'] = $authClientId;
-    $row['client_id'] = (int)$sessionUser['client_id'];
-    return $row;
+    beta_require_any_permission($sessionUser, ['stores.view','workforce.view'], $pdo);
+    return $sessionUser;
 }
 
 function directory_role_rows(PDO $pdo, array $actor): array
 {
+    if (!beta_has_permission($actor, 'workforce.manage', $pdo)) return [];
     $stmt = $pdo->prepare(
         "SELECT id,role_key,role_label,base_role,authority_level,is_system,status FROM client_roles "
         . "WHERE client_id=? AND status='active' AND authority_level<=? ORDER BY authority_level ASC,id ASC"
@@ -53,6 +38,7 @@ function directory_role_rows(PDO $pdo, array $actor): array
 
 function directory_role_for_save(PDO $pdo, array $actor, mixed $roleId, mixed $legacyBase = null): array
 {
+    beta_require_permission($actor, 'workforce.manage', $pdo);
     $clientId = (int)$actor['client_id'];
     $id = filter_var($roleId, FILTER_VALIDATE_INT);
     $role = null;
@@ -112,62 +98,83 @@ function directory_valid_date(string $value): bool
 function directory_load_state(PDO $pdo, array $actor): array
 {
     $clientId = (int)$actor['client_id'];
+    $canViewStores = beta_has_permission($actor, 'stores.view', $pdo);
+    $canManageStores = beta_has_permission($actor, 'stores.manage', $pdo);
+    $canViewWorkforce = beta_has_permission($actor, 'workforce.view', $pdo);
+    $canManageWorkforce = beta_has_permission($actor, 'workforce.manage', $pdo);
+    $canManagePay = beta_has_permission($actor, 'workforce.payrates.manage', $pdo);
+    $canResetCredentials = beta_has_permission($actor, 'workforce.credentials.reset', $pdo);
 
-    $storesStmt = $pdo->prepare(
-        "SELECT s.id,s.store_name,s.status,COALESCE(t.shift_start_time,'') AS shift_start_time "
-        . "FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id "
-        . "WHERE s.client_id=? ORDER BY s.id ASC"
-    );
-    $storesStmt->execute([$clientId]);
-    $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $employeesStmt = $pdo->prepare(
-        "SELECT e.id,e.full_name,e.user_id,e.store_id,COALESCE(s.store_name,'') AS store_name,"
-        . "UPPER(COALESCE(e.employee_type,'USER')) AS employee_type,e.role_name,e.client_role_id,e.hourly_rate,e.status,"
-        . "COALESCE(r.role_key,UPPER(COALESCE(e.employee_type,'USER'))) AS role_key,"
-        . "COALESCE(r.role_label,e.role_name,UPPER(COALESCE(e.employee_type,'USER'))) AS role_label,"
-        . "COALESCE(r.authority_level,0) AS role_authority,COALESCE(r.base_role,UPPER(COALESCE(e.employee_type,'USER'))) AS role_base,"
-        . "COALESCE(a.access_mode,'all') AS store_access_mode "
-        . "FROM employees e "
-        . "LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
-        . "LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id "
-        . "LEFT JOIN employee_store_access a ON a.employee_id=e.id AND a.client_id=e.client_id "
-        . "WHERE e.client_id=? ORDER BY e.id ASC"
-    );
-    $employeesStmt->execute([$clientId]);
-    $employees = $employeesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $assignmentStmt = $pdo->prepare('SELECT employee_id,store_id FROM employee_store_assignments WHERE client_id=? ORDER BY employee_id,store_id');
-    $assignmentStmt->execute([$clientId]);
-    $assignmentMap = [];
-    foreach ($assignmentStmt->fetchAll(PDO::FETCH_ASSOC) as $row) $assignmentMap[(int)$row['employee_id']][] = (int)$row['store_id'];
-
-    $rateStmt = $pdo->prepare('SELECT employee_id,hourly_rate,effective_from FROM employee_hourly_rate_history WHERE client_id=? ORDER BY employee_id,effective_from');
-    $rateStmt->execute([$clientId]);
-    $rateMap = [];
-    foreach ($rateStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $rateMap[(int)$row['employee_id']][] = ['hourly_rate'=>(float)$row['hourly_rate'],'effective_from'=>(string)$row['effective_from']];
+    $stores = [];
+    if ($canViewStores || $canViewWorkforce) {
+        $storesStmt = $pdo->prepare(
+            "SELECT s.id,s.store_name,s.status,COALESCE(t.shift_start_time,'') AS shift_start_time "
+            . "FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id "
+            . "WHERE s.client_id=? ORDER BY s.id ASC"
+        );
+        $storesStmt->execute([$clientId]);
+        $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    $employees = [];
     $today = date('Y-m-d');
-    foreach ($employees as &$employee) {
-        $employeeId = (int)$employee['id'];
-        $mode = strtolower((string)($employee['store_access_mode'] ?? 'all'));
-        if (!in_array($mode, ['all','selected'], true)) $mode = 'all';
-        $employee['store_access_mode'] = $mode;
-        $employee['assigned_store_ids'] = $mode === 'selected' ? ($assignmentMap[$employeeId] ?? []) : [];
-        $targetAuthority = strtoupper((string)$employee['role_key']) === 'DEV' ? 1000 : (int)$employee['role_authority'];
-        $employee['editable'] = $targetAuthority <= (int)$actor['authority_level'];
-        $employee['self'] = $clientId === (int)$actor['auth_client_id'] && $employeeId === (int)$actor['id'];
-        $employee['rate_history'] = $rateMap[$employeeId] ?? [];
-        $employee['next_rate'] = null;
-        foreach ($employee['rate_history'] as $rateRow) {
-            if ($rateRow['effective_from'] > $today) { $employee['next_rate'] = $rateRow; break; }
-        }
-    }
-    unset($employee);
+    if ($canViewWorkforce) {
+        $employeesStmt = $pdo->prepare(
+            "SELECT e.id,e.full_name,e.user_id,e.store_id,COALESCE(s.store_name,'') AS store_name,"
+            . "UPPER(COALESCE(e.employee_type,'USER')) AS employee_type,e.role_name,e.client_role_id,e.hourly_rate,e.status,"
+            . "COALESCE(r.role_key,UPPER(COALESCE(e.employee_type,'USER'))) AS role_key,"
+            . "COALESCE(r.role_label,e.role_name,UPPER(COALESCE(e.employee_type,'USER'))) AS role_label,"
+            . "COALESCE(r.authority_level,0) AS role_authority,COALESCE(r.base_role,UPPER(COALESCE(e.employee_type,'USER'))) AS role_base,"
+            . "COALESCE(a.access_mode,'all') AS store_access_mode "
+            . "FROM employees e "
+            . "LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
+            . "LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id "
+            . "LEFT JOIN employee_store_access a ON a.employee_id=e.id AND a.client_id=e.client_id "
+            . "WHERE e.client_id=? ORDER BY e.id ASC"
+        );
+        $employeesStmt->execute([$clientId]);
+        $employees = $employeesStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $roles = directory_role_rows($pdo, $actor);
+        $assignmentStmt = $pdo->prepare('SELECT employee_id,store_id FROM employee_store_assignments WHERE client_id=? ORDER BY employee_id,store_id');
+        $assignmentStmt->execute([$clientId]);
+        $assignmentMap = [];
+        foreach ($assignmentStmt->fetchAll(PDO::FETCH_ASSOC) as $row) $assignmentMap[(int)$row['employee_id']][] = (int)$row['store_id'];
+
+        $rateMap = [];
+        if ($canManagePay) {
+            $rateStmt = $pdo->prepare('SELECT employee_id,hourly_rate,effective_from FROM employee_hourly_rate_history WHERE client_id=? ORDER BY employee_id,effective_from');
+            $rateStmt->execute([$clientId]);
+            foreach ($rateStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $rateMap[(int)$row['employee_id']][] = ['hourly_rate'=>(float)$row['hourly_rate'],'effective_from'=>(string)$row['effective_from']];
+            }
+        }
+
+        foreach ($employees as &$employee) {
+            $employeeId = (int)$employee['id'];
+            $mode = strtolower((string)($employee['store_access_mode'] ?? 'all'));
+            if (!in_array($mode, ['all','selected'], true)) $mode = 'all';
+            $employee['store_access_mode'] = $mode;
+            $employee['assigned_store_ids'] = $mode === 'selected' ? ($assignmentMap[$employeeId] ?? []) : [];
+            $targetAuthority = strtoupper((string)$employee['role_key']) === 'DEV' ? 1000 : (int)$employee['role_authority'];
+            $employee['editable'] = $canManageWorkforce && $targetAuthority <= (int)$actor['authority_level'];
+            $employee['self'] = $clientId === (int)$actor['auth_client_id'] && $employeeId === (int)$actor['id'];
+            $employee['can_reset_password'] = $canResetCredentials && !$employee['self'];
+            if ($canManagePay) {
+                $employee['rate_history'] = $rateMap[$employeeId] ?? [];
+                $employee['next_rate'] = null;
+                foreach ($employee['rate_history'] as $rateRow) {
+                    if ($rateRow['effective_from'] > $today) { $employee['next_rate'] = $rateRow; break; }
+                }
+            } else {
+                unset($employee['hourly_rate']);
+                $employee['rate_history'] = [];
+                $employee['next_rate'] = null;
+            }
+        }
+        unset($employee);
+    }
+
+    $roles = $canManageWorkforce ? directory_role_rows($pdo, $actor) : [];
     return [
         'success'=>true,
         'csrf'=>csrf_token(),
@@ -175,10 +182,18 @@ function directory_load_state(PDO $pdo, array $actor): array
         'active_client_id'=>$clientId,
         'actor'=>[
             'id'=>(int)$actor['id'],
-            'role'=>(string)$actor['employee_type'],
+            'role'=>(string)($actor['role_key'] ?? $actor['role'] ?? ''),
             'authority_level'=>(int)$actor['authority_level'],
             'roles'=>$roles,
             'allowed_roles'=>array_values(array_map(fn(array $r): string => (string)$r['role_key'], $roles)),
+            'permissions'=>[
+                'stores_view'=>$canViewStores,
+                'stores_manage'=>$canManageStores,
+                'workforce_view'=>$canViewWorkforce,
+                'workforce_manage'=>$canManageWorkforce,
+                'payrates_manage'=>$canManagePay,
+                'credentials_reset'=>$canResetCredentials,
+            ],
         ],
         'employees'=>$employees,
         'stores'=>$stores,
@@ -198,6 +213,10 @@ try {
     $action = (string)($input['action'] ?? '');
 
     if ($action === 'save_employee') {
+        beta_require_permission($actor, 'workforce.manage', $pdo);
+        $canManagePay = beta_has_permission($actor, 'workforce.payrates.manage', $pdo);
+        $canResetCredentials = beta_has_permission($actor, 'workforce.credentials.reset', $pdo);
+
         $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
         $name = trim((string)($input['full_name'] ?? ''));
         $userId = preg_replace('/\D+/', '', (string)($input['user_id'] ?? ''));
@@ -216,8 +235,10 @@ try {
         if ($userId === '' || strlen($userId) > 32) throw new MerdWorkforceException('invalid_user_id', 'Enter a numeric User ID.');
         if (!in_array($status, ['active','inactive'], true)) throw new MerdWorkforceException('invalid_status', 'Choose active or inactive.');
         if (!in_array($storeAccessMode, ['all','selected'], true)) throw new MerdWorkforceException('invalid_store_access', 'Choose all stores or selected stores.');
-        if (!is_numeric($rateText) || (float)$rateText < 0 || (float)$rateText > 9999) throw new MerdWorkforceException('invalid_rate', 'Enter a valid hourly rate.');
-        if ($rateEffective === '' || !directory_valid_date($rateEffective)) throw new MerdWorkforceException('invalid_rate_date', 'Choose a valid effective date for the hourly rate.');
+        if ($canManagePay) {
+            if (!is_numeric($rateText) || (float)$rateText < 0 || (float)$rateText > 9999) throw new MerdWorkforceException('invalid_rate', 'Enter a valid hourly rate.');
+            if ($rateEffective === '' || !directory_valid_date($rateEffective)) throw new MerdWorkforceException('invalid_rate_date', 'Choose a valid effective date for the hourly rate.');
+        }
 
         $storeRowsStmt = $pdo->prepare('SELECT id,status FROM stores WHERE client_id=? ORDER BY id');
         $storeRowsStmt->execute([(int)$actor['client_id']]);
@@ -242,6 +263,7 @@ try {
             if ((int)$actor['client_id'] === (int)$actor['auth_client_id'] && $id === (int)$actor['id'] && ($clientRoleId !== (int)($existing['client_role_id'] ?? 0) || $status !== 'active')) {
                 throw new MerdWorkforceException('self_protection', 'You cannot change your own role or deactivate your own account here.');
             }
+            if ($newPassword !== '' && !$canResetCredentials) beta_require_permission($actor, 'workforce.credentials.reset', $pdo);
         } elseif ($newPassword === '') {
             throw new MerdWorkforceException('password_required', 'Set a numeric password for the new employee.');
         }
@@ -267,7 +289,7 @@ try {
 
         $pdo->beginTransaction();
         try {
-            $requestedRate = number_format((float)$rateText, 2, '.', '');
+            $requestedRate = $canManagePay ? number_format((float)$rateText, 2, '.', '') : number_format((float)($existing['hourly_rate'] ?? 0), 2, '.', '');
             if ($id === null) {
                 $hash = password_hash($newPassword, PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare(
@@ -299,31 +321,39 @@ try {
                 foreach ($selectedStoreIds as $selectedStoreId) $insertAssignment->execute([(int)$actor['client_id'],$id,$selectedStoreId]);
             }
 
-            $rateStmt = $pdo->prepare(
-                'INSERT INTO employee_hourly_rate_history (client_id,employee_id,hourly_rate,effective_from,changed_by_employee_id) VALUES (?,?,?,?,?) '
-                . 'ON DUPLICATE KEY UPDATE hourly_rate=VALUES(hourly_rate),changed_by_employee_id=VALUES(changed_by_employee_id),updated_at=CURRENT_TIMESTAMP'
-            );
-            $rateStmt->execute([(int)$actor['client_id'],$id,$requestedRate,$rateEffective,(int)$actor['id']]);
+            if ($canManagePay) {
+                $rateStmt = $pdo->prepare(
+                    'INSERT INTO employee_hourly_rate_history (client_id,employee_id,hourly_rate,effective_from,changed_by_employee_id) VALUES (?,?,?,?,?) '
+                    . 'ON DUPLICATE KEY UPDATE hourly_rate=VALUES(hourly_rate),changed_by_employee_id=VALUES(changed_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+                );
+                $rateStmt->execute([(int)$actor['client_id'],$id,$requestedRate,$rateEffective,(int)$actor['id']]);
 
-            $currentRateStmt = $pdo->prepare('SELECT hourly_rate FROM employee_hourly_rate_history WHERE client_id=? AND employee_id=? AND effective_from<=CURDATE() ORDER BY effective_from DESC,id DESC LIMIT 1');
-            $currentRateStmt->execute([(int)$actor['client_id'],$id]);
-            $currentRate = $currentRateStmt->fetchColumn(); if ($currentRate === false) $currentRate = $requestedRate;
-            $pdo->prepare('UPDATE employees SET hourly_rate=? WHERE id=? AND client_id=?')->execute([number_format((float)$currentRate,2,'.',''),$id,(int)$actor['client_id']]);
+                $currentRateStmt = $pdo->prepare('SELECT hourly_rate FROM employee_hourly_rate_history WHERE client_id=? AND employee_id=? AND effective_from<=CURDATE() ORDER BY effective_from DESC,id DESC LIMIT 1');
+                $currentRateStmt->execute([(int)$actor['client_id'],$id]);
+                $currentRate = $currentRateStmt->fetchColumn(); if ($currentRate === false) $currentRate = $requestedRate;
+                $pdo->prepare('UPDATE employees SET hourly_rate=? WHERE id=? AND client_id=?')->execute([number_format((float)$currentRate,2,'.',''),$id,(int)$actor['client_id']]);
+            }
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
 
-        directory_audit($pdo,$actor,$auditAction,'employee',(string)$id,[
+        $auditDetails = [
             'full_name'=>$name,'user_id'=>$userId,'internal_store_id'=>$storeId,'store_access_mode'=>$storeAccessMode,'store_ids'=>$selectedStoreIds,
             'employee_type'=>$role,'client_role_id'=>$clientRoleId,'role_key'=>$roleRow['role_key'],'role_label'=>$roleName,'authority_level'=>(int)$roleRow['authority_level'],
-            'hourly_rate'=>(float)$rateText,'rate_effective_date'=>$rateEffective,'status'=>$status,'password_reset'=>$newPassword !== '',
-        ]);
+            'status'=>$status,'password_reset'=>$newPassword !== '',
+        ];
+        if ($canManagePay) {
+            $auditDetails['hourly_rate'] = (float)$rateText;
+            $auditDetails['rate_effective_date'] = $rateEffective;
+        }
+        directory_audit($pdo,$actor,$auditAction,'employee',(string)$id,$auditDetails);
         json_response(directory_load_state($pdo,$actor));
     }
 
     if ($action === 'save_store') {
+        beta_require_permission($actor, 'stores.manage', $pdo);
         $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
         $name = trim((string)($input['store_name'] ?? ''));
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
