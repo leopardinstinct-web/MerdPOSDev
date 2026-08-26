@@ -63,8 +63,6 @@ Definitions:
 - `Live / working / fixed` requires **DEPLOYED + VERIFIED**.
 - If runtime verification has not happened, say exactly that.
 
-This rule exists because a previous UI standard (`+` Add buttons / collapsed Search) was documented before its runtime behavior layer was actually wired.
-
 ## 3. Beta runtime architecture
 
 ### `timesheet_portal/`
@@ -89,43 +87,47 @@ SQL migrations, device/POS API support, finance/workforce helpers, CLI migration
 
 Portal authorization is governed by `docs/pos_latest/BETA_AUTHORIZATION_STANDARD.md`.
 
-The authoritative model is:
-
 ```text
 client role → LOA → named permission → UI/API/data scope
 ```
 
 DEV-only permissions additionally require an actual DEV identity; numeric LOA alone cannot delegate them.
 
-## 4. GUI contract
+## 4. GUI + mobile runtime contract
 
 Every beta UI follows `docs/pos_latest/GUI_STANDARD.md`.
 
 Binding rules include:
 
-- mobile-ready at implementation time;
+- mobile-ready means **functional parity**, not just responsive width;
 - shared spacing/type/control/table/dialog grammar;
-- Dashboard Add and Add Store / Employee / Client / Role use the **same canonical circular `+` primitive**;
+- Dashboard Add and Add Store / Employee / Client / Role use the same canonical circular `+` primitive;
 - desktop Add/Search action diameter is 46px; tablet/phone is 48px;
-- list search begins as the same-diameter circular magnifier and expands on demand;
-- whenever Search and Add coexist they are adjacent in one right-aligned action cluster: `Search` then `+`;
-- 48px minimum interactive targets on mobile/tablet;
-- tables scroll inside their own container rather than causing page-level horizontal overflow.
+- Search and Add coexist in one adjacent right-aligned action cluster;
+- mobile top bar remains one stable row;
+- bottom navigation respects safe-area insets;
+- software keyboards must not hide active form/dialog controls;
+- dialogs remain internally scrollable and actions reachable;
+- tables scroll inside their own container instead of causing page-level horizontal overflow;
+- Dashboard add/remove/reorder remains usable on mobile even though free drag/resize is desktop-only;
+- older browsers receive a minimal dialog fallback rather than dead modal actions.
 
 Runtime enforcement layers:
 
 - `timesheet_portal/assets/ui-standard.css`
 - `timesheet_portal/assets/minimal-controls.css`
 - `timesheet_portal/assets/minimal-controls.js`
+- `timesheet_portal/assets/mobile-hardening.css`
+- `timesheet_portal/assets/mobile-runtime.js`
 - runtime loading through `timesheet_portal/assets/management.js`
 
-A standard written only in Markdown is **not implementation**. Shared components must also be checked for visual equivalence: geometry, shape, icon weight, shadow/focus, placement and mobile behavior. Matching icon/class names alone are insufficient.
+`window.MERDPOSMobileRuntime.audit()` is the mobile structural smoke test. It detects common regressions including page-level horizontal overflow, wrapped top bar, undersized touch targets, dialogs outside the viewport and malformed shared icon actions. This check supplements—but never replaces—real-device verification.
+
+A standard written only in Markdown is **not implementation**. Shared components must also be checked for actual geometry, placement, touch behavior and mobile usability.
 
 ## 5. Legacy Google migration safety
 
 Google legacy migration is DEV-only.
-
-Architecture:
 
 ```text
 Google Sheets → read-only fetch → staging → validate/reconcile → MERDPOS SQL
@@ -198,7 +200,7 @@ echo "=== DEPLOYED ==="
 cat ~/merdpos.com/app/beta/.beta_deployed_commit
 ```
 
-The deploy must fail closed on PHP lint, central permission-policy coverage, required migrations/schema checks and registered runtime-contract invariants. The runtime-contract validator includes the shared Add/Search geometry/wiring contract so a semantic class alone cannot satisfy the release gate.
+The deploy must fail closed on PHP lint, central permission-policy coverage, required migrations/schema checks and registered runtime-contract invariants. Shared mobile runtime files and their management-loader wiring are release invariants.
 
 ## 8. README maintenance — default rule
 
@@ -221,8 +223,10 @@ Before saying a beta change is implemented:
 - runtime entry point actually loads/calls it;
 - UI → JS → endpoint → auth/client context → DB/schema → audit/storage → response/re-render has been checked where applicable;
 - server-side security is authoritative;
-- mobile behavior is covered for user-facing UI;
-- shared UI components are visually equivalent across representative screens, not merely semantically similar;
+- mobile feature parity is covered for user-facing UI;
+- visual viewport/software-keyboard behavior is considered for forms and dialogs;
+- shared UI components are visually equivalent across representative screens;
+- `MERDPOSMobileRuntime.audit()` has no unresolved structural failure for the affected mobile view;
 - relevant README/context is updated;
 - source lint/validators pass.
 
@@ -230,4 +234,4 @@ Before saying it is live/fixed:
 
 - deploy marker confirms the intended commit;
 - migrations/schema required by that code are live;
-- runtime verification confirms the feature/fix through its actual execution path.
+- runtime verification confirms the feature/fix through its actual execution path on the relevant desktop/mobile environment.
