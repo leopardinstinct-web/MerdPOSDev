@@ -51,14 +51,9 @@ if [[ "$php_lint_failed" -ne 0 ]]; then
 fi
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] PHP lint passed"
 
-# Beta contract check deliberately distinguishes documentation from runtime
-# implementation. It verifies the authoritative READMEs/context exist AND that
-# binding global behavior such as minimal Add/Search and the deterministic
-# legacy Sheet reader is actually wired into the runtime entry path.
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating beta runtime/README contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
 
-# Authorization coverage is a release invariant.
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal LOA permission coverage"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_permission_policy.php"
 
@@ -104,19 +99,22 @@ rsync -az \
   "$REPO/namecheap_beta_live/timesheet_portal/" \
   "$LIVE/timesheet_portal/"
 
-# Verify that the exact global runtime layers survived rsync. This is the live
-# counterpart to the source validator above and prevents a successful deploy
-# marker when the page cannot actually load a documented global behavior.
+# Live-copy gate. The deploy marker is not written unless the shared runtime
+# contract that was validated in source also survived rsync to Namecheap.
 for live_file in \
   "$LIVE/timesheet_portal/.htaccess" \
+  "$LIVE/timesheet_portal/assets/management.js" \
   "$LIVE/timesheet_portal/assets/minimal-controls.js" \
   "$LIVE/timesheet_portal/assets/minimal-controls.css" \
   "$LIVE/timesheet_portal/assets/ui-standard.css" \
+  "$LIVE/timesheet_portal/assets/mobile-runtime.js" \
+  "$LIVE/timesheet_portal/assets/mobile-hardening.css" \
+  "$LIVE/timesheet_portal/assets/modal-lock.js" \
   "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
   "$LIVE/timesheet_portal/README.md" \
   "$LIVE/backend/README.md"; do
   if [[ ! -r "$live_file" ]]; then
-    echo "ERROR: required live beta runtime/README file missing after deploy." >&2
+    echo "ERROR: required live beta runtime/README file missing after deploy: $(basename "$live_file")" >&2
     exit 1
   fi
 done
@@ -129,12 +127,36 @@ if ! grep -q 'assets/minimal-controls.js?v=20260826b' "$LIVE/timesheet_portal/as
   echo "ERROR: live management runtime is not loading the current minimal-control behavior." >&2
   exit 1
 fi
+if ! grep -q 'assets/mobile-hardening.css?v=20260826a' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is not loading mobile-hardening.css." >&2
+  exit 1
+fi
+if ! grep -q 'assets/mobile-runtime.js?v=20260826a' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is not loading mobile-runtime.js." >&2
+  exit 1
+fi
+if ! grep -q 'MERDPOSMobileRuntime' "$LIVE/timesheet_portal/assets/mobile-runtime.js"; then
+  echo "ERROR: live mobile runtime is missing its audit/enhancement hook." >&2
+  exit 1
+fi
+if ! grep -q 'moveDashboardWidget' "$LIVE/timesheet_portal/assets/mobile-runtime.js"; then
+  echo "ERROR: live mobile runtime is missing Dashboard mobile reorder parity." >&2
+  exit 1
+fi
+if ! grep -q 'body.merd-keyboard-open .app-rail' "$LIVE/timesheet_portal/assets/mobile-hardening.css"; then
+  echo "ERROR: live mobile CSS is missing software-keyboard navigation protection." >&2
+  exit 1
+fi
+if ! grep -q "lockMode = mobileSafeLock() ? 'mobile-overflow'" "$LIVE/timesheet_portal/assets/modal-lock.js"; then
+  echo "ERROR: live modal lock is not using mobile-keyboard-safe overflow locking." >&2
+  exit 1
+fi
 if ! grep -q -- '--merd-action-diameter:46px' "$LIVE/timesheet_portal/assets/minimal-controls.css"; then
   echo "ERROR: live minimal-control CSS is missing the canonical 46px desktop action diameter." >&2
   exit 1
 fi
 if ! grep -q 'border-radius:50%!important' "$LIVE/timesheet_portal/assets/minimal-controls.css"; then
-  echo "ERROR: live minimal-control CSS is missing the canonical true-circle geometry." >&2
+  echo "ERROR: live minimal-control CSS is missing canonical true-circle geometry." >&2
   exit 1
 fi
 if ! grep -q 'clusterSearchAndAdd' "$LIVE/timesheet_portal/assets/minimal-controls.js"; then
@@ -149,15 +171,18 @@ if ! grep -q 'Cache-Control "no-cache, must-revalidate"' "$LIVE/timesheet_portal
   echo "ERROR: live portal is missing shared UI cache revalidation." >&2
   exit 1
 fi
-if ! grep -q 'minimal-controls\\.js' "$LIVE/timesheet_portal/.htaccess"; then
-  echo "ERROR: live portal is not revalidating the minimal-control behavior asset." >&2
-  exit 1
-fi
+for cache_asset in 'minimal-controls\\.js' 'mobile-runtime\\.js' 'mobile-hardening\\.css'; do
+  if ! grep -q "$cache_asset" "$LIVE/timesheet_portal/.htaccess"; then
+    echo "ERROR: live portal is not revalidating shared UI asset pattern: $cache_asset" >&2
+    exit 1
+  fi
+done
 if ! grep -q 'legacy_fetch_sources_known' "$LIVE/timesheet_portal/includes/legacy_migration_orchestrator.php"; then
   echo "ERROR: live migration runtime is not using deterministic known Sheet contracts." >&2
   exit 1
 fi
-echo "Live beta runtime wiring verified (canonical Add/Search primitive, action clustering, shared UI cache revalidation, mobile UI standard, deterministic legacy reader, READMEs)."
+
+echo "Live beta runtime wiring verified (Add/Search, mobile viewport/dialog/navigation/dashboard parity, mobile-safe modal lock, cache revalidation, deterministic legacy reader, READMEs)."
 
 if ! grep -q 'restoreHtmlResponse' "$LIVE/timesheet_portal/includes/database.php"; then
   echo "ERROR: live portal is missing the HTML/DB response-boundary guard." >&2
