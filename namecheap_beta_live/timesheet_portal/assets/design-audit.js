@@ -33,14 +33,11 @@
     const main = document.querySelector('main.merd-page-shell');
     if (!main) return;
 
-    /* The portal is one SPA-like document with many permission-dependent panels.
-       One application H1 stays in the document; each panel owns H2 sections and
-       nested cards/widgets use H3. */
     let appTitle = document.getElementById('merdApplicationTitle');
     if (!appTitle) {
       appTitle = document.createElement('h1');
       appTitle.id = 'merdApplicationTitle';
-      appTitle.className = 'sr-only';
+      appTitle.className = 'sr-only ui-application-title';
       appTitle.textContent = 'MERDPOS';
       main.insertBefore(appTitle, main.firstChild);
     }
@@ -154,6 +151,19 @@
     });
   }
 
+  function auditLabels(issues) {
+    document.querySelectorAll('input:not([type="hidden"]),select,textarea').forEach(function (control) {
+      if (!visible(control)) return;
+      const id = control.id;
+      const explicit = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+      const wrapping = control.closest('label');
+      const aria = control.getAttribute('aria-label') || control.getAttribute('aria-labelledby');
+      if (!explicit && !wrapping && !aria) {
+        issues.push('a11y:unlabelled-control:' + String(id || control.name || control.tagName).slice(0, 70));
+      }
+    });
+  }
+
   function auditInteractive(issues) {
     document.querySelectorAll('button,a[href],summary,[role="button"],input,select,textarea').forEach(function (element) {
       if (!visible(element)) return;
@@ -170,6 +180,36 @@
     });
   }
 
+  function auditControlGeometry(issues) {
+    const tolerance = 1.5;
+    const expectedInput = mobileQuery.matches ? 48 : 42;
+    const expectedButton = mobileQuery.matches ? 48 : 40;
+    const expectedCompact = mobileQuery.matches ? 48 : 36;
+    const expectedAction = mobileQuery.matches ? 48 : 46;
+
+    document.querySelectorAll('input:not([type="hidden"]),select').forEach(function (control) {
+      if (!visible(control) || control.closest('.merd-collapsible-search')) return;
+      const height = control.getBoundingClientRect().height;
+      if (height + tolerance < expectedInput) issues.push('geometry:input-under-standard:' + String(control.id || control.name || control.tagName));
+    });
+
+    document.querySelectorAll('.primary-btn,.secondary-btn,.ghost-btn,.download-pdf-btn,.icon-text-btn,.mini-btn').forEach(function (button) {
+      if (!visible(button) || button.classList.contains('merd-icon-action')) return;
+      const expected = button.classList.contains('compact-btn') ? expectedCompact : expectedButton;
+      const height = button.getBoundingClientRect().height;
+      if (height + tolerance < expected) issues.push('geometry:button-under-standard:' + String(button.id || button.className).slice(0, 70));
+    });
+
+    document.querySelectorAll('.merd-icon-action,.merd-collapsible-search:not(.is-open)').forEach(function (action) {
+      if (!visible(action)) return;
+      const rect = action.getBoundingClientRect();
+      if (Math.abs(rect.width - expectedAction) > tolerance || Math.abs(rect.height - expectedAction) > tolerance) {
+        issues.push('geometry:icon-action-not-standard:' + String(action.id || action.className).slice(0, 70));
+      }
+      if (Math.abs(rect.width - rect.height) > tolerance) issues.push('geometry:icon-action-not-square:' + String(action.id || action.className).slice(0, 70));
+    });
+  }
+
   function auditActionClusters(issues) {
     document.querySelectorAll('.merd-action-cluster').forEach(function (cluster) {
       if (!visible(cluster)) return;
@@ -181,6 +221,8 @@
       if (Math.abs(sr.height - ar.height) > 1) issues.push('placement:search-add-height');
       if (Math.abs((sr.top + sr.height / 2) - (ar.top + ar.height / 2)) > 1) issues.push('placement:search-add-vertical-align');
       if (sr.left > ar.left) issues.push('placement:add-before-search');
+      const searchStyle = window.getComputedStyle(search);
+      if (Number.parseFloat(searchStyle.marginTop) !== 0 || Number.parseFloat(searchStyle.marginBottom) !== 0) issues.push('placement:search-inherited-label-margin');
     });
   }
 
@@ -197,7 +239,7 @@
   function auditContrast(issues) {
     const scope = visiblePanel() || document.body;
     const selectors = 'h1,h2,h3,h4,p,small,label,button,.entity-sub,.muted,.status-pill,.entity-status,.entity-role';
-    Array.from(scope.querySelectorAll(selectors)).filter(visible).slice(0, 180).forEach(function (element) {
+    Array.from(scope.querySelectorAll(selectors)).filter(visible).slice(0, 220).forEach(function (element) {
       const style = window.getComputedStyle(element);
       const fg = parseColor(style.color);
       const bg = effectiveBackground(element);
@@ -225,7 +267,9 @@
     normalizeHeadingSemantics();
     const issues = [];
     auditHeadings(issues);
+    auditLabels(issues);
     auditInteractive(issues);
+    auditControlGeometry(issues);
     auditActionClusters(issues);
     auditOverflow(issues);
     auditContrast(issues);
