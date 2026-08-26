@@ -68,14 +68,14 @@ test('permission-minimal portal DOM does not crash legacy shared beta runtime', 
   page.on('pageerror', error => pageErrors.push(String(error?.message || error)));
 
   await page.setContent(`<!doctype html>
-    <html><body>
+    <html><head><base href="https://merdpos-smoke.invalid/"></head><body>
       <button id="logoutBtn" type="button">Log out</button>
       <main class="merd-page-shell">
         <section id="financialPanel" class="portal-panel"></section>
       </main>
     </body></html>`);
 
-  await page.addInitScript(() => {
+  await page.evaluate(() => {
     window.MERDPOS_AUTH = {
       permissions: {
         'dashboard.view': false,
