@@ -19,13 +19,14 @@
     if(!document.querySelector('script[data-merd-navigation]')){const script=document.createElement('script');script.src='assets/navigation.js?v=20260826ux1';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);}
     if(!document.querySelector('script[data-store-order]')){const script=document.createElement('script');script.src='assets/store-order.js?v=20260826ux1';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);}
     if(!document.querySelector('script[data-modal-lock]')){const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260826ux1';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('link[data-account-menu-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826ux1';link.dataset.accountMenuCss='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-account-menu]')){const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826ux1';script.dataset.accountMenu='1';document.body.appendChild(script);}
+    if(!document.querySelector('link[data-account-menu-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826omni1';link.dataset.accountMenuCss='1';document.head.appendChild(link);}
+    if(!document.querySelector('script[data-account-menu]')){const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826omni1';script.dataset.accountMenu='1';document.body.appendChild(script);}
     if(can('stores.profile.manage')&&!document.querySelector('script[data-dev-stores-ui]')){const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260826ux1';script.dataset.devStoresUi='1';document.body.appendChild(script);}
 
-    // Loaded last on purpose: this is the cross-portal experience layer, so its
-    // clarity/spacing/focus/motion rules refine rather than fight feature CSS.
+    // Loaded last on purpose: these are cross-portal experience/identity layers.
     if(!document.querySelector('link[data-refined-experience]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/apple-principles.css?v=20260826a';link.dataset.refinedExperience='1';document.head.appendChild(link);}
+    if(!document.querySelector('link[data-omnichannel-identity]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/omnichannel-identity.css?v=20260826a';link.dataset.omnichannelIdentity='1';document.head.appendChild(link);}
+    if(can('dashboard.view')&&!document.querySelector('script[data-omnichannel-identity]')){const script=document.createElement('script');script.src='assets/omnichannel-identity.js?v=20260826a';script.dataset.omnichannelIdentity='1';document.body.appendChild(script);}
   }
   ensureShellAssets();
 
@@ -44,7 +45,7 @@
 
   async function loadDev(){const root=$('devStatus');if(!root||!can('dev.status'))return;try{const data=await json('api/dev_status.php');const tableCount=Object.values(data.tables||{}).filter(v=>v!==null).length;const totalRows=Object.values(data.tables||{}).reduce((sum,v)=>sum+(Number(v)||0),0);root.innerHTML=`<article class="dev-tile"><strong>${esc(data.database)}</strong><span>Database</span></article><article class="dev-tile"><strong>${esc(data.server_version)}</strong><span>MySQL / MariaDB</span></article><article class="dev-tile"><strong>${esc(data.php_version)}</strong><span>PHP</span></article><article class="dev-tile"><strong>${tableCount}</strong><span>Tracked tables</span></article><article class="dev-tile"><strong>${totalRows.toLocaleString()}</strong><span>Rows across tracked tables</span></article><article class="dev-tile"><strong>LOA</strong><span>${esc(data.authorization_model||'central')}</span></article>`;}catch(error){root.innerHTML=`<div class="status-card error-card">${esc(error.message)}</div>`;}}
 
-  async function load(){if(!can('dashboard.view')){if(can('dev.status'))loadDev();return;}try{const data=await json('api/beta_state.php');data.stores=sortStores(data.stores||[]);if(data.management){data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);}updateDisputeBadge(data);if(data.is_management)renderManagement(data);if(can('dev.status'))loadDev();window.MERDPOSStoreOrder?.run?.();}catch(_){/* beta.js/dashboard builder own visible API errors */}}
+  async function load(){if(!can('dashboard.view')){if(can('dev.status'))loadDev();return;}try{const data=await json('api/beta_state.php');data.stores=sortStores(data.stores||[]);if(data.management){data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);}updateDisputeBadge(data);if(data.is_management)renderManagement(data);if(can('dev.status'))loadDev();window.MERDPOSStoreOrder?.run?.();window.MERDPOSOmnichannelIdentity?.patch?.();}catch(_){/* beta.js/dashboard builder own visible API errors */}}
 
   document.addEventListener('click',event=>{const shortcut=event.target.closest('[data-dispute-shortcut]');if(shortcut&&can('disputes.review')){event.preventDefault();event.stopPropagation();activatePanel('disputesPanel');}});
   const refresh=$('refreshBetaBtn');if(refresh)refresh.addEventListener('click',()=>setTimeout(load,250));
