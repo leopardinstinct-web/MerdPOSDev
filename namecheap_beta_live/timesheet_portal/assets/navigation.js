@@ -234,6 +234,13 @@
 
   oldNav.remove();
 
+  const syncMobileSubnavState = () => {
+    const hasContextSubnav = sections.some(section =>
+      !section.direct && section.subgroup.classList.contains('active') && !section.subgroup.hidden
+    );
+    document.body.classList.toggle('merd-mobile-subnav-open', hasContextSubnav);
+  };
+
   function setGroup(name) {
     const drawerExpanded = !desktopQuery.matches || frame.classList.contains('nav-expanded');
     sections.forEach(section => {
@@ -252,6 +259,7 @@
         section.subgroup.classList.add('submenu-enter');
       }
     });
+    syncMobileSubnavState();
   }
 
   sections.forEach(section => {
@@ -290,6 +298,7 @@
       frame.classList.remove('nav-collapsed', 'nav-expanded');
       syncExpandedAria(true);
     }
+    syncMobileSubnavState();
   };
   desktopQuery.addEventListener?.('change', syncResponsiveMode);
 
