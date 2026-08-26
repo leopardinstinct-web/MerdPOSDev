@@ -19,9 +19,7 @@ Primary browser surface: namecheap_beta_live/timesheet_portal/
 Supporting beta backend: namecheap_beta_live/backend/
 ```
 
-Do not silently switch to `main`, the older production Timesheet Portal, an archived implementation, or the broader Flutter roadmap merely because a prompt is short or says only “MERDPOS”, “the app”, “the portal”, “this screen”, “fix this”, “implement this”, or similar.
-
-If a request genuinely needs a non-beta target, the product owner must explicitly say so. Historical project context that implies another default target is superseded by this rule.
+Do not silently switch to `main`, the older production Timesheet Portal, an archived implementation, or the broader Flutter roadmap merely because a prompt is short. A non-beta target must be explicitly requested.
 
 ## Authority
 
@@ -38,34 +36,22 @@ For current beta work, read in this order:
 
 GitHub source is authoritative for what is **coded/wired**. The Namecheap deployed marker and runtime verification are authoritative for what is **live**.
 
-Historical documentation that says `never inspect or modify timesheet_portal/` is obsolete and must not be followed for the current beta. The web portal is an active primary development surface.
+Historical documentation that says `never inspect or modify timesheet_portal/` is obsolete. The web portal is an active primary development surface.
 
 ## Mandatory implementation-state discipline
-
-Every beta request must distinguish these states:
 
 ```text
 REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
 ```
 
-Definitions:
-
 - **REQUESTED:** user asked for the change.
 - **DOCUMENTED:** spec/context/README/standard changed only.
 - **CODED:** implementation file exists.
-- **WIRED:** the actual beta runtime entry point loads/calls it and its required API/DB path is connected.
+- **WIRED:** the actual beta runtime entry point loads/calls it and required API/DB path is connected.
 - **DEPLOYED:** intended commit confirmed in Namecheap `.beta_deployed_commit`.
-- **VERIFIED:** real runtime path or deterministic deployment/runtime verification proves the behavior.
+- **VERIFIED:** real runtime path has been checked in the relevant environment.
 
-Rules:
-
-- Never say `implemented` for DOCUMENTED-only work.
-- `Implemented in beta source` requires CODED + WIRED.
-- Never say `live`, `fixed` or `working` without DEPLOYED + VERIFIED.
-- If verification has not happened, state that explicitly.
-- Documentation itself is never evidence that runtime code exists.
-
-This rule was added after a documented `+` Add / collapsed Search UI standard was mistakenly described as implemented before its behavior layer was actually wired.
+Never say `implemented` for DOCUMENTED-only work. `Implemented in beta source` requires CODED + WIRED. Never say `live`, `fixed` or `working` without DEPLOYED + VERIFIED.
 
 ## Active beta architecture
 
@@ -73,29 +59,13 @@ This rule was added after a documented `+` Add / collapsed Search UI standard wa
 
 `namecheap_beta_live/timesheet_portal/`
 
-Current scope includes:
-
-- numeric employee login/password change;
-- QR attendance;
-- management/user dashboards;
-- centralized Role / LOA / named permission policy;
-- Stores, Workforce, Roles, Clients, Defaults and DEV diagnostics;
-- Timesheets and disputes;
-- Financials;
-- client-level legacy Google migration;
-- responsive/mobile-ready shared UI standards.
+Current scope includes login/password, QR attendance, dashboards, centralized Role/LOA/named permissions, Stores, Workforce, Roles, Clients, Defaults, DEV diagnostics, Timesheets, disputes, Financials, Google legacy migration, and shared desktop/tablet/mobile UI runtime.
 
 ### Backend
 
 `namecheap_beta_live/backend/`
 
-Contains:
-
-- SQL migrations/runners;
-- shared workforce/finance helpers;
-- device/POS API support;
-- deployment validators;
-- schema metadata export.
+Contains SQL migrations/runners, shared workforce/finance helpers, device/POS API support, deployment validators and schema metadata export.
 
 ### Deployment
 
@@ -119,52 +89,53 @@ Do not change without explicit product-owner instruction:
 
 ## Authorization standard
 
-Portal authorization follows `BETA_AUTHORIZATION_STANDARD.md`.
+Portal authorization follows `BETA_AUTHORIZATION_STANDARD.md`:
 
 ```text
 client role → LOA → named permission → UI/API/data scope
 ```
 
-- UI hiding is not security.
-- APIs must enforce the same permission.
-- DEV-only permissions require actual DEV identity and are not delegable by numeric LOA alone.
-- active client/tenant scoping must be verified through UI → JS → API → auth/client context → DB predicates → response.
+UI hiding is not security. APIs enforce the same permission. DEV-only capabilities require actual DEV identity. Active client/tenant scoping must be verified through UI → JS → API → auth/client context → DB predicates → response.
 
 ## GUI/mobile standard
 
 All beta UI follows `GUI_STANDARD.md`.
 
-Binding current rules:
+Binding rules include:
 
-- mobile-ready at implementation time;
+- **mobile-ready means functional parity, not just responsive dimensions**;
 - shared spacing/type/control/table/dialog geometry;
 - Dashboard Add and Add Store / Employee / Client / Role use the same canonical circular `+` primitive;
-- desktop Add/Search action diameter is 46px; tablet/phone is 48px;
-- list search starts as a circular magnifier and expands on demand;
-- when Search and Add both exist they remain adjacent in one right-aligned action cluster;
+- desktop Add/Search diameter is 46px; tablet/phone is 48px;
+- Search and Add stay adjacent in one right-aligned action cluster;
+- mobile top bar remains a single stable row;
+- fixed bottom navigation respects safe-area insets;
+- software keyboard must not cover active form/dialog actions;
+- dialogs scroll internally within the dynamic visual viewport;
 - no page-level horizontal overflow from tables/forms;
-- dialogs fit the dynamic mobile viewport and keep actions reachable.
+- row actions and notices stay above/inside fixed mobile chrome;
+- Dashboard widget picker sits above app chrome and has an explicit close route;
+- Dashboard add/remove/reorder remains usable on mobile; free drag/resize may remain desktop-only;
+- older browsers receive a usable dialog fallback.
+
+Shared mobile runtime:
+
+- `assets/mobile-hardening.css`
+- `assets/mobile-runtime.js`
+- loaded through `assets/management.js`
+- shared asset cache revalidation through portal `.htaccess`
+
+`window.MERDPOSMobileRuntime.audit()` is the browser-side structural smoke test. It checks page horizontal overflow, topbar wrapping, undersized touch targets, open dialogs outside the viewport and malformed shared icon actions. This is a regression detector, not a substitute for real-device verification.
 
 ### Shared-component verification rule
 
-Semantic consistency is not enough. Matching icon/class names do not prove a shared component is implemented.
+Matching class names/icons do not prove a component is shared. Before calling a shared component implemented, compare representative screens for actual width/height, radius/shape, icon dimensions/stroke, background/border/shadow/focus, sibling placement, and desktop/mobile behavior.
 
-Before calling a shared beta component implemented, compare representative screens and verify actual visual equivalence for:
-
-- width/height;
-- border radius/shape;
-- icon dimensions/stroke weight;
-- background/border/shadow/focus state;
-- relative placement to sibling controls;
-- desktop and mobile behavior.
-
-For the global Add/Search primitive, Dashboard + at least one directory screen are the required comparison pair. A circular Dashboard `+` and rounded-square Store `+` is a failed implementation.
-
-Runtime implementation must be verified in actual code, including loading through the portal entry path. A Markdown rule is DOCUMENTED only.
+For Add/Search, Dashboard + at least one directory screen are the minimum comparison pair.
 
 ## Legacy Google migration
 
-Client migration is DEV-only and follows:
+Client migration is DEV-only:
 
 ```text
 Google Sheets → READ ONLY fetch → staging → validation/reconciliation → MERDPOS SQL
@@ -178,7 +149,7 @@ Safety rules:
 - Sync is blocked with any rejected row/conflict;
 - operational apply is transactional/all-or-nothing;
 - imported historical finance cannot echo back through SQL→Google outbox;
-- final cutover changes authority to MERDPOS SQL and prevents Google from overwriting SQL later;
+- final cutover makes MERDPOS SQL authoritative;
 - plaintext legacy passwords/secrets are not persisted in staging/audit;
 - known workbooks use deterministic header contracts, not guessed mappings.
 
@@ -207,7 +178,7 @@ DATE / STORE_NAME / REGISTER_DENOMINATIONS / REGISTER_TOTAL / PETTYCASH_ADDIN
 
 ## Full-stack beta change rule
 
-For any DB-backed feature/fix, inspect the complete path before claiming completion:
+For any DB-backed feature/fix, inspect:
 
 ```text
 UI
@@ -227,18 +198,16 @@ A schema migration and feature code must deploy in safe order. DB-dependent port
 
 README updates are default Definition-of-Done work for beta changes:
 
-- `namecheap_beta_live/README.md` — beta runtime/architecture contract;
-- `namecheap_beta_live/timesheet_portal/README.md` — portal behavior/UI/security/data flow;
-- `namecheap_beta_live/backend/README.md` — backend/migrations/deployment/security;
-- relevant `docs/pos_latest/*.md` — project context, standards, API/history.
+- `namecheap_beta_live/README.md`
+- `namecheap_beta_live/timesheet_portal/README.md`
+- `namecheap_beta_live/backend/README.md`
+- relevant `docs/pos_latest/*.md`
 
-Do not update README merely to make a feature appear complete. README must describe the runtime truth, and implementation must be independently wired/verified.
+README must describe runtime truth; documentation alone never proves implementation.
 
 ## Current product direction
 
-MERDPOS is evolving from the legacy Google-Sheet-backed Timesheet/Finance workflow into an SQL-authoritative retail operations platform while preserving safe transition/migration paths.
-
-The broader Flutter/POS code remains part of the repository, but it is **not the default target for prompts in this project**. The Namecheap beta is the default and must be assumed unless the product owner explicitly names another target.
+MERDPOS is evolving from the legacy Google-Sheet-backed Timesheet/Finance workflow into an SQL-authoritative retail operations platform while preserving safe migration paths. The broader Flutter/POS code remains in the repository but is **not the default target** in this project.
 
 ## Deployment command — standard immediate output after changes
 
@@ -254,4 +223,4 @@ echo "=== DEPLOYED ==="
 cat ~/merdpos.com/app/beta/.beta_deployed_commit
 ```
 
-When migration/runtime verification matters, also include an appropriate deploy-log tail.
+When migration/runtime verification matters, include an appropriate deploy-log tail.
