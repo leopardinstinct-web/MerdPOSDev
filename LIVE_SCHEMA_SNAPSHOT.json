@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 39,
+    "table_count": 40,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -113,6 +113,45 @@
                     "columns": [
                         {
                             "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "app_migrations",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "migration_key",
+                    "position": 1,
+                    "data_type": "varchar",
+                    "column_type": "varchar(120)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "applied_at",
+                    "position": 2,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "migration_key",
                             "prefix_length": null
                         }
                     ]
