@@ -2,7 +2,7 @@
 
 Use this template when a new feature is requested via screenshot or described for the MERDPOS beta.
 
-> Binding rules: every protected portal feature must comply with `BETA_AUTHORIZATION_STANDARD.md`, and every user-facing touchpoint must comply with `OMNICHANNEL_IDENTITY_STANDARD.md`. A feature is not scoped until its permission, LOA, tenant scope, server enforcement, reliability, usability and visual consistency are defined.
+> Binding rules: every protected portal feature must comply with `BETA_AUTHORIZATION_STANDARD.md`, every user-facing touchpoint must comply with `OMNICHANNEL_IDENTITY_STANDARD.md`, and every beta UI must comply with `GUI_STANDARD.md`. A feature is not scoped until its permission, LOA, tenant scope, server enforcement, reliability, usability and visual consistency are defined.
 
 ## 1. Visual Analysis
 
@@ -21,6 +21,22 @@ Usability: Is the primary task obvious? Can redundant controls/submenus/context 
 Trendiness: Does the interface look current and coherent with MERDPOS without adding operational noise?
 
 Cross-touchpoint identity reused: (MERDPOS mark / employee / role+LOA / active client / store ID+code+logo / currency+timezone / freshness)
+
+### GUI standard review — MANDATORY
+
+Spacing scale used: `4 / 8 / 12 / 16 / 20 / 24 / 32`
+
+Form controls: canonical label gap, 42px desktop inputs/selects, shared focus state
+
+Buttons: one primary action per region; standard/compact/destructive hierarchy
+
+Cards/sections: 14px card radius, 20px desktop padding, consistent sibling gap
+
+Tables: canonical header/body typography, 10x12px cell padding, numeric columns right aligned, horizontal scrolling rather than compression
+
+Responsive behavior: two-column forms collapse intentionally; no decorative empty columns
+
+Feature-local UI exceptions required?: (No by default — document exact reason if Yes)
 
 ## 2. Data & Backend Impact
 
@@ -85,11 +101,13 @@ Before the feature can be called complete:
 - canonical client/store/user identity reused consistently;
 - loading, success, empty, stale and error states handled where applicable;
 - primary task is obvious and redundant controls are removed;
-- UI follows the MERDPOS dark-rail/light-workspace identity and shared interaction rules;
+- UI follows `GUI_STANDARD.md` including shared spacing, typography, controls, buttons, cards, dialogs, tables and responsive behavior;
+- no helper/body text below the standard readable size;
+- no feature-local spacing/control/table system is introduced without a documented exception;
 - CSRF/input validation/audit applied where relevant;
 - dashboard permission binding added where relevant;
 - PHP lint passes;
 - `validate_portal_permission_policy.php` passes;
 - direct insufficient-LOA API request is denied.
 
-Once scope is confirmed, proceed to the implementation. Do not add a protected beta feature using a hard-coded ADMIN/SUPER/DEV role check, and do not add a user-facing feature that bypasses the omnichannel identity standard.
+Once scope is confirmed, proceed to the implementation. Do not add a protected beta feature using a hard-coded ADMIN/SUPER/DEV role check, do not add a user-facing feature that bypasses the omnichannel identity standard, and do not ship a feature-local UI grammar that conflicts with `GUI_STANDARD.md`.
