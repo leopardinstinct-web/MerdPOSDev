@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../backend/api/includes/portal_permissions.php';
+
 function merd_dashboard_roles(PDO $pdo, int $clientId, bool $activeOnly = true): array
 {
     $sql = 'SELECT id,client_id,role_key,role_label,base_role,authority_level,is_system,status FROM client_roles WHERE client_id=?';
@@ -49,36 +51,58 @@ function merd_dashboard_user_role(PDO $pdo, array $user): array
     throw new RuntimeException('Dashboard role is not configured for this client.');
 }
 
+function merd_dashboard_permission_levels(PDO $pdo, int $clientId): array
+{
+    if (function_exists('beta_permission_levels')) return beta_permission_levels($pdo, $clientId);
+
+    $catalog = merd_portal_permission_catalog();
+    $levels = [];
+    foreach ($catalog as $key => $rule) {
+        $levels[$key] = !empty($rule['dev_only']) ? 1000 : max(1, min(1000, (int)$rule['min_loa']));
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT permission_key,min_authority_level FROM client_permission_levels WHERE client_id=?');
+        $stmt->execute([$clientId]);
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $key = (string)$row['permission_key'];
+            if (!isset($catalog[$key]) || !empty($catalog[$key]['dev_only'])) continue;
+            $levels[$key] = max(1, min(1000, (int)$row['min_authority_level']));
+        }
+    } catch (Throwable $e) {
+        // Catalogue defaults remain the safe migration fallback.
+    }
+    return $levels;
+}
+
+function merd_dashboard_role_has_permission(PDO $pdo, int $clientId, array $role, string $permission): bool
+{
+    $catalog = merd_portal_permission_catalog();
+    if (!isset($catalog[$permission])) return false;
+    $isDevRole = strtoupper(trim((string)($role['role_key'] ?? $role['base_role'] ?? ''))) === 'DEV';
+    if (!empty($catalog[$permission]['dev_only'])) return $isDevRole;
+    $levels = merd_dashboard_permission_levels($pdo, $clientId);
+    return (int)($role['authority_level'] ?? 0) >= (int)($levels[$permission] ?? 1000);
+}
+
 function merd_dashboard_widget_catalog(PDO $pdo, int $clientId): array
 {
-    $admin = merd_dashboard_system_role($pdo, $clientId, 'ADMIN');
-    $adminLoa = max(1, (int)($admin['authority_level'] ?? 50));
-
-    return [
-        'my_shift' => ['min_loa' => 1, 'management' => false],
-        'my_disputes' => ['min_loa' => 1, 'management' => false],
-        'recent_attendance' => ['min_loa' => 1, 'management' => false],
-        'working_now_count' => ['min_loa' => $adminLoa, 'management' => true],
-        'pending_disputes' => ['min_loa' => $adminLoa, 'management' => true],
-        'active_employees' => ['min_loa' => $adminLoa, 'management' => true],
-        'sync_attention' => ['min_loa' => $adminLoa, 'management' => true],
-        'working_now' => ['min_loa' => $adminLoa, 'management' => true],
-        'workforce_by_store' => ['min_loa' => $adminLoa, 'management' => true],
-        'store_cash_position' => ['min_loa' => $adminLoa, 'management' => true],
-        'cash_mix' => ['min_loa' => $adminLoa, 'management' => true],
-        'today_sales_by_store' => ['min_loa' => $adminLoa, 'management' => true],
-    ];
+    $rules = merd_portal_dashboard_widget_permissions();
+    $catalog = [];
+    foreach ($rules as $widget => $permissions) {
+        $catalog[$widget] = [
+            'visibility_permission' => (string)$permissions[0],
+            'data_permission' => (string)$permissions[1],
+        ];
+    }
+    return $catalog;
 }
 
 function merd_dashboard_allowed_widgets(PDO $pdo, int $clientId, array $role): array
 {
-    $loa = (int)$role['authority_level'];
-    $base = strtoupper(trim((string)$role['base_role']));
-    $managementBase = in_array($base, ['ADMIN','SUPER','DEV'], true);
     $allowed = [];
     foreach (merd_dashboard_widget_catalog($pdo, $clientId) as $key => $rule) {
-        if ($loa < (int)$rule['min_loa']) continue;
-        if (!empty($rule['management']) && !$managementBase) continue;
+        if (!merd_dashboard_role_has_permission($pdo, $clientId, $role, (string)$rule['visibility_permission'])) continue;
+        if (!merd_dashboard_role_has_permission($pdo, $clientId, $role, (string)$rule['data_permission'])) continue;
         $allowed[] = $key;
     }
     return $allowed;
