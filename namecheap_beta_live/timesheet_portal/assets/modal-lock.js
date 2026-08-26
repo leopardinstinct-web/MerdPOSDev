@@ -4,12 +4,18 @@
   let locked = false;
   let scrollY = 0;
   let bodySnapshot = null;
+  let lockMode = 'desktop-fixed';
+  const mobileQuery = window.matchMedia ? window.matchMedia('(max-width: 820px)') : {matches:false};
 
   const openDialogs = () => Array.from(document.querySelectorAll('dialog[open]'));
   const topDialog = () => {
     const dialogs = openDialogs();
     return dialogs.length ? dialogs[dialogs.length - 1] : null;
   };
+
+  function mobileSafeLock() {
+    return !!mobileQuery.matches || !!window.visualViewport;
+  }
 
   function lockPage() {
     if (locked || !openDialogs().length) return;
@@ -33,13 +39,25 @@
     document.body.classList.add('modal-scroll-locked');
     document.documentElement.style.overflow = 'hidden';
     document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
-    if (scrollbarGap > 0) document.body.style.paddingRight = `${scrollbarGap}px`;
+
+    /*
+     * Do NOT fix-position the body on phones/tablets. A fixed body is reliable
+     * on desktop, but mobile virtual keyboards resize/pan the visual viewport;
+     * fixing the document there can strand focused inputs or dialog actions
+     * outside the reachable viewport. Overflow locking plus the guarded
+     * touchmove handler below keeps the backdrop still without fighting the
+     * keyboard.
+     */
+    lockMode = mobileSafeLock() ? 'mobile-overflow' : 'desktop-fixed';
+    if (lockMode === 'desktop-fixed') {
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+      if (scrollbarGap > 0) document.body.style.paddingRight = `${scrollbarGap}px`;
+    }
   }
 
   function unlockPage() {
@@ -60,8 +78,12 @@
       document.documentElement.style.overscrollBehavior = bodySnapshot.htmlOverscrollBehavior;
     }
 
-    window.scrollTo({top: scrollY, left: 0, behavior: 'instant'});
+    if (lockMode === 'desktop-fixed') {
+      try { window.scrollTo({top: scrollY, left: 0, behavior: 'auto'}); }
+      catch (_) { window.scrollTo(0, scrollY); }
+    }
     bodySnapshot = null;
+    lockMode = 'desktop-fixed';
   }
 
   function syncLock() {
@@ -95,7 +117,6 @@
     if (locked && event.button === 1 && !eventInsideTopDialog(event)) event.preventDefault();
   }, true);
 
-  // Covers dialogs already in the DOM plus dynamically-created future dialogs.
   const observer = new MutationObserver(records => {
     if (records.some(record => record.type === 'attributes' && record.attributeName === 'open')) syncLock();
   });
