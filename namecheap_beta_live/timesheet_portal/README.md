@@ -54,6 +54,9 @@ Runtime layers include:
 - `assets/minimal-controls.css`
 - `assets/minimal-controls.js`
 - `assets/management.js` runtime loading/wiring
+- `.htaccess` cache revalidation for these shared cross-portal UI contract assets
+
+Shared UI contract assets use `Cache-Control: no-cache, must-revalidate`. Browsers may keep a local copy, but must revalidate it after a deployment so stale global control geometry/behavior cannot survive merely because an older asset was cached.
 
 A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually equivalent across representative screens; matching icon/class names alone is not verification.
 
