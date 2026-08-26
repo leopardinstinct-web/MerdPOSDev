@@ -1,6 +1,30 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+/**
+ * Browser-rendered MERDPOS pages must always leave PHP with an explicit HTML
+ * content type. API routes intentionally keep their own JSON response headers.
+ *
+ * This protects the portal from host/proxy MIME defaults that can otherwise
+ * make already-rendered HTML appear as literal source text in the browser.
+ */
+function portal_request_is_api(): bool
+{
+    $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
+    return str_contains($script, '/api/');
+}
+
+function portal_html_response_headers(): void
+{
+    if (PHP_SAPI === 'cli' || headers_sent()) return;
+    header('Content-Type: text/html; charset=UTF-8', true);
+    header('X-Content-Type-Options: nosniff', true);
+}
+
+if (PHP_SAPI !== 'cli' && !portal_request_is_api()) {
+    portal_html_response_headers();
+}
+
 function start_app_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
