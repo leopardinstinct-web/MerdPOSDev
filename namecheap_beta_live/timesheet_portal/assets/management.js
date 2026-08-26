@@ -13,7 +13,7 @@
       const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260825f';link.dataset.merdShell='1';document.head.appendChild(link);
     }
     if(!document.querySelector('script[data-merd-navigation]')){
-      const script=document.createElement('script');script.src='assets/navigation.js?v=20260825g';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);
+      const script=document.createElement('script');script.src='assets/navigation.js?v=20260826b';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);
     }
     if(!document.querySelector('script[data-store-order]')){
       const script=document.createElement('script');script.src='assets/store-order.js?v=20260825d';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);
@@ -22,10 +22,10 @@
       const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260825a';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);
     }
     if(!document.querySelector('link[data-account-menu-css]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260825a';link.dataset.accountMenuCss='1';document.head.appendChild(link);
+      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826a';link.dataset.accountMenuCss='1';document.head.appendChild(link);
     }
     if(!document.querySelector('script[data-account-menu]')){
-      const script=document.createElement('script');script.src='assets/account-menu.js?v=20260825b';script.dataset.accountMenu='1';document.body.appendChild(script);
+      const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826a';script.dataset.accountMenu='1';document.body.appendChild(script);
     }
     if(document.querySelector('.dev-tab')&&!document.querySelector('script[data-dev-stores-ui]')){
       const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260825h';script.dataset.devStoresUi='1';document.body.appendChild(script);
