@@ -2,7 +2,7 @@
   const $=id=>document.getElementById(id);
   const permissions=window.MERDPOS_AUTH?.permissions||{};
   const can=key=>!!permissions[key];
-  const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const esc=value=>String(value??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const money=(value,currency='AUD')=>{try{return Number(value||0).toLocaleString(undefined,{style:'currency',currency:String(currency||'AUD').toUpperCase()});}catch(_){return `${String(currency||'AUD').toUpperCase()} ${Number(value||0).toFixed(2)}`;}};
   const sortStores=rows=>(Array.isArray(rows)?rows.slice():[]).sort((a,b)=>Number(a?.store_id??a?.id??Number.MAX_SAFE_INTEGER)-Number(b?.store_id??b?.id??Number.MAX_SAFE_INTEGER));
   let displayTimezone=null;
@@ -18,6 +18,9 @@
   function appendScript(key,src,defer=false){
     if(document.querySelector(`script[data-${key}]`))return;
     const script=document.createElement('script');
+    // Dynamically inserted classic scripts are async by default. Force ordered
+    // execution so dependency-sensitive modules run in insertion order.
+    script.async=false;
     script.src=src;
     if(defer)script.defer=true;
     script.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='1';
