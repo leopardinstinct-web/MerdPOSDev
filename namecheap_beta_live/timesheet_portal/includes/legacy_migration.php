@@ -16,7 +16,11 @@ function legacy_uuid_from_key(string $key): string
 
 function legacy_norm(string $value): string
 {
-    return strtolower((string)preg_replace('/[^a-z0-9]+/', '', trim($value)));
+    // Normalize case BEFORE filtering. The live legacy sheets use uppercase
+    // headers such as USER_NAME, STORE_NAME and LOG_TYPE. Filtering first was
+    // deleting those letters and collapsing unrelated fields onto an empty key.
+    $value = strtolower(trim($value));
+    return (string)preg_replace('/[^a-z0-9]+/', '', $value);
 }
 
 function legacy_spreadsheet_id(mixed $value): string
@@ -108,14 +112,20 @@ function legacy_parse_csv_rows(string $csv, string $kind): array
     fclose($fp);
     if (!$rawRows) return ['headers'=>[],'rows'=>[]];
 
-    $headerIndex = 0;
+    $headerIndex = null;
     foreach ($rawRows as $i => $candidate) {
         $keys = array_map('legacy_norm', $candidate['values']);
         $score = 0;
-        foreach (['name','username','userid','store','storename','logtype','date','time','payrate','amount','account','businessdate','submissiontype'] as $needle) {
+        foreach (['name','username','userid','store','storename','logtype','date','time','payrate','amount','account','businessdate','submissiontype','registertotal','pettycashaddin','type','head'] as $needle) {
             if (in_array($needle, $keys, true)) $score++;
         }
-        if ($kind === 'financial' ? $score >= 2 : $score >= 2) { $headerIndex = $i; break; }
+        if ($score >= 2) { $headerIndex = $i; break; }
+    }
+    if ($headerIndex === null) {
+        throw new MerdWorkforceException(
+            'legacy_sheet_header_unrecognized',
+            'MERDPOS could not identify the column headers in a configured legacy Sheet tab. Preview stopped rather than guessing.'
+        );
     }
 
     $headers = $rawRows[$headerIndex]['values'];
@@ -606,7 +616,17 @@ function legacy_apply_items(PDO $pdo,array $actor,int $clientId,int $batchId,arr
 function legacy_batch_summary(PDO $pdo,int $batchId): array
 {
     $stmt=$pdo->prepare('SELECT validation_status,COUNT(*) count FROM legacy_migration_stage_rows WHERE batch_id=? GROUP BY validation_status');$stmt->execute([$batchId]);$stage=[];foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $row)$stage[(string)$row['validation_status']]=(int)$row['count'];
-    $stmt=$pdo->prepare("SELECT COUNT(*) FROM legacy_migration_conflicts WHERE batch_id=? AND status='open'");$stmt->execute([$batchId]);return ['stage'=>$stage,'open_conflicts'=>(int)$stmt->fetchColumn()];
+    $issueStmt=$pdo->prepare(
+        "SELECT validation_status,COALESCE(resolution_code,'unclassified') AS code,COALESCE(resolution_message,'') AS message,COUNT(*) AS count "
+        . "FROM legacy_migration_stage_rows WHERE batch_id=? AND validation_status<>'valid' "
+        . "GROUP BY validation_status,resolution_code,resolution_message ORDER BY count DESC,code ASC LIMIT 30"
+    );
+    $issueStmt->execute([$batchId]);
+    $issues=$issueStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach($issues as &$issue)$issue['count']=(int)$issue['count'];
+    unset($issue);
+    $stmt=$pdo->prepare("SELECT COUNT(*) FROM legacy_migration_conflicts WHERE batch_id=? AND status='open'");$stmt->execute([$batchId]);
+    return ['stage'=>$stage,'issues'=>$issues,'open_conflicts'=>(int)$stmt->fetchColumn()];
 }
 
 function legacy_run_batch(PDO $pdo,array $actor,int $clientId,string $mode): array
