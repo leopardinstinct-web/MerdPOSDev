@@ -30,11 +30,15 @@ Form controls: canonical label gap, 42px desktop inputs/selects, shared focus st
 
 Buttons: one primary action per region; standard/compact/destructive hierarchy
 
+Minimal toolbar controls: Dashboard/List Add uses one canonical 46px desktop circular `+`; Search uses the same-diameter circular magnifier; when both exist they are adjacent in a right-aligned `Search + Add` cluster
+
+Shared-component visual equivalence checked against existing reference screen?: Compare width/height, true circle/radius, icon size/stroke, background/border/shadow, relative placement and mobile behavior — matching class/icon names alone is not sufficient
+
 Cards/sections: 14px card radius, 20px desktop padding, consistent sibling gap
 
 Tables: canonical header/body typography, 10x12px cell padding, numeric columns right aligned, horizontal scrolling rather than compression
 
-Responsive behavior: two-column forms collapse intentionally; no decorative empty columns
+Responsive behavior: two-column forms collapse intentionally; no decorative empty columns; mobile Add/Search remain 48px touch-safe and adjacent
 
 Feature-local UI exceptions required?: (No by default — document exact reason if Yes)
 
@@ -102,12 +106,16 @@ Before the feature can be called complete:
 - loading, success, empty, stale and error states handled where applicable;
 - primary task is obvious and redundant controls are removed;
 - UI follows `GUI_STANDARD.md` including shared spacing, typography, controls, buttons, cards, dialogs, tables and responsive behavior;
+- global Add/Search primitives use the canonical shared runtime component rather than feature-local geometry;
+- where Search and Add coexist they are adjacent in one right-aligned action cluster;
+- shared UI components have been compared for actual visual equivalence across representative screens;
 - no helper/body text below the standard readable size;
 - no feature-local spacing/control/table system is introduced without a documented exception;
 - CSRF/input validation/audit applied where relevant;
 - dashboard permission binding added where relevant;
 - PHP lint passes;
 - `validate_portal_permission_policy.php` passes;
+- `validate_beta_runtime_contract.php` passes;
 - direct insufficient-LOA API request is denied.
 
 Once scope is confirmed, proceed to the implementation. Do not add a protected beta feature using a hard-coded ADMIN/SUPER/DEV role check, do not add a user-facing feature that bypasses the omnichannel identity standard, and do not ship a feature-local UI grammar that conflicts with `GUI_STANDARD.md`.
