@@ -89,8 +89,10 @@ Binding rules include:
 
 - mobile-ready at implementation time;
 - shared spacing/type/control/table/dialog grammar;
-- Add Store / Employee / Client / Role and equivalent list create actions use the circular `+` control;
-- list search begins as a circular magnifier and expands on demand;
+- Dashboard Add and Add Store / Employee / Client / Role use the **same canonical circular `+` primitive**;
+- desktop Add/Search action diameter is 46px; tablet/phone is 48px;
+- list search begins as the same-diameter circular magnifier and expands on demand;
+- whenever Search and Add coexist they are adjacent in one right-aligned action cluster: `Search` then `+`;
 - 48px minimum interactive targets on mobile/tablet;
 - tables scroll inside their own container rather than causing page-level horizontal overflow.
 
@@ -101,7 +103,7 @@ Runtime enforcement layers:
 - `timesheet_portal/assets/minimal-controls.js`
 - runtime loading through `timesheet_portal/assets/management.js`
 
-A standard written only in Markdown is **not implementation**.
+A standard written only in Markdown is **not implementation**. Shared components must also be checked for visual equivalence: geometry, shape, icon weight, shadow/focus, placement and mobile behavior. Matching icon/class names alone are insufficient.
 
 ## 5. Legacy Google migration safety
 
@@ -180,7 +182,7 @@ echo "=== DEPLOYED ==="
 cat ~/merdpos.com/app/beta/.beta_deployed_commit
 ```
 
-The deploy must fail closed on PHP lint, central permission-policy coverage, required migrations/schema checks and other registered release invariants.
+The deploy must fail closed on PHP lint, central permission-policy coverage, required migrations/schema checks and registered runtime-contract invariants. The runtime-contract validator includes the shared Add/Search geometry/wiring contract so a semantic class alone cannot satisfy the release gate.
 
 ## 8. README maintenance — default rule
 
@@ -204,6 +206,7 @@ Before saying a beta change is implemented:
 - UI → JS → endpoint → auth/client context → DB/schema → audit/storage → response/re-render has been checked where applicable;
 - server-side security is authoritative;
 - mobile behavior is covered for user-facing UI;
+- shared UI components are visually equivalent across representative screens, not merely semantically similar;
 - relevant README/context is updated;
 - source lint/validators pass.
 
