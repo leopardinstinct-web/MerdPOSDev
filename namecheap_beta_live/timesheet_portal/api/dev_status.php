@@ -4,17 +4,14 @@ require_once __DIR__ . '/../includes/beta_api.php';
 
 try {
     $user = beta_require_active_user();
-    $role = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? ''));
-    if ($role !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required.'], 403);
-    }
-
     $pdo = portal_db();
+    beta_require_permission($user, 'dev.status', $pdo);
+
     $databaseName = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
     $serverVersion = (string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
     $tables = [
-        'app_migrations', 'clients', 'client_role_authority', 'client_roles', 'dev_client_preferences',
+        'app_migrations', 'clients', 'client_role_authority', 'client_roles', 'client_permission_levels', 'dev_client_preferences',
         'dashboard_layouts', 'dashboard_role_layouts',
         'employees', 'stores', 'employee_store_access', 'employee_store_assignments',
         'employee_hourly_rate_history', 'store_weekly_hours', 'store_shift_start_times',
@@ -42,6 +39,8 @@ try {
         'php_version' => PHP_VERSION,
         'app' => 'MERDPOS beta',
         'branch' => 'namecheap-beta-live',
+        'authorization_model' => 'central_permission_loa_v1',
+        'actor_loa' => (int)($user['authority_level'] ?? 0),
         'tables' => $counts,
     ]);
 } catch (Throwable $e) {
