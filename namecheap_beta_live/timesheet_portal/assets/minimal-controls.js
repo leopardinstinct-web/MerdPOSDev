@@ -10,9 +10,10 @@
   };
 
   function makeAddButton(button,label){
-    if(!button||button.dataset.minimalAdd==='1')return;
-    const text=String(label||button.textContent||'Add').replace(/^\s*\+\s*/,'').trim()||'Add';
+    if(!button)return;
+    const text=String(label||button.getAttribute('aria-label')||button.textContent||'Add').replace(/^\s*\+\s*/,'').trim()||'Add';
     button.dataset.minimalAdd='1';
+    button.dataset.merdActionPrimitive='add';
     button.classList.add('merd-icon-action','merd-add-action');
     button.setAttribute('aria-label',text);
     button.setAttribute('title',text);
@@ -38,14 +39,20 @@
   }
 
   function makeSearch(wrapper){
-    if(!wrapper||wrapper.dataset.minimalSearch==='1')return;
+    if(!wrapper)return;
     const input=wrapper.querySelector('input[type="search"]');
     if(!input)return;
     wrapper.dataset.minimalSearch='1';
+    wrapper.dataset.merdActionPrimitive='search';
     wrapper.dataset.searchOpen=String(input.value||'').trim()!==''?'1':'0';
     wrapper.classList.add('merd-collapsible-search');
     if(wrapper.dataset.searchOpen==='1')wrapper.classList.add('is-open');
-    wrapper.setAttribute('title',wrapper.getAttribute('aria-label')||'Search');
+    const label=wrapper.getAttribute('aria-label')||input.getAttribute('aria-label')||input.placeholder||'Search';
+    wrapper.setAttribute('aria-label',label);
+    wrapper.setAttribute('title',label);
+
+    if(wrapper.dataset.minimalSearchBound==='1')return;
+    wrapper.dataset.minimalSearchBound='1';
 
     wrapper.addEventListener('click',event=>{
       if(event.target===input)return;
@@ -70,16 +77,44 @@
     input.addEventListener('blur',()=>window.setTimeout(()=>closeSearch(wrapper,input),120));
   }
 
+  function clusterSearchAndAdd(input){
+    const wrapper=searchWrapperFromInput(input);
+    if(!wrapper)return;
+    const parent=wrapper.parentElement;
+    if(!parent)return;
+    const addButton=parent.querySelector(':scope > .merd-add-action');
+    if(!addButton)return;
+
+    parent.classList.add('merd-action-cluster');
+    parent.dataset.merdActionCluster='search-add';
+
+    // Canonical order is Search then Add. Current MERDPOS toolbars already use
+    // this order, but enforce it for future modules without creating new nodes.
+    if(wrapper.nextElementSibling!==addButton){
+      parent.insertBefore(wrapper,addButton);
+    }
+  }
+
+  function normalizeDashboardAdd(root=document){
+    const buttons=[];
+    if(root.matches?.('.dashboard-add-button'))buttons.push(root);
+    root.querySelectorAll?.('.dashboard-add-button').forEach(button=>buttons.push(button));
+    buttons.forEach(button=>makeAddButton(button,'Add widget'));
+  }
+
   function apply(root=document){
     Object.entries(labels).forEach(([id,label])=>{
       const button=(root.getElementById?root.getElementById(id):null)||document.getElementById(id);
       makeAddButton(button,label);
     });
 
+    normalizeDashboardAdd(root);
+
     const inputs=[];
     if(root.matches?.('input[type="search"]'))inputs.push(root);
     root.querySelectorAll?.('input[type="search"]').forEach(input=>inputs.push(input));
     inputs.forEach(input=>makeSearch(searchWrapperFromInput(input)));
+    inputs.forEach(clusterSearchAndAdd);
   }
 
   let scheduled=false;
@@ -92,9 +127,8 @@
   apply(document);
   document.addEventListener('DOMContentLoaded',()=>apply(document),{once:true});
 
-  // New Client/Role controls are rendered dynamically. This observer never
-  // reparents or appends observed nodes; it only applies idempotent classes and
-  // accessibility attributes, avoiding the recursive mutation bug seen before.
+  // Dynamic Client/Role/Dashboard controls are normalized idempotently. The
+  // observer never fabricates feature UI; it only applies the shared primitive.
   const observer=new MutationObserver(mutations=>{
     if(mutations.some(m=>m.addedNodes&&m.addedNodes.length))scheduleApply();
   });
