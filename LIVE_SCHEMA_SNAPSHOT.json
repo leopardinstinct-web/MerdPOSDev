@@ -1485,6 +1485,21 @@
                     ]
                 },
                 {
+                    "name": "uq_client_roles_client_id",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
                     "name": "uq_client_role_key",
                     "unique": true,
                     "type": "BTREE",
@@ -1981,6 +1996,14 @@
                 },
                 {
                     "constraint": "fk_dashboard_role_role",
+                    "column": "client_id",
+                    "references_table": "client_roles",
+                    "references_column": "client_id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_dashboard_role_role",
                     "column": "role_id",
                     "references_table": "client_roles",
                     "references_column": "id",
@@ -2441,6 +2464,14 @@
                     "column": "store_id",
                     "references_table": "stores",
                     "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_employees_client_role",
+                    "column": "client_id",
+                    "references_table": "client_roles",
+                    "references_column": "client_id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "RESTRICT"
                 },
