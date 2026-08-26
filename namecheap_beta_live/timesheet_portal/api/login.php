@@ -85,6 +85,29 @@ try {
     ];
 
     login_user($user);
+
+    // DEV working-client context is a preference, not the authentication tenant.
+    // Restore the last valid selection after the authenticated session identity
+    // has been established. Non-DEV roles always remain on their home client.
+    if ($actualRole === 'DEV') {
+        try {
+            $pref = $pdo->prepare(
+                'SELECT p.selected_client_id FROM dev_client_preferences p '
+                . 'INNER JOIN clients c ON c.id=p.selected_client_id '
+                . 'WHERE p.employee_id=? AND p.auth_client_id=? LIMIT 1'
+            );
+            $pref->execute([(int)$employee['id'], (int)$employee['client_id']]);
+            $selectedClientId = (int)($pref->fetchColumn() ?: 0);
+            if ($selectedClientId > 0) {
+                set_dev_active_client_id($selectedClientId);
+                $user['active_client_id'] = $selectedClientId;
+            }
+        } catch (Throwable $preferenceError) {
+            // Login must remain available if a preference row is unavailable.
+            error_log('MERDPOS DEV client preference restore failed: ' . get_class($preferenceError));
+        }
+    }
+
     start_app_session();
     $next = isset($_SESSION['pending_qr']) ? 'scan.php' : 'dashboard.php';
     json_response(['success' => true, 'user' => $user, 'next' => $next]);
