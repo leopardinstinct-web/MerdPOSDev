@@ -38,8 +38,11 @@ All user-facing beta features follow `docs/pos_latest/GUI_STANDARD.md`.
 
 Current binding interaction rules include:
 
-- Add Store / Employee / Client / Role and equivalent list-level create actions use a circular `+` control only;
-- list search begins as a circular magnifier and expands on click/tap;
+- Dashboard Add and Add Store / Employee / Client / Role use the **same** circular `+` runtime primitive;
+- desktop Add/Search diameter is 46px; tablet/phone is 48px;
+- list search begins as the same-diameter circular magnifier and expands on click/tap;
+- whenever Search and Add coexist they are adjacent on the right in one action cluster: `Search` then `+`;
+- feature-local `.primary-btn`/`.compact-btn` styling must not turn the shared `+` into a rounded square;
 - mobile/tablet interactive targets are at least 48px;
 - forms collapse cleanly to one column;
 - dialogs remain inside the dynamic viewport;
@@ -52,7 +55,7 @@ Runtime layers include:
 - `assets/minimal-controls.js`
 - `assets/management.js` runtime loading/wiring
 
-A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented.
+A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually equivalent across representative screens; matching icon/class names alone is not verification.
 
 ## Timesheet/payroll behavior — frozen
 
@@ -128,7 +131,7 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `assets/roles.js` — roles/permission policy UI
 - `assets/client.js` — client and migration UI
 - `assets/ui-standard.css` — global GUI/mobile standard
-- `assets/minimal-controls.*` — circular Add and expandable Search standard
+- `assets/minimal-controls.*` — canonical circular Add, expandable Search and Search+Add cluster
 
 ## Deployment
 
