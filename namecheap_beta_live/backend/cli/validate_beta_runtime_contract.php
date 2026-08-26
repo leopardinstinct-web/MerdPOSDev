@@ -25,24 +25,39 @@ function beta_contract_require_contains(string $content, string $needle, string 
     }
 }
 
+function beta_contract_require_absent(string $content, string $needle, string $label, array &$errors): void
+{
+    if (str_contains($content, $needle)) {
+        $errors[] = $label . ' still contains retired/forbidden runtime ownership: `' . $needle . '`.';
+    }
+}
+
 $rootReadme = beta_contract_read($repo . '/namecheap_beta_live/README.md', $errors);
 $backendReadme = beta_contract_read($repo . '/namecheap_beta_live/backend/README.md', $errors);
 $portalReadme = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/README.md', $errors);
 $projectContext = beta_contract_read($repo . '/docs/pos_latest/PROJECT_CONTEXT.md', $errors);
 $guiStandard = beta_contract_read($repo . '/docs/pos_latest/GUI_STANDARD.md', $errors);
 $newChat = beta_contract_read($repo . '/docs/pos_latest/NEW_CHAT_STARTER_PROMPT.md', $errors);
+
 $management = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/management.js', $errors);
 $dashboard = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/dashboard.php', $errors);
+$login = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/index.php', $errors);
+$scan = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/scan.php', $errors);
 $htaccess = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/.htaccess', $errors);
+
+$tokens = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/design-tokens.css', $errors);
+$designSystem = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/design-system.css', $errors);
+$designAudit = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/design-audit.js', $errors);
+$shellCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/shell.css', $errors);
+$appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/app-ui.css', $errors);
+$dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
+$minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
+$mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
+
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
-$minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
-$minimalCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.css', $errors);
-$mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
-$mobileCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-hardening.css', $errors);
 
-// Project scope is beta-only by default. A future context refresh must not
-// silently redirect vague project prompts toward main/legacy/Flutter targets.
+// Beta-only project scope cannot silently regress.
 foreach ([
     'root beta README' => $rootReadme,
     'project context' => $projectContext,
@@ -53,7 +68,7 @@ foreach ([
     beta_contract_require_contains($content, 'explicitly', $label . ' non-beta opt-out rule', $errors);
 }
 
-// Implementation-state discipline must exist in the root/context/readme entry points.
+// Implementation-state discipline and README maintenance remain release rules.
 foreach ([
     'root beta README' => $rootReadme,
     'project context' => $projectContext,
@@ -64,64 +79,124 @@ foreach ([
     beta_contract_require_contains($content, 'WIRED', $label, $errors);
     beta_contract_require_contains($content, 'VERIFIED', $label, $errors);
 }
-
-// README files are mandatory beta artifacts, not optional cleanup.
 beta_contract_require_contains($rootReadme, 'README maintenance', 'root beta README', $errors);
 beta_contract_require_contains($backendReadme, 'README maintenance', 'backend README', $errors);
 beta_contract_require_contains($portalReadme, 'README maintenance', 'portal README', $errors);
 
-// Global minimal-control standard must be BOTH documented and actually loaded.
-beta_contract_require_contains($guiStandard, 'circular `+`', 'GUI standard Add rule', $errors);
-beta_contract_require_contains($guiStandard, 'circular magnifier', 'GUI standard Search rule', $errors);
-beta_contract_require_contains($guiStandard, 'right-aligned action cluster', 'GUI standard Search+Add placement', $errors);
-beta_contract_require_contains($guiStandard, 'Visual-equivalence rule', 'GUI standard visual equivalence', $errors);
-beta_contract_require_contains($management, 'assets/minimal-controls.css?v=20260826b', 'management runtime minimal-control CSS', $errors);
-beta_contract_require_contains($management, 'assets/minimal-controls.js?v=20260826b', 'management runtime minimal-control JS', $errors);
-beta_contract_require_contains($management, 'assets/ui-standard.css', 'management runtime UI standard', $errors);
-
-foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {
-    beta_contract_require_contains($minimalJs, $id, 'minimal Add control implementation', $errors);
+// Canonical design-system ownership.
+foreach ([
+    '--color-brand-primary' => 'semantic brand token',
+    '--color-bg-main' => 'semantic background token',
+    '--color-text-primary' => 'semantic text token',
+    '--space-4' => 'spacing scale',
+    '--type-lg' => 'modular typography scale',
+    '--size-touch: 3rem' => '48px touch token',
+    '--size-icon-action: 2.875rem' => '46px desktop action token',
+    ':root[data-theme="dark"]' => 'dark semantic pair',
+] as $needle => $label) {
+    beta_contract_require_contains($tokens, $needle, $label, $errors);
 }
-beta_contract_require_contains($minimalJs, '.dashboard-add-button', 'Dashboard Add primitive normalization', $errors);
-beta_contract_require_contains($minimalJs, "makeAddButton(button,'Add widget')", 'Dashboard Add primitive normalization', $errors);
-beta_contract_require_contains($minimalJs, 'clusterSearchAndAdd', 'Search+Add runtime clustering', $errors);
-beta_contract_require_contains($minimalJs, "parent.classList.add('merd-action-cluster')", 'Search+Add runtime clustering', $errors);
 
-beta_contract_require_contains($minimalCss, '--merd-action-diameter:46px', 'canonical action diameter', $errors);
-beta_contract_require_contains($minimalCss, '.merd-shell button.merd-icon-action', 'high-specificity Add geometry', $errors);
-beta_contract_require_contains($minimalCss, 'border-radius:50%!important', 'canonical true-circle geometry', $errors);
-beta_contract_require_contains($minimalCss, '.merd-shell .dashboard-add-button.merd-icon-action', 'Dashboard Add shared CSS primitive', $errors);
-beta_contract_require_contains($minimalCss, '.merd-shell .merd-collapsible-search', 'minimal Search control CSS', $errors);
-beta_contract_require_contains($minimalCss, '.merd-shell .merd-action-cluster', 'Search+Add placement CSS', $errors);
-beta_contract_require_contains($minimalCss, 'justify-content:flex-end!important', 'right-aligned action cluster', $errors);
+foreach ([
+    '.merd-collapsible-search' => 'canonical Search primitive',
+    '.merd-action-cluster' => 'Search/Add placement',
+    'button.merd-icon-action' => 'canonical Add primitive',
+    'table-scroll' => 'table overflow contract',
+    'dialog.portal-dialog' => 'dialog contract',
+    ':focus-visible' => 'focus visibility contract',
+    '@media (max-width: 51.25rem)' => 'mobile component contract',
+] as $needle => $label) {
+    beta_contract_require_contains($designSystem, $needle, $label, $errors);
+}
 
-// Mobile readiness is a runtime capability, not a responsive CSS claim. The
-// cross-feature mobile layer must be present and wired, and must cover the
-// specific failure classes found in live beta use.
-beta_contract_require_contains($management, 'assets/mobile-hardening.css?v=20260826a', 'management mobile hardening CSS', $errors);
-beta_contract_require_contains($management, 'assets/mobile-runtime.js?v=20260826a', 'management mobile runtime JS', $errors);
-beta_contract_require_contains($mobileCss, '--merd-mobile-topbar-h', 'mobile stable topbar token', $errors);
-beta_contract_require_contains($mobileCss, 'body.merd-keyboard-open .app-rail', 'mobile keyboard/nav protection', $errors);
-beta_contract_require_contains($mobileCss, 'dialog.portal-dialog > form', 'mobile dialog form scrolling', $errors);
-beta_contract_require_contains($mobileCss, '.client-row-actions', 'mobile client row action placement', $errors);
-beta_contract_require_contains($mobileCss, '.dashboard-widget-drawer', 'mobile dashboard drawer layer', $errors);
-beta_contract_require_contains($mobileJs, 'visualViewport', 'mobile visual viewport handling', $errors);
-beta_contract_require_contains($mobileJs, 'installDialogFallback', 'mobile dialog fallback', $errors);
-beta_contract_require_contains($mobileJs, 'moveDashboardWidget', 'mobile dashboard reorder parity', $errors);
-beta_contract_require_contains($mobileJs, 'MERDPOSMobileRuntime', 'mobile runtime public audit hook', $errors);
-beta_contract_require_contains($mobileJs, 'small-touch-target', 'mobile runtime touch-target audit', $errors);
-beta_contract_require_contains($mobileJs, 'page-horizontal-overflow', 'mobile runtime overflow audit', $errors);
+// Shared structural files consume tokens and must not recreate their own root palettes.
+beta_contract_require_contains($shellCss, 'var(--color-nav-bg)', 'shell token consumption', $errors);
+beta_contract_require_absent($shellCss, '--shell-rail:#', 'shell duplicate palette', $errors);
+beta_contract_require_contains($appUiCss, 'var(--color-border-subtle)', 'feature layout token consumption', $errors);
+beta_contract_require_absent($appUiCss, '--ui-bg:', 'feature duplicate palette', $errors);
+beta_contract_require_contains($dashboardCss, 'var(--color-bg-main)', 'dashboard token consumption', $errors);
 
-// Shared cross-portal UI contract assets must revalidate rather than remain stale.
-foreach (['minimal-controls\\.js','minimal-controls\\.css','ui-standard\\.css','management\\.js','mobile-runtime\\.js','mobile-hardening\\.css'] as $assetNeedle) {
+// Runtime loads one canonical visual layer; old corrective CSS layers are retired.
+foreach ([
+    'assets/design-tokens.css?v=20260826ds1',
+    'assets/design-system.css?v=20260826ds1',
+    'assets/design-audit.js?v=20260826ds1',
+    'assets/minimal-controls.js?v=20260826ds1',
+    'assets/mobile-runtime.js?v=20260826ds1',
+] as $asset) {
+    beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
+}
+foreach ([
+    'assets/apple-principles.css',
+    'assets/ui-standard.css',
+    'assets/minimal-controls.css',
+    'assets/mobile-hardening.css',
+    'assets/omnichannel-identity.css',
+] as $retiredAsset) {
+    beta_contract_require_absent($management, $retiredAsset, 'retired competing CSS layer', $errors);
+}
+
+// Add/Search behavior is shared rather than feature-local.
+foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {
+    beta_contract_require_contains($minimalJs, $id, 'minimal Add behavior', $errors);
+}
+beta_contract_require_contains($minimalJs, '.dashboard-add-button', 'Dashboard Add normalization', $errors);
+beta_contract_require_contains($minimalJs, 'clusterSearchAndAdd', 'Search/Add runtime clustering', $errors);
+
+// Mobile functionality remains runtime-tested, not CSS-only.
+foreach ([
+    'visualViewport' => 'mobile visual viewport handling',
+    'installDialogFallback' => 'mobile dialog fallback',
+    'moveDashboardWidget' => 'mobile dashboard reorder parity',
+    'MERDPOSMobileRuntime' => 'mobile runtime hook',
+    'small-touch-target' => 'mobile touch-target audit',
+    'page-horizontal-overflow' => 'mobile overflow audit',
+] as $needle => $label) {
+    beta_contract_require_contains($mobileJs, $needle, $label, $errors);
+}
+
+// Runtime visual/semantic audit catches contextual failures after composition.
+foreach ([
+    'normalizeHeadingSemantics' => 'heading normalizer',
+    'heading:h1-count' => 'single-H1 audit',
+    'heading:skipped' => 'heading nesting audit',
+    'placement:search-add-height' => 'Search/Add geometry audit',
+    'touch:under-44' => 'touch target audit',
+    'contrastRatio' => 'WCAG contrast audit',
+    'layout:page-horizontal-overflow' => 'page overflow audit',
+    'a11y:missing-name' => 'accessible-name audit',
+] as $needle => $label) {
+    beta_contract_require_contains($designAudit, $needle, $label, $errors);
+}
+
+// Entry pages must use the same canonical design system and contain one H1.
+foreach (['login' => $login, 'attendance scan' => $scan] as $label => $content) {
+    beta_contract_require_contains($content, 'assets/design-system.css?v=20260826ds1', $label . ' design-system load', $errors);
+    if (preg_match_all('/<h1\b/i', $content) !== 1) {
+        $errors[] = $label . ' must contain exactly one H1 in source.';
+    }
+}
+
+// Portal heading model is one application H1 + panel H2 + nested H3.
+beta_contract_require_contains($designAudit, "appTitle.id = 'merdApplicationTitle'", 'portal application H1', $errors);
+beta_contract_require_contains($designAudit, "replaceTag(heading, 'h2')", 'portal hero H2 normalization', $errors);
+beta_contract_require_contains($designAudit, "replaceTag(heading, 'h3')", 'portal card/widget H3 normalization', $errors);
+
+// Shared contract assets must revalidate after deploy.
+foreach ([
+    'management\\.js',
+    'design-tokens\\.css',
+    'design-system\\.css',
+    'design-audit\\.js',
+    'minimal-controls\\.js',
+    'mobile-runtime\\.js',
+    'shell\\.css',
+] as $assetNeedle) {
     beta_contract_require_contains($htaccess, $assetNeedle, 'shared UI cache revalidation', $errors);
 }
 beta_contract_require_contains($htaccess, 'Cache-Control "no-cache, must-revalidate"', 'shared UI cache revalidation', $errors);
 
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260826minimal1', 'dashboard management loader cache key', $errors);
-
-// Known legacy Google workbooks must use deterministic contracts, not generic
-// score-based header guessing in the migration execution path.
+// Known Google migration contracts remain fail-closed and deterministic.
 beta_contract_require_contains($orchestrator, "require_once __DIR__ . '/legacy_known_fetch.php';", 'legacy migration deterministic reader', $errors);
 beta_contract_require_contains($orchestrator, 'legacy_fetch_sources_known($sources)', 'legacy migration deterministic fetch call', $errors);
 foreach (['timesheet','payrate','start_time','employee_setup','general_ledger','zreport_ledger'] as $schema) {
@@ -140,4 +215,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical Add/Search controls, mobile viewport/dialog/navigation/dashboard hardening, runtime mobile self-audit, shared UI cache revalidation, README contract, and deterministic legacy Sheet reader are present.\n";
+echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical tokens/component ownership, modular headings, shared Add/Search placement, mobile runtime parity, contextual visual/a11y audit, cache revalidation, README contract, and deterministic legacy Sheet reader are wired.\n";
