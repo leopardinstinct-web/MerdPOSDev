@@ -99,9 +99,28 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
         $c = $validated['counts'];
         $apply = ['inserted'=>0,'updated'=>0,'unchanged'=>0,'conflict'=>0,'rejected'=>$c['rejected'],'warning'=>$c['warning']];
         $retiredOutbox = 0;
+
         if ($mode !== 'preview') {
-            legacy_apply_items_known($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
-            $retiredOutbox = legacy_neutralize_financial_outbox($pdo,$clientId,$batchId);
+            // Operational application is atomic. Staging/audit remains outside
+            // this transaction so a failed apply still leaves a diagnostic batch,
+            // while employee/attendance/finance operational data either all lands
+            // together or none of it does.
+            $pdo->beginTransaction();
+            try {
+                legacy_apply_items_known($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
+                $retiredOutbox = legacy_neutralize_financial_outbox($pdo,$clientId,$batchId);
+                if ((int)$apply['conflict'] > 0) {
+                    $pdo->rollBack();
+                    $apply['inserted'] = 0;
+                    $apply['updated'] = 0;
+                    $apply['unchanged'] = 0;
+                } else {
+                    $pdo->commit();
+                }
+            } catch (Throwable $applyError) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                throw $applyError;
+            }
         }
 
         $summary = legacy_batch_summary($pdo,$batchId);
@@ -137,6 +156,7 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             'historical_finance_outbox_retired'=>$retiredOutbox,'summary'=>$summary,
         ];
     } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $pdo->prepare("UPDATE legacy_migration_batches SET status='failed',error_message=?,finished_at=UTC_TIMESTAMP() WHERE id=?")
             ->execute([substr($e->getMessage(),0,1000),$batchId]);
         throw $e;
