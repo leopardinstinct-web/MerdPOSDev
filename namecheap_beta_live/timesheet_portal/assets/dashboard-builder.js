@@ -21,7 +21,7 @@
     my_disputes:{title:'My open disputes',desc:'Your pending attendance corrections.',w:4,h:3,minW:3,minH:2,maxW:6,maxH:5},
   };
 
-  const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
   let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null;
 
@@ -167,16 +167,19 @@
     if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)} · LOA ${Number(r.authority_level)}</option>`).join('');roleSelect.value=String(currentRoleId);}
   }
 
+  async function loadData(roleId=currentRoleId){
+    try{const suffix=roleId?`?role_id=${Number(roleId)}&_=${Date.now()}`:`?_=${Date.now()}`;data=await json('api/dashboard_data.php'+suffix,{headers:{'Accept':'application/json'}});renderCanvas();}
+    catch(error){showSave(error.message,true);data=null;renderCanvas();}
+  }
+
   async function loadRole(roleId=null,animate=true){
-    const previous=layoutApi?.selected_role||{},previousLoa=Number(previous.authority_level||0);const url='api/dashboard_layout.php'+(roleId?`?role_id=${Number(roleId)}`:'');
+    const previous=layoutApi?.selected_role||{},previousLoa=Number(previous.authority_level||0),url='api/dashboard_layout.php'+(roleId?`?role_id=${Number(roleId)}`:'');
     try{
       if(animate&&layoutApi){const target=(layoutApi.roles||[]).find(r=>Number(r.id)===Number(roleId)),dir=Number(target?.authority_level||0)>=previousLoa?'left':'right';canvas.classList.add(`role-slide-out-${dir}`);await new Promise(r=>setTimeout(r,150));canvas.className='dashboard-canvas';}
-      layoutApi=await json(url,{headers:{'Accept':'application/json'}});layout=(layoutApi.layout||[]).map(normalized);renderRolebar();renderCanvas();
+      layoutApi=await json(url,{headers:{'Accept':'application/json'}});layout=(layoutApi.layout||[]).map(normalized);renderRolebar();data=null;renderCanvas();await loadData(currentRoleId);
       if(animate&&previous.id){const dir=Number(layoutApi.selected_role?.authority_level||0)>=previousLoa?'right':'left';canvas.classList.add(`role-slide-in-${dir}`);requestAnimationFrame(()=>requestAnimationFrame(()=>canvas.classList.remove(`role-slide-in-${dir}`)));}
     }catch(error){canvas.innerHTML=`<div class="dashboard-empty-widget">${esc(error.message)}</div>`;showSave(error.message,true);}
   }
-
-  async function loadData(){try{data=await json('api/beta_state.php?_='+Date.now(),{headers:{'Accept':'application/json'}});renderCanvas();}catch(error){showSave(error.message,true);}}
 
   function toggleDrawer(force=null){if(!layoutApi?.can_edit)return;const open=force===null?!drawer.classList.contains('open'):!!force;drawer.classList.toggle('open',open);drawer.setAttribute('aria-hidden',open?'false':'true');addButton.setAttribute('aria-expanded',open?'true':'false');if(open)renderCatalog();}
 
@@ -186,8 +189,8 @@
   resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
   document.addEventListener('pointerdown',event=>{if(drawer.classList.contains('open')&&!drawer.contains(event.target)&&!addButton.contains(event.target))toggleDrawer(false);});
 
-  window.MERDPOSDashboardBuilder={reloadRoles:async()=>{const selected=currentRoleId;await loadRole(selected,false);},refreshData:loadData};
+  window.MERDPOSDashboardBuilder={reloadRoles:async()=>{const selected=currentRoleId;await loadRole(selected,false);},refreshData:()=>loadData(currentRoleId)};
 
-  Promise.all([loadRole(null,false),loadData()]);
-  window.setInterval(loadData,60000);
+  loadRole(null,false);
+  window.setInterval(()=>loadData(currentRoleId),60000);
 })();
