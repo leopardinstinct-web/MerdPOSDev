@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 37,
+    "table_count": 39,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -1362,6 +1362,156 @@
             "foreign_keys": []
         },
         {
+            "name": "client_roles",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_key",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_label",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "base_role",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(16)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "authority_level",
+                    "position": 6,
+                    "data_type": "smallint",
+                    "column_type": "smallint(5) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "is_system",
+                    "position": 7,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 8,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_client_role_authority",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "authority_level",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_client_role_key",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "role_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_client_roles_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
             "name": "client_role_authority",
             "type": "BASE TABLE",
             "engine": "InnoDB",
@@ -1667,6 +1817,172 @@
                     "constraint": "fk_dashboard_employee",
                     "column": "employee_id",
                     "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "dashboard_role_layouts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "widget_key",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "grid_x",
+                    "position": 5,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_y",
+                    "position": 6,
+                    "data_type": "smallint",
+                    "column_type": "smallint(5) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_w",
+                    "position": 7,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "4",
+                    "extra": ""
+                },
+                {
+                    "name": "grid_h",
+                    "position": 8,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "3",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_dashboard_role_context",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "role_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "grid_y",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "grid_x",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_dashboard_role_widget",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "role_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "widget_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_dashboard_role_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_dashboard_role_role",
+                    "column": "role_id",
+                    "references_table": "client_roles",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "CASCADE"
@@ -2025,8 +2341,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "hourly_rate",
+                    "name": "client_role_id",
                     "position": 10,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "hourly_rate",
+                    "position": 11,
                     "data_type": "decimal",
                     "column_type": "decimal(10,2)",
                     "nullable": true,
@@ -2035,7 +2360,7 @@
                 },
                 {
                     "name": "status",
-                    "position": 11,
+                    "position": 12,
                     "data_type": "enum",
                     "column_type": "enum('active','inactive')",
                     "nullable": true,
@@ -2044,7 +2369,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 12,
+                    "position": 13,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": true,
@@ -2054,12 +2379,27 @@
             ],
             "indexes": [
                 {
-                    "name": "client_id",
+                    "name": "fk_employees_client_role",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_role_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_employees_client_role",
                     "unique": false,
                     "type": "BTREE",
                     "columns": [
                         {
                             "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "client_role_id",
                             "prefix_length": null
                         }
                     ]
@@ -2100,6 +2440,14 @@
                     "constraint": "employees_ibfk_2",
                     "column": "store_id",
                     "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_employees_client_role",
+                    "column": "client_role_id",
+                    "references_table": "client_roles",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "RESTRICT"
