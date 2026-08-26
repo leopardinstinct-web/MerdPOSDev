@@ -10,71 +10,56 @@ function client_context_role(array $user): string
 
 function client_context_state(PDO $pdo, array $user): array
 {
+    $role = client_context_role($user);
     $activeClientId = (int)$user['client_id'];
     $homeClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
 
-    $clientsStmt = $pdo->query(
-        'SELECT id,name,client_code,status,created_at FROM clients ORDER BY id ASC'
-    );
-    $clients = $clientsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $client = null;
-    foreach ($clients as $row) {
-        if ((int)$row['id'] === $activeClientId) {
-            $client = $row;
-            break;
-        }
-    }
+    $clientStmt = $pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1');
+    $clientStmt->execute([$activeClientId]);
+    $client = $clientStmt->fetch(PDO::FETCH_ASSOC);
     if (!is_array($client)) {
         throw new MerdWorkforceException('client_not_found', 'Selected client record not found.');
     }
 
-    // Client -> Account is a client-facing summary of the same store records used
-    // by Operations -> Stores. Include the persisted logo path so both screens
-    // render the same store identity instead of falling back to a generic icon.
-    $storesStmt = $pdo->prepare(
-        'SELECT id,store_name,store_code,status,logo_path FROM stores WHERE client_id=? ORDER BY id ASC'
-    );
-    $storesStmt->execute([$activeClientId]);
-    $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $employeeCountStmt = $pdo->prepare('SELECT COUNT(*) FROM employees WHERE client_id=?');
-    $employeeCountStmt->execute([$activeClientId]);
-
-    $activeEmployeeCountStmt = $pdo->prepare("SELECT COUNT(*) FROM employees WHERE client_id=? AND status='active'");
-    $activeEmployeeCountStmt->execute([$activeClientId]);
-
-    $deviceCountStmt = $pdo->prepare('SELECT COUNT(*) FROM devices WHERE client_id=?');
-    $deviceCountStmt->execute([$activeClientId]);
+    $clients = [];
+    if ($role === 'DEV') {
+        $clients = $pdo->query('SELECT id,name,client_code,status FROM clients ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     return [
         'success' => true,
         'csrf' => csrf_token(),
+        'role' => $role,
+        'can_select_client' => $role === 'DEV',
         'client' => $client,
         'clients' => $clients,
         'active_client_id' => $activeClientId,
         'home_client_id' => $homeClientId,
-        'cross_client_context' => $activeClientId !== $homeClientId,
-        'stores' => $stores,
-        'counts' => [
-            'stores' => count($stores),
-            'employees' => (int)$employeeCountStmt->fetchColumn(),
-            'active_employees' => (int)$activeEmployeeCountStmt->fetchColumn(),
-            'devices' => (int)$deviceCountStmt->fetchColumn(),
-        ],
-        'scope' => 'dev_selected_client',
+        'cross_client_context' => $role === 'DEV' && $activeClientId !== $homeClientId,
+        'scope' => $role === 'DEV' ? 'dev_selected_client' : 'authenticated_client',
     ];
+}
+
+function client_context_persist(PDO $pdo, array $user, int $selectedClientId): void
+{
+    $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
+    $stmt = $pdo->prepare(
+        'INSERT INTO dev_client_preferences (employee_id,auth_client_id,selected_client_id) VALUES (?,?,?) '
+        . 'ON DUPLICATE KEY UPDATE auth_client_id=VALUES(auth_client_id),selected_client_id=VALUES(selected_client_id),updated_at=CURRENT_TIMESTAMP'
+    );
+    $stmt->execute([(int)$user['id'], $authClientId, $selectedClientId]);
 }
 
 try {
     $user = beta_require_active_user();
-    if (client_context_role($user) !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required.'], 403);
-    }
-
     $pdo = portal_db();
+    $role = client_context_role($user);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        if ($role !== 'DEV') {
+            json_response(['success' => false, 'error' => 'Only DEV can switch the working client.'], 403);
+        }
+
         $input = request_input();
         require_csrf($input);
         if ((string)($input['action'] ?? '') !== 'select_client') {
@@ -90,6 +75,15 @@ try {
         $check->execute([(int)$clientId]);
         if (!$check->fetchColumn()) {
             throw new MerdWorkforceException('client_not_found', 'Client not found.');
+        }
+
+        $pdo->beginTransaction();
+        try {
+            client_context_persist($pdo, $user, (int)$clientId);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
         }
 
         set_dev_active_client_id((int)$clientId);
