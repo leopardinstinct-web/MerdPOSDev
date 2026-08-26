@@ -65,7 +65,7 @@ Canonical runtime layers are:
 - `assets/mobile-runtime.js` — mobile viewport, keyboard-state detection, dialog compatibility, Dashboard mobile editing and structural runtime audit;
 - `assets/navigation.js` — authoritative primary/contextual navigation state, including whether a mobile contextual subnav is open;
 - `assets/design-audit.js` — runtime heading, accessibility, Search/Add geometry, touch-target, overflow and contrast checks;
-- `assets/management.js` — runtime loading/wiring;
+- `assets/management.js` — runtime loading/wiring; dynamically inserted classic scripts are forced to execute in insertion order so dependency-sensitive modules such as Roles mount before Navigation;
 - `.htaccess` — cache revalidation for shared cross-portal UI contract assets.
 
 Retired corrective styling layers must not be reloaded by the beta runtime: `ui-standard.css`, `minimal-controls.css`, `mobile-hardening.css`, `apple-principles.css` and `omnichannel-identity.css`.
@@ -145,7 +145,7 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `includes/beta_api.php` — live authorization refresh and fail-closed route policy;
 - `includes/timesheet_logic.php` — frozen timesheet reconciliation;
 - `includes/legacy_migration*.php` — legacy source fetch/staging/reconciliation;
-- `assets/management.js` — shared runtime module loader/management behavior;
+- `assets/management.js` — shared runtime module loader/management behavior with deterministic dynamic-script execution order;
 - `assets/directory.js` — Store/Workforce admin behavior;
 - `assets/roles.js` — Roles/Permission Policy behavior only;
 - `assets/client.js` — Client and Legacy Migration behavior only;
