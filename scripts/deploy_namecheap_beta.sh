@@ -63,6 +63,7 @@ php "$LIVE/backend/cli/apply_026_store_code_uniqueness.php"
 php "$LIVE/backend/cli/apply_027_store_profile_defaults.php"
 php "$LIVE/backend/cli/apply_028_client_role_authority.php"
 php "$LIVE/backend/cli/apply_029_dashboard_layouts.php"
+php "$LIVE/backend/cli/apply_030_dev_client_preferences.php"
 
 # Only deploy the portal once validated migrations have succeeded.
 rsync -az \
