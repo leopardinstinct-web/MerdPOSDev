@@ -1,75 +1,97 @@
-/* MERDPOS employee store-access component. Uses the universal app UI tokens. */
+/* MERDPOS employee store-access component — feature composition only. */
+
 .store-access-block {
-  grid-column:1/-1;
-  padding:14px;
-  border:1px solid var(--ui-border);
-  border-radius:13px;
-  background:var(--ui-surface-soft);
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-muted);
 }
-.store-access-block > label { margin:0!important; }
+
 .store-access-heading {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin:12px 0 8px;
-  color:var(--ui-text);
-  font-size:12px;
-  font-weight:650;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
 }
+
 .store-access-heading span:last-child {
-  color:var(--ui-muted);
-  font-size:10px;
-  font-weight:500;
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
 }
+
 .store-choice-grid {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
 }
+
 .store-choice {
-  display:flex!important;
-  align-items:center;
-  gap:9px;
-  min-height:42px;
-  margin:0!important;
-  padding:9px 11px;
-  border:1px solid var(--ui-border-strong);
-  border-radius:10px;
-  background:#fff;
-  color:var(--ui-text)!important;
-  cursor:pointer;
-  font-size:12px!important;
-  font-weight:550!important;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-control);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
 }
-.store-choice:hover { border-color:#AFC5E3; background:var(--ui-blue-soft); }
+
+.store-choice:hover {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 35%, var(--color-border-default));
+  background: var(--color-info-surface);
+}
+
 .store-choice input[type="checkbox"] {
-  width:17px!important;
-  height:17px!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:0!important;
-  accent-color:var(--ui-brand);
-  box-shadow:none!important;
-  flex:0 0 auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-brand-primary);
+  box-shadow: none;
+  flex: 0 0 auto;
 }
+
 .store-choice:has(input:checked) {
-  border-color:#9DB9E1;
-  background:var(--ui-blue-soft);
-  color:var(--ui-brand)!important;
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-border-default));
+  background: var(--color-info-surface);
+  color: var(--color-brand-primary);
 }
+
 .store-access-summary {
-  display:inline-flex;
-  align-items:center;
-  min-height:22px;
-  padding:3px 8px;
-  border-radius:999px;
-  background:var(--ui-blue-soft);
-  color:var(--ui-brand);
-  font-size:10px;
-  font-weight:650;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-info-surface);
+  color: var(--color-info);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
 }
-@media (max-width:620px) {
-  .store-choice-grid { grid-template-columns:1fr; }
-  .store-access-block { padding:12px; }
+
+@media (max-width: 51.25rem) {
+  .store-choice {
+    min-height: var(--size-touch);
+  }
+}
+
+@media (max-width: 35rem) {
+  .store-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .store-access-block {
+    padding: var(--space-3);
+  }
 }
