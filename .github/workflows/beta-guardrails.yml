@@ -49,6 +49,9 @@ jobs:
       - name: Validate portal permission policy
         run: php namecheap_beta_live/backend/cli/validate_portal_permission_policy.php
 
+      - name: Validate portal loader order
+        run: php namecheap_beta_live/backend/cli/validate_portal_loader_order.php
+
       - name: Syntax-check portal JavaScript
         shell: bash
         run: |
