@@ -74,16 +74,54 @@ Rules:
 - Disabled controls must look disabled and remain non-interactive.
 - Keyboard focus must be visible.
 
-## 5. Buttons and actions
+## 5. Minimal toolbar controls — BINDING
+
+Administrative list/toolbars use minimal controls to reduce clutter.
+
+### Add actions
+
+All top-level create actions use one circular `+` button only:
+
+- Add Store
+- Add Employee
+- Add Client
+- Add Role
+- equivalent future top-level `Add ...` actions
+
+The visible control is the `+` icon only. The full action name MUST remain available through `aria-label` and `title`/tooltip, for example `aria-label="Add employee"`.
+
+Desktop target: 40×40px. Mobile/tablet target: 48×48px.
+
+Do not render `+ Add employee`, `+ Add store`, etc. as permanent text buttons in list headers.
+
+### Search
+
+Search controls begin as a circular magnifier icon only. Clicking/tapping the icon expands the search input. Rules:
+
+- empty + unfocused search collapses back to the circle;
+- a non-empty search remains expanded so the active filter is visible;
+- `Escape` clears/collapses the search;
+- mobile expansion uses the available toolbar width;
+- search must remain keyboard accessible and keep an accessible label.
+
+Feature modules MUST use the shared minimal-control behavior rather than creating permanently expanded search bars unless the page's primary purpose is search itself.
+
+Runtime implementation:
+
+- `assets/minimal-controls.css`
+- `assets/minimal-controls.js`
+
+## 6. Buttons and actions
 
 - Use **one primary action per action region**.
 - Secondary actions use the standard secondary style.
 - Destructive/irreversible actions must be visually and textually explicit.
 - Do not make a configuration/save action visually larger than the task requires.
-- Button labels use verbs: `Save sources`, `Preview changes`, `Sync legacy data`, `Add employee`.
-- Do not use icon-only actions when the meaning is not universally obvious; include text or an accessible label.
+- Transactional buttons use clear verbs such as `Save sources`, `Preview changes`, `Sync legacy data`.
+- The circular `+` and magnifier are explicit exceptions to text-button labeling because they are standardized global controls; accessible labels are mandatory.
+- Other icon-only actions require a universally recognizable icon plus an accessible label/tooltip.
 
-## 6. Cards and sections
+## 7. Cards and sections
 
 ```text
 Card radius         14px
@@ -97,7 +135,7 @@ Mobile padding      16px
 - Explanatory copy should sit close to its heading, not halfway to the next field.
 - Nested cards should be used only when the hierarchy is real; avoid card-inside-card decoration.
 
-## 7. Tables
+## 8. Tables
 
 Canonical administrative table:
 
@@ -114,7 +152,7 @@ Canonical administrative table:
 
 Do not create a feature-local table density or tiny 8–10px data text.
 
-## 8. Dialogs
+## 9. Dialogs
 
 Every dialog requires:
 
@@ -128,7 +166,7 @@ Every dialog requires:
 
 Long workflows should use sections inside one task-oriented dialog rather than uncontrolled whitespace.
 
-## 9. Status, validation and feedback
+## 10. Status, validation and feedback
 
 - Never rely on color alone.
 - Success, warning, conflict, rejected and failed states must include text.
@@ -136,15 +174,23 @@ Long workflows should use sections inside one task-oriented dialog rather than u
 - Long-running actions show a disabled/loading state and cannot be double-submitted.
 - For migrations/imports, totals without reasons are insufficient. Rejected/conflict counts must be drillable or summarized by reason.
 
-## 10. Responsive behavior
+## 11. Responsive/mobile behavior — BINDING
+
+Every beta feature is mobile-ready at implementation time, not as a later cleanup task.
 
 - Two-column forms collapse to one column below the shared mobile breakpoint.
 - No decorative empty columns survive responsive collapse.
+- All interactive targets are at least 48px on tablet/phone.
+- Inputs use at least 16px text on phone to prevent browser zoom and preserve readability.
+- Dialogs fit inside the dynamic viewport and keep primary/cancel actions reachable.
+- Tables scroll horizontally inside their own container rather than forcing page-level horizontal scrolling.
+- No control, toolbar or card may be clipped outside the viewport.
+- Expanded search uses available width and the `+` control remains reachable.
 - Buttons may become full-width on narrow screens when this improves touch use.
-- Tables scroll horizontally rather than hiding columns.
-- Modal width is bounded by the viewport with a minimum safe margin.
+- Safe-area inset must be respected for sticky mobile dialog actions.
+- Reduced-motion preferences are respected.
 
-## 11. Feature CSS rule
+## 12. Feature CSS rule
 
 Feature modules may define domain-specific classes, but MUST NOT redefine shared fundamentals without an explicit reason:
 
@@ -154,11 +200,12 @@ Feature modules may define domain-specific classes, but MUST NOT redefine shared
 - table density;
 - focus ring behavior;
 - modal geometry;
-- global spacing scale.
+- global spacing scale;
+- Add/search toolbar interaction.
 
-The runtime `assets/ui-standard.css` is intentionally loaded after feature CSS. If a feature needs an exception, document the reason in the feature scope rather than using escalating `!important` rules to fight the standard.
+The runtime `assets/ui-standard.css` and minimal-control layer are intentionally loaded after feature CSS. If a feature needs an exception, document the reason in the feature scope rather than using escalating `!important` rules to fight the standard.
 
-## 12. Definition of done — UI
+## 13. Definition of done — UI
 
 A beta UI change is not complete until all of the following are checked:
 
@@ -166,16 +213,19 @@ A beta UI change is not complete until all of the following are checked:
 - persistent field labels used;
 - no helper/body text below the minimum readable size;
 - controls use canonical heights/radii;
+- top-level Add action uses the standard circular `+` where applicable;
+- list search uses the standard collapsed magnifier where applicable;
 - primary/secondary/destructive hierarchy is correct;
 - tables use canonical density and numeric alignment;
 - loading/empty/error/success states exist;
-- mobile collapse is intentional;
+- mobile collapse is intentional and tested conceptually at phone/tablet widths;
+- 48px mobile touch targets are preserved;
 - keyboard focus works;
 - no hidden overflow prevents required data access;
 - permission/LOA visibility follows `BETA_AUTHORIZATION_STANDARD.md`;
 - reliability/usability review follows `OMNICHANNEL_IDENTITY_STANDARD.md`;
 - implementation visually checked against at least one existing MERDPOS screen before deployment.
 
-## 13. Current implementation
+## 14. Current implementation
 
-`namecheap_beta_live/timesheet_portal/assets/ui-standard.css` is the binding CSS enforcement layer for the web beta. It is loaded after feature and experience CSS by `management.js` so current modules are normalized as well as future modules.
+`namecheap_beta_live/timesheet_portal/assets/ui-standard.css` is the binding CSS enforcement layer for the web beta. `assets/minimal-controls.css` and `assets/minimal-controls.js` enforce the shared `+` and expandable-search interaction. They are loaded after feature and experience CSS by `management.js` so current modules are normalized as well as future modules.
