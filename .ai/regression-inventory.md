@@ -2,23 +2,23 @@
 
 **Started:** 2026-08-27
 
-This inventory tracks recovery by execution path. Source inspection does not equal live verification.
+This inventory tracks recovery by execution path. Source/CI inspection does not equal live Namecheap verification.
 
-| Path | Current source owner | Source status | Runtime status / next check |
+| Path | Current source owner | Source/CI status | Runtime status / next check |
 |---|---|---|---|
 | Login/session bootstrap | `timesheet_portal/index.php`, `api/login.php`, auth/session includes | Canonical login page and API path present | DEPLOYED/VERIFIED unknown; test valid/invalid login and pending QR redirect on beta |
-| Dashboard load | `dashboard.php`, `assets/beta.js`, `assets/management.js` | Permission-aware panel rendering; management loader active; dynamic script execution is now deterministic | Verify representative USER/management/DEV identities and no console aborts |
-| Shared LOA/permission runtime | `includes/beta_api.php`, `api/beta_state.php`, permission catalogue, `assets/app.js`, `assets/beta.js` | LOA DOM compatibility protected; shared state route now follows consuming feature permission and payload data is permission-scoped | Verify a role with Dashboard denied but Finance or Password allowed can still use the allowed feature without receiving unrelated state data |
+| Dashboard load | `dashboard.php`, `assets/beta.js`, `assets/management.js` | Permission-aware panel rendering; dynamic script execution deterministic; management cards mirror data permissions | Verify representative USER/management/DEV identities and no console aborts |
+| Shared LOA/permission runtime | `includes/beta_api.php`, `api/beta_state.php`, permission catalogue, `assets/app.js`, `assets/beta.js` | LOA DOM compatibility protected; shared state route follows consuming feature; payload data permission-scoped; credential-free Chrome test proves permission-minimal legacy runtime does not page-crash | Verify authenticated role with Dashboard denied but Finance or Password allowed against deployed beta |
 | Dashboard widgets | `assets/dashboard-builder.js`, dashboard APIs | Source contract present; shared loader ordering fixed | Verify add/remove/reorder desktop and mobile |
 | Mobile navigation | `assets/navigation.js`, `assets/shell.css`, `assets/mobile-runtime.js` | Contextual submenu state and mobile audit hooks present | Verify parent-group open behavior, item selection, outside close, safe-area and keyboard behavior on phone |
-| Shared Add/Search | `assets/minimal-controls.js`, `assets/design-system.css` | Latest Add MutationObserver loop fix inspected; source validator checks shared primitives | Verify Dashboard Add + one directory Add/Search pair on desktop and phone |
+| Shared Add/Search | `assets/minimal-controls.js`, `assets/design-system.css`, `browser_tests/shared-runtime.spec.js` | Chrome test proves Add SVG node stability after repeated MutationObserver activity, Search+Add clustering, and exactly one click action | Still verify Dashboard Add + directory Add/Search geometry/touch behavior on desktop and phone |
 | Stores directory | `dashboard.php`, `assets/directory.js`, Stores API routes | Source path present | Verify list/search/add/edit/inactivate with role boundary and mobile dialog reachability |
 | Workforce directory | `dashboard.php`, `assets/directory.js`, Workforce API routes | Source path present | Verify list/search/add/edit, store access, role/LOA controls and pay-rate visibility boundaries |
 | Clients | `assets/navigation.js`, `assets/client.js`, client APIs | DEV-only dynamic mount path present | Verify DEV-only visibility, active client switch/return-panel behavior and non-DEV absence |
-| Roles / Permission Policy | `assets/roles.js`, `api/role_authority.php`, `assets/management.js` | Dynamic role/policy module present; Roles now executes before Navigation deterministically and CI guards the ordering | Verify policy save immediately changes UI/API scope and DEV-only remains locked |
-| Timesheet report | `assets/app.js`, `assets/timesheet-app.js`, `api/weeks.php`, `api/timesheet.php` | Isolated runtime split; load order/cache wiring now validated | Verify current week, week change, report rendering, PDF print route and logout for own/all-timesheet roles |
-| Disputes / attendance flags | `assets/beta.js`, `api/beta_state.php`, `api/disputes.php` | Shared state now omits disputes/flags unless corresponding view/resolve permission exists | Verify own submit/cancel, SUPER review, handover confirmation and flag resolution permission boundaries |
-| Finance | `assets/beta.js`, `api/beta_state.php`, `api/financials.php` | Finance no longer depends on `dashboard.view` merely to obtain shared CSRF/store context; Finance-only store scope is constrained to active clock-in stores unless cross-store permission exists | Verify locked/unlocked store access, open day, queue, cash in/out, close day and offline queue recovery |
+| Roles / Permission Policy | `assets/roles.js`, `api/role_authority.php`, `assets/management.js` | Roles execute before Navigation deterministically and CI guards ordering | Verify policy save immediately changes UI/API scope and DEV-only remains locked |
+| Timesheet report | `assets/app.js`, `assets/timesheet-app.js`, `api/weeks.php`, `api/timesheet.php` | Isolated runtime split; load order/cache wiring validated | Verify current week, week change, report rendering, PDF print route and logout for own/all-timesheet roles |
+| Disputes / attendance flags | `assets/beta.js`, `api/beta_state.php`, `api/disputes.php` | Shared state omits disputes/flags unless corresponding view/resolve permission exists | Verify own submit/cancel, review, handover confirmation and flag resolution permission boundaries |
+| Finance | `assets/beta.js`, `api/beta_state.php`, `api/financials.php`, workforce finance helpers | Finance no longer depends on Dashboard for shared CSRF/store context; Finance-only state store scope is active clock-in stores; backend independently enforces active clock-in unless `finance.cross_store` | Verify locked/unlocked store access, open day, queue, cash in/out, close day and offline queue recovery |
 | Dialogs + software keyboard | shared dialogs, `assets/modal-lock.js`, `assets/mobile-runtime.js` | Mobile-safe locking/fallback is a release invariant | Verify active input/action remains reachable with iOS/Android software keyboard |
 | Legacy Google migration | migration orchestrator/known reader + migration APIs | Deterministic known-sheet contract and fail-closed source checks present | DEV-only runtime verification; Preview must remain non-operational and Sync transactional |
 
@@ -26,16 +26,22 @@ This inventory tracks recovery by execution path. Source inspection does not equ
 
 ### LOA permission runtime crash — 2026-08-26
 
-Protected by `backend/cli/validate_portal_permission_policy.php`:
+Protected by `backend/cli/validate_portal_permission_policy.php` and Chrome smoke coverage:
 
 - legacy direct DOM references that still exist in `beta.js` must retain compatibility shims in `app.js`;
 - Timesheet runtime remains split into `timesheet-app.js`;
 - `dashboard.php` loads `app.js` before `beta.js`;
-- `app.js` / `timesheet-app.js` remain cache-revalidated.
+- `app.js` / `timesheet-app.js` remain cache-revalidated;
+- a permission-minimal DOM can execute `app.js → beta.js` without a browser `pageerror`.
 
 ### Shared Add MutationObserver loop — 2026-08-26
 
-Current `minimal-controls.js` only replaces the Add button markup when the canonical SVG is not already stable. The next browser-smoke layer should explicitly click/tap the shared Add primitive after MutationObserver activity and ensure exactly one action fires.
+Protected in real Chrome by `browser_tests/shared-runtime.spec.js`:
+
+- the canonical Add SVG remains the same DOM node after repeated unrelated DOM mutations;
+- only one canonical Add SVG remains;
+- Search + Add retain the shared action cluster;
+- one click fires exactly one Add action.
 
 ### Dynamic Roles → Navigation loader race — 2026-08-27
 
@@ -54,6 +60,23 @@ Resolved in source across `includes/beta_api.php` and `api/beta_state.php`:
 
 `backend/cli/validate_beta_state_scope.php` protects these boundaries in beta CI.
 
-## Remaining source-level focus
+### Management cards implied unavailable data — 2026-08-27
 
-The next source audit is the management Dashboard composition under deliberately unusual client permission thresholds. The goal is to distinguish harmless empty cards from controls/cards that imply access to data the backend correctly withholds. Any change must preserve server-side permission authority rather than hiding data only in the UI.
+Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent Attendance dashboard surfaces now mirror the permissions of the data they display instead of showing misleading zero/empty cards for a management identity that lacks that specific capability. The shared-state validator also protects this frontend/backend alignment.
+
+## Current CI checkpoint
+
+Beta guardrails run `33008908165` on commit `c0c0015c317f1681205d6d046c2bdfd026a304ae` completed green with all three jobs:
+
+- Beta source contract;
+- Beta Chromium smoke;
+- Beta secret scan.
+
+This is not a Namecheap deployment claim.
+
+## Remaining recovery focus
+
+1. Deploy the current branch through the established Namecheap pull/mirror path and confirm `.beta_deployed_commit`.
+2. Run authenticated role verification for USER, management and DEV, especially custom thresholds where Dashboard is denied but Finance/Password/Disputes remain allowed.
+3. Add browser smoke coverage for navigation/contextual mobile state and Timesheet week switching where it can remain credential-free.
+4. Perform real phone/tablet checks for navigation, dialogs/keyboard, Dashboard edit controls and shared Add/Search touch behavior.
