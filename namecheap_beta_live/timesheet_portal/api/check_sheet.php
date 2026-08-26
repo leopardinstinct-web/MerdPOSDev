@@ -1,13 +1,14 @@
 <?php
-require_once __DIR__ . '/../includes/auth.php';
+declare(strict_types=1);
+require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/sheets.php';
 
-// Diagnostic access requires an authenticated portal session.
-require_login();
-
 try {
-    $setup = read_sheet_csv(SHEET_EMPLOYEE_SETUP);
+    $user = beta_require_active_user();
+    $pdo = portal_db();
+    beta_require_permission($user, 'dev.status', $pdo);
 
+    $setup = read_sheet_csv(SHEET_EMPLOYEE_SETUP);
     json_response([
         'success' => true,
         'message' => 'Sheet read OK',
@@ -17,8 +18,8 @@ try {
         'note' => 'This diagnostic does not show passwords.'
     ]);
 } catch (Throwable $e) {
-    error_log('check_sheet.php: ' . $e->getMessage());
-
+    if ($e instanceof MerdWorkforceException) beta_api_error($e);
+    error_log('check_sheet.php failure: ' . get_class($e));
     json_response([
         'success' => false,
         'error' => 'Unable to read the employee setup sheet.'
