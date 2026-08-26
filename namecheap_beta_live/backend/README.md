@@ -42,7 +42,7 @@ It also protects the permission-aware browser runtime split introduced after the
 
 If the legacy shared runtime is later refactored so these shims are no longer needed, update the validator and runtime together rather than weakening the guard first.
 
-Beta CI adds two incident-derived source guards:
+Beta CI **and** `scripts/deploy_namecheap_beta.sh` run the two incident-derived recovery guards before portal publication:
 
 - `backend/cli/validate_portal_loader_order.php` requires dynamically inserted classic scripts to execute in insertion order and keeps Roles ahead of Navigation;
 - `backend/cli/validate_beta_state_scope.php` requires the shared `beta_state.php` route to be authorized by its consuming features while keeping shifts, disputes, working-now data, stores and management data permission-scoped inside the payload.
@@ -64,6 +64,8 @@ The Namecheap deployment script is expected to fail closed on at least:
 - PHP syntax errors;
 - missing permission-policy/API coverage;
 - permission-gated browser runtime wiring regressions;
+- nondeterministic dependency-sensitive portal script loading;
+- shared-state route/data-scope regressions;
 - migration/schema verification failures;
 - portal HTML/API response-boundary invariants;
 - beta runtime-contract violations;
