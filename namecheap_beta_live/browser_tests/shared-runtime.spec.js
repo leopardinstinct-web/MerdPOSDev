@@ -1,6 +1,11 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 
+// GitHub's Ubuntu runner already provides stable Google Chrome. Using the
+// system channel keeps this recovery smoke job small and avoids downloading a
+// separate production-sized browser bundle on every beta push.
+test.use({ channel: 'chrome' });
+
 const repoRoot = process.env.GITHUB_WORKSPACE || path.resolve(__dirname, '..', '..');
 const asset = name => path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', name);
 
