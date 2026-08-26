@@ -57,6 +57,12 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal LOA permission coverage"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_permission_policy.php"
 
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating deterministic portal loader order"
+php "$REPO/namecheap_beta_live/backend/cli/validate_portal_loader_order.php"
+
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating shared beta-state permission scope"
+php "$REPO/namecheap_beta_live/backend/cli/validate_beta_state_scope.php"
+
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
