@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cron has a much smaller environment than an interactive shell. Keep every
-# dependency explicit so scheduled deploys behave the same as manual deploys.
 export HOME="${HOME:-/home/dridsheikh}"
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:${PATH:-}"
 export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes"
@@ -39,8 +37,6 @@ git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-# Fail closed before touching the live beta if any PHP endpoint, include or
-# migration has a parse error. This prevents empty-response HTTP 500 regressions.
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] linting MERDPOS PHP source"
 php_lint_failed=0
 while IFS= read -r -d '' php_file; do
@@ -55,9 +51,14 @@ if [[ "$php_lint_failed" -ne 0 ]]; then
 fi
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] PHP lint passed"
 
-# Authorization coverage is a release invariant. This checks the catalogue,
-# widget permission bindings, every protected portal API and fail-closed route
-# registration before any source is copied to the live beta.
+# Beta contract check deliberately distinguishes documentation from runtime
+# implementation. It verifies the authoritative READMEs/context exist AND that
+# binding global behavior such as minimal Add/Search and the deterministic
+# legacy Sheet reader is actually wired into the runtime entry path.
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating beta runtime/README contract"
+php "$REPO/namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+
+# Authorization coverage is a release invariant.
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal LOA permission coverage"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_permission_policy.php"
 
@@ -86,8 +87,6 @@ php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
 php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
 php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
 
-# The portal is allowed to expose Legacy Sync only after the complete schema is
-# present. Abort before copying portal code if any migration table is missing.
 php -r '
 require $argv[1];
 $tables=["client_legacy_sources","client_migration_state","legacy_migration_batches","legacy_migration_stage_rows","legacy_migration_records","legacy_migration_conflicts"];
@@ -105,10 +104,31 @@ rsync -az \
   "$REPO/namecheap_beta_live/timesheet_portal/" \
   "$LIVE/timesheet_portal/"
 
-# Role/LOA rendering requires dashboard.php to open the DB while it is still an
-# HTML page. The secure backend DB config is shared with API code and is not in
-# Git, so the portal must restore text/html after that config is loaded. Verify
-# the exact boundary guard reached the live copy before marking deployment good.
+# Verify that the exact global runtime layers survived rsync. This is the live
+# counterpart to the source validator above and prevents a successful deploy
+# marker when the page cannot actually load a documented global behavior.
+for live_file in \
+  "$LIVE/timesheet_portal/assets/minimal-controls.js" \
+  "$LIVE/timesheet_portal/assets/minimal-controls.css" \
+  "$LIVE/timesheet_portal/assets/ui-standard.css" \
+  "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
+  "$LIVE/timesheet_portal/README.md" \
+  "$LIVE/backend/README.md"; do
+  if [[ ! -r "$live_file" ]]; then
+    echo "ERROR: required live beta runtime/README file missing after deploy." >&2
+    exit 1
+  fi
+done
+if ! grep -q 'assets/minimal-controls.js' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is not wiring the minimal-control behavior layer." >&2
+  exit 1
+fi
+if ! grep -q 'legacy_fetch_sources_known' "$LIVE/timesheet_portal/includes/legacy_migration_orchestrator.php"; then
+  echo "ERROR: live migration runtime is not using deterministic known Sheet contracts." >&2
+  exit 1
+fi
+echo "Live beta runtime wiring verified (UI standard, minimal controls, deterministic legacy reader, READMEs)."
+
 if ! grep -q 'restoreHtmlResponse' "$LIVE/timesheet_portal/includes/database.php"; then
   echo "ERROR: live portal is missing the HTML/DB response-boundary guard." >&2
   exit 1
@@ -119,9 +139,6 @@ if ! grep -q 'portal_html_response_headers' "$LIVE/timesheet_portal/includes/dat
 fi
 echo "Portal HTML/DB response boundary verified."
 
-# Detect response-header logic in the private backend config without printing
-# the file path, contents, credentials or other secrets. This is diagnostic only;
-# the page response guard above neutralizes any such side effect for HTML pages.
 backend_config_path="$(php -r "require '$LIVE/timesheet_portal/includes/config.php'; if (defined('BACKEND_CONFIG_PATH')) echo BACKEND_CONFIG_PATH;" 2>/dev/null || true)"
 if [[ -n "$backend_config_path" && -r "$backend_config_path" ]]; then
   if grep -Eqi 'Content-Type|header[[:space:]]*\(' "$backend_config_path"; then
