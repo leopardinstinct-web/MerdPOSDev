@@ -55,6 +55,14 @@ jobs:
       - name: Validate shared beta state scope
         run: php namecheap_beta_live/backend/cli/validate_beta_state_scope.php
 
+      - name: Validate Namecheap deploy recovery guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/deploy_namecheap_beta.sh
+          grep -q 'validate_portal_loader_order.php' scripts/deploy_namecheap_beta.sh
+          grep -q 'validate_beta_state_scope.php' scripts/deploy_namecheap_beta.sh
+
       - name: Syntax-check portal JavaScript
         shell: bash
         run: |
