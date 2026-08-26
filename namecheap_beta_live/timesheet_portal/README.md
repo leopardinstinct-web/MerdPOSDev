@@ -32,6 +32,8 @@ DEV-only permissions also require an actual DEV identity and cannot be delegated
 
 The backend is authoritative. Hiding a menu/button with JavaScript or CSS is not security.
 
+The shared `api/beta_state.php` route is consumed by more than Dashboard. Its route authorization follows the consuming Dashboard/Disputes/Finance/Password feature, while the payload itself remains field/data scoped by the corresponding permissions. Broad route access must never become broad data access.
+
 ## UI standard
 
 All user-facing beta features follow `docs/pos_latest/GUI_STANDARD.md`.
@@ -65,7 +67,7 @@ Canonical runtime layers are:
 - `assets/mobile-runtime.js` — mobile viewport, keyboard-state detection, dialog compatibility, Dashboard mobile editing and structural runtime audit;
 - `assets/navigation.js` — authoritative primary/contextual navigation state, including whether a mobile contextual subnav is open;
 - `assets/design-audit.js` — runtime heading, accessibility, Search/Add geometry, touch-target, overflow and contrast checks;
-- `assets/management.js` — runtime loading/wiring; dynamically inserted classic scripts are forced to execute in insertion order so dependency-sensitive modules such as Roles mount before Navigation;
+- `assets/management.js` — runtime loading/wiring; dynamically inserted classic scripts are forced to execute in insertion order so dependency-sensitive modules such as Roles mount before Navigation; management cards/KPIs mirror their own underlying data permissions;
 - `.htaccess` — cache revalidation for shared cross-portal UI contract assets.
 
 Retired corrective styling layers must not be reloaded by the beta runtime: `ui-standard.css`, `minimal-controls.css`, `mobile-hardening.css`, `apple-principles.css` and `omnichannel-identity.css`.
@@ -75,6 +77,19 @@ Feature JavaScript may compose the design system but may not inject its own visu
 `window.MERDPOSMobileRuntime.audit()` provides a browser-side structural smoke test for mobile layouts. It checks page horizontal overflow, wrapped top bar, undersized touch targets, dialogs outside the viewport and malformed shared icon actions. `window.MERDPOSDesignAudit.run()` adds heading, accessible-name, Search/Add placement and contrast checks. Passing these audits is required for source/runtime confidence but does not replace real-device verification.
 
 A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually and functionally equivalent across representative screens.
+
+## Recovery browser smoke coverage
+
+`namecheap_beta_live/browser_tests/shared-runtime.spec.js` runs in real Google Chrome through a pinned Playwright test runner in the `Beta guardrails` workflow. It is intentionally credential-free and exercises shared browser behavior rather than production data.
+
+Current incident-derived Chrome checks verify:
+
+- the canonical Add SVG remains the same DOM node after repeated MutationObserver activity;
+- exactly one Add action fires for one click after those mutations;
+- Search and Add are normalized into the shared adjacent action cluster;
+- `app.js` compatibility shims allow the legacy shared `beta.js` runtime to execute against a permission-minimal DOM without a page-level JavaScript crash.
+
+These smoke tests are regression gates, not a substitute for authenticated USER/management/DEV tests or real mobile-device verification.
 
 ## Timesheet/payroll behavior — frozen
 
@@ -145,7 +160,7 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `includes/beta_api.php` — live authorization refresh and fail-closed route policy;
 - `includes/timesheet_logic.php` — frozen timesheet reconciliation;
 - `includes/legacy_migration*.php` — legacy source fetch/staging/reconciliation;
-- `assets/management.js` — shared runtime module loader/management behavior with deterministic dynamic-script execution order;
+- `assets/management.js` — shared runtime module loader/management behavior with deterministic dynamic-script execution order and permission-aware management composition;
 - `assets/directory.js` — Store/Workforce admin behavior;
 - `assets/roles.js` — Roles/Permission Policy behavior only;
 - `assets/client.js` — Client and Legacy Migration behavior only;
@@ -156,11 +171,12 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `assets/navigation.js` — primary/contextual navigation state and mobile subnav visibility state;
 - `assets/minimal-controls.js` — shared Add/Search behavior;
 - `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit;
-- `assets/design-audit.js` — contextual design/accessibility runtime audit.
+- `assets/design-audit.js` — contextual design/accessibility runtime audit;
+- `../browser_tests/shared-runtime.spec.js` — credential-free Chrome regression smoke tests for shared runtime incidents.
 
 ## Deployment
 
-Do not manually upload portal files. Deploy through the repository mirror and `scripts/deploy_namecheap_beta.sh`.
+Do not manually upload portal files. Deployment authority is the Namecheap-side repository mirror using `scripts/deploy_namecheap_beta.sh`. A short-lived GitHub→Namecheap SSH workflow was intentionally retired in favor of Namecheap pulling `namecheap-beta-live`; do not restore that workflow without an explicit deployment-architecture decision.
 
 The normal immediate command after beta code changes is:
 
