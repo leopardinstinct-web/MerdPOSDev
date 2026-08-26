@@ -108,6 +108,7 @@ rsync -az \
 # counterpart to the source validator above and prevents a successful deploy
 # marker when the page cannot actually load a documented global behavior.
 for live_file in \
+  "$LIVE/timesheet_portal/.htaccess" \
   "$LIVE/timesheet_portal/assets/minimal-controls.js" \
   "$LIVE/timesheet_portal/assets/minimal-controls.css" \
   "$LIVE/timesheet_portal/assets/ui-standard.css" \
@@ -144,11 +145,19 @@ if ! grep -q '.dashboard-add-button' "$LIVE/timesheet_portal/assets/minimal-cont
   echo "ERROR: live Dashboard Add is not normalized through the shared action primitive." >&2
   exit 1
 fi
+if ! grep -q 'Cache-Control "no-cache, must-revalidate"' "$LIVE/timesheet_portal/.htaccess"; then
+  echo "ERROR: live portal is missing shared UI cache revalidation." >&2
+  exit 1
+fi
+if ! grep -q 'minimal-controls\\.js' "$LIVE/timesheet_portal/.htaccess"; then
+  echo "ERROR: live portal is not revalidating the minimal-control behavior asset." >&2
+  exit 1
+fi
 if ! grep -q 'legacy_fetch_sources_known' "$LIVE/timesheet_portal/includes/legacy_migration_orchestrator.php"; then
   echo "ERROR: live migration runtime is not using deterministic known Sheet contracts." >&2
   exit 1
 fi
-echo "Live beta runtime wiring verified (canonical Add/Search primitive, action clustering, mobile UI standard, deterministic legacy reader, READMEs)."
+echo "Live beta runtime wiring verified (canonical Add/Search primitive, action clustering, shared UI cache revalidation, mobile UI standard, deterministic legacy reader, READMEs)."
 
 if ! grep -q 'restoreHtmlResponse' "$LIVE/timesheet_portal/includes/database.php"; then
   echo "ERROR: live portal is missing the HTML/DB response-boundary guard." >&2
