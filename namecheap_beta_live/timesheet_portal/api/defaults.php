@@ -3,14 +3,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
 
-function defaults_require_dev(array $user): void
-{
-    $role = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? ''));
-    if ($role !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required.'], 403);
-    }
-}
-
 function defaults_currency(mixed $value, bool $allowBlank = false): ?string
 {
     $currency = strtoupper(trim((string)$value));
@@ -85,8 +77,8 @@ function defaults_state(PDO $pdo, array $user): array
 
 try {
     $user = beta_require_active_user();
-    defaults_require_dev($user);
     $pdo = portal_db();
+    beta_require_permission($user, 'defaults.manage', $pdo);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         json_response(defaults_state($pdo, $user));
