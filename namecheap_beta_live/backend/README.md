@@ -2,7 +2,7 @@
 
 This folder is the backend component of the authoritative `namecheap-beta-live` runtime.
 
-Read `../README.md` first. It defines the beta implementation-state language, deployment contract and README-maintenance rule.
+Read `../README.md` first. It defines the beta-only project scope, implementation-state language, deployment contract and README-maintenance rule.
 
 ## Responsibilities
 
@@ -46,14 +46,25 @@ The Namecheap deployment script is expected to fail closed on at least:
 - missing permission-policy coverage;
 - migration/schema verification failures;
 - portal HTML/API response-boundary invariants;
-- beta runtime-contract violations.
+- beta runtime-contract violations;
+- missing shared mobile runtime files or loader wiring.
 
-`backend/cli/validate_beta_runtime_contract.php` verifies that important documented beta contracts are actually wired. For the shared Add/Search UI it now checks more than class names: the canonical 46px desktop diameter, true-circle rule, Dashboard Add normalization, Search+Add runtime clustering, management-loader wiring and relevant README/context requirements must all be present.
+`backend/cli/validate_beta_runtime_contract.php` verifies that important documented beta contracts are actually wired. For shared UI it checks the canonical Add/Search contract and the mobile runtime contract. Mobile release invariants include:
 
-Runtime validators are release guards, not substitutes for visual verification in the browser. Representative screens must still be compared for actual geometry/placement/mobile behavior before a UI change is called VERIFIED.
+- `assets/mobile-hardening.css` and `assets/mobile-runtime.js` exist;
+- `management.js` loads both assets;
+- visual-viewport/software-keyboard handling exists;
+- mobile-safe dialog behavior exists;
+- Dashboard mobile reorder fallback exists where desktop drag/resize is unavailable;
+- browser-side mobile structural audit hooks exist;
+- shared mobile files are included in cache revalidation.
+
+The deploy script must also verify these files/wiring in the **live Namecheap copy after rsync** before writing `.beta_deployed_commit`.
+
+Runtime validators are release guards, not substitutes for real-device verification. A mobile UI change is VERIFIED only after the intended workflow is checked on a phone/tablet as relevant and no unresolved structural audit issue remains.
 
 Do not describe source as `live` until `.beta_deployed_commit` confirms the intended commit and the relevant runtime path has been verified.
 
 ## README maintenance
 
-Update this file by default when backend architecture, migrations, deployment invariants, security boundaries or synchronization behavior changes. Documentation-only text is not implementation; runtime wiring must be verified separately.
+Update this file by default when backend architecture, migrations, deployment invariants, security boundaries, mobile release gates or synchronization behavior changes. Documentation-only text is not implementation; runtime wiring must be verified separately.
