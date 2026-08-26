@@ -265,14 +265,43 @@ function apply_schedule_and_effective_rates(array &$report, array $source): void
     $report['schedule_source'] = !empty($source['weekly_hours']) ? 'store_weekly_hours' : 'legacy_store_shift_start_times';
 }
 
+function redact_timesheet_payroll(array &$report): void
+{
+    unset($report['grand_total_wage'], $report['rate_source']);
+    if (isset($report['employees']) && is_array($report['employees'])) {
+        foreach ($report['employees'] as &$employee) {
+            unset($employee['pay_rate'], $employee['total_wage'], $employee['pay_rate_varies'], $employee['rates_used']);
+            if (isset($employee['rows']) && is_array($employee['rows'])) {
+                foreach ($employee['rows'] as &$row) unset($row['applied_rate'], $row['wage']);
+                unset($row);
+            }
+        }
+        unset($employee);
+    }
+    if (isset($report['employee_summary']) && is_array($report['employee_summary'])) {
+        foreach ($report['employee_summary'] as &$summary) unset($summary['pay_rate'], $summary['total_wage']);
+        unset($summary);
+    }
+    if (isset($report['store_summary']) && is_array($report['store_summary'])) {
+        foreach ($report['store_summary'] as &$store) unset($store['total_amount']);
+        unset($store);
+    }
+    $report['payroll_visible'] = false;
+}
+
 try {
     $pdo = portal_db();
+    $canViewAll = beta_has_permission($user, 'timesheets.view_all', $pdo);
+    $canViewPay = beta_has_permission($user, 'timesheets.view_pay', $pdo);
     $source = sql_source_data($pdo, $clientId);
-    $employeeFilter = $user['is_super'] ? null : $user['name'];
-    $report = build_report($source, $weekStart, $employeeFilter, (bool)$user['is_super']);
+    $employeeFilter = $canViewAll ? null : $user['name'];
+    $report = build_report($source, $weekStart, $employeeFilter, $canViewAll);
     apply_schedule_and_effective_rates($report, $source);
+    if (!$canViewPay) redact_timesheet_payroll($report);
+    else $report['payroll_visible'] = true;
     $report['source'] = 'sql_employee_logs';
     $report['client_id'] = $clientId;
+    $report['scope'] = $canViewAll ? 'all_employees' : 'own_employee';
     json_response(['success' => true, 'report' => $report]);
 } catch (Throwable $e) {
     error_log('MERDPOS timesheet generation failed: ' . get_class($e));
