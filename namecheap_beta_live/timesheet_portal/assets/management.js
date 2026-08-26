@@ -27,6 +27,10 @@
     if(!document.querySelector('link[data-refined-experience]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/apple-principles.css?v=20260826a';link.dataset.refinedExperience='1';document.head.appendChild(link);}
     if(!document.querySelector('link[data-omnichannel-identity]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/omnichannel-identity.css?v=20260826a';link.dataset.omnichannelIdentity='1';document.head.appendChild(link);}
     if(can('dashboard.view')&&!document.querySelector('script[data-omnichannel-identity]')){const script=document.createElement('script');script.src='assets/omnichannel-identity.js?v=20260826a';script.dataset.omnichannelIdentity='1';document.body.appendChild(script);}
+
+    // Binding component geometry/density layer. Feature CSS may be expressive,
+    // but control heights, form spacing, card padding and tables are standardized.
+    if(!document.querySelector('link[data-merd-ui-standard]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/ui-standard.css?v=20260826a';link.dataset.merdUiStandard='1';document.head.appendChild(link);}
   }
   ensureShellAssets();
 
