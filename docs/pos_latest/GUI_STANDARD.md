@@ -181,6 +181,8 @@ Every dialog requires:
 
 Long workflows should use sections inside one task-oriented dialog rather than uncontrolled whitespace.
 
+On mobile, the dialog's own content/form must scroll independently. The software keyboard must not hide the final action buttons. A dialog that technically fits the viewport but leaves fields or actions unreachable is a failed mobile implementation.
+
 ## 10. Status, validation and feedback
 
 - Never rely on color alone.
@@ -193,16 +195,45 @@ Long workflows should use sections inside one task-oriented dialog rather than u
 
 Every beta feature is mobile-ready at implementation time, not as a later cleanup task.
 
+Mobile-ready means **functional parity**, not merely responsive dimensions.
+
+Required behavior:
+
 - Two-column forms collapse to one column below the shared mobile breakpoint.
 - No decorative empty columns survive responsive collapse.
 - All interactive targets are at least 48px on tablet/phone.
 - Inputs use at least 16px text on phone to prevent browser zoom and preserve readability.
-- Dialogs fit inside the dynamic viewport and keep primary/cancel actions reachable.
+- The top bar remains a single stable row; mobile navigation offsets must not assume a different header height.
+- Fixed bottom navigation respects safe-area insets.
+- When the software keyboard is open, fixed navigation must not cover the active form/dialog.
+- Dialogs fit inside the dynamic visual viewport and keep primary/cancel actions reachable.
 - Tables scroll horizontally inside their own container rather than forcing page-level horizontal scrolling.
 - No control, toolbar or card may be clipped outside the viewport.
 - Expanded search uses available width and the `+` control remains reachable.
+- Client/role/store/employee row actions remain reachable and inside their card.
+- Status notices clear the fixed bottom navigation.
+- Dashboard widget picker opens above all top/bottom navigation and provides an explicit close control.
+- Dashboard mobile editing must retain add/remove/reorder capability. Desktop drag/resize may remain desktop-specific because grid resize has no meaningful phone analogue; mobile must receive an explicit alternative interaction rather than a dead gesture.
 - Safe-area inset must be respected for sticky mobile dialog actions.
 - Reduced-motion preferences are respected.
+- Older browsers must degrade to a usable fallback where a standard primitive such as native `<dialog>` is unavailable.
+
+Runtime mobile implementation:
+
+- `assets/mobile-hardening.css` — cross-feature mobile layout/touch/viewport contract.
+- `assets/mobile-runtime.js` — Visual Viewport handling, dialog compatibility, navigation assistance, Dashboard mobile reordering and runtime self-audit.
+
+### Mobile runtime audit
+
+`window.MERDPOSMobileRuntime.audit()` is the browser-side smoke test. On a mobile layout it checks at least:
+
+- page-level horizontal overflow;
+- wrapped/oversized top bar;
+- interactive targets below 44px;
+- open dialogs outside the viewport;
+- non-square shared icon actions.
+
+The audit is a regression detector, not a substitute for real-device verification. A feature cannot be called mobile-verified solely because the audit passes.
 
 ## 12. Feature CSS rule
 
@@ -215,9 +246,11 @@ Feature modules may define domain-specific classes, but MUST NOT redefine shared
 - focus ring behavior;
 - modal geometry;
 - global spacing scale;
-- Add/search toolbar interaction or geometry.
+- Add/search toolbar interaction or geometry;
+- fixed mobile header/navigation geometry;
+- mobile dialog viewport/keyboard behavior.
 
-The runtime `assets/ui-standard.css` and minimal-control layer are intentionally loaded after feature CSS. If a feature needs an exception, document the reason in the feature scope rather than using escalating `!important` rules to fight the standard.
+The runtime shared UI layers are intentionally loaded after feature CSS. If a feature needs an exception, document the reason in the feature scope rather than using escalating `!important` rules to fight the standard.
 
 ## 13. Visual-equivalence rule — BINDING
 
@@ -251,7 +284,12 @@ A beta UI change is not complete until all of the following are checked:
 - tables use canonical density and numeric alignment;
 - loading/empty/error/success states exist;
 - mobile collapse is intentional;
+- mobile feature parity is preserved through touch-friendly alternatives where desktop gestures do not translate;
 - 48px mobile touch targets are preserved;
+- keyboard-open behavior does not obscure actions;
+- dialogs remain usable with the software keyboard open;
+- page-level horizontal overflow is absent;
+- `MERDPOSMobileRuntime.audit()` has no unresolved structural failures on a mobile viewport;
 - keyboard focus works;
 - no hidden overflow prevents required data access;
 - permission/LOA visibility follows `BETA_AUTHORIZATION_STANDARD.md`;
@@ -260,4 +298,11 @@ A beta UI change is not complete until all of the following are checked:
 
 ## 15. Current implementation
 
-`namecheap_beta_live/timesheet_portal/assets/ui-standard.css` is the binding CSS enforcement layer for the web beta. `assets/minimal-controls.css` and `assets/minimal-controls.js` enforce the shared `+`, expandable Search and Search+Add action cluster. They are loaded after feature and experience CSS by `management.js` so current modules are normalized as well as future modules.
+The shared beta UI runtime consists of:
+
+- `namecheap_beta_live/timesheet_portal/assets/ui-standard.css` — binding geometry/density/form/table/dialog rules.
+- `assets/minimal-controls.css` and `assets/minimal-controls.js` — canonical Add, expandable Search and Search+Add action cluster.
+- `assets/mobile-hardening.css` — mobile viewport, safe-area, touch, dialog, navigation, directory and Dashboard compatibility.
+- `assets/mobile-runtime.js` — mobile runtime behavior and self-audit.
+
+These are loaded by `management.js` after feature/experience layers so current and future modules are normalized through one shared contract rather than solving mobile failures separately in every feature.
