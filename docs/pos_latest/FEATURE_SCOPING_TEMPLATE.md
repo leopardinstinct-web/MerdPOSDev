@@ -2,7 +2,7 @@
 
 Use this template when a new feature is requested via screenshot or described for the MERDPOS beta.
 
-> Binding rule: every protected portal feature must comply with `BETA_AUTHORIZATION_STANDARD.md`. A feature is not scoped until its permission, LOA, tenant scope and server enforcement are defined.
+> Binding rules: every protected portal feature must comply with `BETA_AUTHORIZATION_STANDARD.md`, and every user-facing touchpoint must comply with `OMNICHANNEL_IDENTITY_STANDARD.md`. A feature is not scoped until its permission, LOA, tenant scope, server enforcement, reliability, usability and visual consistency are defined.
 
 ## 1. Visual Analysis
 
@@ -11,6 +11,16 @@ Layout: (e.g., Card grid, Data Table, Detail View)
 Key UI Elements: (e.g., Floating Action Button, Dropdown filters, Date picker)
 
 User Actions: (e.g., Swipe to delete, Click row to edit)
+
+### Omnichannel identity review — MANDATORY
+
+Reliability: Is client/store/user context explicit and consistent? Are loading, stale, success and error states clear?
+
+Usability: Is the primary task obvious? Can redundant controls/submenus/context switches be removed?
+
+Trendiness: Does the interface look current and coherent with MERDPOS without adding operational noise?
+
+Cross-touchpoint identity reused: (MERDPOS mark / employee / role+LOA / active client / store ID+code+logo / currency+timezone / freshness)
 
 ## 2. Data & Backend Impact
 
@@ -23,6 +33,10 @@ Affects Existing Endpoints?: (e.g., get_timesheet.php needs a new shift_type fil
 Client/store/employee tenant predicates required?:
 
 Sensitive fields returned?: (e.g., pay rate, financial values, credentials — state how they are filtered server-side)
+
+Canonical identity fields reused rather than duplicated?:
+
+Data freshness/staleness behaviour required?:
 
 ## 3. Authorization / LOA — MANDATORY FOR BETA
 
@@ -58,6 +72,8 @@ Q3: Should this be a sidebar item, dashboard widget, action inside an existing s
 
 Q4: Does any part need to remain permanently DEV-only regardless of numeric LOA?
 
+Q5: Which identity dimension matters most for this touchpoint — Reliability, Usability or Trendiness — and why?
+
 ## 5. Definition of Done
 
 Before the feature can be called complete:
@@ -66,10 +82,14 @@ Before the feature can be called complete:
 - backend route/action/field/data scope enforced;
 - UI mirrors the same permission;
 - tenant isolation verified;
+- canonical client/store/user identity reused consistently;
+- loading, success, empty, stale and error states handled where applicable;
+- primary task is obvious and redundant controls are removed;
+- UI follows the MERDPOS dark-rail/light-workspace identity and shared interaction rules;
 - CSRF/input validation/audit applied where relevant;
 - dashboard permission binding added where relevant;
 - PHP lint passes;
 - `validate_portal_permission_policy.php` passes;
 - direct insufficient-LOA API request is denied.
 
-Once scope is confirmed, proceed to the implementation. Do not add a protected beta feature using a hard-coded ADMIN/SUPER/DEV role check.
+Once scope is confirmed, proceed to the implementation. Do not add a protected beta feature using a hard-coded ADMIN/SUPER/DEV role check, and do not add a user-facing feature that bypasses the omnichannel identity standard.
