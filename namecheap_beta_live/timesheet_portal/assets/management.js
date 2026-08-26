@@ -7,46 +7,71 @@
   const sortStores=rows=>(Array.isArray(rows)?rows.slice():[]).sort((a,b)=>Number(a?.store_id??a?.id??Number.MAX_SAFE_INTEGER)-Number(b?.store_id??b?.id??Number.MAX_SAFE_INTEGER));
   let displayTimezone=null;
 
+  function appendStyle(key,href){
+    if(document.querySelector(`link[data-${key}]`))return;
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=href;
+    link.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='1';
+    document.head.appendChild(link);
+  }
+  function appendScript(key,src,defer=false){
+    if(document.querySelector(`script[data-${key}]`))return;
+    const script=document.createElement('script');
+    script.src=src;
+    if(defer)script.defer=true;
+    script.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='1';
+    document.body.appendChild(script);
+  }
+
   function ensureShellAssets(){
-    if(!document.querySelector('link[data-merd-shell]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260826ux1';link.dataset.merdShell='1';document.head.appendChild(link);}
+    /* Tokens are inserted before every runtime visual layer. */
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260826ds1');
+    appendStyle('merd-shell','assets/shell.css?v=20260826ds1');
+
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      if(!document.querySelector('link[data-dashboard-builder-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/dashboard-builder.css?v=20260826ux1';link.dataset.dashboardBuilderCss='1';document.head.appendChild(link);}
-      if(!document.querySelector('script[data-dashboard-builder]')){const script=document.createElement('script');script.src='assets/dashboard-builder.js?v=20260826ux1';script.dataset.dashboardBuilder='1';document.body.appendChild(script);}
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260826ds1');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260826ds1');
     }
-    if(can('roles.manage')&&!document.querySelector('script[data-roles-module]')){const script=document.createElement('script');script.src='assets/roles.js?v=20260826ux1';script.dataset.rolesModule='1';document.body.appendChild(script);}
-    if(!document.querySelector('script[data-merd-navigation]')){const script=document.createElement('script');script.src='assets/navigation.js?v=20260826ux1';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('script[data-store-order]')){const script=document.createElement('script');script.src='assets/store-order.js?v=20260826ux1';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('script[data-modal-lock]')){const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260826ux1';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('link[data-account-menu-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826omni1';link.dataset.accountMenuCss='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-account-menu]')){const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826omni1';script.dataset.accountMenu='1';document.body.appendChild(script);}
-    if(can('stores.profile.manage')&&!document.querySelector('script[data-dev-stores-ui]')){const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260826ux1';script.dataset.devStoresUi='1';document.body.appendChild(script);}
 
-    if(!document.querySelector('link[data-refined-experience]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/apple-principles.css?v=20260826a';link.dataset.refinedExperience='1';document.head.appendChild(link);}
-    if(!document.querySelector('link[data-omnichannel-identity]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/omnichannel-identity.css?v=20260826a';link.dataset.omnichannelIdentity='1';document.head.appendChild(link);}
-    if(can('dashboard.view')&&!document.querySelector('script[data-omnichannel-identity]')){const script=document.createElement('script');script.src='assets/omnichannel-identity.js?v=20260826a';script.dataset.omnichannelIdentity='1';document.body.appendChild(script);}
-    if(!document.querySelector('link[data-merd-ui-standard]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/ui-standard.css?v=20260826b';link.dataset.merdUiStandard='1';document.head.appendChild(link);}
-    if(!document.querySelector('link[data-merd-minimal-controls]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/minimal-controls.css?v=20260826b';link.dataset.merdMinimalControls='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-merd-minimal-controls]')){const script=document.createElement('script');script.src='assets/minimal-controls.js?v=20260826b';script.dataset.merdMinimalControls='1';document.body.appendChild(script);}
+    /* Roles mounts before navigation so Operations structure is deterministic. */
+    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
 
-    // Cross-feature mobile compatibility is loaded last so viewport, dialog,
-    // touch-target and fixed-chrome safety can normalize every feature module.
-    if(!document.querySelector('link[data-merd-mobile-hardening]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/mobile-hardening.css?v=20260826a';link.dataset.merdMobileHardening='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-merd-mobile-runtime]')){const script=document.createElement('script');script.src='assets/mobile-runtime.js?v=20260826a';script.dataset.merdMobileRuntime='1';document.body.appendChild(script);}
+    appendScript('merd-navigation','assets/navigation.js?v=20260826ds1',true);
+    appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
+    appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
+
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260826ds1');
+    appendScript('account-menu','assets/account-menu.js?v=20260826ds1');
+
+    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
+
+    /* Functional identity patch remains; its old standalone styling layer is
+       retired because design-system.css now owns the visual grammar. */
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260826ds1');
+
+    /* Behaviour only. Geometry comes from the canonical design system. */
+    appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');
+    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
+
+    /* Canonical component layer must be the final stylesheet in the beta. */
+    appendStyle('merd-design-system','assets/design-system.css?v=20260826ds1');
+    appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
   }
   ensureShellAssets();
 
-  function activatePanel(id){document.querySelectorAll('.portal-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.panel===id));document.querySelectorAll('.portal-panel').forEach(panel=>panel.hidden=panel.id!==id);}
+  function activatePanel(id){document.querySelectorAll('.portal-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.panel===id));document.querySelectorAll('.portal-panel').forEach(panel=>panel.hidden=panel.id!==id);window.MERDPOSDesignAudit?.run?.();}
   async function json(url){const response=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'}});const text=await response.text();let data;try{data=text?JSON.parse(text):null;}catch(_){throw new Error(`MERDPOS API returned invalid data (${response.status}).`);}if(!data)throw new Error(`MERDPOS API returned an empty response (${response.status}).`);if(!data.success)throw new Error(data.error||'Request failed');return data;}
   function updateClock(){const root=$('liveClock');if(!root)return;const options={weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'};if(displayTimezone)options.timeZone=displayTimezone;try{root.textContent=new Date().toLocaleString([],options);}catch(_){delete options.timeZone;root.textContent=new Date().toLocaleString([],options);}}
-  function kpi(icon,value,label,alert=false){return `<article class="mgmt-kpi${alert?' alert':''}"><span class="kpi-icon">${icon}</span><div class="kpi-value">${esc(value)}</div><div class="kpi-label">${esc(label)}</div></article>`;}
+  function kpi(icon,value,label,alert=false){return `<article class="mgmt-kpi${alert?' alert':''}"><span class="kpi-icon" aria-hidden="true">${icon}</span><div class="kpi-value">${esc(value)}</div><div class="kpi-label">${esc(label)}</div></article>`;}
   function renderBars(root,rows,labelKey,valueFn,valueLabelFn){if(!root)return;if(!rows.length){root.innerHTML='<div class="muted">No data for today.</div>';return;}const values=rows.map(valueFn);const max=Math.max(1,...values);root.innerHTML=rows.map(row=>{const value=valueFn(row),pct=Math.max(value>0?3:0,(value/max)*100);return `<div class="chart-row"><div class="chart-label">${esc(row[labelKey])}</div><div class="chart-track"><div class="chart-fill" style="width:${pct.toFixed(1)}%"></div></div><div class="chart-value">${esc(valueLabelFn(row,value))}</div></div>`;}).join('');}
-  function renderFinanceRing(rows,defaultCurrency){const root=$('financeRingRoot');if(!root)return;const currencies=new Set(rows.map(row=>String(row.currency_code||defaultCurrency||'AUD').toUpperCase()));if(currencies.size>1){root.innerHTML='<div class="empty-card"><h2>Mixed store currencies</h2><p>Store balances are shown individually. A combined cash total is hidden because currencies cannot be summed safely.</p></div>';return;}const currency=[...currencies][0]||String(defaultCurrency||'AUD').toUpperCase();const register=rows.reduce((sum,row)=>sum+Number(row.register_balance||0),0);const petty=rows.reduce((sum,row)=>sum+Number(row.petty_balance||0),0);const total=register+petty;const stop=total>0?(register/total)*100:50;root.innerHTML=`<div class="finance-ring" style="--ring-stop:${stop.toFixed(2)}%"></div><div class="finance-legend"><div class="legend-item"><span class="legend-dot"></span><span>Register</span><strong>${esc(money(register,currency))}</strong></div><div class="legend-item"><span class="legend-dot petty"></span><span>Petty Cash</span><strong>${esc(money(petty,currency))}</strong></div><div class="legend-item"><span></span><span>Total</span><strong>${esc(money(total,currency))}</strong></div></div>`;}
+  function renderFinanceRing(rows,defaultCurrency){const root=$('financeRingRoot');if(!root)return;const currencies=new Set(rows.map(row=>String(row.currency_code||defaultCurrency||'AUD').toUpperCase()));if(currencies.size>1){root.innerHTML='<div class="empty-card"><h3>Mixed store currencies</h3><p>Store balances are shown individually. A combined cash total is hidden because currencies cannot be summed safely.</p></div>';return;}const currency=[...currencies][0]||String(defaultCurrency||'AUD').toUpperCase();const register=rows.reduce((sum,row)=>sum+Number(row.register_balance||0),0);const petty=rows.reduce((sum,row)=>sum+Number(row.petty_balance||0),0);const total=register+petty;const stop=total>0?(register/total)*100:50;root.innerHTML=`<div class="finance-ring" style="--ring-stop:${stop.toFixed(2)}%" role="img" aria-label="Register ${esc(money(register,currency))}; Petty Cash ${esc(money(petty,currency))}"></div><div class="finance-legend"><div class="legend-item"><span class="legend-dot" aria-hidden="true"></span><span>Register</span><strong>${esc(money(register,currency))}</strong></div><div class="legend-item"><span class="legend-dot petty" aria-hidden="true"></span><span>Petty Cash</span><strong>${esc(money(petty,currency))}</strong></div><div class="legend-item"><span></span><span>Total</span><strong>${esc(money(total,currency))}</strong></div></div>`;}
   function renderWorkingBars(working,stores){const orderedStores=sortStores(stores||[]);const counts=new Map(orderedStores.map(store=>[store.store_name,0]));for(const person of working)counts.set(person.store_name,(counts.get(person.store_name)||0)+1);const rows=[...counts].map(([store_name,count])=>({store_name,count}));renderBars($('workforceChart'),rows,'store_name',row=>row.count,(row,value)=>String(value));}
   function pendingDisputes(data){return (data.disputes||[]).filter(d=>d.status==='pending').length;}
   function renderManagement(data){const mgmt=data.management;if(!mgmt)return;displayTimezone=mgmt.timezone||data.client_defaults?.timezone||null;updateClock();const pending=pendingDisputes(data);const root=$('managementKpis');if(root)root.innerHTML=[kpi('◉',(data.working||[]).length,'Working now'),kpi('◇',pending,'Pending disputes',pending>0),kpi('◫',mgmt.active_employees,'Active employees'),kpi('↻',mgmt.sync_attention,'Sync attention',Number(mgmt.sync_attention)>0)].join('');renderWorkingBars(data.working||[],sortStores(data.stores||[]));const financial=sortStores(mgmt.financial_by_store||[]);renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value,row.currency_code||mgmt.currency_code));renderFinanceRing(financial,mgmt.currency_code);const date=$('financeChartDate');if(date)date.textContent=mgmt.business_date||'Today';}
-  function updateDisputeBadge(data){const bell=$('timesheetBell');if(!bell)return;const count=pendingDisputes(data);bell.textContent=String(count);bell.hidden=count===0;}
-  async function loadDev(){const root=$('devStatus');if(!root||!can('dev.status'))return;try{const data=await json('api/dev_status.php');const tableCount=Object.values(data.tables||{}).filter(v=>v!==null).length;const totalRows=Object.values(data.tables||{}).reduce((sum,v)=>sum+(Number(v)||0),0);root.innerHTML=`<article class="dev-tile"><strong>${esc(data.database)}</strong><span>Database</span></article><article class="dev-tile"><strong>${esc(data.server_version)}</strong><span>MySQL / MariaDB</span></article><article class="dev-tile"><strong>${esc(data.php_version)}</strong><span>PHP</span></article><article class="dev-tile"><strong>${tableCount}</strong><span>Tracked tables</span></article><article class="dev-tile"><strong>${totalRows.toLocaleString()}</strong><span>Rows across tracked tables</span></article><article class="dev-tile"><strong>LOA</strong><span>${esc(data.authorization_model||'central')}</span></article>`;}catch(error){root.innerHTML=`<div class="status-card error-card">${esc(error.message)}</div>`;}}
-  async function load(){if(!can('dashboard.view')){if(can('dev.status'))loadDev();return;}try{const data=await json('api/beta_state.php');data.stores=sortStores(data.stores||[]);if(data.management){data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);}updateDisputeBadge(data);if(data.is_management)renderManagement(data);if(can('dev.status'))loadDev();window.MERDPOSStoreOrder?.run?.();window.MERDPOSOmnichannelIdentity?.patch?.();window.MERDPOSMinimalControls?.apply?.();window.MERDPOSMobileRuntime?.enhance?.();}catch(_){}}
+  function updateDisputeBadge(data){const bell=$('timesheetBell');if(!bell)return;const count=pendingDisputes(data);bell.textContent=String(count);bell.hidden=count===0;bell.setAttribute('aria-label',`${count} pending dispute${count===1?'':'s'}`);}
+  async function loadDev(){const root=$('devStatus');if(!root||!can('dev.status'))return;try{const data=await json('api/dev_status.php');const tableCount=Object.values(data.tables||{}).filter(v=>v!==null).length;const totalRows=Object.values(data.tables||{}).reduce((sum,v)=>sum+(Number(v)||0),0);root.innerHTML=`<article class="dev-tile"><strong>${esc(data.database)}</strong><span>Database</span></article><article class="dev-tile"><strong>${esc(data.server_version)}</strong><span>MySQL / MariaDB</span></article><article class="dev-tile"><strong>${esc(data.php_version)}</strong><span>PHP</span></article><article class="dev-tile"><strong>${tableCount}</strong><span>Tracked tables</span></article><article class="dev-tile"><strong>${totalRows.toLocaleString()}</strong><span>Rows across tracked tables</span></article><article class="dev-tile"><strong>LOA</strong><span>${esc(data.authorization_model||'central')}</span></article>`;}catch(error){root.innerHTML=`<div class="status-card error-card" role="alert">${esc(error.message)}</div>`;}}
+  async function load(){if(!can('dashboard.view')){if(can('dev.status'))loadDev();return;}try{const data=await json('api/beta_state.php');data.stores=sortStores(data.stores||[]);if(data.management){data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);}updateDisputeBadge(data);if(data.is_management)renderManagement(data);if(can('dev.status'))loadDev();window.MERDPOSStoreOrder?.run?.();window.MERDPOSOmnichannelIdentity?.patch?.();window.MERDPOSMinimalControls?.apply?.();window.MERDPOSMobileRuntime?.enhance?.();window.MERDPOSDesignAudit?.run?.();}catch(_){}}
   document.addEventListener('click',event=>{const shortcut=event.target.closest('[data-dispute-shortcut]');if(shortcut&&can('disputes.review')){event.preventDefault();event.stopPropagation();activatePanel('disputesPanel');}});
   const refresh=$('refreshBetaBtn');if(refresh)refresh.addEventListener('click',()=>setTimeout(load,250));
   updateClock();setInterval(updateClock,30000);load();setInterval(load,60000);
