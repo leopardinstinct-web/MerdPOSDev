@@ -77,6 +77,7 @@ php "$LIVE/backend/cli/apply_029_dashboard_layouts.php"
 php "$LIVE/backend/cli/apply_030_dev_client_preferences.php"
 php "$LIVE/backend/cli/apply_031_client_roles_dashboard_templates.php"
 php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
+php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
 
 rsync -az \
   --exclude='config.php' \
