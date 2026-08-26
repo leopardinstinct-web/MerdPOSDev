@@ -38,6 +38,8 @@ $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_porta
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $minimalCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.css', $errors);
+$mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
+$mobileCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-hardening.css', $errors);
 
 // Project scope is beta-only by default. A future context refresh must not
 // silently redirect vague project prompts toward main/legacy/Flutter targets.
@@ -80,15 +82,11 @@ beta_contract_require_contains($management, 'assets/ui-standard.css', 'managemen
 foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {
     beta_contract_require_contains($minimalJs, $id, 'minimal Add control implementation', $errors);
 }
-// Dashboard Add must use the same primitive; class presence alone is not enough.
 beta_contract_require_contains($minimalJs, '.dashboard-add-button', 'Dashboard Add primitive normalization', $errors);
 beta_contract_require_contains($minimalJs, "makeAddButton(button,'Add widget')", 'Dashboard Add primitive normalization', $errors);
 beta_contract_require_contains($minimalJs, 'clusterSearchAndAdd', 'Search+Add runtime clustering', $errors);
 beta_contract_require_contains($minimalJs, "parent.classList.add('merd-action-cluster')", 'Search+Add runtime clustering', $errors);
 
-// Computed geometry contract: identical desktop diameter/circle for Add/Search,
-// with high-specificity MERDPOS selectors so .primary-btn cannot turn Add into
-// a rounded square again.
 beta_contract_require_contains($minimalCss, '--merd-action-diameter:46px', 'canonical action diameter', $errors);
 beta_contract_require_contains($minimalCss, '.merd-shell button.merd-icon-action', 'high-specificity Add geometry', $errors);
 beta_contract_require_contains($minimalCss, 'border-radius:50%!important', 'canonical true-circle geometry', $errors);
@@ -97,16 +95,29 @@ beta_contract_require_contains($minimalCss, '.merd-shell .merd-collapsible-searc
 beta_contract_require_contains($minimalCss, '.merd-shell .merd-action-cluster', 'Search+Add placement CSS', $errors);
 beta_contract_require_contains($minimalCss, 'justify-content:flex-end!important', 'right-aligned action cluster', $errors);
 
-// Shared cross-portal UI contract assets must revalidate rather than remain
-// silently stale after a deployment.
-beta_contract_require_contains($htaccess, 'minimal-controls\\.js', 'shared UI cache revalidation', $errors);
-beta_contract_require_contains($htaccess, 'minimal-controls\\.css', 'shared UI cache revalidation', $errors);
-beta_contract_require_contains($htaccess, 'ui-standard\\.css', 'shared UI cache revalidation', $errors);
-beta_contract_require_contains($htaccess, 'management\\.js', 'shared UI cache revalidation', $errors);
+// Mobile readiness is a runtime capability, not a responsive CSS claim. The
+// cross-feature mobile layer must be present and wired, and must cover the
+// specific failure classes found in live beta use.
+beta_contract_require_contains($management, 'assets/mobile-hardening.css?v=20260826a', 'management mobile hardening CSS', $errors);
+beta_contract_require_contains($management, 'assets/mobile-runtime.js?v=20260826a', 'management mobile runtime JS', $errors);
+beta_contract_require_contains($mobileCss, '--merd-mobile-topbar-h', 'mobile stable topbar token', $errors);
+beta_contract_require_contains($mobileCss, 'body.merd-keyboard-open .app-rail', 'mobile keyboard/nav protection', $errors);
+beta_contract_require_contains($mobileCss, 'dialog.portal-dialog > form', 'mobile dialog form scrolling', $errors);
+beta_contract_require_contains($mobileCss, '.client-row-actions', 'mobile client row action placement', $errors);
+beta_contract_require_contains($mobileCss, '.dashboard-widget-drawer', 'mobile dashboard drawer layer', $errors);
+beta_contract_require_contains($mobileJs, 'visualViewport', 'mobile visual viewport handling', $errors);
+beta_contract_require_contains($mobileJs, 'installDialogFallback', 'mobile dialog fallback', $errors);
+beta_contract_require_contains($mobileJs, 'moveDashboardWidget', 'mobile dashboard reorder parity', $errors);
+beta_contract_require_contains($mobileJs, 'MERDPOSMobileRuntime', 'mobile runtime public audit hook', $errors);
+beta_contract_require_contains($mobileJs, 'small-touch-target', 'mobile runtime touch-target audit', $errors);
+beta_contract_require_contains($mobileJs, 'page-horizontal-overflow', 'mobile runtime overflow audit', $errors);
+
+// Shared cross-portal UI contract assets must revalidate rather than remain stale.
+foreach (['minimal-controls\\.js','minimal-controls\\.css','ui-standard\\.css','management\\.js','mobile-runtime\\.js','mobile-hardening\\.css'] as $assetNeedle) {
+    beta_contract_require_contains($htaccess, $assetNeedle, 'shared UI cache revalidation', $errors);
+}
 beta_contract_require_contains($htaccess, 'Cache-Control "no-cache, must-revalidate"', 'shared UI cache revalidation', $errors);
 
-// Core loader cache key remains explicit; internal minimal-control assets have
-// their own version bump above and the shared contract assets revalidate.
 beta_contract_require_contains($dashboard, 'assets/management.js?v=20260826minimal1', 'dashboard management loader cache key', $errors);
 
 // Known legacy Google workbooks must use deterministic contracts, not generic
@@ -118,7 +129,6 @@ foreach (['timesheet','payrate','start_time','employee_setup','general_ledger','
 }
 beta_contract_require_contains($knownFetch, 'Preview stopped without importing anything.', 'legacy fail-closed header handling', $errors);
 
-// Guard against the obsolete project instruction returning unnoticed.
 if (preg_match('/^\s*[-*]?\s*Never inspect or modify `?timesheet_portal\/?`?\.?\s*$/mi', $projectContext)
     || preg_match('/^\s*\d+\.\s*Never inspect or modify timesheet_portal\/?\.?\s*$/mi', $newChat)) {
     $errors[] = 'Obsolete Timesheet Portal prohibition has reappeared in active beta context.';
@@ -130,4 +140,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: beta-only project scope, implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, shared UI cache revalidation, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
+echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical Add/Search controls, mobile viewport/dialog/navigation/dashboard hardening, runtime mobile self-audit, shared UI cache revalidation, README contract, and deterministic legacy Sheet reader are present.\n";
