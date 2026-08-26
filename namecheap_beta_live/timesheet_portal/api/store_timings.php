@@ -6,6 +6,8 @@ require_once __DIR__ . '/../includes/beta_api.php';
 function timings_actor(PDO $pdo, array $sessionUser): array
 {
     beta_require_permission($sessionUser, 'stores.timings.manage', $pdo);
+    $sessionUser['full_name'] = (string)($sessionUser['full_name'] ?? $sessionUser['name'] ?? '');
+    $sessionUser['auth_client_id'] = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
     return $sessionUser;
 }
 
@@ -69,8 +71,8 @@ try {
         json_response([
             'success' => true,
             'csrf' => csrf_token(),
-            'actor_role' => (string)($actor['role_key'] ?? $actor['role'] ?? ''),
-            'actor_authority_level' => (int)($actor['authority_level'] ?? 0),
+            'actor_role' => (string)($actor['role_label'] ?? $actor['role_name'] ?? $actor['role'] ?? 'User'),
+            'actor_loa' => (int)($actor['authority_level'] ?? 0),
             'active_client_id' => $clientId,
             'stores' => $state['stores'],
             'timings' => $state['timings'],
