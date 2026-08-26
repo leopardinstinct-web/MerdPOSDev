@@ -39,6 +39,18 @@ $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $minimalCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.css', $errors);
 
+// Project scope is beta-only by default. A future context refresh must not
+// silently redirect vague project prompts toward main/legacy/Flutter targets.
+foreach ([
+    'root beta README' => $rootReadme,
+    'project context' => $projectContext,
+    'new-chat starter' => $newChat,
+] as $label => $content) {
+    beta_contract_require_contains($content, 'Every chat, prompt', $label . ' beta-only scope', $errors);
+    beta_contract_require_contains($content, 'namecheap-beta-live', $label . ' beta branch scope', $errors);
+    beta_contract_require_contains($content, 'explicitly', $label . ' non-beta opt-out rule', $errors);
+}
+
 // Implementation-state discipline must exist in the root/context/readme entry points.
 foreach ([
     'root beta README' => $rootReadme,
@@ -118,4 +130,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, shared UI cache revalidation, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
+echo "MERDPOS beta runtime contract validated: beta-only project scope, implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, shared UI cache revalidation, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
