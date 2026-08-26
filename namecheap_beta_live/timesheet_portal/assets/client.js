@@ -4,48 +4,24 @@
   const root = document.getElementById('clientsOverview');
   if (!root) return;
 
-  // These DEV modules are global Operations features. Keep loading them from the
-  // always-mounted DEV Clients module so they do not depend on visiting Clients.
-  if (!document.querySelector('script[data-dev-stores-ui]')) {
-    const script = document.createElement('script');
-    script.src = 'assets/dev-stores-ui.js?v=20260825h';
-    script.dataset.devStoresUi = '1';
-    document.body.appendChild(script);
-  }
-  if (!document.querySelector('script[data-defaults-module]')) {
-    const script = document.createElement('script');
-    script.src = 'assets/defaults.js?v=20260825a';
-    script.dataset.defaultsModule = '1';
-    document.body.appendChild(script);
-  }
-  if (!document.querySelector('script[data-roles-module]')) {
-    const script = document.createElement('script');
-    script.src = 'assets/roles.js?v=20260825a';
-    script.dataset.rolesModule = '1';
-    document.body.appendChild(script);
-  }
+  if (!document.querySelector('script[data-dev-stores-ui]')) { const s=document.createElement('script');s.src='assets/dev-stores-ui.js?v=20260825h';s.dataset.devStoresUi='1';document.body.appendChild(s); }
+  if (!document.querySelector('script[data-defaults-module]')) { const s=document.createElement('script');s.src='assets/defaults.js?v=20260825a';s.dataset.defaultsModule='1';document.body.appendChild(s); }
+  if (!document.querySelector('script[data-roles-module]')) { const s=document.createElement('script');s.src='assets/roles.js?v=20260826ux1';s.dataset.rolesModule='1';document.body.appendChild(s); }
 
   let state = null;
   let filter = '';
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  let migration = null;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function ensureStyles() {
     if (document.getElementById('devClientsAdminStyles')) return;
     const style = document.createElement('style');
     style.id = 'devClientsAdminStyles';
     style.textContent = `
-      .clients-admin-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-      .clients-admin-search{display:flex;align-items:center;gap:8px;width:min(460px,100%);min-height:42px;padding:0 12px;border:1px solid #CBD8E7;border-radius:10px;background:#fff}
-      .clients-admin-search svg{width:17px;height:17px;color:#6B7F96;fill:none;stroke:currentColor;stroke-width:1.8}
-      .clients-admin-search input{width:100%;border:0!important;outline:0!important;background:transparent!important;padding:0!important;box-shadow:none!important}
-      .client-code-line{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:10.5px!important;color:#49627F!important}
-      .client-counts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-      .client-count-chip{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border-radius:999px;background:#F2F6FB;color:#536A84;font-size:9.5px;font-weight:700}
-      .client-admin-id{background:#F3F6FA!important;color:#607086!important;cursor:not-allowed}
-      .client-admin-code{text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.035em}
-      @media(max-width:720px){.clients-admin-toolbar{display:grid}.clients-admin-search{width:100%}.clients-admin-toolbar .primary-btn{width:100%;justify-content:center}}
+      .clients-admin-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}.clients-admin-search{display:flex;align-items:center;gap:8px;width:min(460px,100%);min-height:42px;padding:0 12px;border:1px solid #CBD8E7;border-radius:10px;background:#fff}.clients-admin-search svg{width:17px;height:17px;color:#6B7F96;fill:none;stroke:currentColor;stroke-width:1.8}.clients-admin-search input{width:100%;border:0!important;outline:0!important;background:transparent!important;padding:0!important;box-shadow:none!important}.client-code-line{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:10.5px!important;color:#49627F!important}.client-counts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.client-count-chip{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border-radius:999px;background:#F2F6FB;color:#536A84;font-size:9.5px;font-weight:700}.client-admin-id{background:#F3F6FA!important;color:#607086!important;cursor:not-allowed}.client-admin-code{text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.035em}.client-row-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+      .migration-dialog{width:min(980px,calc(100vw - 24px))!important;max-height:92vh!important}.migration-body{display:grid;gap:16px}.migration-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.migration-stat{padding:11px 12px;border:1px solid rgba(31,35,41,.11);border-radius:12px;background:#fff}.migration-stat span{display:block;font-size:9px;color:#758296;text-transform:uppercase;letter-spacing:.05em}.migration-stat strong{display:block;margin-top:4px;font-size:13px;color:#20364F;overflow-wrap:anywhere}.authority-google{color:#966412!important}.authority-sql{color:#1D7853!important}.migration-section{border:1px solid rgba(31,35,41,.11);border-radius:14px;padding:14px;background:#fff}.migration-section h3{margin:0 0 4px;font-size:14px}.migration-section>p{margin:0 0 12px;font-size:10.5px;color:#6B788A;line-height:1.5}.migration-source-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.migration-source-grid .full{grid-column:1/-1}.migration-tabs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.migration-tabs-textarea{min-height:86px!important;font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:11px!important}.migration-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.migration-actions .danger-final{border-color:#B42318!important;color:#B42318!important}.migration-actions .danger-final:hover{background:#FFF3F1!important}.migration-guard{padding:10px 12px;border:1px solid #E9D79A;border-radius:11px;background:#FFFBEB;color:#72571B;font-size:10.5px;line-height:1.45}.migration-result{padding:11px 12px;border-radius:11px;background:#F5F8FC;color:#40536A;font-size:11px;line-height:1.5}.migration-result.is-error{background:#FFF1F0;color:#A62A22}.migration-table{width:100%;border-collapse:collapse}.migration-table th,.migration-table td{padding:8px 7px;border-bottom:1px solid rgba(31,35,41,.08);font-size:10px;text-align:left;vertical-align:top}.migration-table th{font-weight:700;color:#65758A;background:#F7F8FA}.migration-badge{display:inline-flex;padding:3px 6px;border-radius:999px;font-size:8.5px;font-weight:800;background:#EEF3F8;color:#51657B}.migration-badge.completed{background:#EAF7F0;color:#237653}.migration-badge.completed_with_conflicts,.migration-badge.failed{background:#FFF0EE;color:#A3312A}.migration-badge.staged{background:#EEF4FF;color:#2F5F9F}.migration-conflicts{display:grid;gap:7px}.migration-conflict{padding:9px 10px;border:1px solid #E8CBC7;border-radius:10px;background:#FFF8F7}.migration-conflict strong{font-size:10.5px;color:#963229}.migration-conflict small{display:block;margin-top:3px;color:#6B7280;line-height:1.4}.migration-empty{font-size:10.5px;color:#6B788A;padding:8px 0}.migration-foot{font-size:9.5px;color:#78879A;line-height:1.5}
+      @media(max-width:800px){.clients-admin-toolbar{display:grid}.clients-admin-search{width:100%}.clients-admin-toolbar .primary-btn{width:100%;justify-content:center}.migration-status-grid{grid-template-columns:1fr 1fr}.migration-source-grid,.migration-tabs-grid{grid-template-columns:1fr}.migration-source-grid .full{grid-column:auto}.client-row-actions{justify-content:flex-start}}
+      @media(max-width:520px){.migration-status-grid{grid-template-columns:1fr}.migration-actions>*{width:100%;justify-content:center}.migration-dialog{width:calc(100vw - 12px)!important}}
     `;
     document.head.appendChild(style);
   }
@@ -54,190 +30,67 @@
     const response = await fetch(url, {cache:'no-store', ...options});
     const text = await response.text();
     let data = null;
-    try { data = text ? JSON.parse(text) : null; }
-    catch (_) { throw new Error(`Clients API returned invalid data (${response.status}).`); }
-    if (!data) throw new Error(`Clients API returned an empty response (${response.status}).`);
-    if (!data.success) throw new Error(data.error || 'Client request failed.');
+    try { data = text ? JSON.parse(text) : null; } catch (_) { throw new Error(`MERDPOS API returned invalid data (${response.status}).`); }
+    if (!data) throw new Error(`MERDPOS API returned an empty response (${response.status}).`);
+    if (!data.success) throw new Error(data.error || 'Request failed.');
     return data;
   }
 
-  function statusPill(status) {
-    const active = String(status || '').toLowerCase() === 'active';
-    return `<span class="entity-status ${active ? 'is-active' : 'is-inactive'}">${active ? 'Active' : 'Inactive'}</span>`;
-  }
-
-  function editIcon() {
-    return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
-  }
-
-  function searchIcon() {
-    return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
-  }
+  function statusPill(status) { const active=String(status||'').toLowerCase()==='active';return `<span class="entity-status ${active?'is-active':'is-inactive'}">${active?'Active':'Inactive'}</span>`; }
+  function editIcon(){return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';}
+  function syncIcon(){return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-6V1"/><path d="M20 1a9 9 0 0 0-15 4"/><path d="M4 17h6v6"/><path d="M4 23a9 9 0 0 0 15-4"/></svg>';}
+  function searchIcon(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';}
 
   function ensureDialog() {
     if (document.getElementById('clientAdminDialog')) return;
-    const dialog = document.createElement('dialog');
-    dialog.id = 'clientAdminDialog';
-    dialog.className = 'admin-dialog';
-    dialog.innerHTML = `
-      <form id="clientAdminForm" method="dialog" class="admin-form">
-        <div class="dialog-head">
-          <div><h2 id="clientAdminDialogTitle">Add client</h2><p>Client identity is global. Setup keys are generated securely and never displayed.</p></div>
-          <button type="button" class="dialog-close" data-client-dialog-close aria-label="Close">×</button>
-        </div>
-        <input type="hidden" name="id">
-        <div class="admin-form-grid">
-          <label>Internal Client ID <span class="dev-field-chip">DEV</span><input class="client-admin-id" id="clientAdminId" type="text" readonly tabindex="-1"></label>
-          <label>Client name<input name="name" type="text" maxlength="100" autocomplete="organization" required></label>
-          <label>Client Code <span class="dev-field-chip">DEV</span><input class="client-admin-code" name="client_code" type="text" minlength="2" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,49}" autocomplete="off" spellcheck="false" required><p class="form-hint">Globally unique. A–Z, 0–9, hyphen and underscore.</p></label>
-          <label>Status<select name="status" required><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
-        </div>
-        <div class="dialog-actions">
-          <button type="button" class="secondary-btn" data-client-dialog-close>Cancel</button>
-          <button type="submit" class="primary-btn">Save client</button>
-        </div>
-      </form>`;
-    document.body.appendChild(dialog);
-
-    const form = document.getElementById('clientAdminForm');
-    const code = form.elements.client_code;
-    code?.addEventListener('input', () => {
-      code.value = code.value.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_-]/g, '');
-      code.dataset.auto = '0';
-    });
-    form.elements.name?.addEventListener('input', () => {
-      if (form.elements.id.value || (code.value && code.dataset.auto !== '1')) return;
-      code.value = String(form.elements.name.value || '')
-        .toUpperCase().trim().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);
-      code.dataset.auto = '1';
-    });
-    form.addEventListener('submit', saveClient);
-    dialog.querySelectorAll('[data-client-dialog-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
+    const dialog=document.createElement('dialog');dialog.id='clientAdminDialog';dialog.className='admin-dialog';dialog.innerHTML=`<form id="clientAdminForm" method="dialog" class="admin-form"><div class="dialog-head"><div><h2 id="clientAdminDialogTitle">Add client</h2><p>Client identity is global. Setup keys are generated securely and never displayed.</p></div><button type="button" class="dialog-close" data-client-dialog-close aria-label="Close">×</button></div><input type="hidden" name="id"><div class="admin-form-grid"><label>Internal Client ID <span class="dev-field-chip">DEV</span><input class="client-admin-id" id="clientAdminId" type="text" readonly tabindex="-1"></label><label>Client name<input name="name" type="text" maxlength="100" autocomplete="organization" required></label><label>Client Code <span class="dev-field-chip">DEV</span><input class="client-admin-code" name="client_code" type="text" minlength="2" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,49}" autocomplete="off" spellcheck="false" required><p class="form-hint">Globally unique. A–Z, 0–9, hyphen and underscore.</p></label><label>Status<select name="status" required><option value="active">Active</option><option value="inactive">Inactive</option></select></label></div><div class="dialog-actions"><button type="button" class="secondary-btn" data-client-dialog-close>Cancel</button><button type="submit" class="primary-btn">Save client</button></div></form>`;document.body.appendChild(dialog);
+    const form=document.getElementById('clientAdminForm'),code=form.elements.client_code;code?.addEventListener('input',()=>{code.value=code.value.toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9_-]/g,'');code.dataset.auto='0';});form.elements.name?.addEventListener('input',()=>{if(form.elements.id.value||(code.value&&code.dataset.auto!=='1'))return;code.value=String(form.elements.name.value||'').toUpperCase().trim().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);code.dataset.auto='1';});form.addEventListener('submit',saveClient);dialog.querySelectorAll('[data-client-dialog-close]').forEach(button=>button.addEventListener('click',()=>dialog.close()));
   }
 
-  function openClient(id = null) {
-    ensureDialog();
-    const dialog = document.getElementById('clientAdminDialog');
-    const form = document.getElementById('clientAdminForm');
-    if (!dialog || !form || !state) return;
-    form.reset();
-    const client = id ? (state.clients || []).find(row => Number(row.id) === Number(id)) : null;
-    form.elements.id.value = client ? String(client.id) : '';
-    form.elements.name.value = client?.name || '';
-    form.elements.client_code.value = client?.client_code || '';
-    form.elements.client_code.dataset.auto = client ? '0' : '1';
-    form.elements.status.value = client?.status || 'active';
-    document.getElementById('clientAdminId').value = client ? String(client.id) : 'Assigned automatically';
-    document.getElementById('clientAdminDialogTitle').textContent = client ? `Edit ${client.name}` : 'Add client';
-    if (!dialog.open) dialog.showModal();
+  function ensureMigrationDialog(){
+    if(document.getElementById('legacyMigrationDialog'))return;
+    const dialog=document.createElement('dialog');dialog.id='legacyMigrationDialog';dialog.className='admin-dialog migration-dialog';dialog.innerHTML=`<div class="dialog-head"><div><h2 id="migrationTitle">Legacy migration</h2><p>Controlled Google → staging → validation → MERDPOS SQL migration.</p></div><button type="button" class="dialog-close" data-migration-close aria-label="Close">×</button></div><div class="admin-dialog-body migration-body" id="migrationBody"><div class="entity-empty">Loading migration state…</div></div>`;document.body.appendChild(dialog);dialog.querySelector('[data-migration-close]')?.addEventListener('click',()=>dialog.close());
   }
 
-  function matches(client, query) {
-    if (!query) return true;
-    return [
-      client.name,
-      client.client_code,
-      client.id,
-      `id ${client.id}`,
-      client.status,
-      `${client.store_count} stores`,
-      `${client.employee_count} employees`,
-    ].some(value => String(value ?? '').toLowerCase().includes(query));
+  function openClient(id=null){ensureDialog();const dialog=document.getElementById('clientAdminDialog'),form=document.getElementById('clientAdminForm');if(!dialog||!form||!state)return;form.reset();const client=id?(state.clients||[]).find(row=>Number(row.id)===Number(id)):null;form.elements.id.value=client?String(client.id):'';form.elements.name.value=client?.name||'';form.elements.client_code.value=client?.client_code||'';form.elements.client_code.dataset.auto=client?'0':'1';form.elements.status.value=client?.status||'active';document.getElementById('clientAdminId').value=client?String(client.id):'Assigned automatically';document.getElementById('clientAdminDialogTitle').textContent=client?`Edit ${client.name}`:'Add client';if(!dialog.open)dialog.showModal();}
+
+  function matches(client,query){if(!query)return true;return [client.name,client.client_code,client.id,`id ${client.id}`,client.status,`${client.store_count} stores`,`${client.employee_count} employees`].some(value=>String(value??'').toLowerCase().includes(query));}
+
+  function renderList(){const list=document.getElementById('clientsAdminList');if(!list||!state)return;const query=String(filter||'').trim().toLowerCase();const clients=(state.clients||[]).slice().sort((a,b)=>Number(a.id)-Number(b.id)).filter(client=>matches(client,query));list.innerHTML=clients.length?clients.map(client=>`<article class="entity-row ${String(client.status).toLowerCase()==='inactive'?'is-muted':''}"><div class="entity-avatar">C</div><div class="entity-copy"><div class="entity-title-line"><strong>${esc(client.name)}</strong></div><div class="entity-sub client-code-line">Code ${esc(client.client_code)} · ID ${Number(client.id)}</div><div class="client-counts"><span class="client-count-chip">${Number(client.store_count||0)} stores</span><span class="client-count-chip">${Number(client.active_employee_count||0)} active staff</span><span class="client-count-chip">${Number(client.device_count||0)} devices</span>${client.attendance_authority?`<span class="client-count-chip">Attendance: ${esc(String(client.attendance_authority).replace('_',' '))}</span>`:''}${client.financial_authority?`<span class="client-count-chip">Finance: ${esc(String(client.financial_authority).replace('_',' '))}</span>`:''}</div></div><div class="entity-meta">${statusPill(client.status)}</div><div class="client-row-actions"><button type="button" class="icon-text-btn" data-migrate-client="${Number(client.id)}">${syncIcon()}<span>Legacy Sync</span></button><button type="button" class="icon-text-btn" data-edit-client="${Number(client.id)}">${editIcon()}<span>Edit</span></button></div></article>`).join(''):'<div class="entity-empty">No clients match this search.</div>';list.querySelectorAll('[data-edit-client]').forEach(button=>button.addEventListener('click',()=>openClient(Number(button.dataset.editClient))));list.querySelectorAll('[data-migrate-client]').forEach(button=>button.addEventListener('click',()=>openMigration(Number(button.dataset.migrateClient))));}
+
+  function render(){ensureStyles();ensureDialog();ensureMigrationDialog();root.innerHTML=`<div class="clients-admin-toolbar"><label class="clients-admin-search" aria-label="Search clients">${searchIcon()}<input id="clientsAdminSearch" type="search" placeholder="Search name, code, ID or status" value="${esc(filter)}"></label><button id="addClientBtn" class="primary-btn compact-btn" type="button">+ Add client</button></div><div id="clientsAdminNotice" class="directory-notice" hidden></div><div id="clientsAdminList" class="entity-list"></div>`;document.getElementById('clientsAdminSearch')?.addEventListener('input',event=>{filter=event.target.value;renderList();});document.getElementById('addClientBtn')?.addEventListener('click',()=>openClient());renderList();}
+
+  function notice(message,error=false){const node=document.getElementById('clientsAdminNotice');if(!node)return;node.textContent=message;node.classList.toggle('is-error',error);node.hidden=!message;if(message&&!error)window.setTimeout(()=>{node.hidden=true;},3500);}
+
+  async function saveClient(event){event.preventDefault();if(!state)return;const form=event.currentTarget;if(!form.checkValidity()){form.reportValidity();return;}const button=form.querySelector('[type="submit"]');button.disabled=true;try{const result=await api('api/clients.php',{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({action:'save_client',csrf:state.csrf,id:form.elements.id.value||null,name:form.elements.name.value,client_code:form.elements.client_code.value,status:form.elements.status.value})});state=result;document.getElementById('clientAdminDialog')?.close();render();notice(result.message||'Client saved.');window.MERDPOSAccountContext?.refresh?.();}catch(error){alert(error.message);}finally{button.disabled=false;}}
+
+  function sourceDefaults(type){const existing=migration?.sources?.[type];if(existing)return existing;if(type==='attendance')return{spreadsheet_id:migration?.suggestions?.attendance_spreadsheet_id||'',sheet_names:migration?.suggestions?.attendance_sheets||{timesheet:'Time Sheet',payrate:'PayRate',start_time:'Start Time',employee_setup:'Employee Setup'}};return{spreadsheet_id:migration?.suggestions?.financial_spreadsheet_id||'',sheet_names:migration?.suggestions?.financial_sheets||[]};}
+  function authority(value){return String(value||'google_legacy');}
+  function authorityLabel(value){return authority(value)==='merdpos_sql'?'MERDPOS SQL':'Google legacy';}
+  function batchBadge(status){return `<span class="migration-badge ${esc(status)}">${esc(String(status||'').replaceAll('_',' '))}</span>`;}
+
+  function renderMigration(){
+    const body=document.getElementById('migrationBody');if(!body||!migration)return;const a=sourceDefaults('attendance'),f=sourceDefaults('financial'),ms=migration.migration_state||{},sqlLocked=authority(ms.attendance_authority)==='merdpos_sql'||authority(ms.financial_authority)==='merdpos_sql';const batches=migration.recent_batches||[],conflicts=migration.open_conflicts||[],counts=migration.record_counts||{};
+    body.innerHTML=`
+      <div class="migration-status-grid"><div class="migration-stat"><span>Attendance authority</span><strong class="${authority(ms.attendance_authority)==='merdpos_sql'?'authority-sql':'authority-google'}">${authorityLabel(ms.attendance_authority)}</strong></div><div class="migration-stat"><span>Financial authority</span><strong class="${authority(ms.financial_authority)==='merdpos_sql'?'authority-sql':'authority-google'}">${authorityLabel(ms.financial_authority)}</strong></div><div class="migration-stat"><span>SQL attendance rows</span><strong>${Number(counts.employee_logs||0).toLocaleString()}</strong></div><div class="migration-stat"><span>SQL financial submissions</span><strong>${Number(counts.financial_submissions||0).toLocaleString()}</strong></div></div>
+      <section class="migration-section"><h3>Legacy Google sources</h3><p>Spreadsheet IDs and tab names are stored per client. MERDPOS constructs the Google URL server-side; arbitrary URLs and credentials are never accepted.</p><form id="migrationSourcesForm"><div class="migration-source-grid"><label>Attendance Spreadsheet ID<input name="attendance_spreadsheet_id" value="${esc(a.spreadsheet_id||'')}" autocomplete="off" spellcheck="false" required></label><div></div><div class="full migration-tabs-grid"><label>Time Sheet tab<input name="timesheet" value="${esc(a.sheet_names?.timesheet||'Time Sheet')}" required></label><label>PayRate tab<input name="payrate" value="${esc(a.sheet_names?.payrate||'PayRate')}" required></label><label>Start Time tab<input name="start_time" value="${esc(a.sheet_names?.start_time||'Start Time')}" required></label><label>Employee Setup tab<input name="employee_setup" value="${esc(a.sheet_names?.employee_setup||'Employee Setup')}" required></label></div><label class="full">Financial Spreadsheet ID<input name="financial_spreadsheet_id" value="${esc(f.spreadsheet_id||'')}" autocomplete="off" spellcheck="false" placeholder="Leave blank until the Financial source is configured"></label><label class="full">Financial tab names<textarea class="migration-tabs-textarea" name="financial_sheets" placeholder="One tab per line, e.g. Cash In&#10;Cash Out&#10;Z Report">${esc((f.sheet_names||[]).join('\n'))}</textarea><p class="form-hint">MERDPOS auto-detects opening, Cash IN, Cash OUT and Z/closing rows from the tab name or a type/action column.</p></label></div><div class="migration-actions"><button class="primary-btn compact-btn" type="submit">Save sources</button><span class="migration-foot">Saving configuration does not copy any Sheet data.</span></div></form></section>
+      <section class="migration-section"><h3>Migration control</h3><p>Preview stages and validates source rows without changing operational data. Sync applies only safe/idempotent rows. Final Sync permanently makes SQL authoritative.</p><div class="migration-guard">Existing SQL employee passwords are never overwritten. Staged payloads redact password/PIN/secret fields. Changed imported attendance rows update only when MERDPOS can prove the target was not modified elsewhere. Imported financial ledger records are immutable; a changed source row becomes a conflict.</div><div class="migration-actions" style="margin-top:12px"><button id="migrationPreview" class="secondary-btn compact-btn" type="button">Preview changes</button><button id="migrationSync" class="primary-btn compact-btn" type="button" ${sqlLocked?'disabled':''}>Sync legacy data</button><button id="migrationFinal" class="secondary-btn compact-btn danger-final" type="button" ${sqlLocked||!f.spreadsheet_id?'disabled':''}>Final Sync & switch to SQL</button></div><div id="migrationResult" class="migration-result" hidden></div></section>
+      <section class="migration-section"><h3>Open conflicts</h3><p>Conflicts are fail-closed. MERDPOS will not silently choose between a legacy Sheet value and a different SQL value.</p><div class="migration-conflicts">${conflicts.length?conflicts.map(c=>`<div class="migration-conflict"><strong>${esc(c.conflict_code)} · ${esc(c.source_type)}</strong><small>${esc(c.message)}</small><small>Batch ${esc(c.batch_id)} · ${esc(c.created_at)}</small></div>`).join(''):'<div class="migration-empty">No open migration conflicts.</div>'}</div></section>
+      <section class="migration-section"><h3>Migration history</h3><p>Every preview, sync and final cutover is retained as an auditable batch.</p><div class="table-scroll"><table class="migration-table"><thead><tr><th>Started</th><th>Mode</th><th>Status</th><th>Attendance</th><th>Financial</th><th>Inserted</th><th>Updated</th><th>Unchanged</th><th>Conflicts</th><th>Rejected</th></tr></thead><tbody>${batches.length?batches.map(b=>`<tr><td>${esc(b.started_at)}</td><td>${esc(b.mode)}</td><td>${batchBadge(b.status)}</td><td>${Number(b.attendance_rows||0)}</td><td>${Number(b.financial_rows||0)}</td><td>${Number(b.inserted_rows||0)}</td><td>${Number(b.updated_rows||0)}</td><td>${Number(b.unchanged_rows||0)}</td><td>${Number(b.conflict_rows||0)}</td><td>${Number(b.rejected_rows||0)}</td></tr>`).join(''):'<tr><td colspan="10">No migration batches yet.</td></tr>'}</tbody></table></div></section>
+      <p class="migration-foot">After final cutover, Google remains available for Preview/history only; it cannot apply changes over MERDPOS SQL.</p>`;
+    document.getElementById('migrationSourcesForm')?.addEventListener('submit',saveMigrationSources);document.getElementById('migrationPreview')?.addEventListener('click',()=>runMigration('preview'));document.getElementById('migrationSync')?.addEventListener('click',()=>runMigration('sync'));document.getElementById('migrationFinal')?.addEventListener('click',()=>runMigration('final'));
   }
 
-  function renderList() {
-    const list = document.getElementById('clientsAdminList');
-    if (!list || !state) return;
-    const query = String(filter || '').trim().toLowerCase();
-    const clients = (state.clients || []).slice().sort((a,b) => Number(a.id) - Number(b.id)).filter(client => matches(client, query));
-    list.innerHTML = clients.length ? clients.map(client => `
-      <article class="entity-row ${String(client.status).toLowerCase() === 'inactive' ? 'is-muted' : ''}">
-        <div class="entity-avatar">C</div>
-        <div class="entity-copy">
-          <div class="entity-title-line"><strong>${esc(client.name)}</strong></div>
-          <div class="entity-sub client-code-line">Code ${esc(client.client_code)} · ID ${Number(client.id)}</div>
-          <div class="client-counts">
-            <span class="client-count-chip">${Number(client.store_count || 0)} stores</span>
-            <span class="client-count-chip">${Number(client.active_employee_count || 0)} active staff</span>
-            <span class="client-count-chip">${Number(client.device_count || 0)} devices</span>
-          </div>
-        </div>
-        <div class="entity-meta">${statusPill(client.status)}</div>
-        <button type="button" class="icon-text-btn" data-edit-client="${Number(client.id)}">${editIcon()}<span>Edit</span></button>
-      </article>`).join('') : '<div class="entity-empty">No clients match this search.</div>';
+  async function openMigration(clientId){ensureMigrationDialog();const dialog=document.getElementById('legacyMigrationDialog'),body=document.getElementById('migrationBody');migration=null;if(body)body.innerHTML='<div class="entity-empty">Loading migration state…</div>';const client=(state?.clients||[]).find(c=>Number(c.id)===Number(clientId));document.getElementById('migrationTitle').textContent=`Legacy migration · ${client?.name||'Client'}`;if(!dialog.open)dialog.showModal();try{migration=await api(`api/legacy_migration.php?client_id=${encodeURIComponent(clientId)}&_=${Date.now()}`,{headers:{'Accept':'application/json'}});renderMigration();}catch(error){if(body)body.innerHTML=`<div class="entity-empty is-error">${esc(error.message)}</div>`;}}
 
-    list.querySelectorAll('[data-edit-client]').forEach(button => button.addEventListener('click', () => openClient(Number(button.dataset.editClient))));
-  }
+  async function saveMigrationSources(event){event.preventDefault();if(!migration)return;const form=event.currentTarget;if(!form.checkValidity()){form.reportValidity();return;}const financialTabs=String(form.elements.financial_sheets.value||'').split(/[\n,]+/).map(v=>v.trim()).filter(Boolean);const button=form.querySelector('[type="submit"]');button.disabled=true;try{migration=await api('api/legacy_migration.php',{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({action:'save_sources',csrf:migration.csrf,client_id:migration.client.id,attendance_spreadsheet_id:form.elements.attendance_spreadsheet_id.value,attendance_sheets:{timesheet:form.elements.timesheet.value,payrate:form.elements.payrate.value,start_time:form.elements.start_time.value,employee_setup:form.elements.employee_setup.value},financial_spreadsheet_id:form.elements.financial_spreadsheet_id.value,financial_sheets:financialTabs})});renderMigration();showMigrationResult(migration.message||'Sources saved.',false);}catch(error){showMigrationResult(error.message,true);}finally{button.disabled=false;}}
 
-  function render() {
-    ensureStyles();
-    ensureDialog();
-    root.innerHTML = `
-      <div class="clients-admin-toolbar">
-        <label class="clients-admin-search" aria-label="Search clients">${searchIcon()}<input id="clientsAdminSearch" type="search" placeholder="Search name, code, ID or status" value="${esc(filter)}"></label>
-        <button id="addClientBtn" class="primary-btn compact-btn" type="button">+ Add client</button>
-      </div>
-      <div id="clientsAdminNotice" class="directory-notice" hidden></div>
-      <div id="clientsAdminList" class="entity-list"></div>`;
+  function showMigrationResult(message,error=false){const node=document.getElementById('migrationResult');if(!node)return;node.textContent=message;node.classList.toggle('is-error',error);node.hidden=false;}
 
-    document.getElementById('clientsAdminSearch')?.addEventListener('input', event => {
-      filter = event.target.value;
-      renderList();
-    });
-    document.getElementById('addClientBtn')?.addEventListener('click', () => openClient());
-    renderList();
-  }
+  async function runMigration(mode){if(!migration)return;if(mode==='sync'&&!window.confirm('Sync validated legacy rows into MERDPOS SQL? Existing native/manual changes will not be silently overwritten.'))return;if(mode==='final'){const expected=String(migration.client.client_code||'');const typed=window.prompt(`Final cutover makes MERDPOS SQL authoritative and prevents future Google overwrites. Type ${expected} to continue.`);if(typed!==expected){showMigrationResult('Final cutover cancelled: Client Code did not match.',true);return;}}const ids=['migrationPreview','migrationSync','migrationFinal'];ids.forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});showMigrationResult(mode==='preview'?'Fetching and validating both legacy sources…':mode==='final'?'Running final reconciliation and cutover…':'Syncing validated legacy rows…',false);try{migration=await api('api/legacy_migration.php',{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({action:mode,csrf:migration.csrf,client_id:migration.client.id})});renderMigration();const b=migration.batch_result||{};showMigrationResult(`${migration.message||'Complete'} Batch ${b.batch_id||''}: ${Number(b.inserted||0)} inserted, ${Number(b.updated||0)} updated, ${Number(b.unchanged||0)} unchanged, ${Number(b.conflicts||0)} conflicts, ${Number(b.rejected||0)} rejected.`,Number(b.conflicts||0)>0||Number(b.rejected||0)>0);await refreshClients();}catch(error){showMigrationResult(error.message,true);ids.forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});}}
 
-  function notice(message, error = false) {
-    const node = document.getElementById('clientsAdminNotice');
-    if (!node) return;
-    node.textContent = message;
-    node.classList.toggle('is-error', error);
-    node.hidden = !message;
-    if (message && !error) window.setTimeout(() => { node.hidden = true; }, 3500);
-  }
+  async function refreshClients(){try{state=await api('api/clients.php?_='+Date.now(),{headers:{'Accept':'application/json'}});render();}catch(_){} }
+  async function load(){root.innerHTML='<div class="entity-empty">Loading clients…</div>';try{state=await api('api/clients.php?_='+Date.now(),{headers:{'Accept':'application/json'}});render();}catch(error){root.innerHTML=`<div class="entity-empty is-error">${esc(error.message)}</div>`;}}
 
-  async function saveClient(event) {
-    event.preventDefault();
-    if (!state) return;
-    const form = event.currentTarget;
-    if (!form.checkValidity()) { form.reportValidity(); return; }
-    const button = form.querySelector('[type="submit"]');
-    button.disabled = true;
-    try {
-      const result = await api('api/clients.php', {
-        method:'POST',
-        headers:{'Accept':'application/json','Content-Type':'application/json'},
-        body:JSON.stringify({
-          action:'save_client',
-          csrf:state.csrf,
-          id:form.elements.id.value || null,
-          name:form.elements.name.value,
-          client_code:form.elements.client_code.value,
-          status:form.elements.status.value,
-        }),
-      });
-      state = result;
-      document.getElementById('clientAdminDialog')?.close();
-      render();
-      notice(result.message || 'Client saved.');
-      window.MERDPOSAccountContext?.refresh?.();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  async function load() {
-    root.innerHTML = '<div class="entity-empty">Loading clients…</div>';
-    try {
-      state = await api('api/clients.php?_=' + Date.now(), {headers:{'Accept':'application/json'}});
-      render();
-    } catch (error) {
-      root.innerHTML = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
-    }
-  }
-
-  load();
+  ensureStyles();ensureMigrationDialog();load();
 })();
