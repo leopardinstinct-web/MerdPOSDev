@@ -27,18 +27,29 @@ function clients_status(mixed $value): string
     return $status;
 }
 
+function clients_table_exists(PDO $pdo, string $table): bool
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');
+    $stmt->execute([$table]);
+    return (int)$stmt->fetchColumn() === 1;
+}
+
 function clients_state(PDO $pdo): array
 {
+    $hasMigrationState = clients_table_exists($pdo, 'client_migration_state');
+    $migrationSelect = $hasMigrationState
+        ? "COALESCE(ms.attendance_authority,'google_legacy') AS attendance_authority,COALESCE(ms.financial_authority,'google_legacy') AS financial_authority,ms.attendance_cutover_at,ms.financial_cutover_at,"
+        : "'google_legacy' AS attendance_authority,'google_legacy' AS financial_authority,NULL AS attendance_cutover_at,NULL AS financial_cutover_at,";
+    $migrationJoin = $hasMigrationState ? ' LEFT JOIN client_migration_state ms ON ms.client_id=c.id ' : ' ';
+
     $stmt = $pdo->query(
         "SELECT c.id,c.name,c.client_code,c.status,c.default_currency,c.default_timezone,c.created_at,"
-        . "COALESCE(ms.attendance_authority,'google_legacy') AS attendance_authority,"
-        . "COALESCE(ms.financial_authority,'google_legacy') AS financial_authority,"
-        . "ms.attendance_cutover_at,ms.financial_cutover_at,"
+        . $migrationSelect
         . '(SELECT COUNT(*) FROM stores s WHERE s.client_id=c.id) AS store_count,'
         . '(SELECT COUNT(*) FROM employees e WHERE e.client_id=c.id) AS employee_count,'
         . "(SELECT COUNT(*) FROM employees e2 WHERE e2.client_id=c.id AND e2.status='active') AS active_employee_count,"
         . '(SELECT COUNT(*) FROM devices d WHERE d.client_id=c.id) AS device_count '
-        . 'FROM clients c LEFT JOIN client_migration_state ms ON ms.client_id=c.id ORDER BY c.id ASC'
+        . 'FROM clients c' . $migrationJoin . 'ORDER BY c.id ASC'
     );
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -104,11 +115,11 @@ try {
 
     $pdo->beginTransaction();
     try {
-        if($id===null){$setupKey=bin2hex(random_bytes(32));$stmt=$pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');$stmt->execute([$name,$code,$setupKey,$status]);$id=(int)$pdo->lastInsertId();clients_seed_roles($pdo,$id,(int)$user['id']);clients_seed_permissions($pdo,$id);clients_seed_dashboards($pdo,$id);$pdo->prepare('INSERT IGNORE INTO client_migration_state (client_id) VALUES (?)')->execute([$id]);$action='client.create';}
+        if($id===null){$setupKey=bin2hex(random_bytes(32));$stmt=$pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');$stmt->execute([$name,$code,$setupKey,$status]);$id=(int)$pdo->lastInsertId();clients_seed_roles($pdo,$id,(int)$user['id']);clients_seed_permissions($pdo,$id);clients_seed_dashboards($pdo,$id);if(clients_table_exists($pdo,'client_migration_state'))$pdo->prepare('INSERT IGNORE INTO client_migration_state (client_id) VALUES (?)')->execute([$id]);$action='client.create';}
         else{$check=$pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1 FOR UPDATE');$check->execute([$id]);$existing=$check->fetch(PDO::FETCH_ASSOC);if(!is_array($existing))throw new MerdWorkforceException('client_not_found','Client not found.');$stmt=$pdo->prepare('UPDATE clients SET name=?,client_code=?,status=? WHERE id=?');$stmt->execute([$name,$code,$status,$id]);$action='client.update';}
         $pdo->commit();
     } catch(PDOException $e){if($pdo->inTransaction())$pdo->rollBack();if((string)$e->getCode()==='23000')throw new MerdWorkforceException('duplicate_client','Client name or Client Code conflicts with an existing client.');throw $e;} catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 
-    clients_audit($pdo,$user,(int)$id,$action,['name'=>$name,'client_code'=>$code,'status'=>$status,'permission_model'=>'central_permission_loa_v1','legacy_migration_ready'=>true]);
-    json_response(['success'=>true,'csrf'=>csrf_token(),'message'=>$action==='client.create'?'Client created with roles, permissions, dashboards and migration state.':'Client saved.','client_id'=>(int)$id,'clients'=>clients_state($pdo)]);
+    clients_audit($pdo,$user,(int)$id,$action,['name'=>$name,'client_code'=>$code,'status'=>$status,'permission_model'=>'central_permission_loa_v1','legacy_migration_ready'=>clients_table_exists($pdo,'client_migration_state')]);
+    json_response(['success'=>true,'csrf'=>csrf_token(),'message'=>$action==='client.create'?'Client created with roles, permissions and dashboards.':'Client saved.','client_id'=>(int)$id,'clients'=>clients_state($pdo)]);
 } catch(Throwable $e){beta_api_error($e);}
