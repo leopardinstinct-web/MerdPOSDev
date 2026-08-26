@@ -5,6 +5,24 @@
 **Active beta branch:** `namecheap-beta-live`  
 **Active deployable beta tree:** `namecheap_beta_live/`
 
+## Project scope — binding default
+
+**From 2026-08-26 onward, every chat, prompt, screenshot, bug report, design request, code request, audit, comparison or follow-up inside this project refers to the MERDPOS beta by default.**
+
+Unless the product owner explicitly names another target, interpret every request as applying to:
+
+```text
+Branch: namecheap-beta-live
+Deployable tree: namecheap_beta_live/
+Live target: ~/merdpos.com/app/beta
+Primary browser surface: namecheap_beta_live/timesheet_portal/
+Supporting beta backend: namecheap_beta_live/backend/
+```
+
+Do not silently switch to `main`, the older production Timesheet Portal, an archived implementation, or the broader Flutter roadmap merely because a prompt is short or says only “MERDPOS”, “the app”, “the portal”, “this screen”, “fix this”, “implement this”, or similar.
+
+If a request genuinely needs a non-beta target, the product owner must explicitly say so. Historical project context that implies another default target is superseded by this rule.
+
 ## Authority
 
 For current beta work, read in this order:
@@ -220,7 +238,7 @@ Do not update README merely to make a feature appear complete. README must descr
 
 MERDPOS is evolving from the legacy Google-Sheet-backed Timesheet/Finance workflow into an SQL-authoritative retail operations platform while preserving safe transition/migration paths.
 
-The broader Flutter/POS code remains part of the repository, but the Namecheap web beta is currently an active primary product surface. Historical roadmap notes that excluded Timesheet Portal development are superseded for beta work.
+The broader Flutter/POS code remains part of the repository, but it is **not the default target for prompts in this project**. The Namecheap beta is the default and must be assumed unless the product owner explicitly names another target.
 
 ## Deployment command — standard immediate output after changes
 
