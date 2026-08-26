@@ -5,6 +5,22 @@
 **Deployment target:** Namecheap beta at `~/merdpos.com/app/beta`  
 **Status:** This README is the first-read source for work on the current web beta.
 
+## 0. Binding project-scope default
+
+**Every chat, prompt, screenshot, bug report, design request, audit, implementation request or follow-up inside the POS LATEST project is about this beta by default.**
+
+Unless the product owner explicitly names another target, interpret all project work as applying to:
+
+```text
+Branch: namecheap-beta-live
+Deployable tree: namecheap_beta_live/
+Live target: ~/merdpos.com/app/beta
+Portal: namecheap_beta_live/timesheet_portal/
+Backend: namecheap_beta_live/backend/
+```
+
+Do not infer `main`, the older production portal, an archived build, or the broader Flutter roadmap from vague wording such as “MERDPOS”, “the app”, “portal”, “this”, “fix it”, or “implement this”. A non-beta target must be explicitly requested.
+
 ## 1. Source of truth
 
 For the current MERDPOS web beta:
