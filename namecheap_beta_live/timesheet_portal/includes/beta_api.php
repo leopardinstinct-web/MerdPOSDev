@@ -16,15 +16,14 @@ function beta_api_error(Throwable $error): never
 }
 
 /**
- * Effective permission thresholds for one client. Database values override the
- * catalogue defaults for delegable permissions. DEV-only permissions are
- * always forced to 1000 in code, even if the database is manually altered.
+ * Effective permission thresholds for one client.
+ *
+ * Deliberately read fresh from SQL on every authorization decision. Permission
+ * policy can be edited by DEV while the portal is in use; stale request/session
+ * caches are not allowed to preserve access after a threshold is tightened.
  */
 function beta_permission_levels(PDO $pdo, int $clientId): array
 {
-    static $cache = [];
-    if (isset($cache[$clientId])) return $cache[$clientId];
-
     $catalog = merd_portal_permission_catalog();
     $levels = [];
     foreach ($catalog as $key => $rule) {
@@ -40,10 +39,11 @@ function beta_permission_levels(PDO $pdo, int $clientId): array
             $levels[$key] = max(1, min(1000, (int)$row['min_authority_level']));
         }
     } catch (Throwable $e) {
+        // Migration-safe catalogue fallback. Unknown permissions still fail closed.
         error_log('MERDPOS permission level fallback: ' . get_class($e));
     }
 
-    return $cache[$clientId] = $levels;
+    return $levels;
 }
 
 function beta_user_is_dev(array $user): bool
@@ -56,19 +56,19 @@ function beta_has_permission(array $user, string $permission, ?PDO $pdo = null):
     $catalog = merd_portal_permission_catalog();
     if (!isset($catalog[$permission])) return false;
 
-    if (isset($user['permissions']) && is_array($user['permissions']) && array_key_exists($permission, $user['permissions'])) {
-        return (bool)$user['permissions'][$permission];
-    }
-
+    // DEV-only means identity-bound DEV, never merely "LOA >= 1000".
     if (!empty($catalog[$permission]['dev_only'])) return beta_user_is_dev($user);
 
     $authority = max(0, (int)($user['authority_level'] ?? 0));
-    $required = (int)$catalog[$permission]['min_loa'];
     if ($pdo instanceof PDO && !empty($user['client_id'])) {
         $levels = beta_permission_levels($pdo, (int)$user['client_id']);
-        $required = (int)($levels[$permission] ?? 1000);
+        return $authority >= (int)($levels[$permission] ?? 1000);
     }
-    return $authority >= $required;
+
+    if (isset($user['permissions']) && is_array($user['permissions']) && array_key_exists($permission, $user['permissions'])) {
+        return (bool)$user['permissions'][$permission];
+    }
+    return $authority >= (int)$catalog[$permission]['min_loa'];
 }
 
 function beta_require_permission(array $user, string $permission, ?PDO $pdo = null): void
@@ -103,9 +103,12 @@ function beta_permission_snapshot(PDO $pdo, array $user): array
 }
 
 /**
- * Global beta API gate. Every authenticated portal API is declared here.
- * Unknown authenticated portal APIs fail closed so a new endpoint cannot ship
- * without explicitly joining the permission model.
+ * Global beta API gate.
+ *
+ * Every authenticated portal API must be declared here. Unknown endpoints fail
+ * closed. Device/POS APIs under backend/api remain governed by their separate
+ * device-token/client/store/employee contract and are intentionally not routed
+ * through this browser-portal LOA gate.
  */
 function beta_enforce_route_permission(array $user, PDO $pdo): void
 {
@@ -113,8 +116,6 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
     $script = basename((string)($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
     if ($script === '' || !str_ends_with($script, '.php')) return;
 
-    // dashboard.php and other server-rendered pages may use beta_require_active_user
-    // to obtain a fresh permission snapshot; route enforcement is API-only.
     $path = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
     if (!str_contains($path, '/api/')) return;
 
@@ -125,35 +126,47 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
     switch ($script) {
         case 'attendance_scan.php':
             beta_require_permission($user, 'attendance.scan', $pdo); return;
+
         case 'beta_state.php':
         case 'dashboard_data.php':
             beta_require_permission($user, 'dashboard.view', $pdo); return;
+
         case 'dashboard_layout.php':
             beta_require_permission($user, $method === 'POST' ? 'dashboard.configure' : 'dashboard.view', $pdo); return;
+
         case 'change_password.php':
             beta_require_permission($user, 'password.change_own', $pdo); return;
+
         case 'weeks.php':
         case 'timesheet.php':
-            beta_require_permission($user, 'timesheets.view_own', $pdo); return;
+            beta_require_any_permission($user, ['timesheets.view_own','timesheets.view_all'], $pdo); return;
+
         case 'check_sheet.php':
-            beta_require_permission($user, 'dev.status', $pdo); return;
-        case 'clients.php':
-            beta_require_permission($user, 'clients.manage', $pdo); return;
-        case 'defaults.php':
-            beta_require_permission($user, 'defaults.manage', $pdo); return;
         case 'dev_status.php':
             beta_require_permission($user, 'dev.status', $pdo); return;
+
+        case 'clients.php':
+            beta_require_permission($user, 'clients.manage', $pdo); return;
+
+        case 'defaults.php':
+            beta_require_permission($user, 'defaults.manage', $pdo); return;
+
         case 'store_identity.php':
             beta_require_permission($user, 'stores.profile.manage', $pdo); return;
+
         case 'store_logo.php':
             beta_require_permission($user, 'stores.logo.manage', $pdo); return;
+
         case 'store_timings.php':
             beta_require_permission($user, 'stores.timings.manage', $pdo); return;
+
         case 'role_authority.php':
             beta_require_permission($user, $action === 'save_permissions' ? 'permissions.manage' : 'roles.manage', $pdo); return;
+
         case 'client_context.php':
             if ($method === 'POST') beta_require_permission($user, 'client_context.switch', $pdo);
             return;
+
         case 'admin_directory.php':
             if ($method === 'GET') {
                 beta_require_any_permission($user, ['stores.view','workforce.view'], $pdo);
@@ -161,12 +174,14 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             }
             if ($action === 'save_store') { beta_require_permission($user, 'stores.manage', $pdo); return; }
             if ($action === 'save_employee') { beta_require_permission($user, 'workforce.manage', $pdo); return; }
-            throw new MerdWorkforceException('forbidden', 'This directory action has no permission policy.');
+            throw new MerdWorkforceException('permission_policy_missing', 'This directory action has no permission policy.');
+
         case 'financials.php':
             if ($method === 'GET') { beta_require_permission($user, 'finance.view', $pdo); return; }
             $type = strtolower(trim((string)($input['submission_type'] ?? '')));
             beta_require_permission($user, $type === 'open_day' ? 'finance.open_day' : 'finance.submit', $pdo);
             return;
+
         case 'disputes.php':
             if ($method === 'GET') {
                 beta_require_any_permission($user, ['disputes.view_own','disputes.review'], $pdo);
@@ -177,11 +192,15 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             if (in_array($action, ['create','cancel','confirm_handover','reject_handover'], true)) {
                 beta_require_permission($user, 'disputes.submit_own', $pdo); return;
             }
-            throw new MerdWorkforceException('forbidden', 'This dispute action has no permission policy.');
+            throw new MerdWorkforceException('permission_policy_missing', 'This dispute action has no permission policy.');
+
+        // These are authentication/account plumbing. login/logout do not call
+        // beta_require_active_user; me.php does so it can return a fresh snapshot.
         case 'login.php':
         case 'logout.php':
         case 'me.php':
             return;
+
         default:
             throw new MerdWorkforceException('permission_policy_missing', 'This beta API is not registered in the portal permission policy.');
     }
@@ -193,6 +212,8 @@ function beta_require_active_user(): array
     $pdo = portal_db();
     $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
 
+    // Authentication identity is always resolved against the immutable home
+    // client. DEV working-client context never changes which employee logged in.
     $stmt = $pdo->prepare(
         'SELECT e.status,e.employee_type,e.role_name,e.client_role_id,'
         . 'r.role_key,r.role_label,r.base_role,r.authority_level,r.status AS role_status '
@@ -248,6 +269,8 @@ function beta_require_active_user(): array
     $user['authority_level'] = $authority;
     $user['is_dev'] = $baseRole === 'DEV';
 
+    // Only the non-delegable client-context permission can keep a cross-client
+    // working context. A user who loses DEV identity is snapped back home.
     if ($baseRole === 'DEV') {
         $contextId = (int)$user['client_id'];
         $clientStmt = $pdo->prepare("SELECT id FROM clients WHERE id=? AND status='active' LIMIT 1");
@@ -274,6 +297,9 @@ function beta_require_active_user(): array
         || !empty($permissions['timesheets.view_all'])
         || !empty($permissions['disputes.review'])
         || !empty($permissions['finance.cross_store']);
+
+    // Compatibility fields remain for legacy rendering/helpers only. New
+    // authorization decisions must use beta_has_permission/require_permission.
     $user['is_super'] = !empty($permissions['timesheets.view_all']);
     $user['is_admin'] = $baseRole === 'ADMIN';
 
