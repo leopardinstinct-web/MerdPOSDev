@@ -57,6 +57,17 @@ function clients_state(PDO $pdo): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function clients_seed_defaults(PDO $pdo, int $clientId, int $actorEmployeeId): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id) VALUES (?,?,?,?) '
+        . 'ON DUPLICATE KEY UPDATE role_name=VALUES(role_name)'
+    );
+    foreach ([['USER',10],['ADMIN',50],['SUPER',90]] as [$role, $level]) {
+        $stmt->execute([$clientId, $role, $level, $actorEmployeeId]);
+    }
+}
+
 function clients_audit(PDO $pdo, array $user, int $targetClientId, string $action, array $details): void
 {
     try {
@@ -120,6 +131,7 @@ try {
             $stmt = $pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');
             $stmt->execute([$name, $code, $setupKey, $status]);
             $id = (int)$pdo->lastInsertId();
+            clients_seed_defaults($pdo, $id, (int)$user['id']);
             $action = 'client.create';
         } else {
             $check = $pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1 FOR UPDATE');
