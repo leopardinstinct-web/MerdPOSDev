@@ -1,11 +1,10 @@
 DirectoryIndex index.php
 Options -Indexes
 
-# Shared UI-contract assets change cross-portal behavior and must not remain
-# stale behind a browser cache after deployment. `no-cache` still permits local
-# caching but requires revalidation; feature/static assets keep normal caching.
+# Cross-portal contract assets must revalidate after every beta deploy. Browser
+# caching remains permitted, but these files may not stay stale across releases.
 <IfModule mod_headers.c>
-  <FilesMatch "^(management\.js|minimal-controls\.js|minimal-controls\.css|ui-standard\.css|mobile-runtime\.js|mobile-hardening\.css)$">
+  <FilesMatch "^(management\.js|design-tokens\.css|design-system\.css|design-audit\.js|minimal-controls\.js|mobile-runtime\.js|shell\.css|account-menu\.css|dashboard-builder\.css)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>
