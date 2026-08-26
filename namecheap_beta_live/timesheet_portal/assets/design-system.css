@@ -1,0 +1,1119 @@
+/*
+ * MERDPOS Beta Design System — canonical component layer.
+ *
+ * Ownership rule:
+ *   tokens -> design-tokens.css
+ *   application shell -> shell.css
+ *   feature composition -> feature CSS/JS
+ *   shared visual grammar -> THIS FILE
+ *
+ * Feature code may compose these primitives but must not redefine their core
+ * geometry, typography, focus, status or mobile behaviour.
+ */
+
+/* -------------------------------------------------------------------------
+   Base + semantic typography
+   ------------------------------------------------------------------------- */
+html {
+  font-family: var(--font-ui);
+  color: var(--color-text-primary);
+  background: var(--color-bg-main);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+table {
+  font-family: var(--font-ui);
+}
+
+body.merd-shell {
+  margin: 0;
+  color: var(--color-text-primary);
+  background: var(--color-bg-main);
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+  overflow-x: hidden;
+}
+
+.merd-shell *,
+.merd-shell *::before,
+.merd-shell *::after {
+  box-sizing: border-box;
+}
+
+.merd-shell img,
+.merd-shell svg,
+.merd-shell canvas {
+  max-width: 100%;
+}
+
+.merd-shell img {
+  height: auto;
+}
+
+.merd-shell h1,
+.merd-shell h2,
+.merd-shell h3,
+.merd-shell h4,
+.merd-shell h5,
+.merd-shell h6 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-heading);
+  letter-spacing: -.018em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* One document H1 (MERDPOS) may be visually hidden; panel page titles are H2. */
+.merd-shell h1 {
+  font-size: clamp(var(--type-3xl), 2.6vw, var(--type-4xl));
+}
+
+.merd-shell h2,
+.merd-shell .ui-page-title {
+  font-size: clamp(var(--type-xl), 2vw, var(--type-2xl));
+}
+
+.merd-shell h3,
+.merd-shell .ui-card-title,
+.merd-shell .dashboard-widget-title {
+  font-size: var(--type-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell h4,
+.merd-shell .ui-subsection-title {
+  font-size: var(--type-md);
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell h5,
+.merd-shell h6 {
+  font-size: var(--type-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell p {
+  line-height: var(--line-body);
+}
+
+.merd-shell small,
+.merd-shell .muted,
+.merd-shell .form-hint,
+.merd-shell .entity-sub,
+.merd-shell .migration-foot {
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  line-height: var(--line-body);
+}
+
+.merd-shell strong {
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell code,
+.merd-shell .client-code-line {
+  font-family: var(--font-mono);
+}
+
+.merd-shell .hero-title {
+  font-size: clamp(var(--type-3xl), 2.5vw, var(--type-4xl));
+  line-height: var(--line-tight);
+}
+
+.merd-shell .hero-kicker,
+.merd-shell .dashboard-rolebar-label {
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.merd-shell .mgmt-card-head h3,
+.merd-shell .mgmt-card-head h2,
+.merd-shell .app-panel-head h2,
+.merd-shell .directory-toolbar h2 {
+  font-size: var(--type-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Accessibility primitives
+   ------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: .0625rem;
+  height: .0625rem;
+  padding: 0;
+  margin: -.0625rem;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.merd-shell :where(button, a[href], summary, input, select, textarea, [role="button"]):focus-visible {
+  outline: .1875rem solid var(--color-focus-soft);
+  outline-offset: .125rem;
+}
+
+.merd-shell :where(button, input, select, textarea):disabled,
+.merd-shell [aria-disabled="true"] {
+  opacity: .52;
+  cursor: not-allowed;
+  filter: saturate(.65);
+}
+
+.merd-shell [hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Surfaces / cards
+   ------------------------------------------------------------------------- */
+.merd-shell :where(
+  .controls-card,
+  .report-card,
+  .status-card,
+  .empty-card,
+  .working-card,
+  .mgmt-card,
+  .hero-panel,
+  .directory-card,
+  .financial-account-card,
+  .roles-card,
+  .permission-card,
+  .migration-section,
+  .dashboard-widget,
+  .dashboard-rolebar
+) {
+  min-width: 0;
+  background: var(--color-surface-main);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.merd-shell :where(.controls-card, .mgmt-card, .directory-card, .migration-section, .roles-card, .permission-card) {
+  padding: var(--space-5);
+}
+
+.merd-shell .status-card,
+.merd-shell .empty-card {
+  padding: var(--space-4);
+}
+
+.management-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.hero-panel {
+  min-height: 7rem;
+  padding: var(--space-5);
+  overflow: hidden;
+}
+
+.mgmt-kpis,
+.mgmt-grid {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.mgmt-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mgmt-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mgmt-kpi {
+  min-width: 0;
+  min-height: 6.25rem;
+  padding: var(--space-4);
+  background: var(--color-surface-main);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.mgmt-kpi .kpi-value {
+  color: var(--color-text-primary);
+  font-size: var(--type-3xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.mgmt-kpi .kpi-label {
+  color: var(--color-text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+}
+
+/* -------------------------------------------------------------------------
+   Forms
+   ------------------------------------------------------------------------- */
+.merd-shell form label,
+.merd-shell .ui-field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell :where(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--size-control);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-regular);
+  line-height: 1.25;
+  box-shadow: none;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    background-color var(--duration-fast) ease;
+}
+
+.merd-shell textarea {
+  min-height: 6rem;
+  line-height: var(--line-body);
+  resize: vertical;
+}
+
+.merd-shell :where(input, select, textarea):hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.merd-shell :where(input, select, textarea):focus {
+  border-color: var(--color-focus);
+  outline: none;
+  box-shadow: 0 0 0 .1875rem var(--color-focus-soft);
+}
+
+.merd-shell :where(input, select, textarea)[aria-invalid="true"],
+.merd-shell :where(input, select, textarea).is-error {
+  border-color: var(--color-danger);
+}
+
+.merd-shell :where(input, select, textarea)[aria-invalid="true"]:focus,
+.merd-shell :where(input, select, textarea).is-error:focus {
+  box-shadow: 0 0 0 .1875rem color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.form-grid,
+.admin-form-grid,
+.sub-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.form-grid .full-field,
+.admin-form-grid .full-field,
+.sub-form .full-field {
+  grid-column: 1 / -1;
+}
+
+.sub-form {
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+}
+
+/* -------------------------------------------------------------------------
+   Buttons / interactive actions
+   ------------------------------------------------------------------------- */
+.merd-shell :where(
+  .primary-btn,
+  .secondary-btn,
+  .ghost-btn,
+  .download-pdf-btn,
+  .icon-text-btn,
+  .mini-btn
+) {
+  min-height: var(--size-control);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+  touch-action: manipulation;
+}
+
+.merd-shell .compact-btn {
+  min-height: var(--size-control-compact);
+  padding: var(--space-2) var(--space-3);
+}
+
+.merd-shell .primary-btn {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-on-primary);
+}
+
+.merd-shell .primary-btn:hover:not(:disabled) {
+  background: var(--color-brand-primary-hover);
+  border-color: var(--color-brand-primary-hover);
+}
+
+.merd-shell .primary-btn:active:not(:disabled) {
+  background: var(--color-brand-primary-active);
+  border-color: var(--color-brand-primary-active);
+}
+
+.merd-shell :where(.secondary-btn, .download-pdf-btn, .icon-text-btn) {
+  background: var(--color-surface-main);
+  border-color: var(--color-border-default);
+  color: var(--color-brand-primary);
+}
+
+.merd-shell :where(.secondary-btn, .download-pdf-btn, .icon-text-btn):hover:not(:disabled) {
+  background: var(--color-info-surface);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 36%, var(--color-border-default));
+}
+
+.merd-shell .ghost-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.merd-shell .ghost-btn:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.merd-shell :where(.role-delete, .danger-btn, .danger-final) {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 32%, var(--color-border-default));
+}
+
+/* Canonical icon action: Dashboard/Add/Search share identical geometry. */
+.merd-shell :where(button.merd-icon-action, .dashboard-add-button.merd-icon-action) {
+  width: var(--size-icon-action);
+  height: var(--size-icon-action);
+  min-width: var(--size-icon-action);
+  min-height: var(--size-icon-action);
+  max-width: var(--size-icon-action);
+  max-height: var(--size-icon-action);
+  padding: 0;
+  border-radius: var(--radius-circle);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 var(--size-icon-action);
+  line-height: 1;
+}
+
+.merd-shell :where(button.merd-icon-action, .dashboard-add-button.merd-icon-action) svg {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.merd-shell :where(button.merd-icon-action.merd-add-action, .dashboard-add-button.merd-add-action) {
+  background: var(--color-brand-primary);
+  color: var(--color-brand-on-primary);
+  border: 1px solid var(--color-brand-primary);
+  box-shadow: var(--shadow-action);
+}
+
+.merd-shell :where(button.merd-icon-action.merd-add-action, .dashboard-add-button.merd-add-action):hover:not(:disabled) {
+  background: var(--color-brand-primary-hover);
+  border-color: var(--color-brand-primary-hover);
+  transform: translateY(-.0625rem);
+}
+
+.merd-shell .dashboard-add-button.merd-add-action[aria-expanded="true"] {
+  background: var(--color-focus);
+  border-color: var(--color-focus);
+}
+
+/* Collapsible search is the same action primitive until expanded. */
+.merd-shell .merd-collapsible-search {
+  width: var(--size-icon-action);
+  min-width: var(--size-icon-action);
+  max-width: var(--size-icon-action);
+  min-height: var(--size-icon-action);
+  height: var(--size-icon-action);
+  max-height: var(--size-icon-action);
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-circle);
+  background: var(--color-surface-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  cursor: pointer;
+  flex: 0 0 var(--size-icon-action);
+  transition:
+    width var(--duration-normal) var(--ease-standard),
+    max-width var(--duration-normal) var(--ease-standard),
+    border-radius var(--duration-normal) var(--ease-standard),
+    padding var(--duration-normal) var(--ease-standard);
+}
+
+.merd-shell .merd-collapsible-search > svg,
+.merd-shell .merd-collapsible-search .ui-icon {
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  min-width: var(--size-icon-md);
+  margin: 0;
+  color: var(--color-text-muted);
+  fill: none;
+  stroke: currentColor;
+  pointer-events: none;
+}
+
+.merd-shell .merd-collapsible-search input[type="search"] {
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  min-height: calc(var(--size-icon-action) - var(--space-2));
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
+  background: transparent;
+  transition: opacity var(--duration-fast) ease, width var(--duration-normal) var(--ease-standard);
+}
+
+.merd-shell .merd-collapsible-search.is-open,
+.merd-shell .merd-collapsible-search:focus-within {
+  width: min(var(--search-expanded-max), 42vw);
+  min-width: min(13.75rem, 42vw);
+  max-width: min(var(--search-expanded-max), 42vw);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
+  justify-content: flex-start;
+  gap: var(--space-2);
+  cursor: text;
+  flex: 1 1 auto;
+}
+
+.merd-shell .merd-collapsible-search.is-open input[type="search"],
+.merd-shell .merd-collapsible-search:focus-within input[type="search"] {
+  width: 100%;
+  max-width: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.merd-shell .merd-action-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  width: auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Status language
+   ------------------------------------------------------------------------- */
+.merd-shell :where(
+  .queue-pill,
+  .status-pill,
+  .entity-status,
+  .entity-role,
+  .you-chip,
+  .client-count-chip,
+  .role-system-chip,
+  .permission-unsaved,
+  .impact-role,
+  .migration-badge
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.merd-shell :where(.status-pill.pending, .queue-pill, .permission-unsaved) {
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+
+.merd-shell :where(.status-pill.approved, .entity-status.is-active, .migration-badge.completed) {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.merd-shell :where(.status-pill.rejected, .status-pill.cancelled, .entity-status.is-inactive, .migration-badge.failed, .migration-badge.completed_with_conflicts) {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.merd-shell :where(.entity-role, .you-chip, .client-count-chip, .impact-role, .role-system-chip, .migration-badge.staged) {
+  background: var(--color-info-surface);
+  color: var(--color-info);
+}
+
+/* -------------------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------------------- */
+.merd-shell :where(.table-scroll, .app-table-shell) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+}
+
+.merd-shell table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  font-size: var(--type-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.merd-shell table th {
+  min-height: 2.375rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.merd-shell table td {
+  padding: var(--space-3);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+.merd-shell table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.merd-shell table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-info-surface) 55%, transparent);
+}
+
+.merd-shell table :where(.num, [data-numeric="true"]) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------------------
+   Dialogs
+   ------------------------------------------------------------------------- */
+.merd-shell :where(dialog.portal-dialog, dialog.admin-dialog) {
+  width: min(var(--dialog-max), calc(100vw - (var(--space-6) * 2)));
+  max-width: calc(100vw - (var(--space-6) * 2));
+  max-height: min(90dvh, 56rem);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-dialog);
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-dialog);
+}
+
+.merd-shell :where(dialog.portal-dialog, dialog.admin-dialog)::backdrop {
+  background: var(--color-overlay);
+  backdrop-filter: blur(.125rem);
+}
+
+.merd-shell :where(.dialog-heading, .dialog-head, .admin-dialog-header) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-main);
+}
+
+.merd-shell .admin-dialog-body {
+  padding: var(--space-5);
+  max-height: calc(90dvh - 8rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.merd-shell :where(.dialog-actions, .admin-dialog-footer) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-top: var(--space-4);
+}
+
+.merd-shell :where(.dialog-close, .icon-btn) {
+  width: var(--size-control);
+  height: var(--size-control);
+  min-width: var(--size-control);
+  min-height: var(--size-control);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-circle);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--type-xl);
+  cursor: pointer;
+}
+
+.merd-shell :where(.dialog-close, .icon-btn):hover {
+  background: var(--color-surface-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Migration / role / directory feature normalization
+   ------------------------------------------------------------------------- */
+.migration-body,
+.roles-shell,
+.roles-card,
+.permission-card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.migration-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.migration-stat {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+}
+
+.migration-stat span {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.migration-stat strong {
+  display: block;
+  margin-top: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.migration-source-grid,
+.migration-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.migration-source-grid .full {
+  grid-column: 1 / -1;
+}
+
+.migration-tabs-textarea {
+  min-height: 6rem;
+  font-family: var(--font-mono);
+}
+
+.migration-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.migration-guard,
+.migration-result,
+.permission-danger-note,
+.self-guard {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  font-size: var(--type-xs);
+  line-height: var(--line-body);
+}
+
+.migration-guard,
+.permission-danger-note,
+.self-guard {
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, var(--color-border-subtle));
+}
+
+.migration-result {
+  background: var(--color-info-surface);
+  color: var(--color-text-secondary);
+}
+
+.migration-result.is-error {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.migration-table {
+  min-width: 51rem;
+}
+
+.migration-table th:nth-child(n+4),
+.migration-table td:nth-child(n+4) {
+  text-align: right;
+}
+
+.roles-head,
+.permission-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.role-row,
+.permission-row {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+}
+
+/* -------------------------------------------------------------------------
+   Omnichannel identity / freshness
+   ------------------------------------------------------------------------- */
+.omni-freshness,
+.omni-state-note,
+.omni-context-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+}
+
+.omni-freshness {
+  min-height: 1.75rem;
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  white-space: nowrap;
+}
+
+.omni-freshness-dot,
+.omni-state-note::before,
+.omni-context-status::before {
+  content: "";
+  width: .4375rem;
+  height: .4375rem;
+  flex: 0 0 auto;
+  border-radius: var(--radius-circle);
+  background: var(--color-success);
+}
+
+.omni-freshness.is-stale,
+.omni-state-note.is-warning {
+  color: var(--color-warning);
+}
+
+.omni-freshness.is-stale .omni-freshness-dot,
+.omni-state-note.is-warning::before {
+  background: var(--color-warning);
+}
+
+.omni-state-note.is-error::before {
+  background: var(--color-danger);
+}
+
+.account-context-meta {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-1) var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+}
+
+.entity-avatar.store-avatar.omni-has-logo {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: var(--space-1);
+  background: var(--color-surface-main);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.entity-avatar.store-avatar.omni-has-logo img,
+.omni-store-logo,
+.omni-inline-store-logo {
+  object-fit: contain;
+  background: var(--color-surface-main);
+}
+
+.omni-inline-store-logo {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  margin-right: var(--space-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: calc(var(--radius-control) / 2);
+  vertical-align: middle;
+}
+
+/* -------------------------------------------------------------------------
+   Mobile-first reliability layer
+   ------------------------------------------------------------------------- */
+@media (max-width: 51.25rem) {
+  body.merd-shell {
+    font-size: var(--type-sm);
+  }
+
+  .merd-shell :where(input, select, textarea) {
+    min-height: var(--size-touch);
+    font-size: var(--type-md); /* avoids iOS input zoom */
+  }
+
+  .merd-shell :where(
+    .primary-btn,
+    .secondary-btn,
+    .ghost-btn,
+    .download-pdf-btn,
+    .icon-text-btn,
+    .mini-btn,
+    .compact-btn
+  ) {
+    min-height: var(--size-touch);
+  }
+
+  .merd-shell :where(button.merd-icon-action, .dashboard-add-button.merd-icon-action),
+  .merd-shell .merd-collapsible-search {
+    width: var(--size-icon-action-touch);
+    height: var(--size-icon-action-touch);
+    min-width: var(--size-icon-action-touch);
+    min-height: var(--size-icon-action-touch);
+    max-width: var(--size-icon-action-touch);
+    max-height: var(--size-icon-action-touch);
+    flex-basis: var(--size-icon-action-touch);
+  }
+
+  .merd-shell .merd-action-cluster {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .merd-shell .merd-collapsible-search.is-open,
+  .merd-shell .merd-collapsible-search:focus-within {
+    width: min(100%, 26rem);
+    min-width: min(13.75rem, calc(100% - var(--size-icon-action-touch) - var(--space-2)));
+    max-width: 26rem;
+    height: var(--size-icon-action-touch);
+    flex: 1 1 auto;
+  }
+
+  .form-grid,
+  .admin-form-grid,
+  .sub-form,
+  .migration-source-grid,
+  .migration-tabs-grid,
+  .permission-row,
+  .role-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .full-field,
+  .admin-form-grid .full-field,
+  .sub-form .full-field,
+  .migration-source-grid .full {
+    grid-column: auto;
+  }
+
+  .management-hero,
+  .mgmt-kpis,
+  .mgmt-grid,
+  .financial-account-grid,
+  .migration-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .merd-shell :where(.controls-card, .mgmt-card, .directory-card, .migration-section, .roles-card, .permission-card) {
+    padding: var(--space-4);
+  }
+
+  .roles-head,
+  .permission-head {
+    flex-direction: column;
+  }
+
+  .client-row-actions,
+  .role-actions,
+  .permission-actions,
+  .migration-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .merd-shell :where(.table-scroll, .app-table-shell, .dashboard-widget-body) {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .merd-shell table {
+    min-width: max-content;
+  }
+
+  .merd-shell :where(dialog.portal-dialog, dialog.admin-dialog, .migration-dialog) {
+    width: calc(100vw - (var(--space-2) * 2));
+    max-width: calc(100vw - (var(--space-2) * 2));
+    max-height: calc(var(--merd-mobile-visual-height, 100dvh) - (var(--space-2) * 2));
+    margin: auto;
+  }
+
+  .merd-shell :where(dialog.portal-dialog, dialog.admin-dialog) > form {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .merd-shell :where(.dialog-heading, .dialog-head, .admin-dialog-header) {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: var(--space-4);
+  }
+
+  .merd-shell .admin-dialog-body {
+    min-height: 0;
+    max-height: none;
+    padding: var(--space-4);
+    overflow: visible;
+    flex: 1 1 auto;
+  }
+
+  .merd-shell :where(.dialog-actions, .admin-dialog-footer) {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin-inline: calc(var(--space-4) * -1);
+    margin-bottom: calc(var(--space-4) * -1);
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+    background: var(--color-surface-main);
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .merd-shell :where(button, a, summary, [role="button"]) {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .omni-freshness {
+    display: none;
+  }
+}
+
+@media (max-width: 35rem) {
+  .merd-shell .merd-action-cluster > .merd-collapsible-search.is-open,
+  .merd-shell .merd-action-cluster > .merd-collapsible-search:focus-within {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    flex: 1 1 calc(100% - var(--size-icon-action-touch) - var(--space-2));
+  }
+
+  .client-row-actions > *,
+  .role-actions > *,
+  .permission-actions > * {
+    flex: 1 1 9rem;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .merd-shell :where(button, .rail-group-btn, .portal-tab, .dashboard-widget):hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merd-shell *,
+  .merd-shell *::before,
+  .merd-shell *::after {
+    scroll-behavior: auto;
+    transition-duration: 0ms;
+    animation-duration: 0ms;
+  }
+}
