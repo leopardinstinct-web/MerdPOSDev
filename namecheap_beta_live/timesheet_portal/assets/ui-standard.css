@@ -1,0 +1,277 @@
+/*
+ * MERDPOS Beta UI Standard
+ * Binding cross-portal component geometry and density rules.
+ * Loaded after feature CSS so new modules cannot silently invent their own UI grammar.
+ */
+
+:root {
+  --merd-space-1:4px;
+  --merd-space-2:8px;
+  --merd-space-3:12px;
+  --merd-space-4:16px;
+  --merd-space-5:20px;
+  --merd-space-6:24px;
+  --merd-space-8:32px;
+
+  --merd-control-h:42px;
+  --merd-button-h:40px;
+  --merd-touch-h:48px;
+
+  --merd-radius-control:10px;
+  --merd-radius-card:14px;
+  --merd-radius-dialog:20px;
+
+  --merd-border:rgba(31,35,41,.12);
+  --merd-border-strong:rgba(31,35,41,.20);
+  --merd-text:#1D1D1F;
+  --merd-muted:#6E6E73;
+  --merd-primary:#1C4587;
+  --merd-surface:#FFFFFF;
+  --merd-surface-soft:#F7F8FA;
+}
+
+/* Typography scale: do not use one-off tiny text inside features. */
+.merd-shell {
+  font-size:14px;
+  line-height:1.45;
+}
+.merd-shell h1 { font-size:28px; line-height:1.12; font-weight:720; }
+.merd-shell h2 { font-size:20px; line-height:1.2; font-weight:680; }
+.merd-shell h3 { font-size:16px; line-height:1.25; font-weight:680; }
+.merd-shell label { font-size:13px; line-height:1.35; font-weight:620; }
+.merd-shell .form-hint,
+.merd-shell .migration-foot,
+.merd-shell .entity-sub,
+.merd-shell .muted { font-size:12px!important; line-height:1.45!important; }
+
+/* Shared form grammar. Labels own their control and the vertical gap. */
+.merd-shell form label {
+  display:grid;
+  gap:6px;
+  align-content:start;
+}
+.merd-shell input,
+.merd-shell select,
+.merd-shell textarea {
+  width:100%;
+  min-height:var(--merd-control-h);
+  box-sizing:border-box;
+  margin:0!important;
+  padding:9px 12px!important;
+  border-radius:var(--merd-radius-control)!important;
+}
+.merd-shell textarea {
+  min-height:96px;
+  line-height:1.45;
+}
+.merd-shell .admin-form-grid,
+.merd-shell .form-grid {
+  gap:var(--merd-space-4)!important;
+}
+
+/* Shared action grammar. */
+.merd-shell .primary-btn,
+.merd-shell .secondary-btn,
+.merd-shell .ghost-btn,
+.merd-shell .icon-text-btn,
+.merd-shell .download-pdf-btn {
+  min-height:var(--merd-button-h)!important;
+  padding:8px 14px!important;
+  border-radius:var(--merd-radius-control)!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+}
+.merd-shell .compact-btn { min-height:36px!important; padding:7px 12px!important; }
+
+/* Shared card/section grammar. */
+.merd-shell .controls-card,
+.merd-shell .directory-card,
+.merd-shell .mgmt-card,
+.merd-shell .migration-section,
+.merd-shell .roles-card,
+.merd-shell .permission-card {
+  border-radius:var(--merd-radius-card)!important;
+}
+.merd-shell .controls-card,
+.merd-shell .directory-card,
+.merd-shell .mgmt-card,
+.merd-shell .migration-section {
+  padding:var(--merd-space-5)!important;
+}
+
+/* Shared table grammar. */
+.merd-shell .table-scroll {
+  overflow:auto;
+  border:1px solid var(--merd-border)!important;
+  border-radius:var(--merd-radius-card)!important;
+  background:var(--merd-surface)!important;
+}
+.merd-shell table {
+  width:100%;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+.merd-shell table th {
+  height:38px;
+  padding:9px 12px!important;
+  font-size:11.5px!important;
+  font-weight:680!important;
+  line-height:1.2!important;
+  color:#596575!important;
+  white-space:nowrap;
+  background:var(--merd-surface-soft)!important;
+}
+.merd-shell table td {
+  min-height:42px;
+  padding:10px 12px!important;
+  font-size:13px!important;
+  line-height:1.35!important;
+  color:var(--merd-text)!important;
+  vertical-align:middle!important;
+}
+.merd-shell table th + th,
+.merd-shell table td + td { border-left:0!important; }
+
+/* Dialog grammar. */
+.merd-shell dialog.admin-dialog,
+.merd-shell dialog.portal-dialog {
+  border-radius:var(--merd-radius-dialog)!important;
+}
+.merd-shell .dialog-head,
+.merd-shell .admin-dialog-header {
+  padding:18px 20px!important;
+}
+.merd-shell .admin-dialog-body { padding:20px!important; }
+.merd-shell .dialog-actions,
+.merd-shell .admin-dialog-footer {
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:var(--merd-space-2);
+}
+
+/* -------------------------------------------------------------------------
+   Legacy Sync: apply the standard to the currently deployed DEV client UI.
+   ------------------------------------------------------------------------- */
+.migration-dialog {
+  width:min(980px,calc(100vw - 32px))!important;
+}
+.migration-body {
+  display:grid!important;
+  gap:var(--merd-space-4)!important;
+}
+.migration-section {
+  display:grid;
+  gap:var(--merd-space-4);
+  background:var(--merd-surface)!important;
+  border:1px solid var(--merd-border)!important;
+  box-shadow:none!important;
+}
+.migration-section > h3 {
+  margin:0!important;
+  font-size:16px!important;
+  line-height:1.25!important;
+}
+.migration-section > p {
+  margin:-10px 0 0!important;
+  max-width:780px;
+  font-size:12px!important;
+  line-height:1.5!important;
+  color:var(--merd-muted)!important;
+}
+#migrationSourcesForm {
+  display:grid;
+  gap:var(--merd-space-4);
+}
+.migration-source-grid {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:var(--merd-space-4)!important;
+  align-items:start;
+}
+.migration-source-grid > label:first-child {
+  grid-column:1/-1;
+}
+.migration-source-grid > div:empty { display:none!important; }
+.migration-source-grid .full { grid-column:1/-1!important; }
+.migration-tabs-grid {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:var(--merd-space-4)!important;
+}
+.migration-tabs-textarea {
+  min-height:92px!important;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;
+  font-size:12.5px!important;
+}
+.migration-actions {
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--merd-space-2)!important;
+  flex-wrap:wrap!important;
+  margin:0!important;
+}
+.migration-actions .migration-foot {
+  margin-left:4px;
+  color:var(--merd-muted)!important;
+}
+.migration-guard,
+.migration-result {
+  padding:12px 14px!important;
+  border-radius:12px!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+}
+.migration-status-grid {
+  gap:var(--merd-space-3)!important;
+}
+.migration-stat {
+  padding:13px 14px!important;
+  border-radius:12px!important;
+}
+.migration-stat span { font-size:10px!important; }
+.migration-stat strong { margin-top:5px!important; font-size:14px!important; }
+.migration-table th,
+.migration-table td { white-space:nowrap; }
+.migration-table th:nth-child(n+4),
+.migration-table td:nth-child(n+4) {
+  text-align:right!important;
+  font-variant-numeric:tabular-nums;
+}
+.migration-table td:first-child {
+  font-variant-numeric:tabular-nums;
+  color:#4E5C6D!important;
+}
+.migration-badge {
+  min-height:22px;
+  padding:4px 7px!important;
+  font-size:10px!important;
+  align-items:center;
+}
+.migration-conflicts { gap:var(--merd-space-2)!important; }
+.migration-conflict {
+  padding:12px 14px!important;
+  border-radius:12px!important;
+}
+.migration-conflict strong { font-size:12px!important; }
+.migration-conflict small { font-size:11.5px!important; }
+
+/* Consistent responsive collapse: never preserve a decorative empty column. */
+@media(max-width:800px) {
+  .migration-source-grid,
+  .migration-tabs-grid {
+    grid-template-columns:1fr!important;
+  }
+  .migration-source-grid > label:first-child,
+  .migration-source-grid .full { grid-column:auto!important; }
+  .migration-actions > button { flex:1 1 180px; }
+}
+
+@media(max-width:560px) {
+  .merd-shell .controls-card,
+  .merd-shell .directory-card,
+  .merd-shell .mgmt-card,
+  .merd-shell .migration-section { padding:16px!important; }
+  .migration-dialog { width:calc(100vw - 14px)!important; }
+  .migration-actions > button { width:100%; flex-basis:100%; }
+}
