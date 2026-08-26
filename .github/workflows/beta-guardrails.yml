@@ -1,0 +1,114 @@
+name: Beta guardrails
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+  pull_request:
+    branches:
+      - namecheap-beta-live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-guardrails-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  beta-source-contract:
+    name: Beta source contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Lint beta PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -n -l "$file"
+          done < <(find namecheap_beta_live/backend namecheap_beta_live/timesheet_portal -type f -name '*.php' -print0)
+
+      - name: Validate beta runtime contract
+        run: php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+
+      - name: Validate portal permission policy
+        run: php namecheap_beta_live/backend/cli/validate_portal_permission_policy.php
+
+      - name: Syntax-check portal JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find namecheap_beta_live/timesheet_portal/assets -type f -name '*.js' -print0)
+
+      - name: Reject forbidden tracked beta secrets/build artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          violations="$({
+            git ls-files 'namecheap_beta_live/**/config.php' || true
+            git ls-files 'namecheap_beta_live/**/.env' 'namecheap_beta_live/**/.env.*' || true
+            git ls-files 'namecheap_beta_live/**/.deployed_version' || true
+            git ls-files 'namecheap_beta_live/**/*.apk' || true
+          } | sort -u)"
+          if [[ -n "$violations" ]]; then
+            echo "Forbidden tracked beta paths detected:"
+            printf '%s\n' "$violations"
+            exit 1
+          fi
+
+  beta-secret-scan:
+    name: Beta secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select commit range
+        id: range
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            range="${PR_BASE_SHA}..${CURRENT_SHA}"
+          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            range="${BEFORE_SHA}..${CURRENT_SHA}"
+          else
+            range="${CURRENT_SHA}^..${CURRENT_SHA}"
+          fi
+          echo "value=$range" >> "$GITHUB_OUTPUT"
+
+      - name: Scan beta change without printing secret values
+        shell: bash
+        env:
+          COMMIT_RANGE: ${{ steps.range.outputs.value }}
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD:/repo" \
+            -w /repo \
+            zricethezav/gitleaks:v8.24.3 \
+            git --redact --no-banner --exit-code 1 --log-opts="$COMMIT_RANGE" .
