@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 41,
+    "table_count": 47,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -1399,6 +1399,289 @@
                 }
             ],
             "foreign_keys": []
+        },
+        {
+            "name": "client_legacy_sources",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_type",
+                    "position": 3,
+                    "data_type": "enum",
+                    "column_type": "enum('attendance','financial')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "provider",
+                    "position": 4,
+                    "data_type": "enum",
+                    "column_type": "enum('google_public_csv')",
+                    "nullable": false,
+                    "default": "'google_public_csv'",
+                    "extra": ""
+                },
+                {
+                    "name": "spreadsheet_id",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(160)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "sheet_names_json",
+                    "position": 6,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "created_by_employee_id",
+                    "position": 8,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_employee_id",
+                    "position": 9,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_client_legacy_source_status",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_client_legacy_source",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_client_legacy_source_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "client_migration_state",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "client_id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "attendance_authority",
+                    "position": 2,
+                    "data_type": "enum",
+                    "column_type": "enum('google_legacy','merdpos_sql')",
+                    "nullable": false,
+                    "default": "'google_legacy'",
+                    "extra": ""
+                },
+                {
+                    "name": "financial_authority",
+                    "position": 3,
+                    "data_type": "enum",
+                    "column_type": "enum('google_legacy','merdpos_sql')",
+                    "nullable": false,
+                    "default": "'google_legacy'",
+                    "extra": ""
+                },
+                {
+                    "name": "last_preview_batch_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "last_sync_batch_id",
+                    "position": 5,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "attendance_cutover_at",
+                    "position": 6,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "financial_cutover_at",
+                    "position": 7,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "cutover_by_employee_id",
+                    "position": 8,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_client_migration_state_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
         },
         {
             "name": "client_permission_levels",
@@ -4641,6 +4924,938 @@
                 }
             ],
             "foreign_keys": []
+        },
+        {
+            "name": "legacy_migration_batches",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(36)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "mode",
+                    "position": 4,
+                    "data_type": "enum",
+                    "column_type": "enum('preview','sync','final')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 5,
+                    "data_type": "enum",
+                    "column_type": "enum('running','staged','completed','completed_with_conflicts','failed')",
+                    "nullable": false,
+                    "default": "'running'",
+                    "extra": ""
+                },
+                {
+                    "name": "started_by_employee_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_snapshot_hash",
+                    "position": 7,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "attendance_rows",
+                    "position": 8,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "financial_rows",
+                    "position": 9,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "inserted_rows",
+                    "position": 10,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_rows",
+                    "position": 11,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "unchanged_rows",
+                    "position": 12,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "conflict_rows",
+                    "position": 13,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "rejected_rows",
+                    "position": 14,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "warning_rows",
+                    "position": 15,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "summary_json",
+                    "position": 16,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "error_message",
+                    "position": 17,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "started_at",
+                    "position": 18,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "finished_at",
+                    "position": 19,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_legacy_migration_batches_client",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "started_at",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_legacy_migration_batch_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_legacy_migration_batch_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "legacy_migration_conflicts",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "batch_id",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "stage_row_id",
+                    "position": 3,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_type",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(40)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_key",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "conflict_code",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "message",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "existing_target_table",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "existing_target_key",
+                    "position": 10,
+                    "data_type": "varchar",
+                    "column_type": "varchar(160)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 11,
+                    "data_type": "enum",
+                    "column_type": "enum('open','resolved','ignored')",
+                    "nullable": false,
+                    "default": "'open'",
+                    "extra": ""
+                },
+                {
+                    "name": "resolved_by_employee_id",
+                    "position": 12,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "resolution_note",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 14,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "resolved_at",
+                    "position": 15,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_legacy_conflict_stage",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "stage_row_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_legacy_conflicts_batch",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "batch_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_legacy_conflicts_client",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "created_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_legacy_conflict_batch",
+                    "column": "batch_id",
+                    "references_table": "legacy_migration_batches",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_legacy_conflict_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_legacy_conflict_stage",
+                    "column": "stage_row_id",
+                    "references_table": "legacy_migration_stage_rows",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "legacy_migration_records",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_type",
+                    "position": 3,
+                    "data_type": "enum",
+                    "column_type": "enum('attendance_log','attendance_shift','employee_setup','payrate','start_time','financial')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_key",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_hash",
+                    "position": 5,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "target_table",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "target_key",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(160)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "target_hash",
+                    "position": 8,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "first_batch_id",
+                    "position": 9,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "last_batch_id",
+                    "position": 10,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 11,
+                    "data_type": "enum",
+                    "column_type": "enum('active','superseded','conflict')",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "first_imported_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "last_seen_at",
+                    "position": 13,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_legacy_lineage_first_batch",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "first_batch_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_legacy_lineage_last_batch",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "last_batch_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_legacy_lineage_target",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "target_table",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "target_key",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_legacy_lineage_source",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_legacy_lineage_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_legacy_lineage_first_batch",
+                    "column": "first_batch_id",
+                    "references_table": "legacy_migration_batches",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_legacy_lineage_last_batch",
+                    "column": "last_batch_id",
+                    "references_table": "legacy_migration_batches",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "legacy_migration_stage_rows",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "batch_id",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_type",
+                    "position": 4,
+                    "data_type": "enum",
+                    "column_type": "enum('attendance_log','employee_setup','payrate','start_time','financial')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "sheet_name",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(160)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_row_no",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "source_key",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "content_hash",
+                    "position": 8,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "payload_redacted",
+                    "position": 9,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "validation_status",
+                    "position": 10,
+                    "data_type": "enum",
+                    "column_type": "enum('valid','warning','conflict','rejected')",
+                    "nullable": false,
+                    "default": "'valid'",
+                    "extra": ""
+                },
+                {
+                    "name": "resolution_code",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "resolution_message",
+                    "position": 12,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1000)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "matched_employee_id",
+                    "position": 13,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "matched_store_id",
+                    "position": 14,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "target_table",
+                    "position": 15,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "target_key",
+                    "position": 16,
+                    "data_type": "varchar",
+                    "column_type": "varchar(160)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 17,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_legacy_stage_client_source",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_key",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_legacy_stage_status",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "batch_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "validation_status",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_legacy_stage_source",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "batch_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_type",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "source_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_legacy_stage_batch",
+                    "column": "batch_id",
+                    "references_table": "legacy_migration_batches",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_legacy_stage_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
         },
         {
             "name": "retail_categories",
