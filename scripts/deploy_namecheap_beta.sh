@@ -55,6 +55,12 @@ if [[ "$php_lint_failed" -ne 0 ]]; then
 fi
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] PHP lint passed"
 
+# Authorization coverage is a release invariant. This checks the catalogue,
+# widget permission bindings, every protected portal API and fail-closed route
+# registration before any source is copied to the live beta.
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal LOA permission coverage"
+php "$REPO/namecheap_beta_live/backend/cli/validate_portal_permission_policy.php"
+
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
