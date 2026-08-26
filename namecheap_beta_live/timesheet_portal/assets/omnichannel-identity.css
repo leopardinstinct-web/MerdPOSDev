@@ -1,0 +1,150 @@
+/*
+ * MERDPOS omnichannel identity layer.
+ * Operational priority: Reliability -> Usability -> restrained Trendiness.
+ * Keeps client/store identity and freshness cues consistent across touchpoints.
+ */
+
+.omni-freshness {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:28px;
+  margin-left:auto;
+  padding:4px 8px;
+  border:1px solid rgba(31,35,41,.10);
+  border-radius:999px;
+  background:#F8F9FB;
+  color:#60656D;
+  font-size:9.5px;
+  font-weight:650;
+  white-space:nowrap;
+}
+.omni-freshness-dot {
+  width:7px;
+  height:7px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:#248A5B;
+  box-shadow:0 0 0 3px rgba(36,138,91,.10);
+}
+.omni-freshness.is-stale .omni-freshness-dot {
+  background:#A66B13;
+  box-shadow:0 0 0 3px rgba(166,107,19,.10);
+}
+.omni-freshness.is-stale { color:#7A5D1E; }
+.omni-freshness strong { color:#34383E!important;font-weight:700!important; }
+
+.account-context-meta {
+  display:grid;
+  gap:3px;
+  margin:2px 8px 7px;
+  padding:8px 9px;
+  border:1px solid rgba(31,35,41,.08);
+  border-radius:10px;
+  background:#F8F9FB;
+}
+.account-context-meta>span {
+  color:#7B8088;
+  font-size:8.5px;
+  font-weight:750;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.account-context-meta>strong {
+  overflow:hidden;
+  color:#2C3239!important;
+  font-size:10.5px!important;
+  font-weight:680!important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.account-context-meta>small {
+  color:#747A83!important;
+  font-size:9px!important;
+}
+.omni-context-status {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:3px;
+  color:#5B7468;
+  font-size:8.5px;
+}
+.omni-context-status::before {
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#248A5B;
+}
+
+/* Same stored shop mark anywhere a store appears. */
+.entity-avatar.store-avatar.omni-has-logo {
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  padding:4px!important;
+  background:#fff!important;
+  border:1px solid rgba(31,35,41,.10)!important;
+}
+.entity-avatar.store-avatar.omni-has-logo img,
+.omni-store-logo,
+.omni-inline-store-logo {
+  object-fit:contain;
+  background:#fff;
+}
+.entity-avatar.store-avatar.omni-has-logo img {
+  width:100%;
+  height:100%;
+  border-radius:7px;
+}
+.omni-inline-store-logo {
+  width:18px;
+  height:18px;
+  margin-right:6px;
+  border:1px solid rgba(31,35,41,.10);
+  border-radius:5px;
+  vertical-align:-4px;
+}
+.dashboard-list-row .omni-inline-store-logo {
+  width:20px;
+  height:20px;
+  margin-right:7px;
+  vertical-align:-5px;
+}
+.dashboard-bar-label .omni-inline-store-logo,
+.chart-label .omni-inline-store-logo {
+  width:16px;
+  height:16px;
+  margin-right:5px;
+  border-radius:4px;
+  vertical-align:-4px;
+}
+.dashboard-mini-table td .omni-inline-store-logo {
+  width:16px;
+  height:16px;
+  margin-right:5px;
+  vertical-align:-4px;
+}
+
+/* Reliability language: successful/live states are calm, failures remain explicit. */
+.omni-state-note {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#6E737B;
+  font-size:9.5px;
+}
+.omni-state-note::before {
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#248A5B;
+}
+.omni-state-note.is-warning::before { background:#A66B13; }
+.omni-state-note.is-error::before { background:#B42318; }
+
+@media(max-width:820px) {
+  .omni-freshness { display:none; }
+}
