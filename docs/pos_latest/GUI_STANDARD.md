@@ -62,7 +62,8 @@ Canonical desktop controls:
 Input/select        42px minimum height
 Standard button     40px minimum height
 Compact button      36px minimum height
-Operational touch   48px minimum target where touch/scanner use is expected
+Global icon action  46px diameter
+Operational touch   48px minimum target on tablet/phone
 Control radius      10px
 ```
 
@@ -78,9 +79,9 @@ Rules:
 
 Administrative list/toolbars use minimal controls to reduce clutter.
 
-### Add actions
+### One canonical circular action primitive
 
-All top-level create actions use one circular `+` button only:
+The Dashboard `Add widget` control is the visual reference and the same shared runtime primitive MUST also be used for:
 
 - Add Store
 - Add Employee
@@ -88,15 +89,17 @@ All top-level create actions use one circular `+` button only:
 - Add Role
 - equivalent future top-level `Add ...` actions
 
-The visible control is the `+` icon only. The full action name MUST remain available through `aria-label` and `title`/tooltip, for example `aria-label="Add employee"`.
+Default desktop geometry is **46×46px, true circle, MERDPOS blue, white plus icon, same icon weight and same shadow treatment**. Tablet/phone geometry is 48×48px.
 
-Desktop target: 40×40px. Mobile/tablet target: 48×48px.
+A rounded square is not an acceptable variant. A feature-local `.primary-btn`, `.compact-btn`, or other class must not visually override this primitive.
+
+The visible control is the `+` icon only. The full action name MUST remain available through `aria-label` and `title`/tooltip, for example `aria-label="Add employee"`.
 
 Do not render `+ Add employee`, `+ Add store`, etc. as permanent text buttons in list headers.
 
 ### Search
 
-Search controls begin as a circular magnifier icon only. Clicking/tapping the icon expands the search input. Rules:
+Search controls begin as a circular magnifier using the same action diameter. Clicking/tapping expands the search input. Rules:
 
 - empty + unfocused search collapses back to the circle;
 - a non-empty search remains expanded so the active filter is visible;
@@ -104,7 +107,19 @@ Search controls begin as a circular magnifier icon only. Clicking/tapping the ic
 - mobile expansion uses the available toolbar width;
 - search must remain keyboard accessible and keep an accessible label.
 
-Feature modules MUST use the shared minimal-control behavior rather than creating permanently expanded search bars unless the page's primary purpose is search itself.
+### Search + Add placement
+
+Whenever a list toolbar contains both Search and Add, they form one **right-aligned action cluster**:
+
+```text
+[ heading / context ]                         ( Search ) ( + )
+```
+
+Search is immediately adjacent to Add. It must not appear on the opposite side of the toolbar or on a separate row on desktop merely because feature-local CSS uses a different layout.
+
+On mobile the cluster remains together; collapsed Search and Add are both reachable. When Search expands, it consumes the available width while `+` remains visible.
+
+Feature modules MUST use the shared minimal-control behavior rather than creating their own permanent search/add layout unless the page's primary purpose is search itself.
 
 Runtime implementation:
 
@@ -186,7 +201,6 @@ Every beta feature is mobile-ready at implementation time, not as a later cleanu
 - Tables scroll horizontally inside their own container rather than forcing page-level horizontal scrolling.
 - No control, toolbar or card may be clipped outside the viewport.
 - Expanded search uses available width and the `+` control remains reachable.
-- Buttons may become full-width on narrow screens when this improves touch use.
 - Safe-area inset must be respected for sticky mobile dialog actions.
 - Reduced-motion preferences are respected.
 
@@ -201,11 +215,27 @@ Feature modules may define domain-specific classes, but MUST NOT redefine shared
 - focus ring behavior;
 - modal geometry;
 - global spacing scale;
-- Add/search toolbar interaction.
+- Add/search toolbar interaction or geometry.
 
 The runtime `assets/ui-standard.css` and minimal-control layer are intentionally loaded after feature CSS. If a feature needs an exception, document the reason in the feature scope rather than using escalating `!important` rules to fight the standard.
 
-## 13. Definition of done — UI
+## 13. Visual-equivalence rule — BINDING
+
+A shared component is not considered implemented merely because multiple screens have the same semantic class or icon.
+
+Before claiming a shared UI component is implemented, verify that its **computed visual contract** is equivalent across at least two representative screens, including:
+
+- width and height;
+- border radius/shape;
+- icon size/weight;
+- foreground/background/border;
+- shadow/focus treatment;
+- placement relative to sibling actions;
+- desktop and mobile behavior.
+
+For the Add/Search primitive, Dashboard + one directory screen are the minimum comparison pair. A square Store `+` and circular Dashboard `+` is a failed implementation even if both contain the same plus icon.
+
+## 14. Definition of done — UI
 
 A beta UI change is not complete until all of the following are checked:
 
@@ -213,12 +243,14 @@ A beta UI change is not complete until all of the following are checked:
 - persistent field labels used;
 - no helper/body text below the minimum readable size;
 - controls use canonical heights/radii;
-- top-level Add action uses the standard circular `+` where applicable;
-- list search uses the standard collapsed magnifier where applicable;
+- top-level Add action uses the same canonical circular `+` primitive as Dashboard;
+- list search uses the standard collapsed magnifier;
+- Search and Add are adjacent in one right-aligned action cluster where both exist;
+- shared components were checked for visual equivalence, not only class/markup presence;
 - primary/secondary/destructive hierarchy is correct;
 - tables use canonical density and numeric alignment;
 - loading/empty/error/success states exist;
-- mobile collapse is intentional and tested conceptually at phone/tablet widths;
+- mobile collapse is intentional;
 - 48px mobile touch targets are preserved;
 - keyboard focus works;
 - no hidden overflow prevents required data access;
@@ -226,6 +258,6 @@ A beta UI change is not complete until all of the following are checked:
 - reliability/usability review follows `OMNICHANNEL_IDENTITY_STANDARD.md`;
 - implementation visually checked against at least one existing MERDPOS screen before deployment.
 
-## 14. Current implementation
+## 15. Current implementation
 
-`namecheap_beta_live/timesheet_portal/assets/ui-standard.css` is the binding CSS enforcement layer for the web beta. `assets/minimal-controls.css` and `assets/minimal-controls.js` enforce the shared `+` and expandable-search interaction. They are loaded after feature and experience CSS by `management.js` so current modules are normalized as well as future modules.
+`namecheap_beta_live/timesheet_portal/assets/ui-standard.css` is the binding CSS enforcement layer for the web beta. `assets/minimal-controls.css` and `assets/minimal-controls.js` enforce the shared `+`, expandable Search and Search+Add action cluster. They are loaded after feature and experience CSS by `management.js` so current modules are normalized as well as future modules.
