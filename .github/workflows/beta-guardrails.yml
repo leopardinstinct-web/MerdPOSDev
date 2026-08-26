@@ -61,7 +61,7 @@ jobs:
           set -euo pipefail
           while IFS= read -r -d '' file; do
             node --check "$file"
-          done < <(find namecheap_beta_live/timesheet_portal/assets -type f -name '*.js' -print0)
+          done < <(find namecheap_beta_live/timesheet_portal/assets namecheap_beta_live/browser_tests -type f -name '*.js' -print0)
 
       - name: Reject forbidden tracked beta secrets/build artifacts
         shell: bash
@@ -78,6 +78,32 @@ jobs:
             printf '%s\n' "$violations"
             exit 1
           fi
+
+  beta-browser-smoke:
+    name: Beta Chromium smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Confirm system Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          google-chrome --version
+
+      - name: Install pinned Playwright test runner
+        shell: bash
+        run: npm install --no-save --no-package-lock @playwright/test@1.55.0
+
+      - name: Run shared runtime browser regressions
+        shell: bash
+        run: npx playwright test namecheap_beta_live/browser_tests/shared-runtime.spec.js --workers=1 --reporter=line
 
   beta-secret-scan:
     name: Beta secret scan
