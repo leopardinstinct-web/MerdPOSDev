@@ -21,7 +21,7 @@ if ! flock -n 9; then
   exit 0
 fi
 
-for command_name in git ssh rsync php flock mktemp find; do
+for command_name in git ssh rsync php flock mktemp find grep; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "ERROR: required command not found in cron PATH: $command_name" >&2
     exit 1
@@ -93,6 +93,34 @@ rsync -az \
   --exclude='*.log' \
   "$REPO/namecheap_beta_live/timesheet_portal/" \
   "$LIVE/timesheet_portal/"
+
+# Role/LOA rendering requires dashboard.php to open the DB while it is still an
+# HTML page. The secure backend DB config is shared with API code and is not in
+# Git, so the portal must restore text/html after that config is loaded. Verify
+# the exact boundary guard reached the live copy before marking deployment good.
+if ! grep -q 'restoreHtmlResponse' "$LIVE/timesheet_portal/includes/database.php"; then
+  echo "ERROR: live portal is missing the HTML/DB response-boundary guard." >&2
+  exit 1
+fi
+if ! grep -q 'portal_html_response_headers' "$LIVE/timesheet_portal/includes/database.php"; then
+  echo "ERROR: live portal cannot restore its HTML response after DB config load." >&2
+  exit 1
+fi
+echo "Portal HTML/DB response boundary verified."
+
+# Detect response-header logic in the private backend config without printing
+# the file path, contents, credentials or other secrets. This is diagnostic only;
+# the page response guard above neutralizes any such side effect for HTML pages.
+backend_config_path="$(php -r "require '$LIVE/timesheet_portal/includes/config.php'; if (defined('BACKEND_CONFIG_PATH')) echo BACKEND_CONFIG_PATH;" 2>/dev/null || true)"
+if [[ -n "$backend_config_path" && -r "$backend_config_path" ]]; then
+  if grep -Eqi 'Content-Type|header[[:space:]]*\(' "$backend_config_path"; then
+    echo "Shared backend config contains HTTP response-header logic; HTML restoration guard is active."
+  else
+    echo "Shared backend config has no detectable HTTP response-header directive."
+  fi
+else
+  echo "WARNING: private backend config could not be inspected for response-header side effects." >&2
+fi
 
 printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(git rev-parse --short HEAD)" > "$LIVE/.beta_deployed_commit"
 echo "MERDPOS beta deployed: $(git rev-parse --short HEAD)"
