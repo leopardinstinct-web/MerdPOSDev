@@ -52,6 +52,9 @@ jobs:
       - name: Validate portal loader order
         run: php namecheap_beta_live/backend/cli/validate_portal_loader_order.php
 
+      - name: Validate shared beta state scope
+        run: php namecheap_beta_live/backend/cli/validate_beta_state_scope.php
+
       - name: Syntax-check portal JavaScript
         shell: bash
         run: |
