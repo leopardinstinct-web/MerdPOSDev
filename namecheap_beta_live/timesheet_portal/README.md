@@ -1,71 +1,168 @@
-# Timesheet Portal - PHP + JS
+# MERDPOS Web Beta Portal
 
-The workforce/financial beta extends this same responsive design with QR attendance, live working staff, a simple employee-to-SUPER dispute queue, offline financial drafts and secure password change. Transactional writes use SQL and mirror to the existing Google Sheets through the durable outbox documented in `docs/pos_latest/BETA_WORKFORCE_FINANCIALS.md`.
+This is the active PHP + JavaScript MERDPOS web beta deployed from branch `namecheap-beta-live`.
 
-This is a PHP + JavaScript employee portal. Historical weekly reports still read the current Sheet CSV shape during the beta transition; authentication and all new transactional actions use SQL.
+**Read `../README.md` first.** It is the authoritative beta runtime README and defines the implementation-state language, deployment contract, frozen payroll rules, Google migration safety and README-maintenance requirements.
 
-## What it does
+## Current portal scope
 
-- Reads historical reporting data from these tabs:
-  - `Time Sheet`
-  - `PayRate`
-  - `Start Time`
-  - `Employee Setup`
-- Login uses active SQL employee accounts and hashed passwords.
-- SUPER users see consolidated reports, live staff and approval queues.
-- Normal users see only their own employee-wise report.
-- QR scanning automatically toggles IN/OUT and rejects replay.
-- POS handover disputes require the previous employee's confirmation before they enter the SUPER queue.
-- Pending disputes never change `Time Sheet`; SUPER approval applies the change.
-- Financial drafts survive phone disconnection and wait for a server receipt. SQL prevents negative Register/Petty Cash balances and duplicate closing.
-- Default view is the current calendar week, Monday-Sunday.
-- Previous/Next buttons and a week dropdown are included.
-- Wages are visible.
+The portal includes:
 
-## Upload to hosting
+- numeric employee login and secure password change;
+- signed POS QR attendance;
+- role-specific dashboards;
+- centralized client Role / LOA / named-permission authorization;
+- Stores, Workforce, Roles, Clients, Defaults and DEV diagnostics;
+- Timesheets and disputes;
+- Finance;
+- client-level Google legacy migration with Preview / Sync / Final cutover;
+- responsive/mobile-ready UI standards.
 
-Upload all files and folders inside this folder to your PHP hosting public folder, for example `public_html/timesheet`.
+## Authorization
 
-Then open:
+Portal authorization follows `docs/pos_latest/BETA_AUTHORIZATION_STANDARD.md`.
 
-`https://yourdomain.com/timesheet/`
+Do not authorize new portal behavior with nominal `ADMIN`/`SUPER` checks alone. The authoritative pattern is:
 
-## Server requirements
+```text
+client role → LOA → named permission → UI/API/data scope
+```
 
-- PHP 8.1 or newer
-- PDO MySQL and Sodium extensions
-- PHP sessions enabled
-- cURL enabled, or `allow_url_fopen` enabled
+DEV-only permissions also require an actual DEV identity and cannot be delegated merely by raising another role to LOA 1000.
 
-## Transitional Google Sheet read requirement
+The backend is authoritative. Hiding a menu/button with JavaScript or CSS is not security.
 
-Historical reporting currently uses CSV exports. The cutover plan must remove legacy password values from `Employee Setup`; password authentication no longer uses Sheet data.
+## UI standard
 
-Google Sheet ID is configured in:
+All user-facing beta features follow `docs/pos_latest/GUI_STANDARD.md`.
 
-`includes/config.php`
+Current binding interaction rules include:
 
-Current spreadsheet ID:
+- Add Store / Employee / Client / Role and equivalent list-level create actions use a circular `+` control only;
+- list search begins as a circular magnifier and expands on click/tap;
+- mobile/tablet interactive targets are at least 48px;
+- forms collapse cleanly to one column;
+- dialogs remain inside the dynamic viewport;
+- tables scroll within their own container instead of causing page-level horizontal scrolling.
 
-`1JyWMrqyRq3nh-uTpaVhd_XNyfeRFKrdQ09xMxRsGOQA`
+Runtime layers include:
 
-## Write path
+- `assets/ui-standard.css`
+- `assets/minimal-controls.css`
+- `assets/minimal-controls.js`
+- `assets/management.js` runtime loading/wiring
 
-Portal writes commit to SQL first. A cron worker sends signed, idempotent events to the dedicated Apps Script bridge, which mirrors approved attendance and financial data into the existing worksheets.
+A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented.
 
-## Main files
+## Timesheet/payroll behavior — frozen
 
-- `index.php` - numeric login page
-- `dashboard.php` - timesheet dashboard
-- `api/login.php` - validates a hashed SQL employee credential with rate limiting
-- `api/attendance_scan.php` - validates and consumes a signed POS QR
-- `api/disputes.php` - employee proposals/cancellation and SUPER decisions
-- `api/financials.php` - idempotent financial receipts
-- `api/change_password.php` - current-password verified password change
-- `api/weeks.php` - returns available weeks
-- `api/timesheet.php` - generates filtered report data
-- `includes/timesheet_logic.php` - rounding, pairing, late flagging, summaries
-- `assets/app.js` - frontend rendering and navigation
-- `assets/styles.css` - responsive PDF-style design
+Do not change without explicit product-owner instruction:
 
-Do not open API files directly. They are session-protected portal endpoints.
+- pair IN → next OUT;
+- newer IN replaces an unmatched previous IN;
+- orphan OUT ignored;
+- round IN and OUT independently to nearest 15 minutes;
+- payable = rounded OUT − rounded IN;
+- cross-midnight allowed;
+- no 16-hour cap;
+- wage rate resolved by clock-in date.
+
+## Google legacy migration
+
+The client migration subsystem is DEV-only.
+
+```text
+Google Sheets → read-only fetch → staging → validation/reconciliation → MERDPOS SQL
+```
+
+Safety rules:
+
+- Preview does not write operational attendance/finance data;
+- importer does not edit source Google Sheets;
+- Sync requires the exact source snapshot last Previewed;
+- Sync is blocked if Preview has rejected rows or conflicts;
+- operational application is transactional/all-or-nothing;
+- imported historical finance must not echo through the SQL→Google outbox;
+- final cutover makes MERDPOS SQL authoritative and prevents Google from overwriting SQL later.
+
+Known workbooks must use deterministic mappings rather than generic header guessing. Current approved structures:
+
+```text
+Time Sheet:
+USER_NAME / STORE_NAME / LOG_TYPE / DATE / TIME
+
+Employee Setup:
+NAME / TYPE / USER_ID / PASSWORD / STATUS / LOG_STORE / PAY_RATE
+(the real header may occur below row 1)
+
+PayRate:
+NAME / PAY_RATE
+
+Start Time:
+Store Name / Shift Start Time
+
+General Ledger:
+DATE / STORE_NAME / ACCOUNT / TYPE / HEAD / AMOUNT / Key
+
+zReport Ledger:
+DATE / STORE_NAME / REGISTER_DENOMINATIONS / REGISTER_TOTAL / PETTYCASH_ADDIN
+```
+
+Plaintext legacy passwords/PINs/secrets must never be persisted to staging, logs or audit output.
+
+## Data authority during transition
+
+Historical Google data is being migrated into SQL, while new portal transactions are SQL-first. The existing outbound SQL→Google mirror is a separate compatibility/reporting path and must never create a circular Google→SQL→Google migration loop.
+
+## Main runtime areas
+
+- `index.php` — login
+- `dashboard.php` — authenticated portal shell/panels
+- `scan.php` — attendance confirmation
+- `api/` — authenticated portal APIs
+- `includes/beta_api.php` — live authorization refresh and fail-closed route policy
+- `includes/timesheet_logic.php` — frozen timesheet reconciliation
+- `includes/legacy_migration*.php` — legacy source fetch/staging/reconciliation
+- `assets/management.js` — shared runtime module loader/management behavior
+- `assets/directory.js` — Store/Workforce admin UI
+- `assets/roles.js` — roles/permission policy UI
+- `assets/client.js` — client and migration UI
+- `assets/ui-standard.css` — global GUI/mobile standard
+- `assets/minimal-controls.*` — circular Add and expandable Search standard
+
+## Deployment
+
+Do not manually upload portal files. Deploy through the repository mirror and `scripts/deploy_namecheap_beta.sh`.
+
+The normal immediate command after beta code changes is:
+
+```bash
+cd ~/git/MerdPOSDev-beta-mirror
+
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes" \
+git pull --ff-only origin namecheap-beta-live
+
+/bin/bash scripts/deploy_namecheap_beta.sh
+
+echo "=== DEPLOYED ==="
+cat ~/merdpos.com/app/beta/.beta_deployed_commit
+```
+
+Do not say a change is `live`, `fixed` or `working` based only on a GitHub commit. Confirm the deployed marker and the real runtime path.
+
+## Implementation status discipline
+
+Use the following states explicitly:
+
+```text
+REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
+```
+
+`Implemented in beta source` means at least **CODED + WIRED**.  
+`Live/fixed` means **DEPLOYED + VERIFIED**.
+
+This distinction is mandatory for all future beta changes.
+
+## README maintenance
+
+Update this README by default whenever portal behavior, authorization, UI conventions, data-flow, synchronization or migration behavior changes. README maintenance is part of beta Definition of Done, but documentation itself must never be mistaken for runtime implementation.
