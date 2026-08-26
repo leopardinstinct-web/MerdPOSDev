@@ -3,14 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
 
-function client_context_role(array $user): string
-{
-    return strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? $user['employee_type'] ?? 'USER'));
-}
-
 function client_context_state(PDO $pdo, array $user): array
 {
-    $role = client_context_role($user);
+    $canSelect = beta_has_permission($user, 'client_context.switch', $pdo);
     $activeClientId = (int)$user['client_id'];
     $homeClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
 
@@ -22,21 +17,22 @@ function client_context_state(PDO $pdo, array $user): array
     }
 
     $clients = [];
-    if ($role === 'DEV') {
-        $clients = $pdo->query('SELECT id,name,client_code,status FROM clients ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC);
+    if ($canSelect) {
+        $clients = $pdo->query("SELECT id,name,client_code,status FROM clients WHERE status='active' ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     return [
         'success' => true,
         'csrf' => csrf_token(),
-        'role' => $role,
-        'can_select_client' => $role === 'DEV',
+        'role' => (string)($user['role_key'] ?? $user['role'] ?? 'USER'),
+        'authority_level' => (int)($user['authority_level'] ?? 0),
+        'can_select_client' => $canSelect,
         'client' => $client,
         'clients' => $clients,
         'active_client_id' => $activeClientId,
         'home_client_id' => $homeClientId,
-        'cross_client_context' => $role === 'DEV' && $activeClientId !== $homeClientId,
-        'scope' => $role === 'DEV' ? 'dev_selected_client' : 'authenticated_client',
+        'cross_client_context' => $canSelect && $activeClientId !== $homeClientId,
+        'scope' => $canSelect ? 'dev_selected_client' : 'authenticated_client',
     ];
 }
 
@@ -53,13 +49,10 @@ function client_context_persist(PDO $pdo, array $user, int $selectedClientId): v
 try {
     $user = beta_require_active_user();
     $pdo = portal_db();
-    $role = client_context_role($user);
+    $canSelect = beta_has_permission($user, 'client_context.switch', $pdo);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-        if ($role !== 'DEV') {
-            json_response(['success' => false, 'error' => 'Only DEV can switch the working client.'], 403);
-        }
-
+        beta_require_permission($user, 'client_context.switch', $pdo);
         $input = request_input();
         require_csrf($input);
         if ((string)($input['action'] ?? '') !== 'select_client') {
@@ -71,10 +64,10 @@ try {
             throw new MerdWorkforceException('invalid_client', 'Choose a valid client.');
         }
 
-        $check = $pdo->prepare('SELECT id FROM clients WHERE id=? LIMIT 1');
+        $check = $pdo->prepare("SELECT id FROM clients WHERE id=? AND status='active' LIMIT 1");
         $check->execute([(int)$clientId]);
         if (!$check->fetchColumn()) {
-            throw new MerdWorkforceException('client_not_found', 'Client not found.');
+            throw new MerdWorkforceException('client_not_found', 'Active client not found.');
         }
 
         $pdo->beginTransaction();
@@ -108,12 +101,14 @@ try {
             error_log('MERDPOS DEV client context audit failed: ' . get_class($e));
         }
 
+        // Refresh the permission snapshot against the newly selected client.
+        [$permissions, $levels] = beta_permission_snapshot($pdo, $user);
+        $user['permissions'] = $permissions;
+        $user['permission_levels'] = $levels;
         json_response(client_context_state($pdo, $user));
     }
 
-    // Capture the current DEV session context on page load as well. This preserves
-    // any selection that was already active before migration 030 first deploys.
-    if ($role === 'DEV') {
+    if ($canSelect) {
         client_context_persist($pdo, $user, (int)$user['client_id']);
     }
 
