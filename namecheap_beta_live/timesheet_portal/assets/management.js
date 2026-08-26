@@ -25,8 +25,8 @@
     if(!document.querySelector('link[data-omnichannel-identity]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/omnichannel-identity.css?v=20260826a';link.dataset.omnichannelIdentity='1';document.head.appendChild(link);}
     if(can('dashboard.view')&&!document.querySelector('script[data-omnichannel-identity]')){const script=document.createElement('script');script.src='assets/omnichannel-identity.js?v=20260826a';script.dataset.omnichannelIdentity='1';document.body.appendChild(script);}
     if(!document.querySelector('link[data-merd-ui-standard]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/ui-standard.css?v=20260826b';link.dataset.merdUiStandard='1';document.head.appendChild(link);}
-    if(!document.querySelector('link[data-merd-minimal-controls]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/minimal-controls.css?v=20260826a';link.dataset.merdMinimalControls='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-merd-minimal-controls]')){const script=document.createElement('script');script.src='assets/minimal-controls.js?v=20260826a';script.dataset.merdMinimalControls='1';document.body.appendChild(script);}
+    if(!document.querySelector('link[data-merd-minimal-controls]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/minimal-controls.css?v=20260826b';link.dataset.merdMinimalControls='1';document.head.appendChild(link);}
+    if(!document.querySelector('script[data-merd-minimal-controls]')){const script=document.createElement('script');script.src='assets/minimal-controls.js?v=20260826b';script.dataset.merdMinimalControls='1';document.body.appendChild(script);}
   }
   ensureShellAssets();
 
