@@ -42,6 +42,13 @@ It also protects the permission-aware browser runtime split introduced after the
 
 If the legacy shared runtime is later refactored so these shims are no longer needed, update the validator and runtime together rather than weakening the guard first.
 
+Beta CI adds two incident-derived source guards:
+
+- `backend/cli/validate_portal_loader_order.php` requires dynamically inserted classic scripts to execute in insertion order and keeps Roles ahead of Navigation;
+- `backend/cli/validate_beta_state_scope.php` requires the shared `beta_state.php` route to be authorized by its consuming features while keeping shifts, disputes, working-now data, stores and management data permission-scoped inside the payload.
+
+The shared state endpoint must never make `dashboard.view` an accidental prerequisite for otherwise-authorized Finance, Disputes or Password flows, and broad route access must never become broad data access.
+
 ## Legacy migration subsystem
 
 Migration 034 provides the client-scoped Google legacy migration staging/audit model.
