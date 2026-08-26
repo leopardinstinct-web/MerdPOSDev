@@ -5,10 +5,27 @@ $root = dirname(__DIR__, 2);
 $catalogPath = $root . '/backend/api/includes/portal_permissions.php';
 $portalApiDir = $root . '/timesheet_portal/api';
 $betaApiPath = $root . '/timesheet_portal/includes/beta_api.php';
+$portalAppPath = $root . '/timesheet_portal/assets/app.js';
+$timesheetAppPath = $root . '/timesheet_portal/assets/timesheet-app.js';
+$betaRuntimePath = $root . '/timesheet_portal/assets/beta.js';
+$dashboardPath = $root . '/timesheet_portal/dashboard.php';
+$htaccessPath = $root . '/timesheet_portal/.htaccess';
 
-if (!is_file($catalogPath) || !is_dir($portalApiDir) || !is_file($betaApiPath)) {
-    fwrite(STDERR, "Permission policy validation failed: required beta source paths are missing.\n");
-    exit(1);
+$requiredPaths = [
+    $catalogPath,
+    $portalApiDir,
+    $betaApiPath,
+    $portalAppPath,
+    $timesheetAppPath,
+    $betaRuntimePath,
+    $dashboardPath,
+    $htaccessPath,
+];
+foreach ($requiredPaths as $path) {
+    if (!file_exists($path)) {
+        fwrite(STDERR, "Permission policy validation failed: required beta source path is missing: {$path}\n");
+        exit(1);
+    }
 }
 
 require_once $catalogPath;
@@ -84,6 +101,71 @@ if (!str_contains($betaApiSource, 'permission_policy_missing')) {
     $errors[] = 'Global beta API guard does not contain the fail-closed permission_policy_missing path.';
 }
 
+// Permission-aware dashboard rendering intentionally omits controls that the
+// current role cannot use. beta.js still contains legacy direct ID lookups, so
+// app.js must install inert compatibility nodes before beta.js executes. This
+// contract prevents a future LOA/permission cleanup from reintroducing the
+// whole-page runtime crashes fixed on 2026-08-26.
+$portalAppSource = (string)file_get_contents($portalAppPath);
+$timesheetAppSource = (string)file_get_contents($timesheetAppPath);
+$betaRuntimeSource = (string)file_get_contents($betaRuntimePath);
+$dashboardSource = (string)file_get_contents($dashboardPath);
+$htaccessSource = (string)file_get_contents($htaccessPath);
+
+$compatIds = [
+    'workingNow',
+    'recentShifts',
+    'disputeList',
+    'financialDate',
+    'financialStore',
+    'refreshFinancial',
+    'cashAccount',
+    'cashAvailable',
+    'financialSummary',
+    'financialEntries',
+    'cashMovementForm',
+    'closingForm',
+    'financialQueue',
+    'financialStatus',
+    'refreshBetaBtn',
+    'passwordBtn',
+    'passwordClose',
+    'passwordForm',
+    'passwordStatus',
+    'passwordDialog',
+];
+foreach ($compatIds as $id) {
+    $legacyLookup = '$' . "('{$id}')";
+    if (str_contains($betaRuntimeSource, $legacyLookup) && !str_contains($portalAppSource, "'{$id}'")) {
+        $errors[] = "Legacy beta.js directly looks up permission-gated #{$id}, but app.js does not provide its compatibility shim.";
+    }
+}
+
+if (!str_contains($portalAppSource, 'const betaCompatIds = [')) {
+    $errors[] = 'Portal app.js no longer declares the permission-runtime compatibility shim set.';
+}
+if (!str_contains($portalAppSource, 'hasTimesheetDom')) {
+    $errors[] = 'Portal app.js no longer gates the Timesheet runtime on the Timesheet DOM contract.';
+}
+if (!str_contains($portalAppSource, 'assets/timesheet-app.js')) {
+    $errors[] = 'Portal app.js no longer wires the isolated Timesheet runtime.';
+}
+if (!str_contains($timesheetAppSource, 'window.__timesheetPortalLoaded')) {
+    $errors[] = 'Timesheet runtime is missing its double-load guard.';
+}
+if (!str_contains($timesheetAppSource, "api/weeks.php") || !str_contains($timesheetAppSource, "api/timesheet.php")) {
+    $errors[] = 'Timesheet runtime no longer contains the expected weeks/report API wiring.';
+}
+
+$appScriptPosition = strpos($dashboardSource, 'assets/app.js');
+$betaScriptPosition = strpos($dashboardSource, 'assets/beta.js');
+if ($appScriptPosition === false || $betaScriptPosition === false || $appScriptPosition >= $betaScriptPosition) {
+    $errors[] = 'dashboard.php must load app.js before beta.js so permission compatibility shims exist before legacy bindings run.';
+}
+if (!str_contains($htaccessSource, 'app\\.js') || !str_contains($htaccessSource, 'timesheet-app\\.js')) {
+    $errors[] = 'Portal cache revalidation must include app.js and timesheet-app.js after the permission-runtime split.';
+}
+
 if ($errors) {
     fwrite(STDERR, "MERDPOS beta permission policy validation FAILED:\n");
     foreach ($errors as $error) fwrite(STDERR, " - {$error}\n");
@@ -93,4 +175,5 @@ if ($errors) {
 $devOnly = count(array_filter($catalog, static fn(array $rule): bool => !empty($rule['dev_only'])));
 echo 'MERDPOS beta permission policy validated; '
     . count($catalog) . " permissions, {$devOnly} DEV-only, "
-    . count($widgetMap) . " dashboard widgets, {$protectedCount} protected APIs, {$routeCount} routes registered.\n";
+    . count($widgetMap) . " dashboard widgets, {$protectedCount} protected APIs, {$routeCount} routes registered; "
+    . "permission-gated DOM compatibility and Timesheet runtime split verified.\n";
