@@ -12,32 +12,48 @@ if ($url === '' || $secret === '') {
 }
 
 $limit = max(1, min(50, (int)($argv[1] ?? 25)));
+$legacyMigrationReady = false;
+try {
+    $check = $pdo->query(
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() "
+        . "AND table_name IN ('legacy_migration_batches','legacy_migration_records')"
+    );
+    $legacyMigrationReady = (int)$check->fetchColumn() === 2;
+} catch (Throwable) {
+    $legacyMigrationReady = false;
+}
+
 $pdo->beginTransaction();
 try {
-    /*
-     * Do not mirror a historical Google -> MERDPOS import back into Google.
-     *
-     * Two guards are intentional:
-     *  1) a running migration batch temporarily freezes outbound events for that
-     *     client, closing the tiny window before lineage is stamped; and
-     *  2) financial submissions permanently recorded as legacy lineage are
-     *     excluded even after the batch completes.
-     *
-     * Native MERDPOS events are unaffected and keep their normal Sheet mirror.
-     */
-    $select = $pdo->prepare(
-        "SELECT o.id,o.event_id,o.event_type,o.payload,o.attempts "
-        . "FROM google_sheet_outbox o "
-        . "LEFT JOIN legacy_migration_records lr ON lr.client_id=o.client_id "
-        . " AND lr.source_type='financial' AND lr.target_table='financial_submissions' "
-        . " AND lr.target_key=o.aggregate_id AND lr.status='active' "
-        . "WHERE ((o.status IN ('pending','failed') AND o.available_at<=UTC_TIMESTAMP()) "
-        . "OR (o.status='processing' AND o.locked_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 10 MINUTE))) "
-        . "AND o.attempts<10 AND lr.id IS NULL "
-        . "AND NOT EXISTS (SELECT 1 FROM legacy_migration_batches mb "
-        . " WHERE mb.client_id=o.client_id AND mb.status='running') "
-        . "ORDER BY o.id LIMIT {$limit} FOR UPDATE"
-    );
+    if ($legacyMigrationReady) {
+        /*
+         * Never mirror a historical Google -> MERDPOS import back into Google.
+         * A running batch freezes outbound events for that client; durable
+         * financial lineage permanently excludes imported submissions later.
+         */
+        $select = $pdo->prepare(
+            "SELECT o.id,o.event_id,o.event_type,o.payload,o.attempts "
+            . "FROM google_sheet_outbox o "
+            . "LEFT JOIN legacy_migration_records lr ON lr.client_id=o.client_id "
+            . " AND lr.source_type='financial' AND lr.target_table='financial_submissions' "
+            . " AND lr.target_key=o.aggregate_id AND lr.status='active' "
+            . "WHERE ((o.status IN ('pending','failed') AND o.available_at<=UTC_TIMESTAMP()) "
+            . "OR (o.status='processing' AND o.locked_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 10 MINUTE))) "
+            . "AND o.attempts<10 AND lr.id IS NULL "
+            . "AND NOT EXISTS (SELECT 1 FROM legacy_migration_batches mb "
+            . " WHERE mb.client_id=o.client_id AND mb.status='running') "
+            . "ORDER BY o.id LIMIT {$limit} FOR UPDATE"
+        );
+    } else {
+        // Migration-safe fallback used only while migration 034 is not installed.
+        $select = $pdo->prepare(
+            "SELECT id,event_id,event_type,payload,attempts FROM google_sheet_outbox "
+            . "WHERE ((status IN ('pending','failed') AND available_at<=UTC_TIMESTAMP()) "
+            . "OR (status='processing' AND locked_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 10 MINUTE))) AND attempts<10 "
+            . "ORDER BY id LIMIT {$limit} FOR UPDATE"
+        );
+    }
+
     $select->execute();
     $rows = $select->fetchAll(PDO::FETCH_ASSOC);
     if (!$rows) { $pdo->commit(); echo "No pending Sheet events.\n"; exit(0); }
