@@ -1,0 +1,547 @@
+/*
+ * MERDPOS refined experience layer
+ * Inspired by general Apple HIG/design principles: clarity, deference, depth,
+ * consistency, large targets, progressive disclosure and restrained motion.
+ * This is not an Apple visual clone and uses no Apple assets.
+ */
+
+:root {
+  --ux-bg:#F5F5F7;
+  --ux-surface:#FFFFFF;
+  --ux-surface-soft:#FBFBFD;
+  --ux-surface-muted:#F2F2F4;
+  --ux-line:rgba(31,35,41,.11);
+  --ux-line-strong:rgba(31,35,41,.18);
+  --ux-text:#1D1D1F;
+  --ux-muted:#6E6E73;
+  --ux-blue:#1C4587;
+  --ux-blue-2:#2463A8;
+  --ux-blue-soft:rgba(28,69,135,.08);
+  --ux-success:#248A5B;
+  --ux-warning:#A66B13;
+  --ux-danger:#B42318;
+  --ux-radius-xs:8px;
+  --ux-radius-sm:10px;
+  --ux-radius:14px;
+  --ux-radius-lg:18px;
+  --ux-radius-xl:22px;
+  --ux-shadow-card:0 1px 2px rgba(0,0,0,.035),0 8px 24px rgba(0,0,0,.035);
+  --ux-shadow-float:0 12px 34px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);
+  --ux-focus:0 0 0 3px rgba(36,99,168,.18);
+  --ux-ease:cubic-bezier(.2,.75,.25,1);
+}
+
+html {
+  color-scheme:light;
+  background:var(--ux-bg);
+  -webkit-text-size-adjust:100%;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+body.merd-shell,
+body.merd-login-body {
+  background:var(--ux-bg)!important;
+  color:var(--ux-text)!important;
+}
+
+/* CLARITY: fewer competing weights and more predictable hierarchy. */
+.merd-shell h1,.merd-login-body h1 {
+  color:var(--ux-text)!important;
+  letter-spacing:-.035em!important;
+  line-height:1.08!important;
+  font-weight:720!important;
+}
+.merd-shell h2,.merd-shell h3,.merd-login-body h2 {
+  color:var(--ux-text)!important;
+  letter-spacing:-.018em!important;
+  line-height:1.2!important;
+  font-weight:680!important;
+}
+.merd-shell p,.merd-shell .muted,.merd-shell small,.merd-login-body .muted {
+  color:var(--ux-muted)!important;
+}
+.merd-shell label,.merd-login-body label {
+  color:#3A3A3C!important;
+  font-weight:620!important;
+  letter-spacing:-.005em;
+}
+
+/* DEFERENCE: chrome becomes quieter; content receives the emphasis. */
+.merd-topbar {
+  min-height:60px!important;
+  padding:9px 16px!important;
+  background:rgba(255,255,255,.86)!important;
+  border-bottom:1px solid var(--ux-line)!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:saturate(160%) blur(18px);
+  backdrop-filter:saturate(160%) blur(18px);
+}
+.merd-topbar .merd-logo-mark {
+  box-shadow:none!important;
+  border-color:rgba(28,69,135,.16)!important;
+  background:#F7FAFF!important;
+}
+.merd-topbar .merd-logo-lockup strong {
+  color:var(--ux-text)!important;
+  letter-spacing:-.045em!important;
+}
+.merd-topbar .merd-logo-lockup small {
+  letter-spacing:.12em!important;
+  opacity:.78;
+}
+
+/* Preserve MERDPOS dark rail, but remove the harsh "selected block" feeling. */
+.app-frame { transition:grid-template-columns .28s var(--ux-ease)!important; }
+.app-rail {
+  background:linear-gradient(180deg,#111A34 0%,#0E1730 100%)!important;
+  border-right:1px solid rgba(255,255,255,.06)!important;
+  box-shadow:none!important;
+  padding:10px 7px 18px!important;
+}
+.rail-group-btn {
+  min-height:44px!important;
+  border-radius:10px!important;
+  padding-left:12px!important;
+  padding-right:12px!important;
+  transition:background-color .16s ease,color .16s ease,transform .18s var(--ux-ease)!important;
+}
+.rail-group-btn:hover { background:rgba(255,255,255,.075)!important; }
+.rail-group-btn.active {
+  background:rgba(73,137,220,.18)!important;
+  box-shadow:inset 0 0 0 1px rgba(134,181,240,.13)!important;
+}
+.app-frame.nav-collapsed .rail-group-btn {
+  padding-left:12px!important;
+  padding-right:12px!important;
+}
+.sidebar-group {
+  margin:3px 0 5px!important;
+  padding:5px 5px 6px 33px!important;
+  background:transparent!important;
+}
+.sidebar-group .portal-tab {
+  min-height:38px!important;
+  border-radius:9px!important;
+  padding:8px 10px!important;
+  color:#C7D3E8!important;
+  transition:background-color .15s ease,color .15s ease!important;
+}
+.sidebar-group .portal-tab:hover:not(.active) {
+  background:rgba(255,255,255,.055)!important;
+  transform:none!important;
+}
+.sidebar-group .portal-tab.active {
+  background:rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+  color:#FFFFFF!important;
+}
+
+/* CONTENT SURFACES: consistent depth, spacing and geometry. */
+.app-workspace.merd-page-shell {
+  background:var(--ux-bg)!important;
+  padding:20px clamp(14px,2vw,28px) 48px!important;
+}
+.merd-shell .controls-card,
+.merd-shell .report-card,
+.merd-shell .status-card,
+.merd-shell .empty-card,
+.merd-shell .working-card,
+.merd-shell .mgmt-card,
+.merd-shell .hero-panel,
+.merd-shell .directory-card,
+.merd-shell .financial-account-card,
+.merd-shell .dashboard-widget,
+.merd-shell .dashboard-rolebar {
+  background:var(--ux-surface)!important;
+  border:1px solid var(--ux-line)!important;
+  border-radius:var(--ux-radius)!important;
+  box-shadow:var(--ux-shadow-card)!important;
+}
+.merd-shell .controls-card,
+.merd-shell .mgmt-card,
+.merd-shell .directory-card {
+  padding:18px!important;
+}
+
+.management-hero { gap:14px!important;margin-bottom:14px!important; }
+.hero-panel {
+  min-height:116px!important;
+  padding:20px!important;
+  background:linear-gradient(145deg,#FFFFFF 0%,#FBFCFF 100%)!important;
+  overflow:hidden;
+}
+.hero-panel:after { opacity:.35!important; }
+.hero-kicker {
+  color:#5F6C7B!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase;
+  font-size:10px!important;
+}
+.hero-title { font-size:clamp(25px,2.4vw,34px)!important; }
+.hero-sub { max-width:680px!important;line-height:1.5!important; }
+.hero-role strong { color:var(--ux-blue)!important;font-weight:720!important; }
+
+.mgmt-kpis { gap:12px!important;margin-bottom:14px!important; }
+.mgmt-kpi {
+  min-height:102px!important;
+  padding:17px!important;
+  border:1px solid var(--ux-line)!important;
+  border-radius:var(--ux-radius)!important;
+  background:var(--ux-surface)!important;
+  box-shadow:var(--ux-shadow-card)!important;
+}
+.mgmt-kpi:before { width:3px!important;opacity:.82; }
+.mgmt-kpi .kpi-value { font-size:30px!important;font-weight:720!important;letter-spacing:-.035em; }
+.mgmt-kpi .kpi-label { font-weight:580!important;color:var(--ux-muted)!important; }
+
+/* ACTIONS: one obvious primary action, quiet secondary actions. */
+.merd-shell button,
+.merd-login-body button,
+.merd-shell .secondary-link,
+.merd-shell .icon-text-btn {
+  -webkit-tap-highlight-color:transparent;
+}
+.merd-shell .primary-btn,
+.merd-login-body .primary-btn,
+.merd-shell .download-pdf-btn,
+.merd-shell .secondary-btn,
+.merd-shell .ghost-btn,
+.merd-shell .icon-text-btn,
+.merd-shell .mini-btn {
+  min-height:40px!important;
+  border-radius:10px!important;
+  font-weight:650!important;
+  letter-spacing:-.005em;
+  transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease,transform .12s ease!important;
+}
+.merd-shell .primary-btn,
+.merd-login-body .primary-btn {
+  background:var(--ux-blue)!important;
+  border-color:var(--ux-blue)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.merd-shell .primary-btn:hover,
+.merd-login-body .primary-btn:hover {
+  background:#173B74!important;
+  border-color:#173B74!important;
+}
+.merd-shell .secondary-btn,
+.merd-shell .download-pdf-btn,
+.merd-shell .ghost-btn,
+.merd-shell .icon-text-btn {
+  background:#fff!important;
+  border:1px solid var(--ux-line-strong)!important;
+  color:#2A486B!important;
+  box-shadow:none!important;
+}
+.merd-shell .secondary-btn:hover,
+.merd-shell .download-pdf-btn:hover,
+.merd-shell .ghost-btn:hover,
+.merd-shell .icon-text-btn:hover {
+  background:#F7F8FA!important;
+  border-color:rgba(31,35,41,.24)!important;
+}
+.merd-shell button:active,
+.merd-login-body button:active { transform:scale(.985); }
+button:disabled,[aria-disabled="true"] { opacity:.46!important;cursor:not-allowed!important;transform:none!important; }
+
+/* FORMS: comfortable targets, clear focus, no decorative noise. */
+.merd-shell input,
+.merd-shell select,
+.merd-shell textarea,
+.merd-login-body input,
+.merd-login-body select,
+.merd-login-body textarea {
+  min-height:42px;
+  border:1px solid var(--ux-line-strong)!important;
+  border-radius:10px!important;
+  background:#FFFFFF!important;
+  color:var(--ux-text)!important;
+  box-shadow:0 1px 1px rgba(0,0,0,.018) inset!important;
+  transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease!important;
+}
+.merd-shell textarea,.merd-login-body textarea { min-height:92px;resize:vertical; }
+.merd-shell input:hover,
+.merd-shell select:hover,
+.merd-login-body input:hover { border-color:rgba(31,35,41,.28)!important; }
+.merd-shell input:focus,
+.merd-shell select:focus,
+.merd-shell textarea:focus,
+.merd-login-body input:focus,
+.merd-login-body select:focus,
+.merd-login-body textarea:focus {
+  outline:0!important;
+  border-color:var(--ux-blue-2)!important;
+  box-shadow:var(--ux-focus)!important;
+}
+:where(button,a,input,select,textarea,[tabindex]):focus-visible {
+  outline:0!important;
+  box-shadow:var(--ux-focus)!important;
+}
+
+/* TABLES: data first, less grid chrome, easier scanning. */
+.merd-shell .table-scroll,
+.merd-shell .app-table-shell {
+  background:#fff!important;
+  border:1px solid var(--ux-line)!important;
+  border-radius:var(--ux-radius)!important;
+  box-shadow:none!important;
+  overflow:auto;
+}
+.merd-shell table { border-collapse:separate!important;border-spacing:0!important;background:#fff!important; }
+.merd-shell thead th,
+.merd-shell .summary-table th {
+  position:relative;
+  background:#F7F7F9!important;
+  color:#5D626A!important;
+  font-size:10px!important;
+  font-weight:680!important;
+  letter-spacing:.025em!important;
+  text-transform:none!important;
+  border-bottom:1px solid var(--ux-line)!important;
+}
+.merd-shell td {
+  color:#252529!important;
+  border-bottom:1px solid rgba(31,35,41,.075)!important;
+}
+.merd-shell tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) { background:#fff!important; }
+.merd-shell tbody tr:hover:not(.green-total):not(.hours-row):not(.wage-row) { background:#F8FAFD!important; }
+.merd-shell tbody tr:last-child td { border-bottom:0!important; }
+
+/* DIRECTORY/LISTS: content density without looking cramped. */
+.entity-list { gap:8px!important; }
+.entity-row {
+  min-height:68px!important;
+  padding:10px 12px!important;
+  border:1px solid var(--ux-line)!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+.entity-row:hover { background:#FCFCFD!important;border-color:rgba(31,35,41,.16)!important; }
+.entity-avatar { border-radius:11px!important;box-shadow:none!important; }
+.entity-title-line strong { font-weight:660!important;letter-spacing:-.012em; }
+.entity-sub { color:#75777D!important; }
+.entity-role,.entity-status,.store-access-summary,.you-chip,.role-system-chip,.permission-summary span {
+  border-radius:999px!important;
+}
+
+/* MODALS: focused task, clear hierarchy, background de-emphasis. */
+dialog.portal-dialog,
+dialog.admin-dialog,
+#roleAddDialog {
+  width:min(720px,calc(100vw - 28px));
+  max-height:min(88vh,860px);
+  border:1px solid rgba(31,35,41,.10)!important;
+  border-radius:20px!important;
+  background:#fff!important;
+  box-shadow:var(--ux-shadow-float)!important;
+  padding:0!important;
+  overflow:hidden;
+}
+dialog::backdrop {
+  background:rgba(15,20,28,.24)!important;
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+}
+.admin-dialog-header,.dialog-heading {
+  padding:18px 20px!important;
+  border-bottom:1px solid var(--ux-line)!important;
+  background:rgba(250,250,252,.94)!important;
+}
+.admin-dialog-body { padding:18px 20px!important; }
+.admin-dialog-footer {
+  margin-top:18px!important;
+  padding-top:14px!important;
+  border-top:1px solid var(--ux-line)!important;
+}
+.icon-btn {
+  width:36px!important;height:36px!important;min-height:36px!important;
+  border-radius:999px!important;
+  background:#F0F1F3!important;
+  border:0!important;
+  color:#51545A!important;
+}
+.icon-btn:hover { background:#E7E8EB!important; }
+
+/* ACCOUNT: progressive disclosure instead of permanent header clutter. */
+.account-trigger {
+  min-height:40px!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  border:1px solid var(--ux-line)!important;
+  box-shadow:none!important;
+}
+.account-trigger:hover { background:#F8F8FA!important; }
+.account-popover {
+  border:1px solid rgba(31,35,41,.10)!important;
+  border-radius:14px!important;
+  box-shadow:var(--ux-shadow-float)!important;
+  background:rgba(255,255,255,.96)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(150%);
+  backdrop-filter:blur(20px) saturate(150%);
+  padding:6px!important;
+}
+.account-menu-item { min-height:40px!important;border-radius:9px!important; }
+
+/* FINANCE + segmented controls. */
+.financial-tabs {
+  display:inline-flex!important;
+  gap:3px!important;
+  padding:4px!important;
+  background:#EBEDF0!important;
+  border:0!important;
+  border-radius:11px!important;
+  box-shadow:none!important;
+}
+.financial-tab {
+  min-height:34px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:transparent!important;
+  color:#64676D!important;
+  box-shadow:none!important;
+}
+.financial-tab.active {
+  background:#fff!important;
+  color:var(--ux-text)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.10)!important;
+}
+
+/* CHARTS: reduce ornament; preserve meaning. */
+.chart-track,.dashboard-bar-track { background:#ECEEF2!important; }
+.chart-fill,.dashboard-bar-fill {
+  background:linear-gradient(90deg,var(--ux-blue),#4A83C3)!important;
+  box-shadow:none!important;
+}
+.finance-ring,.dashboard-ring { filter:saturate(.82); }
+
+/* DASHBOARD BUILDER: cards feel like one coherent system. */
+.dashboard-rolebar { padding:12px 14px!important; }
+.dashboard-widget {
+  border-radius:var(--ux-radius)!important;
+  box-shadow:var(--ux-shadow-card)!important;
+  transition:box-shadow .16s ease,border-color .16s ease,transform .16s var(--ux-ease)!important;
+}
+.dashboard-widget:hover { border-color:rgba(31,35,41,.17)!important;box-shadow:0 10px 24px rgba(0,0,0,.055)!important; }
+.dashboard-widget-head { min-height:42px!important; }
+.dashboard-add-button {
+  width:46px!important;height:46px!important;
+  border-radius:999px!important;
+  background:var(--ux-blue)!important;
+  box-shadow:0 8px 20px rgba(28,69,135,.22)!important;
+}
+.dashboard-widget-drawer {
+  border-radius:18px 0 0 18px!important;
+  box-shadow:var(--ux-shadow-float)!important;
+}
+
+/* ROLES / PERMISSION POLICY: dense information, still calm. */
+.roles-shell { gap:16px!important; }
+.role-row,.permission-group {
+  border-color:var(--ux-line)!important;
+  border-radius:var(--ux-radius)!important;
+  box-shadow:none!important;
+}
+.permission-group-title { background:#F7F7F9!important;border-bottom-color:var(--ux-line)!important; }
+.permission-row { border-top-color:rgba(31,35,41,.07)!important; }
+.permission-danger-note {
+  border:1px solid rgba(166,107,19,.20)!important;
+  background:#FFF9E9!important;
+  color:#73561D!important;
+  border-radius:12px!important;
+}
+
+/* LOGIN / ATTENDANCE: one task, one visual destination. */
+.merd-login-body {
+  background:
+    radial-gradient(circle at 15% 0%,rgba(28,69,135,.07),transparent 34%),
+    radial-gradient(circle at 100% 100%,rgba(82,126,182,.05),transparent 30%),
+    var(--ux-bg)!important;
+}
+.login-shell { padding:24px!important; }
+.merd-login-card {
+  width:min(430px,100%)!important;
+  border:1px solid var(--ux-line)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.96)!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.08)!important;
+  padding:30px!important;
+}
+.merd-login-card h1 {
+  margin:28px 0 8px!important;
+  font-size:30px!important;
+  font-weight:720!important;
+  letter-spacing:-.038em!important;
+}
+.merd-login-card form { display:grid;gap:10px; }
+.merd-login-card label { margin-top:7px; }
+.merd-login-card input { min-height:46px!important; }
+.merd-login-card .primary-btn { min-height:46px!important;margin-top:8px; }
+.scan-result {
+  border-radius:16px!important;
+  border:1px solid var(--ux-line)!important;
+  box-shadow:none!important;
+}
+.secondary-link { color:var(--ux-blue)!important;font-weight:620!important;text-decoration:none; }
+.secondary-link:hover { text-decoration:underline; }
+
+/* ACCESSIBILITY + MOTION: motion supports comprehension, never competes. */
+::selection { background:rgba(36,99,168,.18);color:inherit; }
+[hidden] { display:none!important; }
+
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+}
+
+@media (max-width:820px) {
+  .app-workspace.merd-page-shell { padding:64px 11px 30px!important; }
+  .app-rail {
+    background:rgba(17,26,52,.97)!important;
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    backdrop-filter:blur(16px) saturate(140%);
+    border-top:1px solid rgba(255,255,255,.08)!important;
+  }
+  .rail-group-btn,.app-frame.nav-collapsed .rail-group-btn { border-radius:10px!important; }
+  .sidebar-group,.app-frame.nav-collapsed .sidebar-group {
+    background:rgba(255,255,255,.95)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+    border-bottom:1px solid var(--ux-line)!important;
+  }
+  .sidebar-group .portal-tab { min-height:38px!important;border-radius:10px!important; }
+  .merd-shell .controls-card,.merd-shell .mgmt-card,.merd-shell .directory-card { padding:15px!important; }
+  .management-hero { grid-template-columns:1fr!important; }
+  .mgmt-kpis,.mgmt-grid { grid-template-columns:1fr!important; }
+  .financial-tabs { width:100%!important;overflow-x:auto; }
+  .financial-tab { flex:1 0 auto; }
+}
+
+@media (max-width:560px) {
+  .merd-topbar { min-height:56px!important;padding:7px 10px!important; }
+  .merd-login-card { padding:24px 20px!important;border-radius:18px!important; }
+  .login-shell { padding:14px!important; }
+  .entity-row { border-radius:11px!important; }
+  dialog.portal-dialog,dialog.admin-dialog,#roleAddDialog {
+    width:calc(100vw - 14px)!important;
+    max-height:92vh!important;
+    border-radius:18px!important;
+  }
+  .admin-dialog-header,.dialog-heading { padding:15px 16px!important; }
+  .admin-dialog-body { padding:15px 16px!important; }
+}
