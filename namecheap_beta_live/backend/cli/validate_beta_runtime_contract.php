@@ -53,6 +53,8 @@ $appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
+$clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
+$rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
@@ -115,6 +117,21 @@ beta_contract_require_absent($shellCss, '--shell-rail:#', 'shell duplicate palet
 beta_contract_require_contains($appUiCss, 'var(--color-border-subtle)', 'feature layout token consumption', $errors);
 beta_contract_require_absent($appUiCss, '--ui-bg:', 'feature duplicate palette', $errors);
 beta_contract_require_contains($dashboardCss, 'var(--color-bg-main)', 'dashboard token consumption', $errors);
+
+// Client/Role feature modules are behavior-only. Their visual composition belongs
+// to app-ui.css so dynamically mounted UI cannot override the canonical layer.
+foreach ([
+    'client.js' => $clientJs,
+    'roles.js' => $rolesJs,
+] as $label => $content) {
+    beta_contract_require_absent($content, "document.createElement('style')", $label . ' feature CSS ownership', $errors);
+    beta_contract_require_absent($content, 'style.textContent', $label . ' feature CSS ownership', $errors);
+    beta_contract_require_absent($content, 'ensureStyles()', $label . ' feature CSS ownership', $errors);
+}
+beta_contract_require_contains($appUiCss, '.clients-admin-toolbar', 'Clients feature composition ownership', $errors);
+beta_contract_require_contains($appUiCss, '.migration-status-grid', 'Legacy migration feature composition ownership', $errors);
+beta_contract_require_contains($appUiCss, '.roles-shell', 'Roles feature composition ownership', $errors);
+beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature composition ownership', $errors);
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
@@ -215,4 +232,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical tokens/component ownership, modular headings, shared Add/Search placement, mobile runtime parity, contextual visual/a11y audit, cache revalidation, README contract, and deterministic legacy Sheet reader are wired.\n";
+echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical tokens/component ownership, feature CSS isolation, modular headings, shared Add/Search placement, mobile runtime parity, contextual visual/a11y audit, cache revalidation, README contract, and deterministic legacy Sheet reader are wired.\n";

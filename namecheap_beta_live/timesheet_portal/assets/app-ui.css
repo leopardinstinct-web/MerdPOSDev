@@ -113,9 +113,7 @@
 }
 
 /* Finance composition. */
-.financial-picker {
-  align-items: end;
-}
+.financial-picker { align-items: end; }
 
 .financial-tabs {
   display: flex;
@@ -155,9 +153,7 @@
   gap: var(--space-3);
 }
 
-.financial-account-card {
-  overflow: hidden;
-}
+.financial-account-card { overflow: hidden; }
 
 .financial-account-title {
   padding: var(--space-3) var(--space-4);
@@ -181,10 +177,7 @@
   display: grid;
   gap: var(--space-4);
 }
-
-.directory-toolbar {
-  margin: 0;
-}
+.directory-toolbar { margin: 0; }
 
 .directory-actions,
 .client-row-actions,
@@ -201,7 +194,6 @@
   position: relative;
   min-width: 15rem;
 }
-
 .search-box .ui-icon {
   position: absolute;
   left: var(--space-3);
@@ -210,15 +202,8 @@
   color: var(--color-text-muted);
   pointer-events: none;
 }
-
-.search-box input {
-  padding-left: 2.25rem;
-}
-
-.entity-list {
-  display: grid;
-  gap: 0;
-}
+.search-box input { padding-left: 2.25rem; }
+.entity-list { display: grid; gap: 0; }
 
 .entity-row {
   display: grid;
@@ -229,14 +214,8 @@
   padding: var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--color-border-subtle);
 }
-
-.entity-row:last-child {
-  border-bottom: 0;
-}
-
-.entity-row.is-muted {
-  opacity: .66;
-}
+.entity-row:last-child { border-bottom: 0; }
+.entity-row.is-muted { opacity: .66; }
 
 .entity-avatar {
   width: 2.375rem;
@@ -250,25 +229,19 @@
   font-weight: var(--weight-bold);
   overflow: hidden;
 }
-
-.entity-copy {
-  min-width: 0;
-}
-
+.entity-copy { min-width: 0; }
 .entity-title-line {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
 }
-
 .entity-title-line strong {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .entity-sub {
   margin-top: var(--space-1);
   color: var(--color-text-muted);
@@ -276,7 +249,6 @@
   line-height: var(--line-body);
   overflow-wrap: anywhere;
 }
-
 .entity-meta {
   display: flex;
   align-items: center;
@@ -285,23 +257,18 @@
   flex-wrap: wrap;
   min-width: 0;
 }
-
 .entity-rate {
   color: var(--color-text-secondary);
   font-size: var(--type-xs);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-
 .entity-empty {
   padding: var(--space-8);
   text-align: center;
   color: var(--color-text-muted);
 }
-
-.entity-empty.is-error {
-  color: var(--color-danger);
-}
+.entity-empty.is-error { color: var(--color-danger); }
 
 .directory-notice {
   position: fixed;
@@ -318,7 +285,6 @@
   font-size: var(--type-sm);
   font-weight: var(--weight-semibold);
 }
-
 .directory-notice.is-error {
   background: var(--color-danger-surface);
   border-color: color-mix(in srgb, var(--color-danger) 28%, var(--color-border-subtle));
@@ -326,11 +292,7 @@
 }
 
 /* DEV composition. */
-.dev-console {
-  display: grid;
-  gap: var(--space-3);
-}
-
+.dev-console { display: grid; gap: var(--space-3); }
 .dev-note {
   margin: var(--space-4) 0 0;
   padding: var(--space-3) var(--space-4);
@@ -339,73 +301,281 @@
   color: var(--color-text-secondary);
 }
 
+/* Clients + legacy migration composition. Shared control/card/dialog geometry remains owned by design-system.css. */
+.clients-admin-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+.clients-admin-search { min-width: 0; }
+.client-code-line { font-family: var(--font-mono); color: var(--color-text-muted); }
+.client-counts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+}
+.client-count-chip,
+.migration-badge,
+.role-key,
+.role-system-chip,
+.permission-unsaved,
+.permission-summary span,
+.permission-lock,
+.impact-role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+}
+.client-count-chip { background: var(--color-surface-muted); color: var(--color-text-secondary); }
+.client-admin-id { background: var(--color-surface-muted); color: var(--color-text-muted); cursor: not-allowed; }
+.client-admin-code,
+.role-key,
+.permission-copy code { font-family: var(--font-mono); }
+.client-admin-code { text-transform: uppercase; letter-spacing: .035em; }
+
+.migration-dialog { width: min(var(--dialog-max), calc(100vw - (var(--space-3) * 2))); }
+.migration-body,
+.migration-conflicts { display: grid; gap: var(--space-4); }
+.migration-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.migration-stat {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-main);
+}
+.migration-stat span {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.migration-stat strong {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+.authority-google { color: var(--color-warning); }
+.authority-sql { color: var(--color-success); }
+.migration-section { display: grid; gap: var(--space-3); }
+.migration-section > p { margin: 0; color: var(--color-text-muted); }
+.migration-source-grid,
+.migration-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.migration-source-grid .full { grid-column: 1 / -1; }
+.migration-tabs-textarea { font-family: var(--font-mono); }
+.migration-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.migration-actions-spaced { margin-top: var(--space-3); }
+.migration-guard,
+.permission-danger-note {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, var(--color-border-subtle));
+  border-radius: var(--radius-control);
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+.migration-result {
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+.migration-result.is-error { background: var(--color-danger-surface); color: var(--color-danger); }
+.migration-badge { background: var(--color-surface-muted); color: var(--color-text-secondary); }
+.migration-badge.completed { background: var(--color-success-surface); color: var(--color-success); }
+.migration-badge.completed_with_conflicts,
+.migration-badge.failed { background: var(--color-danger-surface); color: var(--color-danger); }
+.migration-badge.staged { background: var(--color-info-surface); color: var(--color-info); }
+.migration-conflict {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 24%, var(--color-border-subtle));
+  border-radius: var(--radius-control);
+  background: var(--color-danger-surface);
+}
+.migration-conflict strong { color: var(--color-danger); }
+.migration-conflict small,
+.migration-empty,
+.migration-foot { color: var(--color-text-muted); }
+
+/* Roles + permission-policy composition. */
+.roles-shell,
+.roles-card,
+.roles-list,
+.permission-card,
+.permission-groups {
+  display: grid;
+  gap: var(--space-4);
+}
+.roles-head,
+.permission-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.roles-head p,
+.permission-head p { margin: var(--space-1) 0 0; color: var(--color-text-muted); }
+.role-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, .6fr)) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+}
+.role-copy { min-width: 0; }
+.role-title { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.role-key { background: var(--color-surface-muted); color: var(--color-text-muted); }
+.role-copy small { display: block; margin-top: var(--space-1); color: var(--color-text-muted); }
+.role-meta { display: grid; gap: var(--space-1); }
+.role-meta span:first-child {
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.role-meta strong { color: var(--color-text-primary); }
+.role-loa,
+.permission-level { display: flex; align-items: center; gap: var(--space-2); }
+.role-loa input,
+.permission-level input { width: 100%; }
+.role-actions,
+.permission-actions,
+.permission-summary,
+.permission-impact { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.role-actions { justify-content: flex-end; }
+.role-system-chip,
+.permission-lock,
+.impact-role { background: var(--color-info-surface); color: var(--color-info); }
+.role-dev-fixed { background: var(--color-surface-muted); }
+.role-status { color: var(--color-text-muted); }
+.role-status.is-error,
+.impact-none { color: var(--color-danger); }
+.role-add-dialog .admin-form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, .5fr); }
+.role-inherit-note,
+.permission-footnote { color: var(--color-text-muted); }
+.permission-unsaved { background: var(--color-warning-surface); color: var(--color-warning); }
+.permission-summary span { background: var(--color-surface-muted); color: var(--color-text-secondary); }
+.permission-group {
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+}
+.permission-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.permission-group-title strong { color: var(--color-text-primary); }
+.permission-group-title small { color: var(--color-text-muted); }
+.permission-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, .65fr) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.permission-row:first-of-type { border-top: 0; }
+.permission-copy { min-width: 0; }
+.permission-copy strong { display: block; color: var(--color-text-primary); }
+.permission-copy code {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 /* General mobile composition. */
+@media (max-width: 65.625rem) {
+  .migration-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .role-row { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, .6fr)); }
+  .role-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .permission-row { grid-template-columns: minmax(0, 1fr) minmax(0, .6fr); }
+  .permission-impact { grid-column: 1 / -1; }
+}
+
 @media (max-width: 61.25rem) {
-  .financial-account-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .entity-row {
-    grid-template-columns: 2.625rem minmax(9rem, 1fr) auto;
-  }
-
-  .entity-meta {
-    grid-column: 2 / 3;
-    justify-content: flex-start;
-  }
+  .financial-account-grid { grid-template-columns: 1fr; }
+  .entity-row { grid-template-columns: 2.625rem minmax(9rem, 1fr) auto; }
+  .entity-meta { grid-column: 2 / 3; justify-content: flex-start; }
 }
 
 @media (max-width: 51.25rem) {
-  .directory-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .directory-actions {
-    width: 100%;
-  }
-
-  .search-box {
-    min-width: 0;
-    flex: 1;
-  }
-
+  .directory-toolbar { align-items: flex-start; flex-direction: column; }
+  .directory-actions,
+  .clients-admin-toolbar,
+  .roles-head,
+  .permission-head { width: 100%; }
+  .search-box { min-width: 0; flex: 1; }
   .entity-row {
     grid-template-columns: 2.375rem minmax(0, 1fr) auto;
     gap: var(--space-2);
     padding-inline: var(--space-1);
   }
-
-  .entity-avatar {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-
-  .entity-meta {
+  .entity-avatar { width: 2.25rem; height: 2.25rem; }
+  .entity-meta { grid-column: 2 / -1; justify-content: flex-start; }
+  .entity-row .icon-text-btn { grid-column: 3; grid-row: 1; align-self: center; }
+  .entity-row .icon-text-btn span { display: none; }
+  .migration-source-grid,
+  .migration-tabs-grid,
+  .role-row,
+  .permission-row,
+  .role-add-dialog .admin-form-grid { grid-template-columns: 1fr; }
+  .migration-source-grid .full,
+  .role-actions,
+  .permission-impact { grid-column: auto; }
+  .client-row-actions {
     grid-column: 2 / -1;
     justify-content: flex-start;
   }
-
-  .entity-row .icon-text-btn {
-    grid-column: 3;
-    grid-row: 1;
-    align-self: center;
-  }
-
-  .entity-row .icon-text-btn span {
-    display: none;
-  }
+  .client-row-actions .icon-text-btn span { display: inline; }
+  .role-actions { justify-content: flex-start; }
+  .permission-actions { width: 100%; }
 }
 
 @media (max-width: 35rem) {
-  .directory-actions {
-    flex-wrap: nowrap;
-  }
-
+  .directory-actions { flex-wrap: nowrap; }
   .directory-notice {
     right: var(--space-3);
     left: var(--space-3);
     bottom: calc(4rem + env(safe-area-inset-bottom) + var(--space-3));
     max-width: none;
   }
+  .migration-status-grid { grid-template-columns: 1fr; }
+  .migration-actions > :where(button, .migration-foot) { width: 100%; }
+  .migration-actions > button { justify-content: center; }
 }

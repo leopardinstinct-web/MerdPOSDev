@@ -51,17 +51,25 @@ Current binding interaction rules include:
 - editable Dashboard widgets keep add/remove/reorder capability on mobile; free drag/resize remains desktop-only;
 - older browsers receive a minimal `<dialog>` fallback.
 
-Runtime layers include:
+Canonical runtime layers are:
 
-- `assets/ui-standard.css`
-- `assets/minimal-controls.css`
-- `assets/minimal-controls.js`
-- `assets/mobile-hardening.css`
-- `assets/mobile-runtime.js`
-- `assets/management.js` runtime loading/wiring
-- `.htaccess` cache revalidation for shared cross-portal UI contract assets
+- `assets/design-tokens.css` — semantic color, spacing, type, radius, control and breakpoint tokens;
+- `assets/design-system.css` — canonical shared visual grammar for controls, cards, buttons, tables, dialogs, Add/Search and accessibility states;
+- `assets/shell.css` — application/navigation shell only;
+- `assets/app-ui.css` — feature composition only, including directory, Clients, Roles, Permission Policy and Legacy Migration layouts;
+- `assets/dashboard-builder.css` — Dashboard-specific composition only;
+- `assets/account-menu.css` — account/client-context composition only;
+- `assets/minimal-controls.js` — behavior-only normalization for circular Add, expandable Search and Search+Add clustering;
+- `assets/mobile-runtime.js` — mobile viewport, dialog compatibility, Dashboard mobile editing and structural runtime audit;
+- `assets/design-audit.js` — runtime heading, accessibility, Search/Add geometry, touch-target, overflow and contrast checks;
+- `assets/management.js` — runtime loading/wiring;
+- `.htaccess` — cache revalidation for shared cross-portal UI contract assets.
 
-`window.MERDPOSMobileRuntime.audit()` provides a browser-side structural smoke test for mobile layouts. It checks page horizontal overflow, wrapped top bar, undersized touch targets, dialogs outside the viewport and malformed shared icon actions. Passing this audit is required for source/runtime confidence but does not replace real-device verification.
+Retired corrective styling layers must not be reloaded by the beta runtime: `ui-standard.css`, `minimal-controls.css`, `mobile-hardening.css`, `apple-principles.css` and `omnichannel-identity.css`.
+
+Feature JavaScript may compose the design system but may not inject its own visual CSS. In particular, `client.js` and `roles.js` are behavior/data modules; their visual composition belongs to `app-ui.css`. The deploy/runtime validator enforces this boundary.
+
+`window.MERDPOSMobileRuntime.audit()` provides a browser-side structural smoke test for mobile layouts. It checks page horizontal overflow, wrapped top bar, undersized touch targets, dialogs outside the viewport and malformed shared icon actions. `window.MERDPOSDesignAudit.run()` adds heading, accessible-name, Search/Add placement and contrast checks. Passing these audits is required for source/runtime confidence but does not replace real-device verification.
 
 A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually and functionally equivalent across representative screens.
 
@@ -127,21 +135,24 @@ Historical Google data is being migrated into SQL, while new portal transactions
 
 ## Main runtime areas
 
-- `index.php` — login
-- `dashboard.php` — authenticated portal shell/panels
-- `scan.php` — attendance confirmation
-- `api/` — authenticated portal APIs
-- `includes/beta_api.php` — live authorization refresh and fail-closed route policy
-- `includes/timesheet_logic.php` — frozen timesheet reconciliation
-- `includes/legacy_migration*.php` — legacy source fetch/staging/reconciliation
-- `assets/management.js` — shared runtime module loader/management behavior
-- `assets/directory.js` — Store/Workforce admin UI
-- `assets/roles.js` — roles/permission policy UI
-- `assets/client.js` — client and migration UI
-- `assets/ui-standard.css` — global geometry/density standard
-- `assets/minimal-controls.*` — canonical circular Add, expandable Search and Search+Add cluster
-- `assets/mobile-hardening.css` — mobile viewport/touch/navigation/dialog/Dashboard compatibility
-- `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit
+- `index.php` — login;
+- `dashboard.php` — authenticated portal shell/panels;
+- `scan.php` — attendance confirmation;
+- `api/` — authenticated portal APIs;
+- `includes/beta_api.php` — live authorization refresh and fail-closed route policy;
+- `includes/timesheet_logic.php` — frozen timesheet reconciliation;
+- `includes/legacy_migration*.php` — legacy source fetch/staging/reconciliation;
+- `assets/management.js` — shared runtime module loader/management behavior;
+- `assets/directory.js` — Store/Workforce admin behavior;
+- `assets/roles.js` — Roles/Permission Policy behavior only;
+- `assets/client.js` — Client and Legacy Migration behavior only;
+- `assets/design-tokens.css` — canonical semantic tokens;
+- `assets/design-system.css` — canonical shared component layer;
+- `assets/app-ui.css` — feature composition, including Clients/Roles/Migration;
+- `assets/shell.css` — desktop/mobile shell and navigation composition;
+- `assets/minimal-controls.js` — shared Add/Search behavior;
+- `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit;
+- `assets/design-audit.js` — contextual design/accessibility runtime audit.
 
 ## Deployment
 
