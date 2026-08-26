@@ -111,6 +111,12 @@ try {
         json_response(client_context_state($pdo, $user));
     }
 
+    // Capture the current DEV session context on page load as well. This preserves
+    // any selection that was already active before migration 030 first deploys.
+    if ($role === 'DEV') {
+        client_context_persist($pdo, $user, (int)$user['client_id']);
+    }
+
     json_response(client_context_state($pdo, $user));
 } catch (Throwable $e) {
     beta_api_error($e);
