@@ -23,47 +23,44 @@
   const oldNav = main?.querySelector('.merd-nav');
   if (!main || !oldNav || document.querySelector('.app-frame')) return;
 
-  const isDev = !!oldNav.querySelector('.dev-tab');
-  if (isDev && !oldNav.querySelector('[data-panel="clientPanel"]')) {
-    const clientGroup = document.createElement('div');
-    clientGroup.className = 'nav-group';
-    clientGroup.innerHTML = `
-      <span class="nav-group-label">Client</span>
-      <button class="portal-tab" data-panel="clientPanel">
-        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M8 19h4"/></svg>
-        <span>Account</span>
-      </button>`;
+  const rawByLabel = label => Array.from(oldNav.querySelectorAll('.nav-group')).find(group =>
+    String(group.querySelector('.nav-group-label')?.textContent || '').trim().toLowerCase() === label
+  );
 
-    const operationsGroup = Array.from(oldNav.querySelectorAll('.nav-group')).find(group =>
-      String(group.querySelector('.nav-group-label')?.textContent || '').trim().toLowerCase() === 'operations'
-    );
-    if (operationsGroup) oldNav.insertBefore(clientGroup, operationsGroup);
-    else oldNav.appendChild(clientGroup);
+  const isDev = !!oldNav.querySelector('.dev-tab');
+  if (isDev && !oldNav.querySelector('[data-panel="clientsPanel"]')) {
+    const systemGroup = rawByLabel('system');
+    if (systemGroup) {
+      const clientsTab = document.createElement('button');
+      clientsTab.type = 'button';
+      clientsTab.className = 'portal-tab';
+      clientsTab.dataset.panel = 'clientsPanel';
+      clientsTab.innerHTML = `
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M8 19h4"/></svg>
+        <span>Clients</span>`;
+      systemGroup.appendChild(clientsTab);
+    }
 
     const panel = document.createElement('section');
-    panel.id = 'clientPanel';
+    panel.id = 'clientsPanel';
     panel.className = 'portal-panel';
     panel.hidden = true;
     panel.innerHTML = `
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Client</h2><p>Parent account for stores, employees and POS devices.</p></div>
+          <div><h2>Clients</h2><p>Manage client accounts and tenant identity.</p></div>
         </div>
-        <div id="clientOverview"><div class="entity-empty">Loading client…</div></div>
+        <div id="clientsOverview"><div class="entity-empty">Loading clients…</div></div>
       </section>`;
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260825f';
+    clientScript.src = 'assets/client.js?v=20260826a';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
   }
 
-  // Re-shape the legacy navigation before building the modern rail.
   // Operations owns store/workforce administration; Reports owns timesheets/disputes.
-  const rawByLabel = label => Array.from(oldNav.querySelectorAll('.nav-group')).find(group =>
-    String(group.querySelector('.nav-group-label')?.textContent || '').trim().toLowerCase() === label
-  );
   const workforceGroup = rawByLabel('workforce');
   const operationsGroup = rawByLabel('operations');
   if (workforceGroup) {
@@ -101,13 +98,12 @@
   };
   const titles = {
     home: 'Home',
-    client: 'Client',
     operations: 'Operations',
     reports: 'Reports',
     finance: 'Finance',
-    system: 'System',
+    system: 'DEV',
   };
-  const order = ['home', 'client', 'operations', 'reports', 'finance', 'system'];
+  const order = ['home', 'operations', 'reports', 'finance', 'system'];
   const desktopQuery = window.matchMedia('(min-width: 821px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -205,7 +201,7 @@
     const directText = direct
       ? String(tabs[0].querySelector('span:not(.nav-badge)')?.textContent || groupLabel).trim()
       : groupLabel;
-    const visibleLabel = key === 'client' ? 'Client' : directText;
+    const visibleLabel = directText;
 
     const section = document.createElement('section');
     section.className = `rail-section${direct ? ' rail-section-direct' : ''}`;
@@ -301,4 +297,23 @@
   const initialGroup = initiallyActive?.closest('[data-sidebar-group]')?.dataset.sidebarGroup || sections[0]?.key;
   if (initialGroup) setGroup(initialGroup);
   syncResponsiveMode();
+
+  // Any feature can request a return panel before a context-changing reload.
+  // This also covers tabs mounted asynchronously after the navigation shell.
+  const requestedPanel = sessionStorage.getItem('merdposReturnPanel');
+  if (requestedPanel) {
+    let attempts = 0;
+    const restoreTimer = window.setInterval(() => {
+      attempts += 1;
+      const tab = Array.from(document.querySelectorAll('.portal-tab')).find(item => item.dataset.panel === requestedPanel);
+      if (tab) {
+        sessionStorage.removeItem('merdposReturnPanel');
+        tab.click();
+        window.clearInterval(restoreTimer);
+      } else if (attempts > 40) {
+        sessionStorage.removeItem('merdposReturnPanel');
+        window.clearInterval(restoreTimer);
+      }
+    }, 75);
+  }
 })();
