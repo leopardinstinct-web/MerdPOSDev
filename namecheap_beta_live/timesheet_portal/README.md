@@ -2,7 +2,7 @@
 
 This is the active PHP + JavaScript MERDPOS web beta deployed from branch `namecheap-beta-live`.
 
-**Read `../README.md` first.** It is the authoritative beta runtime README and defines the implementation-state language, deployment contract, frozen payroll rules, Google migration safety and README-maintenance requirements.
+**Read `../README.md` first.** It is the authoritative beta runtime README and defines the beta-only project scope, implementation-state language, deployment contract, frozen payroll rules, Google migration safety and README-maintenance requirements.
 
 ## Current portal scope
 
@@ -16,7 +16,7 @@ The portal includes:
 - Timesheets and disputes;
 - Finance;
 - client-level Google legacy migration with Preview / Sync / Final cutover;
-- responsive/mobile-ready UI standards.
+- shared desktop/tablet/mobile UI runtime.
 
 ## Authorization
 
@@ -38,27 +38,32 @@ All user-facing beta features follow `docs/pos_latest/GUI_STANDARD.md`.
 
 Current binding interaction rules include:
 
-- Dashboard Add and Add Store / Employee / Client / Role use the **same** circular `+` runtime primitive;
+- Dashboard Add and Add Store / Employee / Client / Role use the same circular `+` runtime primitive;
 - desktop Add/Search diameter is 46px; tablet/phone is 48px;
-- list search begins as the same-diameter circular magnifier and expands on click/tap;
-- whenever Search and Add coexist they are adjacent on the right in one action cluster: `Search` then `+`;
-- feature-local `.primary-btn`/`.compact-btn` styling must not turn the shared `+` into a rounded square;
-- mobile/tablet interactive targets are at least 48px;
+- Search and Add remain adjacent in one right-aligned cluster;
+- mobile-ready means functional parity, not simply responsive dimensions;
+- top bar remains a single stable row on mobile;
+- bottom navigation and notices respect safe-area/fixed-nav offsets;
 - forms collapse cleanly to one column;
-- dialogs remain inside the dynamic viewport;
-- tables scroll within their own container instead of causing page-level horizontal scrolling.
+- dialogs remain inside the visual viewport and their own content remains scrollable when the software keyboard is open;
+- tables scroll within their own container instead of causing page-level horizontal scrolling;
+- Dashboard widget drawer sits above all mobile chrome and has an explicit close route;
+- editable Dashboard widgets keep add/remove/reorder capability on mobile; free drag/resize remains desktop-only;
+- older browsers receive a minimal `<dialog>` fallback.
 
 Runtime layers include:
 
 - `assets/ui-standard.css`
 - `assets/minimal-controls.css`
 - `assets/minimal-controls.js`
+- `assets/mobile-hardening.css`
+- `assets/mobile-runtime.js`
 - `assets/management.js` runtime loading/wiring
-- `.htaccess` cache revalidation for these shared cross-portal UI contract assets
+- `.htaccess` cache revalidation for shared cross-portal UI contract assets
 
-Shared UI contract assets use `Cache-Control: no-cache, must-revalidate`. Browsers may keep a local copy, but must revalidate it after a deployment so stale global control geometry/behavior cannot survive merely because an older asset was cached.
+`window.MERDPOSMobileRuntime.audit()` provides a browser-side structural smoke test for mobile layouts. It checks page horizontal overflow, wrapped top bar, undersized touch targets, dialogs outside the viewport and malformed shared icon actions. Passing this audit is required for source/runtime confidence but does not replace real-device verification.
 
-A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually equivalent across representative screens; matching icon/class names alone is not verification.
+A rule written in Markdown but not loaded/called by the portal is **DOCUMENTED**, not implemented. Shared UI primitives must also be visually and functionally equivalent across representative screens.
 
 ## Timesheet/payroll behavior — frozen
 
@@ -133,8 +138,10 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `assets/directory.js` — Store/Workforce admin UI
 - `assets/roles.js` — roles/permission policy UI
 - `assets/client.js` — client and migration UI
-- `assets/ui-standard.css` — global GUI/mobile standard
+- `assets/ui-standard.css` — global geometry/density standard
 - `assets/minimal-controls.*` — canonical circular Add, expandable Search and Search+Add cluster
+- `assets/mobile-hardening.css` — mobile viewport/touch/navigation/dialog/Dashboard compatibility
+- `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit
 
 ## Deployment
 
@@ -158,8 +165,6 @@ Do not say a change is `live`, `fixed` or `working` based only on a GitHub commi
 
 ## Implementation status discipline
 
-Use the following states explicitly:
-
 ```text
 REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
 ```
@@ -167,8 +172,8 @@ REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
 `Implemented in beta source` means at least **CODED + WIRED**.  
 `Live/fixed` means **DEPLOYED + VERIFIED**.
 
-This distinction is mandatory for all future beta changes.
+Mobile verification requires both structural runtime checks and real-device testing of the affected workflows.
 
 ## README maintenance
 
-Update this README by default whenever portal behavior, authorization, UI conventions, data-flow, synchronization or migration behavior changes. README maintenance is part of beta Definition of Done, but documentation itself must never be mistaken for runtime implementation.
+Update this README by default whenever portal behavior, authorization, UI conventions, data-flow, synchronization, mobile behavior or migration behavior changes. README maintenance is part of beta Definition of Done, but documentation itself must never be mistaken for runtime implementation.
