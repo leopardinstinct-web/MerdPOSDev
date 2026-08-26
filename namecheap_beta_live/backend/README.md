@@ -30,6 +30,18 @@ Every migration requires:
 
 Browser portal permissions are defined by `docs/pos_latest/BETA_AUTHORIZATION_STANDARD.md` and enforced through named permissions/LOA. Device/POS APIs retain their own device-token/client/store/employee security contract unless a feature explicitly adds a named role/LOA requirement without weakening the device boundary.
 
+`backend/cli/validate_portal_permission_policy.php` is a deploy-time fail-closed guard. It validates the central permission catalogue, dashboard permission mappings, protected portal API registration and refresh of active authorization state.
+
+It also protects the permission-aware browser runtime split introduced after the 2026-08-26 LOA crash incident. `dashboard.php` intentionally omits controls a role cannot use, while the legacy shared `beta.js` still contains direct DOM lookups. The validator therefore requires:
+
+- `assets/app.js` to provide compatibility shims for legacy permission-gated IDs that `beta.js` still directly references;
+- `assets/app.js` to load the isolated `assets/timesheet-app.js` only when the Timesheet DOM contract exists;
+- the Timesheet runtime double-load guard and its weeks/report API wiring;
+- `dashboard.php` to load `app.js` before `beta.js`;
+- portal cache revalidation to include `app.js` and `timesheet-app.js`.
+
+If the legacy shared runtime is later refactored so these shims are no longer needed, update the validator and runtime together rather than weakening the guard first.
+
 ## Legacy migration subsystem
 
 Migration 034 provides the client-scoped Google legacy migration staging/audit model.
@@ -43,23 +55,28 @@ Known Sheet schemas must be parsed deterministically; do not introduce generic h
 The Namecheap deployment script is expected to fail closed on at least:
 
 - PHP syntax errors;
-- missing permission-policy coverage;
+- missing permission-policy/API coverage;
+- permission-gated browser runtime wiring regressions;
 - migration/schema verification failures;
 - portal HTML/API response-boundary invariants;
 - beta runtime-contract violations;
-- missing shared mobile runtime files or loader wiring.
+- missing canonical shared UI/mobile files or loader wiring.
 
-`backend/cli/validate_beta_runtime_contract.php` verifies that important documented beta contracts are actually wired. For shared UI it checks the canonical Add/Search contract and the mobile runtime contract. Mobile release invariants include:
+`backend/cli/validate_beta_runtime_contract.php` verifies that documented beta contracts are wired into current source. Current shared UI/runtime checks cover:
 
-- `assets/mobile-hardening.css` and `assets/mobile-runtime.js` exist;
-- `management.js` loads both assets;
-- visual-viewport/software-keyboard handling exists;
-- mobile-safe dialog behavior exists;
-- Dashboard mobile reorder fallback exists where desktop drag/resize is unavailable;
-- browser-side mobile structural audit hooks exist;
-- shared mobile files are included in cache revalidation.
+- semantic design tokens and canonical component ownership;
+- shared Search/Add primitives and placement;
+- authoritative mobile navigation/subnavigation state;
+- visual-viewport/software-keyboard behavior;
+- dialog fallback and Dashboard mobile reorder parity;
+- heading/accessibility/contrast/touch-target/overflow auditing through `assets/design-audit.js`;
+- cache revalidation of canonical runtime assets;
+- deterministic legacy Google Sheet reader contracts;
+- absence of retired competing CSS layers.
 
-The deploy script must also verify these files/wiring in the **live Namecheap copy after rsync** before writing `.beta_deployed_commit`.
+The retired corrective CSS layers must not be restored to runtime ownership: `ui-standard.css`, `minimal-controls.css`, `mobile-hardening.css`, `apple-principles.css` and `omnichannel-identity.css`.
+
+The deploy script also verifies required files/wiring in the **live Namecheap copy after rsync** before writing `.beta_deployed_commit`.
 
 Runtime validators are release guards, not substitutes for real-device verification. A mobile UI change is VERIFIED only after the intended workflow is checked on a phone/tablet as relevant and no unresolved structural audit issue remains.
 

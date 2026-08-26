@@ -8,33 +8,45 @@
 ## Current source state
 
 - Recovery baseline documented at handover: `c4d1b0d4d50a7ecf6bf60a49f85410842f4c5888` (`c4d1b0d`).
-- Hotfix after that baseline: `444e790357e1a006d8120ece9598081df45c77c2` — `Hotfix LOA permission runtime crashes`.
-- Current branch tip before recovery-infrastructure commit: `4002bec01fb38706cf9126daef4e48cd32bec061` — `Stop shared Add control mutation loop`.
-- `444e790` moved Timesheet-only browser logic from shared `assets/app.js` into `assets/timesheet-app.js` and added cache revalidation for the split assets.
-- `4002bec` patched the shared Add-control mutation loop in `assets/minimal-controls.js`.
+- `444e790357e1a006d8120ece9598081df45c77c2` — `Hotfix LOA permission runtime crashes`.
+- `4002bec01fb38706cf9126daef4e48cd32bec061` — `Stop shared Add control mutation loop`.
+- `e5a8e9cb930f04fb0669639a7dd7be67e80032a1` — `Add beta recovery state and guardrails`.
+- `8034463affb1eb7ecbd3ddde84c2efd55d83cc6d` — `Guard permission-gated portal runtime wiring`.
 
-## Current recovery assessment
+## Recovery progress
 
-The beta was already receiving emergency runtime hotfixes after the documented handover baseline. The first recovery priority is therefore regression containment and deterministic validation, not additional UI redesign.
+### Phase 1 — source containment
 
-A key repository gap was found: the existing general CI and secret-scan workflows only run on pushes to `main`; the authoritative beta branch did not have push-time source validation. A beta-specific guardrail workflow is being added as Phase 1 recovery infrastructure.
+Source-level containment is established:
+
+- `.ai/` state files are source controlled;
+- `namecheap-beta-live` now has beta-specific GitHub guardrails;
+- the guardrails lint beta PHP, validate the runtime contract, validate authorization/permission coverage, syntax-check portal JavaScript, reject forbidden tracked beta paths and run redacted secret scanning;
+- the first two beta-guardrail runs passed.
+
+This is not a Namecheap deployment claim. The current live `.beta_deployed_commit` marker has not been read in this session.
+
+### Phase 2 — regression inventory and incident hardening
+
+Started.
+
+The 2026-08-26 LOA crash hotfix is now protected by deploy-time source validation. `validate_portal_permission_policy.php` verifies the compatibility shims in `assets/app.js`, the isolated `assets/timesheet-app.js` wiring, script load order (`app.js` before `beta.js`) and cache revalidation for the split runtime.
+
+The latest Add-control hotfix was inspected. `assets/minimal-controls.js` now avoids replacing an already-normalized Add SVG from inside its MutationObserver, preventing the observer from continually retriggering itself and invalidating the pointer target.
+
+Mobile navigation source was inspected. Its contextual submenu state is explicit through `merd-mobile-subnav-open`, and parent-group clicks open the group without navigating.
+
+An additional loader-order risk is under investigation: `management.js` comments that Roles mounts before navigation, but both are dynamically inserted scripts. Do not change this loader until the dependent module behavior is fully traced and a deterministic regression check can accompany the change.
 
 ## Important conflict resolved
 
 A transferred handoff note said a new session would remove `design-audit.js`. That instruction is stale relative to current authoritative source.
 
-Current beta runtime and deployment validators explicitly require:
+Current beta runtime/deployment validators explicitly require `assets/design-audit.js`, its `management.js` loader wiring and cache revalidation. It supplies heading, contrast, touch-target, Search/Add placement, accessible-name and overflow regression checks.
 
-- `namecheap_beta_live/timesheet_portal/assets/design-audit.js`;
-- `assets/management.js` to load it;
-- `.htaccess` to revalidate it;
-- the deploy script to verify its heading, contrast, touch-target, Search/Add placement, accessibility and overflow checks.
-
-Therefore `design-audit.js` must **not** be deleted during recovery unless the authoritative runtime contract is intentionally redesigned in the same reviewed change.
+Therefore `design-audit.js` must not be deleted unless the authoritative runtime contract, loader, deployment validator and replacement ownership are intentionally changed together.
 
 ## Implementation-state discipline
-
-Use only:
 
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
 
@@ -42,11 +54,11 @@ Do not call a source change live/fixed/working until the Namecheap `.beta_deploy
 
 ## Next recovery actions
 
-1. Run the new beta guardrail workflow on every beta push/PR.
-2. Inventory the post-baseline runtime changes and identify regressions by feature path.
-3. Add deterministic browser smoke coverage only where it can run without production credentials or secret fixtures.
-4. Repair one regression at a time; preserve frozen payroll/timesheet reconciliation.
-5. Deploy immediately after an approved beta source fix and verify the deployed marker plus the affected runtime path.
+1. Read the current Namecheap `.beta_deployed_commit` after deploying the current beta branch.
+2. Continue the feature-path regression inventory in `.ai/regression-inventory.md`.
+3. Resolve source-level loader/order risks only with deterministic regression coverage.
+4. Add unauthenticated/local browser smoke coverage before introducing any authenticated Playwright fixtures.
+5. Repair one runtime regression at a time and preserve frozen payroll/timesheet reconciliation.
 
 ## Deployment command after beta source changes
 
