@@ -45,7 +45,7 @@ Protected in real Chrome by `browser_tests/shared-runtime.spec.js`:
 
 ### Dynamic Roles → Navigation loader race — 2026-08-27
 
-Resolved in source by forcing dynamically inserted classic scripts in `assets/management.js` to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` guards both the ordered-script behavior and Roles-before-Navigation dependency in beta CI.
+Resolved in source by forcing dynamically inserted classic scripts in `assets/management.js` to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` guards both the ordered-script behavior and Roles-before-Navigation dependency in beta CI and Namecheap deploy validation.
 
 ### Shared state accidentally required Dashboard — 2026-08-27
 
@@ -58,27 +58,33 @@ Resolved in source across `includes/beta_api.php` and `api/beta_state.php`:
 - Finance-only users do not receive a full store enumeration unless their permission set grants broader scope;
 - management summaries remain separately permission-gated.
 
-`backend/cli/validate_beta_state_scope.php` protects these boundaries in beta CI.
+`backend/cli/validate_beta_state_scope.php` protects these boundaries in beta CI and Namecheap deploy validation.
 
 ### Management cards implied unavailable data — 2026-08-27
 
-Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent Attendance dashboard surfaces now mirror the permissions of the data they display instead of showing misleading zero/empty cards for a management identity that lacks that specific capability. The shared-state validator also protects this frontend/backend alignment.
+Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent Attendance dashboard surfaces mirror the permissions of the data they display instead of showing misleading zero/empty cards for a management identity that lacks that specific capability. The shared-state validator also protects this frontend/backend alignment.
 
 ### Duplicate Timesheet runtime injection — 2026-08-27
 
-`timesheet-app.js` owns one report runtime. `app.js` now refuses to inject another Timesheet script when the first script is already pending or initialized. The Chrome recovery suite evaluates `app.js` twice and requires exactly one Timesheet script request, one initial weeks request, one initial report request and exactly one additional report request for a user week selection.
+`timesheet-app.js` owns one report runtime. `app.js` refuses to inject another Timesheet script when the first script is already pending or initialized. The Chrome recovery suite evaluates `app.js` twice and requires exactly one Timesheet script request, one initial weeks request, one initial report request and exactly one additional report request for a user week selection.
 
 ### Mobile navigation smoke fixture — 2026-08-27
 
-The first navigation browser run failed before runtime validation because `page.setContent()` created an opaque `about:blank` document and Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin. With that corrected, Chrome verifies contextual parent open behavior, contextual child navigation and direct-section clearing of mobile subnav state without page-level JavaScript errors.
+The first navigation browser run failed before runtime validation because `page.setContent()` created an opaque `about:blank` document and Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin. Chrome verifies contextual parent open behavior, contextual child navigation and direct-section clearing of mobile subnav state without page-level JavaScript errors.
+
+### Namecheap deploy recovery guard wiring — 2026-08-27
+
+`scripts/deploy_namecheap_beta.sh` now runs `validate_portal_loader_order.php` and `validate_beta_state_scope.php` before rsync in addition to the existing runtime-contract and permission-policy validators. Beta CI runs `bash -n` on the deploy script and fails if either recovery validator call disappears.
 
 ## Current CI checkpoint
 
-Beta guardrails run `33009891345` on commit `5daca6c51afde3bca8130338085ff6cf5297f88c` completed green with all three jobs:
+Recovery implementation checkpoint `5fc28354cb7372db7b93b0470543906076426497` passed Beta guardrails run `33010208846` with all three jobs green:
 
-- Beta source contract;
+- Beta source contract, including Namecheap deploy recovery-guard syntax/wiring;
 - Beta Chromium smoke, including Add/permission-minimal/Timesheet/mobile-navigation regression scenarios;
 - Beta secret scan.
+
+The state-note commit containing this inventory follows that implementation checkpoint and contains no runtime behavior change.
 
 This is not a Namecheap deployment claim.
 

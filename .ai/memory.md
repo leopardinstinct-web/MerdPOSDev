@@ -5,23 +5,25 @@
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
 
-## Current source checkpoint
+## Recovery implementation checkpoint
 
-Current checked source tip: `5daca6c51afde3bca8130338085ff6cf5297f88c` — `Give mobile navigation smoke test a real origin`.
+Recovery implementation checkpoint: `5fc28354cb7372db7b93b0470543906076426497` — `Guard Namecheap deploy recovery checks in beta CI`.
 
-Beta guardrails run `33009891345` for this exact commit completed green with all three jobs:
+Beta guardrails run `33010208846` for that exact implementation commit completed green with all three jobs:
 
-- **Beta source contract** — PHP lint, runtime contract, portal permission policy, deterministic loader order, shared beta-state permission scope, JavaScript syntax and forbidden-path checks;
+- **Beta source contract** — PHP lint, runtime contract, portal permission policy, deterministic loader order, shared beta-state permission scope, Namecheap deploy-script syntax/recovery-guard wiring, JavaScript syntax and forbidden-path checks;
 - **Beta Chromium smoke** — shared Add/Search behavior, permission-minimal legacy runtime, Timesheet loader/week switching and mobile contextual navigation;
 - **Beta secret scan** — redacted gitleaks scan of the beta change.
 
-This is a **CODED + WIRED + source/Chrome-CI verified** checkpoint only. The Namecheap `.beta_deployed_commit` marker has not been read in this session, so these changes are not claimed DEPLOYED or live-VERIFIED.
+The state-note commit containing this file follows the implementation checkpoint and contains no runtime behavior change.
+
+This is **CODED + WIRED + source/Chrome-CI verified** only. The Namecheap `.beta_deployed_commit` marker has not been read in this session, so these changes are not claimed DEPLOYED or live-VERIFIED.
 
 ## Recovery regressions resolved and guarded
 
 ### Dynamic Roles → Navigation race
 
-`assets/management.js` now sets dynamically inserted classic scripts to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` requires ordered execution and Roles-before-Navigation wiring.
+`assets/management.js` sets dynamically inserted classic scripts to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` requires ordered execution and Roles-before-Navigation wiring.
 
 ### Shared state accidentally required Dashboard
 
@@ -40,11 +42,11 @@ Current boundaries include:
 
 ### Management Dashboard implied unavailable data
 
-Workforce, Finance, Dispute, Sync and Recent Attendance management surfaces now mirror the permissions of the data they display instead of rendering misleading empty/zero cards for a management identity that lacks that capability.
+Workforce, Finance, Dispute, Sync and Recent Attendance management surfaces mirror the permissions of the data they display instead of rendering misleading empty/zero cards for a management identity that lacks that capability.
 
 ### LOA permission-hidden DOM crash
 
-`assets/app.js` retains inert compatibility shims for permission-hidden IDs still directly used by legacy `assets/beta.js`. The Chrome suite executes a permission-minimal `app.js → beta.js` DOM and requires zero page-level JavaScript errors.
+`assets/app.js` retains inert compatibility shims for permission-hidden IDs still directly used by legacy `assets/beta.js`. Chrome executes a permission-minimal `app.js → beta.js` DOM and requires zero page-level JavaScript errors.
 
 ### Shared Add MutationObserver loop
 
@@ -56,14 +58,25 @@ Workforce, Finance, Dispute, Sync and Recent Attendance management surfaces now 
 
 ### Mobile contextual navigation
 
-Chrome at a 390×844 viewport now verifies:
+Chrome at a 390×844 viewport verifies:
 
 - a contextual parent group opens without navigating away from the current panel;
 - `merd-mobile-subnav-open` is present only while contextual subnavigation is active;
 - selecting a contextual child changes the visible panel;
 - selecting a direct section such as Finance clears contextual mobile-subnav state.
 
-The first mobile-navigation CI failure was a test-fixture issue: `page.setContent()` produced an opaque document where Chromium correctly denied `sessionStorage`. The fixture now runs on a normal HTTPS origin and the runtime assertions pass.
+The first mobile-navigation CI failure was a fixture-only problem: `page.setContent()` produced an opaque document where Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin and the runtime assertions pass.
+
+## Deployment safety added during recovery
+
+`scripts/deploy_namecheap_beta.sh` now runs all four source validators before rsync:
+
+1. `validate_beta_runtime_contract.php`;
+2. `validate_portal_permission_policy.php`;
+3. `validate_portal_loader_order.php`;
+4. `validate_beta_state_scope.php`.
+
+Beta CI syntax-checks the deploy script and fails if either recovery validator call is removed.
 
 ## Existing invariants retained
 
