@@ -8,10 +8,10 @@ This inventory tracks recovery by execution path. Source/CI inspection does not 
 |---|---|---|---|
 | Login/session bootstrap | `timesheet_portal/index.php`, `api/login.php`, auth/session includes | Canonical login page and API path present | DEPLOYED/VERIFIED unknown; test valid/invalid login and pending QR redirect on beta |
 | Dashboard load | `dashboard.php`, `assets/beta.js`, `assets/management.js` | Permission-aware panel rendering; dynamic script execution deterministic; management cards mirror data permissions | Verify representative USER/management/DEV identities and no console aborts |
-| Shared LOA/permission runtime | `includes/beta_api.php`, `api/beta_state.php`, permission catalogue, `assets/app.js`, `assets/beta.js` | LOA DOM compatibility protected; shared state route follows consuming feature; payload data permission-scoped; credential-free Chrome test proves permission-minimal legacy runtime does not page-crash | Verify authenticated role with Dashboard denied but Finance or Password allowed against deployed beta |
+| Shared LOA/permission runtime | `includes/beta_api.php`, `api/beta_state.php`, permission catalogue, `assets/app.js`, `assets/beta.js` | Shared-state route follows consuming feature; payload data permission-scoped; Chrome proves permission-minimal legacy runtime does not page-crash | Verify authenticated role with Dashboard denied but Finance or Password allowed against deployed beta |
 | Dashboard widgets | `assets/dashboard-builder.js`, dashboard APIs | Source contract present; shared loader ordering fixed | Verify add/remove/reorder desktop and mobile |
-| Mobile navigation | `assets/navigation.js`, `assets/shell.css`, `assets/mobile-runtime.js` | Contextual submenu state and mobile audit hooks present | Verify parent-group open behavior, item selection, outside close, safe-area and keyboard behavior on phone |
-| Shared Add/Search | `assets/minimal-controls.js`, `assets/design-system.css`, `browser_tests/shared-runtime.spec.js` | Chrome test proves Add SVG node stability after repeated MutationObserver activity, Search+Add clustering, and exactly one click action | Still verify Dashboard Add + directory Add/Search geometry/touch behavior on desktop and phone |
+| Mobile navigation | `assets/navigation.js`, `assets/shell.css`, `assets/mobile-runtime.js`, `browser_tests/navigation-runtime.spec.js` | Chrome at 390×844 proves contextual parent opens without navigation, contextual child changes panel, and direct Finance clears `merd-mobile-subnav-open` | Still verify outside-close, safe-area and keyboard behavior on a real phone/tablet |
+| Shared Add/Search | `assets/minimal-controls.js`, `assets/design-system.css`, `browser_tests/shared-runtime.spec.js` | Chrome proves Add SVG node stability after repeated MutationObserver activity, Search+Add clustering, and exactly one click action | Still verify Dashboard Add + directory Add/Search geometry/touch behavior on desktop and phone |
 | Stores directory | `dashboard.php`, `assets/directory.js`, Stores API routes | Source path present | Verify list/search/add/edit/inactivate with role boundary and mobile dialog reachability |
 | Workforce directory | `dashboard.php`, `assets/directory.js`, Workforce API routes | Source path present | Verify list/search/add/edit, store access, role/LOA controls and pay-rate visibility boundaries |
 | Clients | `assets/navigation.js`, `assets/client.js`, client APIs | DEV-only dynamic mount path present | Verify DEV-only visibility, active client switch/return-panel behavior and non-DEV absence |
@@ -68,12 +68,16 @@ Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent
 
 `timesheet-app.js` owns one report runtime. `app.js` now refuses to inject another Timesheet script when the first script is already pending or initialized. The Chrome recovery suite evaluates `app.js` twice and requires exactly one Timesheet script request, one initial weeks request, one initial report request and exactly one additional report request for a user week selection.
 
+### Mobile navigation smoke fixture — 2026-08-27
+
+The first navigation browser run failed before runtime validation because `page.setContent()` created an opaque `about:blank` document and Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin. With that corrected, Chrome verifies contextual parent open behavior, contextual child navigation and direct-section clearing of mobile subnav state without page-level JavaScript errors.
+
 ## Current CI checkpoint
 
-Beta guardrails run `33009475284` on commit `bd97706e5e3ae16d0bb040d64e2851d14cbd6a24` completed green with all three jobs:
+Beta guardrails run `33009891345` on commit `5daca6c51afde3bca8130338085ff6cf5297f88c` completed green with all three jobs:
 
 - Beta source contract;
-- Beta Chromium smoke, including Add/permission-minimal/Timesheet regression scenarios;
+- Beta Chromium smoke, including Add/permission-minimal/Timesheet/mobile-navigation regression scenarios;
 - Beta secret scan.
 
 This is not a Namecheap deployment claim.
@@ -82,5 +86,5 @@ This is not a Namecheap deployment claim.
 
 1. Deploy the current branch through the established Namecheap pull/mirror path and confirm `.beta_deployed_commit`.
 2. Run authenticated role verification for USER, management and DEV, especially custom thresholds where Dashboard is denied but Finance/Password/Disputes remain allowed.
-3. Add credential-free browser smoke coverage for navigation/contextual mobile state.
+3. Verify Dashboard widget editing and Store/Workforce/Role/Client feature workflows on deployed beta.
 4. Perform real phone/tablet checks for navigation, dialogs/keyboard, Dashboard edit controls and shared Add/Search touch behavior.
