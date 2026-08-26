@@ -1,0 +1,387 @@
+/*
+ * MERDPOS Beta — Universal Design normalization layer
+ *
+ * This is the final visual contract for the beta portal. It intentionally
+ * normalizes legacy beta markup without changing domain behavior. New feature
+ * CSS must not override the geometry, typography, focus, table, dialog or
+ * mobile contracts below.
+ */
+
+/* --------------------------------------------------------------------------
+   Typography hierarchy
+   -------------------------------------------------------------------------- */
+.merd-shell {
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+}
+
+.merd-shell h1,
+.merd-shell .ui-application-title {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: var(--weight-bold);
+}
+
+.merd-shell h2,
+.merd-shell .ui-page-title {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: var(--weight-section);
+}
+
+.merd-shell h3,
+.merd-shell .ui-card-title,
+.merd-shell .dashboard-widget-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: var(--weight-section);
+}
+
+.merd-shell h4,
+.merd-shell .ui-subsection-title {
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: var(--weight-section);
+}
+
+.merd-shell :where(.muted, small, .form-hint, .entity-sub, .migration-foot) {
+  font-size: .75rem;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   Forms — persistent label + exact geometry contract
+   -------------------------------------------------------------------------- */
+.merd-shell form label,
+.merd-shell .ui-field {
+  gap: var(--space-label-control);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--type-label);
+  line-height: 1.35;
+  font-weight: var(--weight-semibold);
+}
+
+.merd-shell :where(input, select, textarea) {
+  min-height: var(--size-input);
+  border-radius: var(--radius-control);
+  font-size: var(--type-sm);
+}
+
+.merd-shell textarea {
+  min-height: 6rem;
+}
+
+/* Persistent, non-colour-only focus indicator. */
+.merd-shell :where(button, a[href], summary, input, select, textarea, [role="button"]):focus-visible {
+  outline: .1875rem solid var(--color-focus);
+  outline-offset: .125rem;
+  box-shadow: 0 0 0 .1875rem var(--color-focus-soft);
+}
+
+.merd-shell :where(input, select, textarea):focus-visible {
+  border-color: var(--color-focus);
+}
+
+.merd-shell :where(button, input, select, textarea):disabled,
+.merd-shell [aria-disabled="true"] {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons / action states
+   -------------------------------------------------------------------------- */
+.merd-shell :where(
+  .primary-btn,
+  .secondary-btn,
+  .ghost-btn,
+  .download-pdf-btn,
+  .icon-text-btn,
+  .mini-btn
+) {
+  min-height: var(--size-button);
+  margin-top: 0;
+  padding: .5rem .875rem;
+  border-radius: var(--radius-control);
+  font-size: var(--type-label);
+  line-height: 1.2;
+  transform: none;
+}
+
+.merd-shell .compact-btn {
+  min-height: var(--size-control-compact);
+  padding: .4375rem .75rem;
+}
+
+.merd-shell :where(.primary-btn, .secondary-btn, .ghost-btn, .download-pdf-btn, .icon-text-btn, .mini-btn):active:not(:disabled) {
+  transform: translateY(.0625rem);
+}
+
+.merd-shell :where(.primary-btn, .secondary-btn, .ghost-btn, .download-pdf-btn, .icon-text-btn, .mini-btn)[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Destructive actions use both colour and semantic text supplied by markup. */
+.merd-shell :where(.danger-btn, .danger-final, .role-delete, .mini-btn.reject) {
+  background: var(--color-danger-surface);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 32%, var(--color-border-default));
+  color: var(--color-danger);
+}
+
+.merd-shell :where(.mini-btn.approve) {
+  background: var(--color-success-surface);
+  border: 1px solid color-mix(in srgb, var(--color-success) 28%, var(--color-border-default));
+  color: var(--color-success);
+}
+
+/* Dialog/global icon actions. 44px desktop minimum, 48px touch. */
+.merd-shell :where(.icon-btn, .dialog-close, .dashboard-widget-action) {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+/* --------------------------------------------------------------------------
+   Canonical Search + Add cluster
+   -------------------------------------------------------------------------- */
+.merd-shell .directory-actions,
+.merd-shell .merd-action-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-left: auto;
+  min-width: 0;
+}
+
+/* Critical legacy reset: search is a LABEL and inherited label margins used to
+   move it off the + button baseline. */
+.merd-shell .search-box,
+.merd-shell .clients-admin-search,
+.merd-shell .merd-collapsible-search {
+  margin: 0;
+}
+
+.merd-shell .merd-collapsible-search,
+.merd-shell :where(button.merd-icon-action, .dashboard-add-button.merd-icon-action) {
+  width: var(--size-icon-action);
+  height: var(--size-icon-action);
+  min-width: var(--size-icon-action);
+  min-height: var(--size-icon-action);
+  max-width: var(--size-icon-action);
+  max-height: var(--size-icon-action);
+  flex: 0 0 var(--size-icon-action);
+}
+
+.merd-shell .merd-collapsible-search {
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: 50%;
+  background: var(--color-surface-main);
+}
+
+.merd-shell .merd-collapsible-search:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+
+.merd-shell .merd-collapsible-search.is-open,
+.merd-shell .merd-collapsible-search:focus-within {
+  width: min(var(--search-expanded-max), 42vw);
+  min-width: min(13.75rem, 42vw);
+  max-width: min(var(--search-expanded-max), 42vw);
+  height: var(--size-icon-action);
+  border-radius: var(--radius-control);
+  padding-inline: var(--space-3);
+}
+
+.merd-shell .merd-collapsible-search input[type="search"] {
+  min-height: calc(var(--size-icon-action) - .5rem);
+}
+
+/* Add and collapsed Search are visually equivalent primitives. */
+.merd-shell :where(button.merd-icon-action.merd-add-action, .dashboard-add-button.merd-add-action) {
+  border-radius: 50%;
+}
+
+/* --------------------------------------------------------------------------
+   Cards / spacing
+   -------------------------------------------------------------------------- */
+.merd-shell :where(
+  .controls-card,
+  .directory-card,
+  .mgmt-card,
+  .roles-card,
+  .permission-card,
+  .migration-section
+) {
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+}
+
+.merd-shell :where(.controls-card, .directory-card, .mgmt-card, .report-card, .employee-report-card) {
+  margin-bottom: var(--space-4);
+}
+
+.merd-shell :where(.directory-layout, .roles-shell, .migration-body) {
+  gap: var(--space-4);
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+.merd-shell :where(.table-scroll, .app-table-shell) {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  border-radius: var(--radius-card);
+}
+
+.merd-shell table th {
+  height: 2.375rem;
+  padding: .5625rem .75rem;
+  font-size: var(--type-table-head);
+  line-height: 1.2;
+  font-weight: var(--weight-section);
+  vertical-align: middle;
+}
+
+.merd-shell table td {
+  padding: .625rem .75rem;
+  font-size: var(--type-table-cell);
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+.merd-shell table :where(.num, [data-numeric="true"]),
+.merd-shell .available-amount,
+.merd-shell .kpi-value,
+.merd-shell .chart-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Dialogs
+   -------------------------------------------------------------------------- */
+.merd-shell :where(dialog.portal-dialog, dialog.admin-dialog) {
+  border-radius: var(--radius-dialog);
+}
+
+.merd-shell :where(.dialog-heading, .dialog-head, .admin-dialog-header) {
+  padding: var(--space-5);
+}
+
+.merd-shell .admin-dialog-body {
+  padding: var(--space-5);
+}
+
+/* --------------------------------------------------------------------------
+   Status / feedback
+   -------------------------------------------------------------------------- */
+.merd-shell :where(.status-pill, .queue-pill, .entity-status, .entity-role, .you-chip) {
+  font-size: .75rem;
+}
+
+.merd-shell .error-message[hidden] {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive / touch
+   -------------------------------------------------------------------------- */
+@media (max-width: 51.25rem) {
+  .merd-shell :where(input, select, textarea) {
+    min-height: var(--size-touch);
+    font-size: 1rem;
+  }
+
+  .merd-shell :where(
+    .primary-btn,
+    .secondary-btn,
+    .ghost-btn,
+    .download-pdf-btn,
+    .icon-text-btn,
+    .mini-btn,
+    .compact-btn,
+    .icon-btn,
+    .dialog-close,
+    .dashboard-widget-action
+  ) {
+    min-height: var(--size-touch);
+  }
+
+  .merd-shell :where(.icon-btn, .dialog-close, .dashboard-widget-action) {
+    width: var(--size-touch);
+    height: var(--size-touch);
+    min-width: var(--size-touch);
+  }
+
+  .merd-shell .directory-toolbar {
+    align-items: stretch;
+  }
+
+  .merd-shell .merd-action-cluster,
+  .merd-shell .directory-actions {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: nowrap;
+  }
+
+  .merd-shell .merd-collapsible-search,
+  .merd-shell :where(button.merd-icon-action, .dashboard-add-button.merd-icon-action) {
+    width: var(--size-icon-action-touch);
+    height: var(--size-icon-action-touch);
+    min-width: var(--size-icon-action-touch);
+    min-height: var(--size-icon-action-touch);
+    max-width: var(--size-icon-action-touch);
+    max-height: var(--size-icon-action-touch);
+    flex: 0 0 var(--size-icon-action-touch);
+  }
+
+  .merd-shell .merd-collapsible-search.is-open,
+  .merd-shell .merd-collapsible-search:focus-within {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: var(--size-icon-action-touch);
+    flex: 1 1 calc(100% - var(--size-icon-action-touch) - var(--space-2));
+  }
+
+  .merd-shell :where(.controls-card, .directory-card, .mgmt-card, .roles-card, .permission-card, .migration-section) {
+    padding: var(--space-4);
+  }
+
+  .merd-shell .form-grid,
+  .merd-shell .admin-form-grid,
+  .merd-shell .sub-form {
+    grid-template-columns: 1fr;
+  }
+
+  .merd-shell :where(.table-scroll, .app-table-shell) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .merd-shell :where(button, .portal-tab, .rail-group-btn):hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merd-shell *,
+  .merd-shell *::before,
+  .merd-shell *::after {
+    animation-duration: 0ms;
+    transition-duration: 0ms;
+    scroll-behavior: auto;
+  }
+}
