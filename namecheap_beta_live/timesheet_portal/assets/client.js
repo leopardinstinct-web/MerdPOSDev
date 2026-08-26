@@ -1,74 +1,63 @@
 (function () {
-  const root = document.getElementById('clientOverview');
+  'use strict';
+
+  const root = document.getElementById('clientsOverview');
   if (!root) return;
 
+  // These DEV modules are global Operations features. Keep loading them from the
+  // always-mounted DEV Clients module so they do not depend on visiting Clients.
   if (!document.querySelector('script[data-dev-stores-ui]')) {
-    const devStoresScript = document.createElement('script');
-    devStoresScript.src = 'assets/dev-stores-ui.js?v=20260825f';
-    devStoresScript.dataset.devStoresUi = '1';
-    document.body.appendChild(devStoresScript);
+    const script = document.createElement('script');
+    script.src = 'assets/dev-stores-ui.js?v=20260825h';
+    script.dataset.devStoresUi = '1';
+    document.body.appendChild(script);
   }
   if (!document.querySelector('script[data-defaults-module]')) {
-    const defaultsScript = document.createElement('script');
-    defaultsScript.src = 'assets/defaults.js?v=20260825a';
-    defaultsScript.dataset.defaultsModule = '1';
-    document.body.appendChild(defaultsScript);
+    const script = document.createElement('script');
+    script.src = 'assets/defaults.js?v=20260825a';
+    script.dataset.defaultsModule = '1';
+    document.body.appendChild(script);
   }
   if (!document.querySelector('script[data-roles-module]')) {
-    const rolesScript = document.createElement('script');
-    rolesScript.src = 'assets/roles.js?v=20260825a';
-    rolesScript.dataset.rolesModule = '1';
-    document.body.appendChild(rolesScript);
+    const script = document.createElement('script');
+    script.src = 'assets/roles.js?v=20260825a';
+    script.dataset.rolesModule = '1';
+    document.body.appendChild(script);
   }
 
-  const clientTab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let state = null;
+  let filter = '';
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 
   function ensureStyles() {
-    if (document.getElementById('devClientContextStyles')) return;
+    if (document.getElementById('devClientsAdminStyles')) return;
     const style = document.createElement('style');
-    style.id = 'devClientContextStyles';
+    style.id = 'devClientsAdminStyles';
     style.textContent = `
-      .dev-client-context-card{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:14px 16px;margin:0 0 14px;border:1px solid #DCE5F0;border-radius:14px;background:#F8FBFF}
-      .dev-client-context-card label{display:flex;flex-direction:column;gap:6px;min-width:min(360px,100%);font-size:11px;font-weight:700;color:#53677F}
-      .dev-client-context-card select{height:38px;border:1px solid #CBD8E7;border-radius:9px;background:#fff;color:#152A43;padding:0 34px 0 10px;font:inherit}
-      .dev-client-context-note{font-size:11px;color:#64748B;line-height:1.45}
-      .client-parent-row{border-left:3px solid #2F80ED}
-      .client-store-list .store-avatar.has-logo{background:#fff!important;padding:3px!important;overflow:hidden}
-      .client-store-list .store-avatar.has-logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:7px;background:#fff}
-      @media(max-width:820px){.dev-client-context-card{align-items:stretch;flex-direction:column}.dev-client-context-card label{min-width:0;width:100%}}
+      .clients-admin-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+      .clients-admin-search{display:flex;align-items:center;gap:8px;width:min(460px,100%);min-height:42px;padding:0 12px;border:1px solid #CBD8E7;border-radius:10px;background:#fff}
+      .clients-admin-search svg{width:17px;height:17px;color:#6B7F96;fill:none;stroke:currentColor;stroke-width:1.8}
+      .clients-admin-search input{width:100%;border:0!important;outline:0!important;background:transparent!important;padding:0!important;box-shadow:none!important}
+      .client-code-line{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:10.5px!important;color:#49627F!important}
+      .client-counts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+      .client-count-chip{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border-radius:999px;background:#F2F6FB;color:#536A84;font-size:9.5px;font-weight:700}
+      .client-admin-id{background:#F3F6FA!important;color:#607086!important;cursor:not-allowed}
+      .client-admin-code{text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.035em}
+      @media(max-width:720px){.clients-admin-toolbar{display:grid}.clients-admin-search{width:100%}.clients-admin-toolbar .primary-btn{width:100%;justify-content:center}}
     `;
     document.head.appendChild(style);
   }
 
-  function activatePanel(panelId, sourceTab = null) {
-    const panel = document.getElementById(panelId);
-    if (!panel) return false;
-    document.querySelectorAll('.portal-tab').forEach(tab => {
-      tab.classList.toggle('active', sourceTab ? tab === sourceTab : tab.dataset.panel === panelId);
-    });
-    document.querySelectorAll('.portal-panel').forEach(candidate => {
-      candidate.hidden = candidate.id !== panelId;
-    });
-    return true;
-  }
-
-  clientTab?.addEventListener('click', () => activatePanel('clientPanel', clientTab));
-
   async function api(url, options = {}) {
-    const response = await fetch(url, {cache:'no-store', headers:{'Accept':'application/json', ...(options.headers || {})}, ...options});
+    const response = await fetch(url, {cache:'no-store', ...options});
     const text = await response.text();
     let data = null;
-    if (text) {
-      try { data = JSON.parse(text); }
-      catch (_) {
-        const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 160);
-        throw new Error(`Client API returned invalid data (${response.status})${snippet ? ': ' + snippet : '.'}`);
-      }
-    }
-    if (!data) throw new Error(`Client API returned an empty response (${response.status}).`);
-    if (!data.success) throw new Error(data.error || `Request failed (${response.status})`);
+    try { data = text ? JSON.parse(text) : null; }
+    catch (_) { throw new Error(`Clients API returned invalid data (${response.status}).`); }
+    if (!data) throw new Error(`Clients API returned an empty response (${response.status}).`);
+    if (!data.success) throw new Error(data.error || 'Client request failed.');
     return data;
   }
 
@@ -77,158 +66,174 @@
     return `<span class="entity-status ${active ? 'is-active' : 'is-inactive'}">${active ? 'Active' : 'Inactive'}</span>`;
   }
 
-  function storeIcon() {
-    return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>';
+  function editIcon() {
+    return '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
   }
 
-  function storeAvatar(store) {
-    const logoPath = String(store?.logo_path || '').trim();
-    if (!logoPath) return `<div class="entity-avatar store-avatar">${storeIcon()}</div>`;
-    return `<div class="entity-avatar store-avatar has-logo"><img data-client-store-logo src="${esc(logoPath)}" alt="${esc(store.store_name)} logo"></div>`;
+  function searchIcon() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
   }
 
-  function bindLogoFallbacks() {
-    root.querySelectorAll('[data-client-store-logo]').forEach(img => {
-      img.addEventListener('error', () => {
-        const avatar = img.closest('.store-avatar');
-        if (!avatar) return;
-        avatar.classList.remove('has-logo');
-        avatar.innerHTML = storeIcon();
-      }, {once:true});
+  function ensureDialog() {
+    if (document.getElementById('clientAdminDialog')) return;
+    const dialog = document.createElement('dialog');
+    dialog.id = 'clientAdminDialog';
+    dialog.className = 'admin-dialog';
+    dialog.innerHTML = `
+      <form id="clientAdminForm" method="dialog" class="admin-form">
+        <div class="dialog-head">
+          <div><h2 id="clientAdminDialogTitle">Add client</h2><p>Client identity is global. Setup keys are generated securely and never displayed.</p></div>
+          <button type="button" class="dialog-close" data-client-dialog-close aria-label="Close">×</button>
+        </div>
+        <input type="hidden" name="id">
+        <div class="admin-form-grid">
+          <label>Internal Client ID <span class="dev-field-chip">DEV</span><input class="client-admin-id" id="clientAdminId" type="text" readonly tabindex="-1"></label>
+          <label>Client name<input name="name" type="text" maxlength="100" autocomplete="organization" required></label>
+          <label>Client Code <span class="dev-field-chip">DEV</span><input class="client-admin-code" name="client_code" type="text" minlength="2" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,49}" autocomplete="off" spellcheck="false" required><p class="form-hint">Globally unique. A–Z, 0–9, hyphen and underscore.</p></label>
+          <label>Status<select name="status" required><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="secondary-btn" data-client-dialog-close>Cancel</button>
+          <button type="submit" class="primary-btn">Save client</button>
+        </div>
+      </form>`;
+    document.body.appendChild(dialog);
+
+    const form = document.getElementById('clientAdminForm');
+    const code = form.elements.client_code;
+    code?.addEventListener('input', () => {
+      code.value = code.value.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_-]/g, '');
+      code.dataset.auto = '0';
     });
+    form.elements.name?.addEventListener('input', () => {
+      if (form.elements.id.value || (code.value && code.dataset.auto !== '1')) return;
+      code.value = String(form.elements.name.value || '')
+        .toUpperCase().trim().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);
+      code.dataset.auto = '1';
+    });
+    form.addEventListener('submit', saveClient);
+    dialog.querySelectorAll('[data-client-dialog-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
   }
 
-  function clientOptions(clients, selectedId) {
-    return clients.map(client => {
-      const suffix = String(client.status).toLowerCase() === 'inactive' ? ' · inactive' : '';
-      return `<option value="${Number(client.id)}" ${Number(client.id) === Number(selectedId) ? 'selected' : ''}>${esc(client.name)} · ${esc(client.client_code)}${suffix}</option>`;
-    }).join('');
+  function openClient(id = null) {
+    ensureDialog();
+    const dialog = document.getElementById('clientAdminDialog');
+    const form = document.getElementById('clientAdminForm');
+    if (!dialog || !form || !state) return;
+    form.reset();
+    const client = id ? (state.clients || []).find(row => Number(row.id) === Number(id)) : null;
+    form.elements.id.value = client ? String(client.id) : '';
+    form.elements.name.value = client?.name || '';
+    form.elements.client_code.value = client?.client_code || '';
+    form.elements.client_code.dataset.auto = client ? '0' : '1';
+    form.elements.status.value = client?.status || 'active';
+    document.getElementById('clientAdminId').value = client ? String(client.id) : 'Assigned automatically';
+    document.getElementById('clientAdminDialogTitle').textContent = client ? `Edit ${client.name}` : 'Add client';
+    if (!dialog.open) dialog.showModal();
   }
 
-  function syncSidebarClientLabel(client) {
-    const code = String(client?.client_code || '').trim() || String(client?.id || '');
-    if (!code) return;
-    const labelText = `Client: ${code}`;
-    const apply = () => {
-      const button = document.querySelector('.rail-group-btn[data-nav-group="client"]');
-      if (button) {
-        const label = button.querySelector('.rail-label');
-        if (label) label.textContent = labelText;
-        button.title = labelText;
-        button.setAttribute('aria-label', labelText);
-      }
-    };
-    [0,80,240,600].forEach(delay => window.setTimeout(apply, delay));
+  function matches(client, query) {
+    if (!query) return true;
+    return [
+      client.name,
+      client.client_code,
+      client.id,
+      `id ${client.id}`,
+      client.status,
+      `${client.store_count} stores`,
+      `${client.employee_count} employees`,
+    ].some(value => String(value ?? '').toLowerCase().includes(query));
   }
 
-  async function switchClient(clientId) {
-    if (!state || Number(clientId) === Number(state.active_client_id)) return;
-    const selected = (state.clients || []).find(client => Number(client.id) === Number(clientId));
-    const label = selected ? selected.name : `Client ${clientId}`;
+  function renderList() {
+    const list = document.getElementById('clientsAdminList');
+    if (!list || !state) return;
+    const query = String(filter || '').trim().toLowerCase();
+    const clients = (state.clients || []).slice().sort((a,b) => Number(a.id) - Number(b.id)).filter(client => matches(client, query));
+    list.innerHTML = clients.length ? clients.map(client => `
+      <article class="entity-row ${String(client.status).toLowerCase() === 'inactive' ? 'is-muted' : ''}">
+        <div class="entity-avatar">C</div>
+        <div class="entity-copy">
+          <div class="entity-title-line"><strong>${esc(client.name)}</strong></div>
+          <div class="entity-sub client-code-line">Code ${esc(client.client_code)} · ID ${Number(client.id)}</div>
+          <div class="client-counts">
+            <span class="client-count-chip">${Number(client.store_count || 0)} stores</span>
+            <span class="client-count-chip">${Number(client.active_employee_count || 0)} active staff</span>
+            <span class="client-count-chip">${Number(client.device_count || 0)} devices</span>
+          </div>
+        </div>
+        <div class="entity-meta">${statusPill(client.status)}</div>
+        <button type="button" class="icon-text-btn" data-edit-client="${Number(client.id)}">${editIcon()}<span>Edit</span></button>
+      </article>`).join('') : '<div class="entity-empty">No clients match this search.</div>';
+
+    list.querySelectorAll('[data-edit-client]').forEach(button => button.addEventListener('click', () => openClient(Number(button.dataset.editClient))));
+  }
+
+  function render() {
+    ensureStyles();
+    ensureDialog();
+    root.innerHTML = `
+      <div class="clients-admin-toolbar">
+        <label class="clients-admin-search" aria-label="Search clients">${searchIcon()}<input id="clientsAdminSearch" type="search" placeholder="Search name, code, ID or status" value="${esc(filter)}"></label>
+        <button id="addClientBtn" class="primary-btn compact-btn" type="button">+ Add client</button>
+      </div>
+      <div id="clientsAdminNotice" class="directory-notice" hidden></div>
+      <div id="clientsAdminList" class="entity-list"></div>`;
+
+    document.getElementById('clientsAdminSearch')?.addEventListener('input', event => {
+      filter = event.target.value;
+      renderList();
+    });
+    document.getElementById('addClientBtn')?.addEventListener('click', () => openClient());
+    renderList();
+  }
+
+  function notice(message, error = false) {
+    const node = document.getElementById('clientsAdminNotice');
+    if (!node) return;
+    node.textContent = message;
+    node.classList.toggle('is-error', error);
+    node.hidden = !message;
+    if (message && !error) window.setTimeout(() => { node.hidden = true; }, 3500);
+  }
+
+  async function saveClient(event) {
+    event.preventDefault();
+    if (!state) return;
+    const form = event.currentTarget;
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    const button = form.querySelector('[type="submit"]');
+    button.disabled = true;
     try {
-      document.querySelectorAll('#clientOverview [data-dev-client-select]').forEach(select => { select.disabled = true; });
-      await api('api/client_context.php', {
+      const result = await api('api/clients.php', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'select_client',client_id:Number(clientId),csrf:state.csrf}),
+        headers:{'Accept':'application/json','Content-Type':'application/json'},
+        body:JSON.stringify({
+          action:'save_client',
+          csrf:state.csrf,
+          id:form.elements.id.value || null,
+          name:form.elements.name.value,
+          client_code:form.elements.client_code.value,
+          status:form.elements.status.value,
+        }),
       });
-      sessionStorage.setItem('merdposReturnPanel', 'clientPanel');
-      sessionStorage.setItem('merdposContextNotice', `Working client changed to ${label}.`);
-      window.location.reload();
+      state = result;
+      document.getElementById('clientAdminDialog')?.close();
+      render();
+      notice(result.message || 'Client saved.');
+      window.MERDPOSAccountContext?.refresh?.();
     } catch (error) {
       alert(error.message);
-      document.querySelectorAll('#clientOverview [data-dev-client-select]').forEach(select => {
-        select.disabled = false;
-        select.value = String(state.active_client_id);
-      });
+    } finally {
+      button.disabled = false;
     }
-  }
-
-  function restoreClientPanel() {
-    if (sessionStorage.getItem('merdposReturnPanel') !== 'clientPanel') return;
-    sessionStorage.removeItem('merdposReturnPanel');
-    let attempts = 0;
-    const timer = window.setInterval(() => {
-      attempts += 1;
-      const tab = document.querySelector('.portal-tab[data-panel="clientPanel"]');
-      if (tab) {
-        tab.click();
-        window.clearInterval(timer);
-      } else if (attempts > 20) window.clearInterval(timer);
-    }, 60);
-  }
-
-  function render(data) {
-    state = data;
-    ensureStyles();
-    const client = data.client || {};
-    syncSidebarClientLabel(client);
-    const clients = (data.clients || []).slice().sort((a,b) => Number(a.id) - Number(b.id));
-    const stores = (data.stores || []).slice().sort((a,b) => Number(a.id) - Number(b.id));
-    const counts = data.counts || {};
-    const contextNote = data.cross_client_context
-      ? `Your DEV identity remains on Client ${Number(data.home_client_id)}. Only the working data context is Client ${Number(data.active_client_id)}.`
-      : 'This is also the client that owns your DEV login. Switching context does not move or duplicate your employee account.';
-
-    root.innerHTML = `
-      <section class="dev-client-context-card">
-        <label>Working client
-          <select data-dev-client-select aria-label="Select working client">${clientOptions(clients, data.active_client_id)}</select>
-        </label>
-        <div class="dev-client-context-note">${esc(contextNote)}</div>
-      </section>
-      <div class="entity-list client-entity-list">
-        <article class="entity-row client-parent-row">
-          <div class="entity-avatar">C</div>
-          <div class="entity-copy">
-            <div class="entity-title-line"><strong>${esc(client.name)}</strong><span class="entity-role role-dev">CLIENT</span></div>
-            <div class="entity-sub">Client ID ${esc(client.id)} · Code ${esc(client.client_code)}</div>
-            <div class="entity-sub">Current parent account for Operations, Workforce and other client-scoped data.</div>
-          </div>
-          <div class="entity-meta">
-            <span class="store-access-summary">${Number(counts.stores || 0)} stores</span>
-            <span class="store-access-summary">${Number(counts.active_employees || 0)} active staff</span>
-            <span class="store-access-summary">${Number(counts.devices || 0)} devices</span>
-            ${statusPill(client.status)}
-          </div>
-        </article>
-      </div>
-      <div class="app-panel-head client-child-head"><div><h3>Stores under this client</h3><p>Ordered by Store ID.</p></div><button type="button" class="secondary-btn compact-btn" id="clientViewStores">Open Stores</button></div>
-      <div class="entity-list client-store-list">
-        ${stores.length ? stores.map(store => `
-          <article class="entity-row">
-            ${storeAvatar(store)}
-            <div class="entity-copy">
-              <div class="entity-title-line"><strong>${esc(store.store_name)}</strong></div>
-              <div class="entity-sub">Store ID ${Number(store.id)} · Code ${esc(store.store_code)}</div>
-            </div>
-            <div class="entity-meta">${statusPill(store.status)}</div>
-          </article>`).join('') : '<div class="entity-empty">No stores are assigned to this client.</div>'}
-      </div>`;
-
-    bindLogoFallbacks();
-    root.querySelector('[data-dev-client-select]')?.addEventListener('change', event => switchClient(event.target.value));
-    document.getElementById('clientViewStores')?.addEventListener('click', () => {
-      document.querySelector('[data-panel="storesPanel"]')?.click();
-    });
-
-    const notice = sessionStorage.getItem('merdposContextNotice');
-    if (notice) {
-      sessionStorage.removeItem('merdposContextNotice');
-      const noticeRoot = document.getElementById('directoryNotice');
-      if (noticeRoot) {
-        noticeRoot.textContent = notice;
-        noticeRoot.hidden = false;
-        setTimeout(() => { noticeRoot.hidden = true; }, 3500);
-      }
-    }
-    restoreClientPanel();
   }
 
   async function load() {
+    root.innerHTML = '<div class="entity-empty">Loading clients…</div>';
     try {
-      root.innerHTML = '<div class="entity-empty">Loading client…</div>';
-      render(await api('api/client_context.php?_=' + Date.now()));
+      state = await api('api/clients.php?_=' + Date.now(), {headers:{'Accept':'application/json'}});
+      render();
     } catch (error) {
       root.innerHTML = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
     }
