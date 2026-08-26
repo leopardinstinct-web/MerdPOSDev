@@ -22,6 +22,43 @@ function legacy_preview_snapshot(PDO $pdo, array $state): ?array
     return is_array($row) ? $row : null;
 }
 
+/**
+ * Historical finance is imported through the normal finance engine so every
+ * balance/ledger invariant is reused. That engine normally creates a downstream
+ * Google outbox event. Imported historical rows must never echo back into their
+ * own source Sheet, so lineage-owned submissions are marked as locally accepted
+ * and their outbox events are retired before the migration batch is released.
+ */
+function legacy_neutralize_financial_outbox(PDO $pdo, int $clientId, int $batchId): int
+{
+    $find = $pdo->prepare(
+        "SELECT DISTINCT r.target_key FROM legacy_migration_records r "
+        . "WHERE r.client_id=? AND r.source_type='financial' AND r.target_table='financial_submissions' "
+        . "AND r.last_batch_id=? AND r.status='active'"
+    );
+    $find->execute([$clientId,$batchId]);
+    $submissionIds = array_values(array_filter(array_map('strval',$find->fetchAll(PDO::FETCH_COLUMN))));
+    if (!$submissionIds) return 0;
+
+    $outbox = $pdo->prepare(
+        "UPDATE google_sheet_outbox SET status='synced',synced_at=UTC_TIMESTAMP(),locked_at=NULL,last_error=NULL "
+        . "WHERE client_id=? AND aggregate_type='financial_submission' AND aggregate_id=? "
+        . "AND status IN ('pending','failed','processing')"
+    );
+    $submission = $pdo->prepare(
+        "UPDATE financial_submissions SET status='accepted',sheet_synced_at=NULL "
+        . "WHERE client_id=? AND public_id=? AND status IN ('sheet_pending','sheet_failed','sheet_synced')"
+    );
+
+    $retired = 0;
+    foreach ($submissionIds as $publicId) {
+        $outbox->execute([$clientId,$publicId]);
+        $retired += $outbox->rowCount();
+        $submission->execute([$clientId,$publicId]);
+    }
+    return $retired;
+}
+
 function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mode): array
 {
     if (!in_array($mode,['preview','sync','final'],true)) throw new MerdWorkforceException('invalid_migration_mode','Invalid migration mode.');
@@ -52,9 +89,14 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
         legacy_supersede_old_conflicts($pdo,$clientId,$batchId,(int)$actor['id'],$public);
         $c = $validated['counts'];
         $apply = ['inserted'=>0,'updated'=>0,'unchanged'=>0,'conflict'=>0,'rejected'=>$c['rejected'],'warning'=>$c['warning']];
-        if ($mode !== 'preview') legacy_apply_items($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
+        $retiredOutbox = 0;
+        if ($mode !== 'preview') {
+            legacy_apply_items($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
+            $retiredOutbox = legacy_neutralize_financial_outbox($pdo,$clientId,$batchId);
+        }
 
         $summary = legacy_batch_summary($pdo,$batchId);
+        $summary['historical_finance_outbox_retired'] = $retiredOutbox;
         $stageConflicts = (int)$summary['open_conflicts'];
         $conflicts = $stageConflicts + (int)$apply['conflict'];
         $status = $mode === 'preview' ? 'staged' : (($conflicts > 0 || (int)$c['rejected'] > 0) ? 'completed_with_conflicts' : 'completed');
@@ -77,7 +119,8 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             'batch_id'=>$public,'mode'=>$mode,'status'=>$status,'source_snapshot_hash'=>$fetched['snapshot_hash'],
             'attendance_rows'=>(int)$c['attendance_rows'],'financial_rows'=>(int)$c['financial_rows'],
             'inserted'=>(int)$apply['inserted'],'updated'=>(int)$apply['updated'],'unchanged'=>(int)$apply['unchanged'],
-            'conflicts'=>$conflicts,'rejected'=>(int)$c['rejected'],'warnings'=>(int)$c['warning'],'summary'=>$summary,
+            'conflicts'=>$conflicts,'rejected'=>(int)$c['rejected'],'warnings'=>(int)$c['warning'],
+            'historical_finance_outbox_retired'=>$retiredOutbox,'summary'=>$summary,
         ];
     } catch (Throwable $e) {
         $pdo->prepare("UPDATE legacy_migration_batches SET status='failed',error_message=?,finished_at=UTC_TIMESTAMP() WHERE id=?")
