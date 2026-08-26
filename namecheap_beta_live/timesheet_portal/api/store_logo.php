@@ -3,17 +3,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
 
-function store_logo_require_dev(PDO $pdo, array $user): void
-{
-    $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
-    $stmt = $pdo->prepare('SELECT employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
-    $stmt->execute([(int)$user['id'], $authClientId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($row) || strtolower((string)$row['status']) !== 'active' || strtoupper((string)$row['employee_type']) !== 'DEV') {
-        json_response(['success' => false, 'error' => 'DEV access required for store logo uploads.'], 403);
-    }
-}
-
 function store_logo_audit(PDO $pdo, array $user, int $storeId, ?string $previous, string $next): void
 {
     try {
@@ -41,7 +30,7 @@ try {
 
     $user = beta_require_active_user();
     $pdo = portal_db();
-    store_logo_require_dev($pdo, $user);
+    beta_require_permission($user, 'stores.logo.manage', $pdo);
     require_csrf($_POST);
 
     $storeId = filter_var($_POST['store_id'] ?? null, FILTER_VALIDATE_INT);
