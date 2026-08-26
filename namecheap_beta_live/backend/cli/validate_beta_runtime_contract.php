@@ -33,6 +33,7 @@ $guiStandard = beta_contract_read($repo . '/docs/pos_latest/GUI_STANDARD.md', $e
 $newChat = beta_contract_read($repo . '/docs/pos_latest/NEW_CHAT_STARTER_PROMPT.md', $errors);
 $management = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/management.js', $errors);
 $dashboard = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/dashboard.php', $errors);
+$htaccess = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/.htaccess', $errors);
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
@@ -84,8 +85,16 @@ beta_contract_require_contains($minimalCss, '.merd-shell .merd-collapsible-searc
 beta_contract_require_contains($minimalCss, '.merd-shell .merd-action-cluster', 'Search+Add placement CSS', $errors);
 beta_contract_require_contains($minimalCss, 'justify-content:flex-end!important', 'right-aligned action cluster', $errors);
 
+// Shared cross-portal UI contract assets must revalidate rather than remain
+// silently stale after a deployment.
+beta_contract_require_contains($htaccess, 'minimal-controls\\.js', 'shared UI cache revalidation', $errors);
+beta_contract_require_contains($htaccess, 'minimal-controls\\.css', 'shared UI cache revalidation', $errors);
+beta_contract_require_contains($htaccess, 'ui-standard\\.css', 'shared UI cache revalidation', $errors);
+beta_contract_require_contains($htaccess, 'management\\.js', 'shared UI cache revalidation', $errors);
+beta_contract_require_contains($htaccess, 'Cache-Control "no-cache, must-revalidate"', 'shared UI cache revalidation', $errors);
+
 // Core loader cache key remains explicit; internal minimal-control assets have
-// their own version bump above so a stale previous primitive cannot survive.
+// their own version bump above and the shared contract assets revalidate.
 beta_contract_require_contains($dashboard, 'assets/management.js?v=20260826minimal1', 'dashboard management loader cache key', $errors);
 
 // Known legacy Google workbooks must use deterministic contracts, not generic
@@ -109,4 +118,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
+echo "MERDPOS beta runtime contract validated: implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, shared UI cache revalidation, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
