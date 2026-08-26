@@ -4,15 +4,15 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/dashboard_access.php';
 
-function dashboard_is_dev(array $user): bool
+function dashboard_can_configure(array $user, ?PDO $pdo = null): bool
 {
-    return strtoupper(trim((string)($user['role'] ?? $user['actual_employee_type'] ?? ''))) === 'DEV';
+    return beta_has_permission($user, 'dashboard.configure', $pdo);
 }
 
 function dashboard_selected_role(PDO $pdo, array $user, mixed $requestedRoleId = null): array
 {
     $clientId = (int)$user['client_id'];
-    if (dashboard_is_dev($user) && $requestedRoleId !== null && $requestedRoleId !== '') {
+    if (dashboard_can_configure($user, $pdo) && $requestedRoleId !== null && $requestedRoleId !== '') {
         $roleId = filter_var($requestedRoleId, FILTER_VALIDATE_INT);
         if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid dashboard role.');
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
@@ -34,7 +34,8 @@ function dashboard_state(PDO $pdo, array $user, array $role): array
     $stmt->execute([$clientId, (int)$role['id']]);
     $layout = array_values(array_filter($stmt->fetchAll(PDO::FETCH_ASSOC), fn(array $row): bool => isset($allowedMap[(string)$row['widget_key']])));
 
-    $roles = dashboard_is_dev($user) ? merd_dashboard_roles($pdo, $clientId, true) : [$role];
+    $canConfigure = dashboard_can_configure($user, $pdo);
+    $roles = $canConfigure ? merd_dashboard_roles($pdo, $clientId, true) : [$role];
     foreach ($roles as &$candidate) {
         $candidate['allowed_widget_count'] = count(merd_dashboard_allowed_widgets($pdo, $clientId, $candidate));
     }
@@ -44,8 +45,8 @@ function dashboard_state(PDO $pdo, array $user, array $role): array
         'success' => true,
         'csrf' => csrf_token(),
         'context_client_id' => $clientId,
-        'can_edit' => dashboard_is_dev($user),
-        'can_select_role' => dashboard_is_dev($user),
+        'can_edit' => $canConfigure,
+        'can_select_role' => $canConfigure,
         'selected_role' => $role,
         'roles' => $roles,
         'allowed_widgets' => $allowed,
@@ -72,10 +73,7 @@ try {
         json_response(dashboard_state($pdo, $user, $role));
     }
 
-    if (!dashboard_is_dev($user)) {
-        json_response(['success' => false, 'error' => 'Dashboard templates are managed by DEV.'], 403);
-    }
-
+    beta_require_permission($user, 'dashboard.configure', $pdo);
     $input = request_input();
     require_csrf($input);
     $role = dashboard_selected_role($pdo, $user, $input['role_id'] ?? null);
