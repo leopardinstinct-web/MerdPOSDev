@@ -61,10 +61,6 @@ CREATE TABLE IF NOT EXISTS legacy_migration_batches (
   CONSTRAINT fk_legacy_migration_batch_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE client_migration_state
-  ADD CONSTRAINT fk_client_migration_last_preview FOREIGN KEY (last_preview_batch_id) REFERENCES legacy_migration_batches(id) ON DELETE SET NULL,
-  ADD CONSTRAINT fk_client_migration_last_sync FOREIGN KEY (last_sync_batch_id) REFERENCES legacy_migration_batches(id) ON DELETE SET NULL;
-
 CREATE TABLE IF NOT EXISTS legacy_migration_stage_rows (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   batch_id BIGINT UNSIGNED NOT NULL,
