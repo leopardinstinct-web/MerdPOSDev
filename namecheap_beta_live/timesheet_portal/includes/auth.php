@@ -97,13 +97,17 @@ function require_csrf(array $input): void
 
 function request_input(): array
 {
+    static $cached = null;
+    if (is_array($cached)) return $cached;
+
     $input = $_POST;
     $raw = file_get_contents('php://input');
     if (!$input && $raw !== '') {
         $decoded = json_decode($raw, true);
         if (is_array($decoded)) $input = $decoded;
     }
-    return $input;
+    $cached = is_array($input) ? $input : [];
+    return $cached;
 }
 
 function logout_user(): void
