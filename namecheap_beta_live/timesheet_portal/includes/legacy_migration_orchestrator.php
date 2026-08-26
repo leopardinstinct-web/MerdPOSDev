@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/legacy_migration.php';
+require_once __DIR__ . '/legacy_financial_import.php';
 
 function legacy_supersede_old_conflicts(PDO $pdo, int $clientId, int $currentBatchId, int $actorId, string $currentPublicId): void
 {
@@ -26,11 +27,10 @@ function legacy_preview_snapshot(PDO $pdo, array $state): ?array
 }
 
 /**
- * Historical finance is imported through the normal finance engine so every
- * balance/ledger invariant is reused. That engine normally creates a downstream
- * Google outbox event. Imported historical rows must never echo back into their
- * own source Sheet, so lineage-owned submissions are marked as locally accepted
- * and their outbox events are retired before the migration batch is released.
+ * Historical finance imported through the old finance engine could create a
+ * downstream Google outbox event. Any lineage-owned historical submission must
+ * never echo back into its source Sheet. The exact General Ledger importer does
+ * not create outbox rows, but this remains as a defence for legacy batches.
  */
 function legacy_neutralize_financial_outbox(PDO $pdo, int $clientId, int $batchId): int
 {
@@ -94,18 +94,23 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             }
         }
 
-        $validated = legacy_validate_and_stage($pdo,$batchId,$clientId,$fetched);
+        $validated = legacy_validate_and_stage_known($pdo,$batchId,$clientId,$fetched);
         legacy_supersede_old_conflicts($pdo,$clientId,$batchId,(int)$actor['id'],$public);
         $c = $validated['counts'];
         $apply = ['inserted'=>0,'updated'=>0,'unchanged'=>0,'conflict'=>0,'rejected'=>$c['rejected'],'warning'=>$c['warning']];
         $retiredOutbox = 0;
         if ($mode !== 'preview') {
-            legacy_apply_items($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
+            legacy_apply_items_known($pdo,$actor,$clientId,$batchId,$validated['items'],$apply);
             $retiredOutbox = legacy_neutralize_financial_outbox($pdo,$clientId,$batchId);
         }
 
         $summary = legacy_batch_summary($pdo,$batchId);
         $summary['historical_finance_outbox_retired'] = $retiredOutbox;
+        $summary['financial_mapping'] = [
+            'operational_source'=>'General Ledger',
+            'audit_reference'=>'zReport Ledger',
+            'google_writeback'=>false,
+        ];
         $stageConflicts = (int)$summary['open_conflicts'];
         $conflicts = $stageConflicts + (int)$apply['conflict'];
         $status = $mode === 'preview' ? 'staged' : (($conflicts > 0 || (int)$c['rejected'] > 0) ? 'completed_with_conflicts' : 'completed');
