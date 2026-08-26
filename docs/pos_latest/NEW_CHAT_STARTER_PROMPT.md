@@ -29,9 +29,13 @@ Before acting on current beta work:
    not security; APIs must enforce the same permission. DEV-only capabilities
    require actual DEV identity.
 10. Follow `GUI_STANDARD.md`. Every beta UI is mobile-ready at implementation
-    time. List-level Add actions use the circular `+`; list search begins as a
-    circular magnifier and expands on demand. Do not merely document these rules;
-    verify that the runtime assets are loaded/called.
+    time. List-level Add actions use ONE canonical circular `+` primitive shared
+    with Dashboard Add. List search begins as the same-diameter circular
+    magnifier and expands on demand. Wherever Search and Add coexist they form
+    one adjacent right-aligned action cluster. Do not treat matching semantics,
+    class names or icons as proof of implementation: compare actual geometry,
+    shape, icon weight, shadow, placement and mobile behavior across at least
+    Dashboard + one directory screen before calling the component implemented.
 11. Legacy Google migration is read-only with respect to source Sheets:
     Google → staging → validation → SQL. Never guess known workbook schemas;
     use deterministic approved header contracts. Sync is blocked on rejected or
