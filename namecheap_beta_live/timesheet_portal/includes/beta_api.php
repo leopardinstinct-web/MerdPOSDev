@@ -99,6 +99,16 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'attendance_scan.php':
             beta_require_permission($user, 'attendance.scan', $pdo); return;
         case 'beta_state.php':
+            // beta.js is shared by Dashboard, Disputes, Finance and Password.
+            // The endpoint itself permission-scopes each data section, so route
+            // access follows the consuming feature rather than dashboard.view.
+            beta_require_any_permission($user, [
+                'dashboard.view',
+                'disputes.view_own',
+                'disputes.review',
+                'finance.view',
+                'password.change_own',
+            ], $pdo); return;
         case 'dashboard_data.php':
             beta_require_permission($user, 'dashboard.view', $pdo); return;
         case 'dashboard_layout.php':
