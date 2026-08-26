@@ -7,7 +7,7 @@
 
 ## Project scope — binding default
 
-**From 2026-08-26 onward, every chat, prompt, screenshot, bug report, design request, code request, audit, comparison or follow-up inside this project refers to the MERDPOS beta by default.**
+**From 2026-08-26 onward, Every chat, prompt, screenshot, bug report, design request, code request, audit, comparison or follow-up inside this project refers to the MERDPOS beta by default.**
 
 Unless the product owner explicitly names another target, interpret every request as applying to:
 
@@ -118,14 +118,21 @@ Binding rules include:
 - Dashboard add/remove/reorder remains usable on mobile; free drag/resize may remain desktop-only;
 - older browsers receive a usable dialog fallback.
 
-Shared mobile runtime:
+Canonical shared UI/mobile runtime:
 
-- `assets/mobile-hardening.css`
-- `assets/mobile-runtime.js`
-- loaded through `assets/management.js`
-- shared asset cache revalidation through portal `.htaccess`
+- `assets/design-tokens.css` — semantic tokens and responsive dimensions;
+- `assets/design-system.css` — canonical shared controls/cards/buttons/tables/dialogs/Add/Search/accessibility grammar;
+- `assets/shell.css` — desktop/tablet/mobile navigation and workspace shell;
+- `assets/app-ui.css` — feature composition, including directory, Clients, Roles, Permission Policy and Legacy Migration layouts;
+- `assets/minimal-controls.js` — shared Add/Search behavior;
+- `assets/mobile-runtime.js` — visual viewport, dialog compatibility, Dashboard mobile editing and structural mobile audit;
+- `assets/design-audit.js` — runtime heading/accessibility/placement/contrast/overflow audit;
+- loaded through `assets/management.js`;
+- shared asset cache revalidation through portal `.htaccess`.
 
-`window.MERDPOSMobileRuntime.audit()` is the browser-side structural smoke test. It checks page horizontal overflow, topbar wrapping, undersized touch targets, open dialogs outside the viewport and malformed shared icon actions. This is a regression detector, not a substitute for real-device verification.
+Retired corrective CSS layers must not be restored to the runtime: `ui-standard.css`, `minimal-controls.css`, `mobile-hardening.css`, `apple-principles.css` and `omnichannel-identity.css`.
+
+`window.MERDPOSMobileRuntime.audit()` is the browser-side structural smoke test. It checks page horizontal overflow, topbar wrapping, undersized touch targets, open dialogs outside the viewport and malformed shared icon actions. `window.MERDPOSDesignAudit.run()` additionally checks headings, accessible names, Search/Add placement, contrast and overflow. These are regression detectors, not substitutes for real-device verification.
 
 ### Shared-component verification rule
 
