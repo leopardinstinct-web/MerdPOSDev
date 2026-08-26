@@ -84,6 +84,17 @@ php "$LIVE/backend/cli/apply_030_dev_client_preferences.php"
 php "$LIVE/backend/cli/apply_031_client_roles_dashboard_templates.php"
 php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
 php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
+php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
+
+# The portal is allowed to expose Legacy Sync only after the complete schema is
+# present. Abort before copying portal code if any migration table is missing.
+php -r '
+require $argv[1];
+$tables=["client_legacy_sources","client_migration_state","legacy_migration_batches","legacy_migration_stage_rows","legacy_migration_records","legacy_migration_conflicts"];
+$q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
+foreach($tables as $table){$q->execute([$table]);if((int)$q->fetchColumn()!==1){fwrite(STDERR,"Missing legacy migration table: {$table}\n");exit(1);}}
+echo "Legacy migration schema verified (6 tables).\n";
+' "$LIVE/backend/api/config.php"
 
 rsync -az \
   --exclude='config.php' \
