@@ -6,10 +6,17 @@ try {
     $user = beta_require_active_user();
     $pdo = portal_db();
     $actualRole = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? 'USER'));
+    $canDashboard = beta_has_permission($user, 'dashboard.view', $pdo);
     $canViewWorkforce = beta_has_permission($user, 'workforce.view', $pdo);
+    $canViewStores = beta_has_permission($user, 'stores.view', $pdo);
+    $canViewOwnTimesheets = beta_has_permission($user, 'timesheets.view_own', $pdo);
     $canViewAllTimesheets = beta_has_permission($user, 'timesheets.view_all', $pdo);
+    $canViewOwnDisputes = beta_has_permission($user, 'disputes.view_own', $pdo);
+    $canSubmitDisputes = beta_has_permission($user, 'disputes.submit_own', $pdo);
     $canReviewDisputes = beta_has_permission($user, 'disputes.review', $pdo);
     $canResolveFlags = beta_has_permission($user, 'attendance_flags.resolve', $pdo);
+    $canFinanceView = beta_has_permission($user, 'finance.view', $pdo);
+    $canFinanceCrossStore = beta_has_permission($user, 'finance.cross_store', $pdo);
     $canFinanceSummary = beta_has_permission($user, 'finance.management_summary', $pdo);
     $canSyncStatus = beta_has_permission($user, 'system.sync_status', $pdo);
     $isManagement = !empty($user['is_management']);
@@ -29,32 +36,62 @@ try {
 
     // Canonical store identity is kept separate from active operational store
     // scope so an inactive store still retains the same name/code/logo wherever
-    // historical or administrative UI displays it.
+    // historical or administrative UI displays it. Response scope is filtered
+    // below so a shared state request does not bypass Stores/Finance permissions.
     $storeIdentityStmt = $pdo->prepare(
         'SELECT id,store_name,store_code,logo_path,status FROM stores WHERE client_id=? ORDER BY id'
     );
     $storeIdentityStmt->execute([(int)$user['client_id']]);
+    $storeIdentityRows = $storeIdentityStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $stores = $pdo->prepare(
         "SELECT id,store_name,store_code,logo_path,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
         . "FROM stores WHERE client_id=? AND status='active' ORDER BY id"
     );
     $stores->execute([$clientCurrency, $clientTimezone, (int)$user['client_id']]);
+    $storeRows = $stores->fetchAll(PDO::FETCH_ASSOC);
 
-    $allRecentShifts = $canViewWorkforce || $canViewAllTimesheets;
-    $shiftWhere = $allRecentShifts ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
-    $shiftArgs = $allRecentShifts ? [(int)$user['client_id']] : [(int)$user['client_id'], (int)$user['id']];
-    $shifts = $pdo->prepare(
-        'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
-        . 'COALESCE(st.timezone,?) AS timezone '
-        . 'FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id INNER JOIN stores st ON st.id=s.store_id '
-        . 'WHERE ' . $shiftWhere . ' ORDER BY s.clock_in_at DESC LIMIT 100'
-    );
-    $shifts->execute(array_merge([$clientTimezone], $shiftArgs));
+    $recentShifts = [];
+    $canReadRecentShifts = $canViewOwnTimesheets || $canViewAllTimesheets || $canViewOwnDisputes;
+    if ($canReadRecentShifts) {
+        $allRecentShifts = $canViewWorkforce || $canViewAllTimesheets;
+        $shiftWhere = $allRecentShifts ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
+        $shiftArgs = $allRecentShifts ? [(int)$user['client_id']] : [(int)$user['client_id'], (int)$user['id']];
+        $shifts = $pdo->prepare(
+            'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
+            . 'COALESCE(st.timezone,?) AS timezone '
+            . 'FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id INNER JOIN stores st ON st.id=s.store_id '
+            . 'WHERE ' . $shiftWhere . ' ORDER BY s.clock_in_at DESC LIMIT 100'
+        );
+        $shifts->execute(array_merge([$clientTimezone], $shiftArgs));
+        $recentShifts = $shifts->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-    $working = merd_working_now($pdo, (int)$user['client_id']);
-    if (!$canViewWorkforce) {
-        $working = array_values(array_filter($working, fn(array $row): bool => (string)$row['user_id'] === (string)$user['user_id']));
+    $working = [];
+    if ($canViewWorkforce || $canViewOwnTimesheets || $canFinanceView) {
+        $working = merd_working_now($pdo, (int)$user['client_id']);
+        if (!$canViewWorkforce) {
+            $working = array_values(array_filter($working, fn(array $row): bool => (string)$row['user_id'] === (string)$user['user_id']));
+        }
+    }
+
+    // Store lists are feature-scoped. Full store enumeration is allowed only
+    // where the user can already view workforce/store/cross-store finance data.
+    // Finance-only users receive only the store(s) where they are actively
+    // clocked in; dispute submitters retain active store names for new-shift
+    // correction requests.
+    $canEnumerateStores = $canViewStores || $canViewWorkforce || $canFinanceCrossStore || $canFinanceSummary;
+    if (!$canEnumerateStores) {
+        if ($canSubmitDisputes) {
+            // New-shift disputes intentionally allow selection from active stores.
+        } elseif ($canFinanceView) {
+            $workingStoreNames = array_fill_keys(array_map(static fn(array $row): string => (string)$row['store_name'], $working), true);
+            $storeRows = array_values(array_filter($storeRows, static fn(array $row): bool => isset($workingStoreNames[(string)$row['store_name']])));
+            $storeIdentityRows = array_values(array_filter($storeIdentityRows, static fn(array $row): bool => isset($workingStoreNames[(string)$row['store_name']])));
+        } else {
+            $storeRows = [];
+            $storeIdentityRows = [];
+        }
     }
 
     $management = null;
@@ -103,12 +140,21 @@ try {
         }
     }
 
-    $disputeUser = $user;
-    $disputeUser['employee_type'] = $canReviewDisputes ? 'SUPER' : 'USER';
-    $disputeUser['role_name'] = $canReviewDisputes ? 'SUPER' : 'USER';
-    $flagUser = $user;
-    $flagUser['employee_type'] = $canResolveFlags ? 'SUPER' : 'USER';
-    $flagUser['role_name'] = $canResolveFlags ? 'SUPER' : 'USER';
+    $disputes = [];
+    if ($canViewOwnDisputes || $canReviewDisputes) {
+        $disputeUser = $user;
+        $disputeUser['employee_type'] = $canReviewDisputes ? 'SUPER' : 'USER';
+        $disputeUser['role_name'] = $canReviewDisputes ? 'SUPER' : 'USER';
+        $disputes = merd_list_disputes($pdo, $disputeUser);
+    }
+
+    $attendanceFlags = [];
+    if ($canResolveFlags) {
+        $flagUser = $user;
+        $flagUser['employee_type'] = 'SUPER';
+        $flagUser['role_name'] = 'SUPER';
+        $attendanceFlags = merd_list_attendance_flags($pdo, $flagUser);
+    }
 
     $generatedAt = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
@@ -133,12 +179,13 @@ try {
         ],
         'client_defaults' => ['currency_code' => $clientCurrency, 'timezone' => $clientTimezone],
         'working' => $working,
-        'disputes' => merd_list_disputes($pdo, $disputeUser),
-        'attendance_flags' => $canResolveFlags ? merd_list_attendance_flags($pdo, $flagUser) : [],
-        'recent_shifts' => $shifts->fetchAll(PDO::FETCH_ASSOC),
-        'store_identity' => $storeIdentityStmt->fetchAll(PDO::FETCH_ASSOC),
-        'stores' => $stores->fetchAll(PDO::FETCH_ASSOC),
+        'disputes' => $disputes,
+        'attendance_flags' => $attendanceFlags,
+        'recent_shifts' => $recentShifts,
+        'store_identity' => $storeIdentityRows,
+        'stores' => $storeRows,
         'management' => $management,
+        'dashboard_allowed' => $canDashboard,
     ]);
 } catch (Throwable $e) {
     beta_api_error($e);
