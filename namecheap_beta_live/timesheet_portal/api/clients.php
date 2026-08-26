@@ -2,12 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
-
-function clients_require_dev(array $user): void
-{
-    $role = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? ''));
-    if ($role !== 'DEV') json_response(['success' => false, 'error' => 'DEV access required.'], 403);
-}
+require_once __DIR__ . '/../includes/dashboard_access.php';
 
 function clients_code(mixed $value): string
 {
@@ -45,11 +40,11 @@ function clients_state(PDO $pdo): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function clients_seed_defaults(PDO $pdo, int $clientId, int $actorEmployeeId): void
+function clients_seed_roles(PDO $pdo, int $clientId, int $actorEmployeeId): void
 {
     $legacy = $pdo->prepare(
         'INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id) VALUES (?,?,?,?) '
-        . 'ON DUPLICATE KEY UPDATE role_name=VALUES(role_name)'
+        . 'ON DUPLICATE KEY UPDATE authority_level=VALUES(authority_level),updated_by_employee_id=VALUES(updated_by_employee_id)'
     );
     foreach ([['USER',10],['ADMIN',50],['SUPER',90]] as [$role, $level]) {
         $legacy->execute([$clientId, $role, $level, $actorEmployeeId]);
@@ -66,6 +61,50 @@ function clients_seed_defaults(PDO $pdo, int $clientId, int $actorEmployeeId): v
         ['DEV','Developer','DEV',1000],
     ] as [$key,$label,$base,$level]) {
         $roleStmt->execute([$clientId,$key,$label,$base,$level]);
+    }
+}
+
+function clients_seed_permissions(PDO $pdo, int $clientId): void
+{
+    $insert = $pdo->prepare(
+        'INSERT INTO client_permission_levels (client_id,permission_key,min_authority_level) VALUES (?,?,?) '
+        . 'ON DUPLICATE KEY UPDATE min_authority_level=VALUES(min_authority_level)'
+    );
+    foreach (merd_portal_permission_catalog() as $key => $rule) {
+        $level = !empty($rule['dev_only']) ? 1000 : max(1, min(1000, (int)$rule['min_loa']));
+        $insert->execute([$clientId, $key, $level]);
+    }
+}
+
+function clients_widget_position(string $key): array
+{
+    return match ($key) {
+        'working_now_count' => [0,0,3,2],
+        'pending_disputes' => [3,0,3,2],
+        'active_employees' => [6,0,3,2],
+        'sync_attention' => [9,0,3,2],
+        'my_shift' => [0,2,4,2],
+        'my_disputes' => [4,2,4,3],
+        'working_now' => [0,5,6,4],
+        'workforce_by_store' => [6,5,6,4],
+        'store_cash_position' => [0,9,6,4],
+        'cash_mix' => [6,9,6,4],
+        'today_sales_by_store' => [0,13,6,4],
+        'recent_attendance' => [0,17,12,5],
+        default => [0,0,4,3],
+    };
+}
+
+function clients_seed_dashboards(PDO $pdo, int $clientId): void
+{
+    $insert = $pdo->prepare(
+        'INSERT IGNORE INTO dashboard_role_layouts (client_id,role_id,widget_key,grid_x,grid_y,grid_w,grid_h) VALUES (?,?,?,?,?,?,?)'
+    );
+    foreach (merd_dashboard_roles($pdo, $clientId, true) as $role) {
+        foreach (merd_dashboard_allowed_widgets($pdo, $clientId, $role) as $widgetKey) {
+            [$x,$y,$w,$h] = clients_widget_position($widgetKey);
+            $insert->execute([$clientId,(int)$role['id'],$widgetKey,$x,$y,$w,$h]);
+        }
     }
 }
 
@@ -89,8 +128,8 @@ function clients_audit(PDO $pdo, array $user, int $targetClientId, string $actio
 
 try {
     $user = beta_require_active_user();
-    clients_require_dev($user);
     $pdo = portal_db();
+    beta_require_permission($user, 'clients.manage', $pdo);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         json_response(['success' => true, 'csrf' => csrf_token(), 'clients' => clients_state($pdo)]);
@@ -120,7 +159,9 @@ try {
             $stmt = $pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');
             $stmt->execute([$name, $code, $setupKey, $status]);
             $id = (int)$pdo->lastInsertId();
-            clients_seed_defaults($pdo, $id, (int)$user['id']);
+            clients_seed_roles($pdo, $id, (int)$user['id']);
+            clients_seed_permissions($pdo, $id);
+            clients_seed_dashboards($pdo, $id);
             $action = 'client.create';
         } else {
             $check = $pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1 FOR UPDATE');
@@ -141,12 +182,12 @@ try {
         throw $e;
     }
 
-    clients_audit($pdo, $user, (int)$id, $action, ['name'=>$name,'client_code'=>$code,'status'=>$status]);
+    clients_audit($pdo, $user, (int)$id, $action, ['name'=>$name,'client_code'=>$code,'status'=>$status,'permission_model'=>'central_permission_loa_v1']);
 
     json_response([
         'success' => true,
         'csrf' => csrf_token(),
-        'message' => $action === 'client.create' ? 'Client created.' : 'Client saved.',
+        'message' => $action === 'client.create' ? 'Client created with roles, permissions and dashboards.' : 'Client saved.',
         'client_id' => (int)$id,
         'clients' => clients_state($pdo),
     ]);
