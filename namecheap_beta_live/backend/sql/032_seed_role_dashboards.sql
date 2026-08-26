@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS app_migrations (
+  migration_key VARCHAR(120) NOT NULL,
+  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (migration_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
