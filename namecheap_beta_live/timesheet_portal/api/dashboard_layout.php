@@ -2,45 +2,54 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
+require_once __DIR__ . '/../includes/dashboard_access.php';
 
-function dashboard_allowed_widgets(array $user): array
+function dashboard_is_dev(array $user): bool
 {
-    $management = !empty($user['is_super']);
-    if ($management) {
-        return [
-            'working_now_count',
-            'pending_disputes',
-            'active_employees',
-            'sync_attention',
-            'working_now',
-            'workforce_by_store',
-            'store_cash_position',
-            'cash_mix',
-            'today_sales_by_store',
-            'recent_attendance',
-        ];
-    }
-    return ['my_shift', 'my_disputes', 'recent_attendance'];
+    return strtoupper(trim((string)($user['role'] ?? $user['actual_employee_type'] ?? ''))) === 'DEV';
 }
 
-function dashboard_state(PDO $pdo, array $user): array
+function dashboard_selected_role(PDO $pdo, array $user, mixed $requestedRoleId = null): array
 {
-    $employeeId = (int)$user['id'];
     $clientId = (int)$user['client_id'];
+    if (dashboard_is_dev($user) && $requestedRoleId !== null && $requestedRoleId !== '') {
+        $roleId = filter_var($requestedRoleId, FILTER_VALIDATE_INT);
+        if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid dashboard role.');
+        $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
+        if (!$role || strtolower((string)$role['status']) !== 'active') throw new MerdWorkforceException('role_not_found', 'Dashboard role not found.');
+        return $role;
+    }
+    return merd_dashboard_user_role($pdo, $user);
+}
+
+function dashboard_state(PDO $pdo, array $user, array $role): array
+{
+    $clientId = (int)$user['client_id'];
+    $allowed = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
+    $allowedMap = array_fill_keys($allowed, true);
     $stmt = $pdo->prepare(
-        'SELECT widget_key,grid_x,grid_y,grid_w,grid_h '
-        . 'FROM dashboard_layouts WHERE employee_id=? AND context_client_id=? '
-        . 'ORDER BY grid_y ASC,grid_x ASC,id ASC'
+        'SELECT widget_key,grid_x,grid_y,grid_w,grid_h FROM dashboard_role_layouts '
+        . 'WHERE client_id=? AND role_id=? ORDER BY grid_y ASC,grid_x ASC,id ASC'
     );
-    $stmt->execute([$employeeId, $clientId]);
+    $stmt->execute([$clientId, (int)$role['id']]);
+    $layout = array_values(array_filter($stmt->fetchAll(PDO::FETCH_ASSOC), fn(array $row): bool => isset($allowedMap[(string)$row['widget_key']])));
+
+    $roles = dashboard_is_dev($user) ? merd_dashboard_roles($pdo, $clientId, true) : [$role];
+    foreach ($roles as &$candidate) {
+        $candidate['allowed_widget_count'] = count(merd_dashboard_allowed_widgets($pdo, $clientId, $candidate));
+    }
+    unset($candidate);
 
     return [
         'success' => true,
         'csrf' => csrf_token(),
-        'employee_id' => $employeeId,
         'context_client_id' => $clientId,
-        'allowed_widgets' => dashboard_allowed_widgets($user),
-        'layout' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'can_edit' => dashboard_is_dev($user),
+        'can_select_role' => dashboard_is_dev($user),
+        'selected_role' => $role,
+        'roles' => $roles,
+        'allowed_widgets' => $allowed,
+        'layout' => $layout,
         'grid' => ['columns' => 12, 'max_rows' => 1000],
     ];
 }
@@ -59,19 +68,25 @@ try {
     $pdo = portal_db();
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-        json_response(dashboard_state($pdo, $user));
+        $role = dashboard_selected_role($pdo, $user, $_GET['role_id'] ?? null);
+        json_response(dashboard_state($pdo, $user, $role));
+    }
+
+    if (!dashboard_is_dev($user)) {
+        json_response(['success' => false, 'error' => 'Dashboard templates are managed by DEV.'], 403);
     }
 
     $input = request_input();
     require_csrf($input);
-    $action = (string)($input['action'] ?? 'save_layout');
-    $employeeId = (int)$user['id'];
+    $role = dashboard_selected_role($pdo, $user, $input['role_id'] ?? null);
     $clientId = (int)$user['client_id'];
+    $roleId = (int)$role['id'];
+    $action = (string)($input['action'] ?? 'save_layout');
 
     if ($action === 'reset_layout') {
-        $stmt = $pdo->prepare('DELETE FROM dashboard_layouts WHERE employee_id=? AND context_client_id=?');
-        $stmt->execute([$employeeId, $clientId]);
-        json_response(dashboard_state($pdo, $user));
+        $stmt = $pdo->prepare('DELETE FROM dashboard_role_layouts WHERE client_id=? AND role_id=?');
+        $stmt->execute([$clientId, $roleId]);
+        json_response(dashboard_state($pdo, $user, $role));
     }
 
     if ($action !== 'save_layout') {
@@ -83,16 +98,15 @@ try {
         throw new MerdWorkforceException('invalid_dashboard_layout', 'Dashboard layout must contain 0–30 widgets.');
     }
 
-    $allowed = array_fill_keys(dashboard_allowed_widgets($user), true);
+    $allowed = array_fill_keys(merd_dashboard_allowed_widgets($pdo, $clientId, $role), true);
     $clean = [];
     $seen = [];
     foreach ($items as $row) {
         if (!is_array($row)) throw new MerdWorkforceException('invalid_dashboard_layout', 'Invalid dashboard widget row.');
         $key = strtolower(trim((string)($row['widget_key'] ?? '')));
-        if (!isset($allowed[$key])) throw new MerdWorkforceException('invalid_dashboard_widget', 'That dashboard widget is not available for your role.');
+        if (!isset($allowed[$key])) throw new MerdWorkforceException('dashboard_widget_forbidden', 'That widget is outside the selected role LOA.');
         if (isset($seen[$key])) throw new MerdWorkforceException('duplicate_dashboard_widget', 'Each dashboard widget can be added once.');
         $seen[$key] = true;
-
         $x = dashboard_int($row['grid_x'] ?? null, 'grid_x', 0, 11);
         $y = dashboard_int($row['grid_y'] ?? null, 'grid_y', 0, 999);
         $w = dashboard_int($row['grid_w'] ?? null, 'grid_w', 1, 12);
@@ -103,16 +117,13 @@ try {
 
     $pdo->beginTransaction();
     try {
-        $delete = $pdo->prepare('DELETE FROM dashboard_layouts WHERE employee_id=? AND context_client_id=?');
-        $delete->execute([$employeeId, $clientId]);
+        $delete = $pdo->prepare('DELETE FROM dashboard_role_layouts WHERE client_id=? AND role_id=?');
+        $delete->execute([$clientId, $roleId]);
         if ($clean) {
             $insert = $pdo->prepare(
-                'INSERT INTO dashboard_layouts (employee_id,context_client_id,widget_key,grid_x,grid_y,grid_w,grid_h) '
-                . 'VALUES (?,?,?,?,?,?,?)'
+                'INSERT INTO dashboard_role_layouts (client_id,role_id,widget_key,grid_x,grid_y,grid_w,grid_h) VALUES (?,?,?,?,?,?,?)'
             );
-            foreach ($clean as [$key, $x, $y, $w, $h]) {
-                $insert->execute([$employeeId, $clientId, $key, $x, $y, $w, $h]);
-            }
+            foreach ($clean as [$key,$x,$y,$w,$h]) $insert->execute([$clientId,$roleId,$key,$x,$y,$w,$h]);
         }
         $pdo->commit();
     } catch (Throwable $e) {
@@ -120,7 +131,7 @@ try {
         throw $e;
     }
 
-    json_response(dashboard_state($pdo, $user));
+    json_response(dashboard_state($pdo, $user, $role));
 } catch (Throwable $e) {
     beta_api_error($e);
 }
