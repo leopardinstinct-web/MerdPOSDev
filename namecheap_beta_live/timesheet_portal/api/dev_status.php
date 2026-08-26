@@ -14,7 +14,8 @@ try {
     $serverVersion = (string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
     $tables = [
-        'clients', 'client_role_authority', 'dev_client_preferences', 'dashboard_layouts',
+        'clients', 'client_role_authority', 'client_roles', 'dev_client_preferences',
+        'dashboard_layouts', 'dashboard_role_layouts',
         'employees', 'stores', 'employee_store_access', 'employee_store_assignments',
         'employee_hourly_rate_history', 'store_weekly_hours', 'store_shift_start_times',
         'employee_logs', 'attendance_shifts', 'attendance_disputes',
