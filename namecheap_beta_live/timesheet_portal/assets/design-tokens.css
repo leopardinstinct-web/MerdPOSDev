@@ -3,13 +3,12 @@
  *
  * Feature code must consume these semantic variables instead of inventing
  * colours, spacing, radii, typography sizes or control dimensions.
- * Absolute values live here intentionally; components reference semantics.
  */
 
 :root {
   color-scheme: light;
 
-  /* Brand + semantic colour pairs. All normal text pairs are WCAG AA. */
+  /* Brand + semantic colour pairs. Normal text pairs target WCAG AA. */
   --color-brand-primary: #1C4587;
   --color-brand-primary-hover: #173B74;
   --color-brand-primary-active: #12315F;
@@ -32,7 +31,7 @@
   --color-border-strong: #98A2B3;
 
   --color-focus: #2F6FEB;
-  --color-focus-soft: rgba(47, 111, 235, .22);
+  --color-focus-soft: rgba(47, 111, 235, .24);
 
   --color-success: #18794E;
   --color-success-surface: #ECF8F3;
@@ -55,14 +54,13 @@
   --color-overlay: rgba(17, 25, 54, .42);
   --color-shadow: rgba(17, 25, 54, .12);
 
-  /* Chart colours — distinct and readable against the light surface. */
   --color-chart-1: #1C4587;
   --color-chart-2: #0F766E;
   --color-chart-3: #A15C00;
   --color-chart-4: #6D56C9;
   --color-chart-5: #B42318;
 
-  /* Spacing scale. */
+  /* Binding spacing scale: 4, 8, 12, 16, 20, 24, 32px. */
   --space-0: 0;
   --space-1: .25rem;
   --space-2: .5rem;
@@ -73,16 +71,20 @@
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
+  --space-label-control: .375rem;
 
-  /* 1.125 modular type scale. */
-  --type-xs: .79rem;
-  --type-sm: .889rem;
-  --type-md: 1rem;
-  --type-lg: 1.125rem;
-  --type-xl: 1.266rem;
-  --type-2xl: 1.424rem;
-  --type-3xl: 1.602rem;
-  --type-4xl: 1.802rem;
+  /* Binding beta typography scale from GUI_STANDARD.md. */
+  --type-xs: .75rem;       /* 12px helper/caption */
+  --type-table-head: .71875rem; /* 11.5px */
+  --type-label: .8125rem;  /* 13px */
+  --type-table-cell: .8125rem; /* 13px */
+  --type-sm: .875rem;      /* 14px body */
+  --type-md: 1rem;         /* 16px subsection */
+  --type-lg: 1.25rem;      /* 20px section */
+  --type-xl: 1.25rem;
+  --type-2xl: 1.75rem;     /* 28px page */
+  --type-3xl: 1.75rem;
+  --type-4xl: 1.75rem;
 
   --line-tight: 1.18;
   --line-heading: 1.25;
@@ -90,24 +92,27 @@
 
   --weight-regular: 400;
   --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  --weight-semibold: 620;
+  --weight-section: 680;
+  --weight-bold: 720;
 
   --font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
-  /* Geometry. */
-  --radius-control: .625rem;
-  --radius-card: .875rem;
-  --radius-dialog: 1.125rem;
+  /* Binding geometry. Inputs and buttons intentionally use distinct heights. */
+  --radius-control: .625rem; /* 10px */
+  --radius-card: .875rem;    /* 14px */
+  --radius-dialog: 1.25rem;  /* 20px */
   --radius-pill: 999rem;
   --radius-circle: 50%;
 
-  --size-control: 2.75rem;          /* 44px desktop minimum */
-  --size-control-compact: 2.5rem;
-  --size-touch: 3rem;               /* 48px touch target */
-  --size-icon-action: 2.875rem;     /* 46px desktop Add/Search */
-  --size-icon-action-touch: 3rem;   /* 48px mobile */
+  --size-input: 2.625rem;          /* 42px */
+  --size-button: 2.5rem;           /* 40px */
+  --size-control: var(--size-input); /* compatibility */
+  --size-control-compact: 2.25rem; /* 36px */
+  --size-touch: 3rem;              /* 48px tablet/phone */
+  --size-icon-action: 2.875rem;    /* 46px desktop Add/Search */
+  --size-icon-action-touch: 3rem;  /* 48px mobile */
   --size-icon-sm: 1rem;
   --size-icon-md: 1.125rem;
   --size-icon-lg: 1.25rem;
@@ -116,23 +121,20 @@
   --dialog-max: 42rem;
   --search-expanded-max: 22rem;
 
-  /* Elevation. */
   --shadow-card: 0 .0625rem .25rem rgba(17, 25, 54, .08);
   --shadow-raised: 0 .5rem 1.5rem rgba(17, 25, 54, .12);
   --shadow-dialog: 0 1.5rem 4rem rgba(17, 25, 54, .22);
   --shadow-action: 0 .5rem 1.25rem rgba(28, 69, 135, .20);
 
-  /* Motion. */
   --duration-fast: 140ms;
   --duration-normal: 220ms;
   --ease-standard: cubic-bezier(.2, .8, .2, 1);
 
-  /* Layout breakpoints are documented here for CSS/JS parity. */
   --breakpoint-phone: 35rem;
   --breakpoint-tablet: 51.25rem;
   --breakpoint-desktop-narrow: 65.625rem;
 
-  /* Compatibility aliases while legacy beta CSS is being retired. */
+  /* Compatibility aliases while legacy beta CSS is retired. */
   --merd-primary: var(--color-brand-primary);
   --merd-text: var(--color-text-primary);
   --merd-muted: var(--color-text-muted);
@@ -147,8 +149,8 @@
   --merd-space-5: var(--space-5);
   --merd-space-6: var(--space-6);
   --merd-space-8: var(--space-8);
-  --merd-control-h: var(--size-control);
-  --merd-button-h: var(--size-control);
+  --merd-control-h: var(--size-input);
+  --merd-button-h: var(--size-button);
   --merd-touch-h: var(--size-touch);
   --merd-radius-control: var(--radius-control);
   --merd-radius-card: var(--radius-card);
@@ -191,7 +193,6 @@
   --ui-radius-sm: var(--radius-control);
 }
 
-/* Semantic dark-mode pair. The beta remains light unless the root opts in. */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --color-bg-main: #0D1324;
@@ -213,6 +214,8 @@
 
 @media (max-width: 51.25rem) {
   :root {
+    --size-input: var(--size-touch);
+    --size-button: var(--size-touch);
     --size-control: var(--size-touch);
     --size-icon-action: var(--size-icon-action-touch);
   }
