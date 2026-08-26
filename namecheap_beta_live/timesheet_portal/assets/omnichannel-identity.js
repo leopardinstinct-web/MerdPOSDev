@@ -8,7 +8,6 @@
   let state=null;
   let fetchedAt=0;
   let staleTimer=null;
-  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   async function json(url){
     const response=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'}});
@@ -20,9 +19,13 @@
     return data;
   }
 
+  function identityStores(){
+    return Array.isArray(state?.store_identity)&&state.store_identity.length?state.store_identity:(state?.stores||[]);
+  }
+
   function storeMap(){
     const byId=new Map(),byName=new Map();
-    (state?.stores||[]).forEach(store=>{
+    identityStores().forEach(store=>{
       byId.set(Number(store.id),store);
       byName.set(String(store.store_name||'').trim().toLowerCase(),store);
     });
@@ -52,8 +55,14 @@
       const avatar=row.querySelector('.entity-avatar.store-avatar');
       if(!store||!avatar||!store.logo_path)return;
       if(avatar.dataset.omniLogo===String(store.logo_path))return;
+      const fallback=avatar.innerHTML;
       const img=logoImg(store,'');
       if(!img)return;
+      img.addEventListener('error',()=>{
+        avatar.innerHTML=fallback;
+        avatar.classList.remove('omni-has-logo');
+        delete avatar.dataset.omniLogo;
+      },{once:true});
       avatar.replaceChildren(img);
       avatar.classList.add('omni-has-logo');
       avatar.dataset.omniLogo=String(store.logo_path);
@@ -147,7 +156,7 @@
       fetchedAt=Number.isFinite(serverTime)?serverTime:Date.now();
       patchAll();
       queuePatches();
-      window.dispatchEvent(new CustomEvent('merdpos:identity-ready',{detail:{client:state.client,stores:state.stores,generated_at:state.generated_at}}));
+      window.dispatchEvent(new CustomEvent('merdpos:identity-ready',{detail:{client:state.client,stores:identityStores(),generated_at:state.generated_at}}));
     }catch(error){
       console.error('MERDPOS omnichannel identity:',error);
     }
