@@ -10,16 +10,11 @@
     const style = document.createElement('style');
     style.id = 'rolesAuthorityStyles';
     style.textContent = `
-      .roles-card{display:grid;gap:16px}.roles-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-      .roles-head h2{margin:0 0 4px}.roles-head p{margin:0;color:#65758A}.roles-list{display:grid;gap:10px}
-      .role-row{display:grid;grid-template-columns:minmax(180px,1.3fr) 120px 120px 130px auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #DFE7F0;border-radius:13px;background:#fff}
-      .role-copy{min-width:0}.role-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.role-title strong{font-size:13px}.role-key{font:700 9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#718096;background:#F3F6FA;padding:3px 6px;border-radius:999px}
-      .role-copy small{display:block;margin-top:4px;color:#6B7D92;font-size:10.5px}.role-meta{display:grid;gap:3px}.role-meta span:first-child{font-size:9px;font-weight:800;color:#8090A4;text-transform:uppercase;letter-spacing:.06em}.role-meta strong{font-size:12px;color:#20344D}
-      .role-loa{display:flex;align-items:center;gap:6px}.role-loa input{width:72px;height:36px;border:1px solid #CBD8E7;border-radius:8px;padding:0 8px}.role-actions{display:flex;gap:7px;justify-content:flex-end}
-      .role-system-chip{font-size:8.5px;font-weight:800;color:#2D62A7;background:#EEF5FF;border:1px solid #D4E4FA;border-radius:999px;padding:3px 6px}.role-dev-fixed{background:#F8FAFD}.role-status{font-size:11px;color:#64748B}.role-status.is-error{color:#B42318}
-      .role-delete{color:#A32B28!important;border-color:#E8C7C5!important}.role-add-dialog .admin-form-grid{grid-template-columns:1fr 160px}.role-inherit-note{font-size:10.5px;color:#64748B;line-height:1.45}
-      @media(max-width:900px){.role-row{grid-template-columns:1fr 100px 100px}.role-actions{grid-column:1/-1;justify-content:flex-start}}
-      @media(max-width:620px){.roles-head{flex-direction:column}.roles-head .primary-btn{width:100%;justify-content:center}.role-row{grid-template-columns:1fr}.role-actions{grid-column:auto}.role-add-dialog .admin-form-grid{grid-template-columns:1fr}}
+      .roles-shell{display:grid;gap:18px}.roles-card{display:grid;gap:16px}.roles-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.roles-head h2,.permission-head h2{margin:0 0 4px}.roles-head p,.permission-head p{margin:0;color:#65758A;max-width:780px}.roles-list{display:grid;gap:10px}
+      .role-row{display:grid;grid-template-columns:minmax(180px,1.3fr) 110px 110px 130px auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #DFE7F0;border-radius:13px;background:#fff}.role-copy{min-width:0}.role-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.role-title strong{font-size:13px}.role-key{font:700 9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#718096;background:#F3F6FA;padding:3px 6px;border-radius:999px}.role-copy small{display:block;margin-top:4px;color:#6B7D92;font-size:10.5px}.role-meta{display:grid;gap:3px}.role-meta span:first-child{font-size:9px;font-weight:800;color:#8090A4;text-transform:uppercase;letter-spacing:.06em}.role-meta strong{font-size:12px;color:#20344D}.role-loa{display:flex;align-items:center;gap:6px}.role-loa input{width:72px;height:36px;border:1px solid #CBD8E7;border-radius:8px;padding:0 8px}.role-actions{display:flex;gap:7px;justify-content:flex-end}.role-system-chip{font-size:8.5px;font-weight:800;color:#2D62A7;background:#EEF5FF;border:1px solid #D4E4FA;border-radius:999px;padding:3px 6px}.role-dev-fixed{background:#F8FAFD}.role-status{font-size:11px;color:#64748B}.role-status.is-error{color:#B42318}.role-delete{color:#A32B28!important;border-color:#E8C7C5!important}.role-add-dialog .admin-form-grid{grid-template-columns:1fr 160px}.role-inherit-note{font-size:10.5px;color:#64748B;line-height:1.45}
+      .permission-card{display:grid;gap:15px}.permission-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.permission-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.permission-unsaved{font-size:10px;font-weight:800;color:#9A6700;background:#FFF7D6;border:1px solid #F0D77A;border-radius:999px;padding:5px 8px}.permission-unsaved[hidden]{display:none}.permission-summary{display:flex;gap:8px;flex-wrap:wrap}.permission-summary span{font-size:10px;font-weight:700;color:#52657C;background:#F5F8FC;border:1px solid #E2E9F1;border-radius:999px;padding:5px 8px}.permission-groups{display:grid;gap:14px}.permission-group{border:1px solid #DFE7F0;border-radius:14px;overflow:hidden;background:#fff}.permission-group-title{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 13px;background:#F7F9FC;border-bottom:1px solid #E6ECF3}.permission-group-title strong{font-size:11px;color:#243B55}.permission-group-title small{font-size:9px;color:#7B8A9C}.permission-row{display:grid;grid-template-columns:minmax(240px,1.45fr) 125px minmax(220px,1fr);gap:14px;align-items:center;padding:11px 13px;border-top:1px solid #EEF2F6}.permission-row:first-of-type{border-top:0}.permission-copy{min-width:0}.permission-copy strong{display:block;font-size:11.5px;color:#21374F}.permission-copy code{display:block;margin-top:3px;font-size:9px;color:#7D8B9D;white-space:normal;word-break:break-word}.permission-level{display:flex;align-items:center;gap:6px}.permission-level input{width:78px;height:34px;border:1px solid #C9D6E5;border-radius:8px;padding:0 8px;font-weight:800}.permission-level input:disabled{background:#F2F5F8;color:#7A8796}.permission-lock{font-size:9px;font-weight:800;color:#6A4BC7;background:#F2ECFF;border-radius:999px;padding:4px 6px}.permission-impact{display:flex;gap:5px;flex-wrap:wrap;align-items:center}.impact-role{font-size:9px;font-weight:800;color:#315271;background:#EFF5FA;border:1px solid #DCE7F0;border-radius:999px;padding:4px 6px}.impact-none{font-size:9px;color:#9B3B32}.permission-footnote{font-size:10px;color:#66788D;line-height:1.5}.permission-danger-note{padding:10px 12px;border:1px solid #E7D9B4;background:#FFFBEE;border-radius:11px;color:#755B18;font-size:10.5px;line-height:1.45}
+      @media(max-width:950px){.role-row{grid-template-columns:1fr 100px 100px}.role-actions{grid-column:1/-1;justify-content:flex-start}.permission-row{grid-template-columns:1fr 110px}.permission-impact{grid-column:1/-1}}
+      @media(max-width:620px){.roles-head,.permission-head{flex-direction:column}.roles-head .primary-btn,.permission-actions .primary-btn{width:100%;justify-content:center}.role-row{grid-template-columns:1fr}.role-actions{grid-column:auto}.role-add-dialog .admin-form-grid{grid-template-columns:1fr}.permission-row{grid-template-columns:1fr}.permission-impact{grid-column:auto}.permission-actions{width:100%}}
     `;
     document.head.appendChild(style);
   }
@@ -49,13 +44,26 @@
     panel.className = 'portal-panel';
     panel.hidden = true;
     panel.innerHTML = `
-      <section class="controls-card roles-card">
-        <div class="roles-head"><div><h2>Roles</h2><p>Role identity, Level of Authority and inherited dashboard access for the working client.</p></div><button id="addRoleBtn" type="button" class="primary-btn compact-btn">+ Add role</button></div>
-        <div id="rolesStatus" class="role-status"></div>
-        <div id="rolesList" class="roles-list"><div class="entity-empty">Loading roles…</div></div>
-      </section>`;
+      <div class="roles-shell">
+        <section class="controls-card roles-card">
+          <div class="roles-head"><div><h2>Roles</h2><p>Role identity and Level of Authority for the working client. A role receives every portal capability whose required LOA is at or below the role LOA.</p></div><button id="addRoleBtn" type="button" class="primary-btn compact-btn">+ Add role</button></div>
+          <div id="rolesStatus" class="role-status"></div>
+          <div id="rolesList" class="roles-list"><div class="entity-empty">Loading roles…</div></div>
+        </section>
+        <section class="controls-card permission-card">
+          <div class="permission-head">
+            <div><h2>Permission policy</h2><p>Configure the minimum LOA for every delegable MERDPOS capability. This policy controls the sidebar, panels, action buttons, API endpoints and dashboard widgets together.</p></div>
+            <div class="permission-actions"><span id="permissionUnsaved" class="permission-unsaved" hidden>Unsaved changes</span><button id="savePermissionPolicy" class="primary-btn compact-btn" type="button">Save policy</button></div>
+          </div>
+          <div class="permission-danger-note"><strong>Backend enforced.</strong> Lowering a threshold grants that capability to more roles. Raising it removes access immediately; dashboard widgets whose underlying data permission is lost are pruned automatically. DEV-only capabilities remain locked at 1000.</div>
+          <div id="permissionSummary" class="permission-summary"></div>
+          <div id="permissionGroups" class="permission-groups"><div class="entity-empty">Loading permission policy…</div></div>
+          <p class="permission-footnote">A role name does not grant access by itself. The numeric LOA and this client permission policy are authoritative. DEV-only items additionally require an actual DEV identity and cannot be delegated by setting another role to LOA 1000.</p>
+        </section>
+      </div>`;
     main.appendChild(panel);
     document.getElementById('addRoleBtn')?.addEventListener('click', openAddRole);
+    document.getElementById('savePermissionPolicy')?.addEventListener('click', savePermissions);
   }
 
   function ensureAddDialog() {
@@ -65,13 +73,13 @@
     dialog.className = 'admin-dialog role-add-dialog';
     dialog.innerHTML = `
       <form id="roleAddForm">
-        <div class="admin-dialog-header"><div><h2>Add role</h2><p class="role-inherit-note">New roles inherit the Admin dashboard, then widgets above the selected LOA are automatically removed.</p></div><button type="button" class="icon-btn" data-role-close aria-label="Close">×</button></div>
+        <div class="admin-dialog-header"><div><h2>Add role</h2><p class="role-inherit-note">New roles inherit the current Admin dashboard. Anything above the selected role LOA is removed immediately.</p></div><button type="button" class="icon-btn" data-role-close aria-label="Close">×</button></div>
         <div class="admin-dialog-body">
           <div class="admin-form-grid">
             <label>Role name<input name="role_label" maxlength="80" required></label>
             <label>LOA<input name="authority_level" type="number" min="1" max="99" step="1" required></label>
           </div>
-          <div class="form-hint">Base capability: ADMIN. LOA determines which authority-sensitive dashboard widgets are available.</div>
+          <div class="form-hint">Custom roles use the ADMIN compatibility base internally, but actual access is decided by LOA + Permission Policy.</div>
           <div class="admin-dialog-footer"><button type="button" class="secondary-btn" data-role-close>Cancel</button><button type="submit" class="primary-btn compact-btn">Create role</button></div>
         </div>
       </form>`;
@@ -106,10 +114,14 @@
     node.classList.toggle('is-error', error);
   }
 
-  function render() {
+  function rolesSorted() {
+    return (state?.roles || []).slice().sort((a,b) => Number(a.authority_level)-Number(b.authority_level) || Number(a.id)-Number(b.id));
+  }
+
+  function renderRoles() {
     const root = document.getElementById('rolesList');
     if (!root || !state) return;
-    const roles = (state.roles || []).slice().sort((a,b) => Number(a.authority_level)-Number(b.authority_level) || Number(a.id)-Number(b.id));
+    const roles = rolesSorted();
     root.innerHTML = roles.map(role => {
       const key = String(role.role_key || '').toUpperCase();
       const isDev = key === 'DEV';
@@ -120,14 +132,14 @@
         <article class="role-row ${isDev ? 'role-dev-fixed' : ''}" data-role-row="${Number(role.id)}">
           <div class="role-copy">
             <div class="role-title"><strong>${esc(role.role_label)}</strong><span class="role-key">${esc(key)}</span>${system ? '<span class="role-system-chip">SYSTEM</span>' : ''}</div>
-            <small>${system ? `Base ${esc(role.base_role)}` : 'Custom · inherits ADMIN'} · ${Number(role.employee_count || 0)} employees</small>
+            <small>${isDev ? 'Non-delegable developer identity' : (system ? `System role · compatibility base ${esc(role.base_role)}` : 'Custom role · compatibility base ADMIN')} · ${Number(role.employee_count || 0)} employees</small>
           </div>
           <div class="role-meta"><span>Dashboard</span><strong>${Number(role.dashboard_widget_count || 0)} widgets</strong></div>
           <div class="role-meta"><span>Allowed</span><strong>${allowedCount} widgets</strong></div>
           <label class="role-loa"><span class="sr-only">LOA</span><input data-role-loa type="number" min="1" max="99" step="1" value="${Number(role.authority_level)}" ${isDev ? 'disabled' : ''}></label>
           <div class="role-actions">
             ${editableName ? `<button type="button" class="secondary-btn compact-btn" data-rename-role="${Number(role.id)}">Rename</button>` : ''}
-            ${!isDev ? `<button type="button" class="secondary-btn compact-btn" data-save-role="${Number(role.id)}">Save</button>` : '<span class="role-system-chip">Fixed 1000</span>'}
+            ${!isDev ? `<button type="button" class="secondary-btn compact-btn" data-save-role="${Number(role.id)}">Save</button>` : '<span class="role-system-chip">Fixed LOA 1000</span>'}
             ${!system ? `<button type="button" class="secondary-btn compact-btn role-delete" data-delete-role="${Number(role.id)}" ${Number(role.employee_count || 0) > 0 ? 'disabled title="Reassign employees first"' : ''}>Delete</button>` : ''}
           </div>
         </article>`;
@@ -136,6 +148,76 @@
     root.querySelectorAll('[data-save-role]').forEach(button => button.addEventListener('click', () => saveRole(Number(button.dataset.saveRole))));
     root.querySelectorAll('[data-delete-role]').forEach(button => button.addEventListener('click', () => deleteRole(Number(button.dataset.deleteRole))));
     root.querySelectorAll('[data-rename-role]').forEach(button => button.addEventListener('click', () => renameRole(Number(button.dataset.renameRole))));
+    root.querySelectorAll('[data-role-loa]').forEach(input => input.addEventListener('input', renderPermissions));
+  }
+
+  function permissionDraftLevel(permission) {
+    const input = document.querySelector(`[data-permission-key="${CSS.escape(String(permission.permission_key))}"]`);
+    if (input) return Number(input.value);
+    return Number(permission.min_authority_level || 1000);
+  }
+
+  function draftRoleLevels() {
+    const map = new Map();
+    rolesSorted().forEach(role => {
+      const input = document.querySelector(`[data-role-row="${Number(role.id)}"] [data-role-loa]`);
+      map.set(Number(role.id), input && !input.disabled ? Number(input.value) : Number(role.authority_level));
+    });
+    return map;
+  }
+
+  function impactHtml(permission, threshold, roleLevels) {
+    const roles = rolesSorted().filter(role => {
+      const key = String(role.role_key || '').toUpperCase();
+      if (permission.dev_only) return key === 'DEV';
+      return Number(roleLevels.get(Number(role.id)) ?? role.authority_level) >= threshold;
+    });
+    if (!roles.length) return '<span class="impact-none">No current role</span>';
+    return roles.map(role => `<span class="impact-role">${esc(role.role_label)} · ${Number(roleLevels.get(Number(role.id)) ?? role.authority_level)}</span>`).join('');
+  }
+
+  function renderPermissions() {
+    const root = document.getElementById('permissionGroups');
+    const summary = document.getElementById('permissionSummary');
+    if (!root || !state) return;
+    const permissions = (state.permissions || []).slice();
+    const roleLevels = draftRoleLevels();
+    const groups = new Map();
+    permissions.forEach(permission => {
+      const category = String(permission.category || 'Other');
+      if (!groups.has(category)) groups.set(category, []);
+      groups.get(category).push(permission);
+    });
+
+    root.innerHTML = Array.from(groups.entries()).map(([category, rows]) => `
+      <section class="permission-group">
+        <div class="permission-group-title"><strong>${esc(category)}</strong><small>${rows.length} ${rows.length === 1 ? 'capability' : 'capabilities'}</small></div>
+        ${rows.map(permission => {
+          const threshold = Number(permission.min_authority_level || 1000);
+          return `<div class="permission-row">
+            <div class="permission-copy"><strong>${esc(permission.label)}</strong><code>${esc(permission.permission_key)}</code></div>
+            <label class="permission-level"><span class="sr-only">Minimum LOA</span><input type="number" min="1" max="1000" step="1" value="${threshold}" data-permission-key="${esc(permission.permission_key)}" ${permission.dev_only ? 'disabled' : ''}>${permission.dev_only ? '<span class="permission-lock">DEV</span>' : ''}</label>
+            <div class="permission-impact" data-permission-impact="${esc(permission.permission_key)}">${impactHtml(permission, threshold, roleLevels)}</div>
+          </div>`;
+        }).join('')}
+      </section>`).join('');
+
+    root.querySelectorAll('[data-permission-key]').forEach(input => {
+      input.addEventListener('input', () => {
+        const key = input.dataset.permissionKey;
+        const permission = (state.permissions || []).find(item => item.permission_key === key);
+        const impact = root.querySelector(`[data-permission-impact="${CSS.escape(String(key))}"]`);
+        if (permission && impact) impact.innerHTML = impactHtml(permission, Number(input.value), draftRoleLevels());
+        const unsaved = document.getElementById('permissionUnsaved');
+        if (unsaved) unsaved.hidden = false;
+      });
+    });
+
+    if (summary) {
+      const delegable = permissions.filter(item => !item.dev_only).length;
+      const locked = permissions.filter(item => item.dev_only).length;
+      summary.innerHTML = `<span>${permissions.length} capabilities</span><span>${delegable} configurable</span><span>${locked} DEV-only locked</span><span>${rolesSorted().length} roles evaluated</span>`;
+    }
   }
 
   function openAddRole() {
@@ -144,7 +226,7 @@
     form?.reset();
     if (form?.elements.authority_level) {
       const admin = (state?.roles || []).find(role => String(role.role_key).toUpperCase() === 'ADMIN');
-      form.elements.authority_level.value = admin ? Number(admin.authority_level) : 50;
+      form.elements.authority_level.value = admin ? Math.min(99, Number(admin.authority_level)) : 50;
     }
     document.getElementById('roleAddDialog')?.showModal();
   }
@@ -162,8 +244,8 @@
         body:JSON.stringify({action:'create_role',csrf:state.csrf,role_label:form.elements.role_label.value,authority_level:Number(form.elements.authority_level.value)}),
       });
       document.getElementById('roleAddDialog')?.close();
-      render();
-      setStatus('Role created from the Admin dashboard template.');
+      renderAll();
+      setStatus('Role created. Its Admin dashboard inheritance was filtered through the current permission policy.');
       window.MERDPOSDashboardBuilder?.reloadRoles?.();
     } catch (error) { setStatus(error.message, true); }
     finally { button.disabled = false; }
@@ -180,8 +262,8 @@
         method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
         body:JSON.stringify({action:'save_role',csrf:state.csrf,role_id:roleId,role_label:labelOverride ?? role.role_label,authority_level:loa}),
       });
-      render();
-      setStatus('Role saved. Dashboard access was revalidated against LOA.');
+      renderAll();
+      setStatus('Role saved. Portal permissions and dashboard eligibility were recalculated from the new LOA.');
       window.MERDPOSDashboardBuilder?.reloadRoles?.();
     } catch (error) { setStatus(error.message, true); }
   }
@@ -205,22 +287,59 @@
         method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
         body:JSON.stringify({action:'delete_role',csrf:state.csrf,role_id:roleId}),
       });
-      render();
+      renderAll();
       setStatus('Role and its dashboard template were deleted.');
       window.MERDPOSDashboardBuilder?.reloadRoles?.();
     } catch (error) { setStatus(error.message, true); }
   }
 
+  async function savePermissions() {
+    if (!state) return;
+    const button = document.getElementById('savePermissionPolicy');
+    const levels = {};
+    let valid = true;
+    document.querySelectorAll('[data-permission-key]').forEach(input => {
+      if (input.disabled) return;
+      const value = Number(input.value);
+      if (!Number.isInteger(value) || value < 1 || value > 1000) valid = false;
+      levels[input.dataset.permissionKey] = value;
+    });
+    if (!valid) { setStatus('Every permission LOA must be a whole number from 1 to 1000.', true); return; }
+    if (!window.confirm('Save this permission policy? Access changes take effect immediately across menus, APIs and dashboards.')) return;
+    if (button) button.disabled = true;
+    try {
+      state = await api('api/role_authority.php', {
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({action:'save_permissions',csrf:state.csrf,levels}),
+      });
+      renderAll();
+      const unsaved = document.getElementById('permissionUnsaved');
+      if (unsaved) unsaved.hidden = true;
+      setStatus('Permission policy saved. Restricted dashboard widgets were pruned and the backend policy is active immediately.');
+      window.MERDPOSDashboardBuilder?.reloadRoles?.();
+    } catch (error) { setStatus(error.message, true); }
+    finally { if (button) button.disabled = false; }
+  }
+
+  function renderAll() {
+    renderRoles();
+    renderPermissions();
+    const unsaved = document.getElementById('permissionUnsaved');
+    if (unsaved) unsaved.hidden = true;
+  }
+
   async function load() {
-    setStatus('Loading roles…');
+    setStatus('Loading roles and permission policy…');
     try {
       state = await api('api/role_authority.php?_=' + Date.now(), {headers:{'Accept':'application/json'}});
-      render();
-      setStatus(`Client ${state.client?.client_code || state.client?.id || ''}`);
+      renderAll();
+      setStatus(`Client ${state.client?.client_code || state.client?.id || ''} · Central LOA authorization active`);
     } catch (error) {
       setStatus(error.message, true);
       const root = document.getElementById('rolesList');
       if (root) root.innerHTML = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
+      const permissionRoot = document.getElementById('permissionGroups');
+      if (permissionRoot) permissionRoot.innerHTML = `<div class="entity-empty is-error">${esc(error.message)}</div>`;
     }
   }
 
