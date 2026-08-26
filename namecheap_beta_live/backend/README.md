@@ -46,7 +46,11 @@ The Namecheap deployment script is expected to fail closed on at least:
 - missing permission-policy coverage;
 - migration/schema verification failures;
 - portal HTML/API response-boundary invariants;
-- other explicitly registered release invariants.
+- beta runtime-contract violations.
+
+`backend/cli/validate_beta_runtime_contract.php` verifies that important documented beta contracts are actually wired. For the shared Add/Search UI it now checks more than class names: the canonical 46px desktop diameter, true-circle rule, Dashboard Add normalization, Search+Add runtime clustering, management-loader wiring and relevant README/context requirements must all be present.
+
+Runtime validators are release guards, not substitutes for visual verification in the browser. Representative screens must still be compared for actual geometry/placement/mobile behavior before a UI change is called VERIFIED.
 
 Do not describe source as `live` until `.beta_deployed_commit` confirms the intended commit and the relevant runtime path has been verified.
 
