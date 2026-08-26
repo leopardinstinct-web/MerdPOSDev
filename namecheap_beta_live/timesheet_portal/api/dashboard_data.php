@@ -44,11 +44,20 @@ try {
         $working = array_values(array_filter($working, fn(array $row): bool => (string)($row['user_id'] ?? '') === (string)$user['user_id']));
     }
 
+    // Shared dispute helpers recognise SUPER through employee_type OR role_name.
+    // When previewing/serving a role below management LOA, scrub both fields so
+    // the helper itself cannot return management rows that the dashboard should
+    // never receive.
     $dataUser = $user;
     if (!$managementScope) {
         $dataUser['is_super'] = false;
         $dataUser['is_management'] = false;
+        $dataUser['is_admin'] = false;
+        $dataUser['is_dev'] = false;
+        $dataUser['role'] = 'USER';
+        $dataUser['actual_employee_type'] = 'USER';
         $dataUser['employee_type'] = 'USER';
+        $dataUser['role_name'] = 'USER';
     }
     $disputes = merd_list_disputes($pdo, $dataUser);
 
