@@ -1,0 +1,377 @@
+/*
+ * MERDPOS Beta — mobile hardening contract
+ *
+ * This is a shared compatibility layer, not feature-local styling. It resolves
+ * mobile interaction/layout failures that cannot safely be left to individual
+ * feature modules. Values consume the MERDPOS semantic token system.
+ */
+
+:root {
+  --merd-mobile-topbar-h: 3.625rem;
+  --merd-mobile-subnav-h: 3rem;
+  --merd-mobile-nav-h: 4rem;
+  --merd-mobile-page-gutter: var(--merd-space-3, .75rem);
+  --merd-mobile-edge-gap: var(--merd-space-2, .5rem);
+  --merd-mobile-dialog-gap: var(--merd-space-2, .5rem);
+  --merd-mobile-layer-nav: 80;
+  --merd-mobile-layer-subnav: 90;
+  --merd-mobile-layer-drawer-backdrop: 130;
+  --merd-mobile-layer-drawer: 140;
+  --merd-mobile-layer-notice: 150;
+  --merd-mobile-layer-dialog-fallback: 160;
+  --merd-mobile-visual-height: 100vh;
+}
+
+/* Progressive enhancement: modern browsers replace vh with the true visual
+   viewport height from mobile-runtime.js. */
+@supports (height: 100dvh) {
+  :root { --merd-mobile-visual-height: 100dvh; }
+}
+
+/* A fallback dialog backdrop used only when native <dialog>.showModal is absent. */
+.merd-dialog-fallback-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--merd-mobile-layer-dialog-fallback) - 1);
+  background: color-mix(in srgb, var(--merd-text, #1D1D1F) 34%, transparent);
+}
+.merd-shell dialog.merd-dialog-fallback[open] {
+  display: block;
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--merd-mobile-layer-dialog-fallback);
+}
+
+@media (max-width: 51.25rem) {
+  /* -----------------------------------------------------------------------
+     Application shell: one stable top row + one bottom navigation row.
+     ----------------------------------------------------------------------- */
+  body.merd-shell {
+    padding-bottom: calc(var(--merd-mobile-nav-h) + env(safe-area-inset-bottom)) !important;
+    overflow-x: hidden !important;
+  }
+
+  .merd-shell .merd-topbar {
+    min-height: var(--merd-mobile-topbar-h) !important;
+    height: var(--merd-mobile-topbar-h) !important;
+    max-height: var(--merd-mobile-topbar-h) !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: var(--merd-space-2, .5rem) !important;
+    overflow: visible !important;
+  }
+  .merd-shell .merd-logo-lockup {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .merd-shell .merd-topbar .topbar-actions {
+    width: auto !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex: 0 1 auto !important;
+  }
+
+  .merd-shell .app-workspace.merd-page-shell {
+    padding-top: calc(var(--merd-mobile-subnav-h) + var(--merd-space-3, .75rem)) !important;
+    padding-right: var(--merd-mobile-page-gutter) !important;
+    padding-left: var(--merd-mobile-page-gutter) !important;
+    padding-bottom: var(--merd-space-6, 1.5rem) !important;
+  }
+
+  .merd-shell .app-rail {
+    height: calc(var(--merd-mobile-nav-h) + env(safe-area-inset-bottom)) !important;
+    z-index: var(--merd-mobile-layer-nav) !important;
+    touch-action: manipulation;
+  }
+  .merd-shell .rail-group-btn,
+  .merd-shell .app-frame.nav-collapsed .rail-group-btn {
+    min-height: var(--merd-touch-h, 3rem) !important;
+    touch-action: manipulation;
+  }
+  .merd-shell .rail-group-btn .rail-label,
+  .merd-shell .app-frame.nav-collapsed .rail-label {
+    font-size: .625rem !important;
+    line-height: 1.1 !important;
+    max-width: 4.5rem !important;
+  }
+
+  .merd-shell .sidebar-group,
+  .merd-shell .app-frame.nav-collapsed .sidebar-group {
+    top: var(--merd-mobile-topbar-h) !important;
+    min-height: var(--merd-mobile-subnav-h) !important;
+    z-index: var(--merd-mobile-layer-subnav) !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .merd-shell .sidebar-group .portal-tab {
+    min-height: var(--merd-touch-h, 3rem) !important;
+    touch-action: manipulation;
+  }
+
+  /* Hide fixed chrome while the software keyboard consumes the visual viewport.
+     The active form/dialog remains reachable instead of being covered by nav. */
+  body.merd-keyboard-open {
+    padding-bottom: 0 !important;
+  }
+  body.merd-keyboard-open .app-rail {
+    transform: translateY(110%);
+    pointer-events: none;
+  }
+  body.merd-keyboard-open .sidebar-group {
+    display: none !important;
+  }
+
+  /* -----------------------------------------------------------------------
+     Account menu: never force the top bar onto a second row.
+     ----------------------------------------------------------------------- */
+  .merd-shell .account-trigger {
+    min-height: var(--merd-touch-h, 3rem) !important;
+    max-width: min(48vw, 14rem);
+  }
+  .merd-shell .account-name,
+  .merd-shell .account-client-pill {
+    max-width: 5.5rem !important;
+  }
+  .merd-shell .account-popover {
+    position: fixed !important;
+    top: calc(var(--merd-mobile-topbar-h) + var(--merd-mobile-edge-gap)) !important;
+    right: var(--merd-mobile-edge-gap) !important;
+    left: var(--merd-mobile-edge-gap) !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(var(--merd-mobile-visual-height) - var(--merd-mobile-topbar-h) - (var(--merd-mobile-edge-gap) * 2)) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
+  }
+  .merd-shell .account-menu-item,
+  .merd-shell .account-client-context select {
+    min-height: var(--merd-touch-h, 3rem) !important;
+  }
+
+  /* -----------------------------------------------------------------------
+     Dialogs: every dialog must remain usable with a mobile keyboard, including
+     older dialogs whose form does not have an .admin-dialog-body wrapper.
+     ----------------------------------------------------------------------- */
+  .merd-shell dialog.portal-dialog,
+  .merd-shell dialog.admin-dialog,
+  .merd-shell .migration-dialog {
+    width: calc(100vw - (var(--merd-mobile-dialog-gap) * 2)) !important;
+    max-width: calc(100vw - (var(--merd-mobile-dialog-gap) * 2)) !important;
+    max-height: calc(var(--merd-mobile-visual-height) - (var(--merd-mobile-dialog-gap) * 2)) !important;
+    margin: auto !important;
+    overflow: hidden !important;
+  }
+  .merd-shell dialog.portal-dialog > form,
+  .merd-shell dialog.admin-dialog > form {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: inherit !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .merd-shell dialog .admin-dialog-body {
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 1 1 auto;
+  }
+  .merd-shell dialog .admin-dialog-header,
+  .merd-shell dialog .dialog-head,
+  .merd-shell dialog .dialog-heading {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex: 0 0 auto;
+    background: var(--merd-surface, #FFFFFF) !important;
+  }
+  .merd-shell dialog .admin-dialog-footer,
+  .merd-shell dialog .dialog-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 3 !important;
+    flex: 0 0 auto;
+  }
+  .merd-shell dialog input,
+  .merd-shell dialog select,
+  .merd-shell dialog textarea,
+  .merd-shell dialog button {
+    touch-action: manipulation;
+  }
+
+  /* Password dialog predates .admin-dialog-body; give its direct fields useful
+     breathing room while allowing the form itself to scroll. */
+  .merd-shell #passwordDialog > form {
+    gap: var(--merd-space-3, .75rem);
+    padding-bottom: var(--merd-space-4, 1rem);
+  }
+  .merd-shell #passwordDialog > form > :not(.dialog-heading) {
+    margin-right: var(--merd-space-4, 1rem);
+    margin-left: var(--merd-space-4, 1rem);
+  }
+  .merd-shell #passwordDialog > form > .primary-btn {
+    margin-bottom: calc(var(--merd-space-2, .5rem) + env(safe-area-inset-bottom));
+  }
+
+  /* -----------------------------------------------------------------------
+     Directories / Clients / Roles: actions must stay inside their card.
+     ----------------------------------------------------------------------- */
+  .merd-shell .entity-row {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .merd-shell .client-row-actions {
+    grid-column: 2 / -1 !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  .merd-shell .client-row-actions .icon-text-btn,
+  .merd-shell .role-actions button,
+  .merd-shell .permission-actions button {
+    min-height: var(--merd-touch-h, 3rem) !important;
+  }
+
+  /* Status/notice toasts must clear the fixed bottom navigation. */
+  .merd-shell .directory-notice {
+    right: var(--merd-mobile-page-gutter) !important;
+    bottom: calc(var(--merd-mobile-nav-h) + env(safe-area-inset-bottom) + var(--merd-space-3, .75rem)) !important;
+    left: var(--merd-mobile-page-gutter) !important;
+    z-index: var(--merd-mobile-layer-notice) !important;
+    max-width: none !important;
+  }
+
+  /* -----------------------------------------------------------------------
+     Tables and dense financial/migration data.
+     ----------------------------------------------------------------------- */
+  .merd-shell .table-scroll,
+  .merd-shell .app-table-shell,
+  .merd-shell .dashboard-widget-body {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
+  }
+  .merd-shell .migration-table,
+  .merd-shell .dashboard-mini-table {
+    min-width: max-content;
+  }
+
+  /* -----------------------------------------------------------------------
+     Dashboard drawer: becomes a true mobile sheet above all application chrome.
+     ----------------------------------------------------------------------- */
+  .merd-shell .dashboard-add-button {
+    bottom: calc(var(--merd-mobile-nav-h) + env(safe-area-inset-bottom) + var(--merd-space-3, .75rem)) !important;
+    right: var(--merd-mobile-page-gutter) !important;
+    z-index: calc(var(--merd-mobile-layer-drawer) + 1) !important;
+  }
+  .merd-shell .dashboard-widget-drawer {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: min(100vw, 30rem) !important;
+    max-width: 100vw !important;
+    z-index: var(--merd-mobile-layer-drawer) !important;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .merd-dashboard-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--merd-mobile-layer-drawer-backdrop);
+    background: color-mix(in srgb, var(--merd-text, #1D1D1F) 30%, transparent);
+  }
+  .dashboard-drawer-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--merd-space-2, .5rem);
+  }
+  .dashboard-drawer-head > p {
+    grid-column: 1 / -1;
+  }
+  .merd-dashboard-drawer-close {
+    width: var(--merd-touch-h, 3rem);
+    height: var(--merd-touch-h, 3rem);
+    min-width: var(--merd-touch-h, 3rem);
+    min-height: var(--merd-touch-h, 3rem);
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    color: inherit;
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  /* Desktop drag/resize has no useful touch analogue. Mobile gets deterministic
+     up/down reorder controls instead; resize remains a desktop layout concept. */
+  .merd-shell .dashboard-widget-actions {
+    gap: var(--merd-space-1, .25rem) !important;
+  }
+  .merd-shell .dashboard-widget-action,
+  .merd-shell .merd-dashboard-mobile-order {
+    width: var(--merd-touch-h, 3rem) !important;
+    height: var(--merd-touch-h, 3rem) !important;
+    min-width: var(--merd-touch-h, 3rem) !important;
+    min-height: var(--merd-touch-h, 3rem) !important;
+    border-radius: var(--merd-radius-control, .625rem) !important;
+    touch-action: manipulation;
+  }
+  .merd-shell .dashboard-widget-head {
+    min-height: calc(var(--merd-touch-h, 3rem) + var(--merd-space-1, .25rem)) !important;
+    height: auto !important;
+  }
+
+  /* Tap interactions should not wait for synthetic click delays or keep hover
+     transforms stuck on coarse-pointer devices. */
+  .merd-shell button,
+  .merd-shell a,
+  .merd-shell summary,
+  .merd-shell [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (max-width: 35rem) {
+  .merd-shell .account-name,
+  .merd-shell .account-client-pill {
+    display: none !important;
+  }
+  .merd-shell .account-trigger {
+    max-width: none;
+    min-width: var(--merd-touch-h, 3rem) !important;
+    padding-inline: var(--merd-space-2, .5rem) !important;
+  }
+
+  .merd-shell .client-row-actions,
+  .merd-shell .role-actions,
+  .merd-shell .permission-actions {
+    gap: var(--merd-space-2, .5rem) !important;
+  }
+  .merd-shell .client-row-actions > *,
+  .merd-shell .role-actions > *,
+  .merd-shell .permission-actions > * {
+    flex: 1 1 9rem !important;
+    width: auto !important;
+  }
+
+  .merd-shell .dashboard-widget-drawer {
+    width: 100vw !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .merd-shell button:hover,
+  .merd-shell .rail-group-btn:hover,
+  .merd-shell .portal-tab:hover,
+  .merd-shell .dashboard-widget:hover {
+    transform: none !important;
+  }
+}
