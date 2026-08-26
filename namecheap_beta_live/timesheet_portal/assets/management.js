@@ -12,8 +12,21 @@
     if(!document.querySelector('link[data-merd-shell]')){
       const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260825f';link.dataset.merdShell='1';document.head.appendChild(link);
     }
+    // Load the role-aware dashboard assets first. navigation.js detects these
+    // data attributes and will not request an older cached dashboard module.
+    if(!document.querySelector('link[data-dashboard-builder-css]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='assets/dashboard-builder.css?v=20260826b';link.dataset.dashboardBuilderCss='1';document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-dashboard-builder]')){
+      const script=document.createElement('script');script.src='assets/dashboard-builder.js?v=20260826b';script.dataset.dashboardBuilder='1';document.body.appendChild(script);
+    }
+    // Mount Roles into the raw Operations group before navigation is transformed,
+    // so the sidebar child count and click behavior are deterministic.
+    if(document.querySelector('.dev-tab')&&!document.querySelector('script[data-roles-module]')){
+      const script=document.createElement('script');script.src='assets/roles.js?v=20260826b';script.dataset.rolesModule='1';document.body.appendChild(script);
+    }
     if(!document.querySelector('script[data-merd-navigation]')){
-      const script=document.createElement('script');script.src='assets/navigation.js?v=20260826b';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);
+      const script=document.createElement('script');script.src='assets/navigation.js?v=20260826c';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);
     }
     if(!document.querySelector('script[data-store-order]')){
       const script=document.createElement('script');script.src='assets/store-order.js?v=20260825d';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);
