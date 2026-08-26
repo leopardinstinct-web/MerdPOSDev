@@ -120,11 +120,27 @@ Binding current rules:
 
 - mobile-ready at implementation time;
 - shared spacing/type/control/table/dialog geometry;
-- Add Store / Employee / Client / Role and equivalent list create actions use a circular `+` icon only;
+- Dashboard Add and Add Store / Employee / Client / Role use the same canonical circular `+` primitive;
+- desktop Add/Search action diameter is 46px; tablet/phone is 48px;
 - list search starts as a circular magnifier and expands on demand;
-- 48px minimum interactive target on mobile/tablet;
+- when Search and Add both exist they remain adjacent in one right-aligned action cluster;
 - no page-level horizontal overflow from tables/forms;
 - dialogs fit the dynamic mobile viewport and keep actions reachable.
+
+### Shared-component verification rule
+
+Semantic consistency is not enough. Matching icon/class names do not prove a shared component is implemented.
+
+Before calling a shared beta component implemented, compare representative screens and verify actual visual equivalence for:
+
+- width/height;
+- border radius/shape;
+- icon dimensions/stroke weight;
+- background/border/shadow/focus state;
+- relative placement to sibling controls;
+- desktop and mobile behavior.
+
+For the global Add/Search primitive, Dashboard + at least one directory screen are the required comparison pair. A circular Dashboard `+` and rounded-square Store `+` is a failed implementation.
 
 Runtime implementation must be verified in actual code, including loading through the portal entry path. A Markdown rule is DOCUMENTED only.
 
