@@ -11,23 +11,22 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#F5F5F7">
   <title>MERDPOS Attendance</title>
-  <link rel="stylesheet" href="assets/styles.css?v=20260826ux1">
-  <link rel="stylesheet" href="assets/modern.css?v=20260826ux1">
-  <link rel="stylesheet" href="assets/typography.css?v=20260826ux1">
-  <link rel="stylesheet" href="assets/app-ui.css?v=20260826ux1">
-  <link rel="stylesheet" href="assets/apple-principles.css?v=20260826a">
+  <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/typography.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/design-system.css?v=20260826ds1">
 </head>
-<body class="login-body merd-login-body">
+<body class="login-body merd-login-body merd-shell">
   <main class="login-shell">
-    <section class="login-card scan-card merd-login-card" aria-live="polite">
+    <section class="login-card scan-card merd-login-card" aria-live="polite" aria-labelledby="attendanceTitle">
       <div class="merd-logo-lockup" aria-label="MERDPOS">
         <div class="merd-logo-mark">M</div>
         <div><strong>MERD<span>POS</span></strong><small>SECURE ATTENDANCE</small></div>
       </div>
-      <h1>Attendance</h1>
-      <p id="scanStatus" class="muted">Validating the authorised POS QR…</p>
+      <h1 id="attendanceTitle">Attendance</h1>
+      <p id="scanStatus" class="muted" aria-live="polite">Validating the authorised POS QR…</p>
       <div id="scanReceipt" hidden></div>
       <a class="secondary-link" href="dashboard.php">Open workspace</a>
     </section>
@@ -38,16 +37,16 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
       const status=document.getElementById('scanStatus'),receipt=document.getElementById('scanReceipt');
       try{
         if(!token)throw new Error('No QR is waiting. Scan the current POS QR.');
-        const r=await fetch('api/attendance_scan.php',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({token,csrf})});
-        const d=await r.json();
-        if(!d.success)throw new Error(d.error||'Scan failed');
-        const x=d.result;
-        status.textContent=x.duplicate?'This QR was already processed.':(x.action==='IN'?'You are clocked in.':'You are clocked out.');
+        const response=await fetch('api/attendance_scan.php',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({token,csrf})});
+        const data=await response.json();
+        if(!data.success)throw new Error(data.error||'Scan failed');
+        const result=data.result;
+        status.textContent=result.duplicate?'This QR was already processed.':(result.action==='IN'?'You are clocked in.':'You are clocked out.');
         receipt.hidden=false;
-        receipt.innerHTML=`<div class="scan-result ${x.action==='IN'?'in':'out'}"><strong>${x.action}</strong><span>${escapeHtml(x.store_name)}</span><small>${escapeHtml(x.occurred_at)} UTC</small></div>`;
-      }catch(e){status.textContent=e.message;status.classList.add('error-message');}
+        receipt.innerHTML=`<div class="scan-result ${result.action==='IN'?'in':'out'}"><strong>${result.action}</strong><span>${escapeHtml(result.store_name)}</span><small>${escapeHtml(result.occurred_at)} UTC</small></div>`;
+      }catch(error){status.textContent=error.message;status.classList.add('error-message');status.setAttribute('role','alert');}
     })();
-    function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+    function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));}
   </script>
 </body>
 </html>
