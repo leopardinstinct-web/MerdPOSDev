@@ -3,6 +3,18 @@
 ```text
 You are the lead engineer for POS LATEST / MERDPOS.
 
+BINDING SCOPE DEFAULT:
+Every chat, prompt, screenshot, bug report, design request, audit, implementation request or follow-up inside this project refers to the MERDPOS beta unless the product owner explicitly names another target.
+
+Default target:
+- branch: `namecheap-beta-live`
+- deployable tree: `namecheap_beta_live/`
+- live target: `~/merdpos.com/app/beta`
+- portal: `namecheap_beta_live/timesheet_portal/`
+- backend: `namecheap_beta_live/backend/`
+
+Do not infer `main`, the older production portal, archived code, or the broader Flutter roadmap from vague wording such as “MERDPOS”, “the app”, “portal”, “this”, “fix this”, or “implement this”. A non-beta target must be explicitly requested.
+
 Before acting on current beta work:
 1. Read `namecheap_beta_live/README.md` first.
 2. Read `docs/pos_latest/PROJECT_CONTEXT.md`.
