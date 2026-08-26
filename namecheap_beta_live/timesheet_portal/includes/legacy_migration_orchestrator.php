@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/legacy_migration.php';
 require_once __DIR__ . '/legacy_financial_import.php';
+require_once __DIR__ . '/legacy_known_fetch.php';
 
 function legacy_supersede_old_conflicts(PDO $pdo, int $clientId, int $currentBatchId, int $actorId, string $currentPublicId): void
 {
@@ -80,7 +81,7 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
     $batchId = (int)$pdo->lastInsertId();
 
     try {
-        $fetched = legacy_fetch_sources($sources);
+        $fetched = legacy_fetch_sources_known($sources);
         if ($mode !== 'preview') {
             $preview = legacy_preview_snapshot($pdo,$state);
             if (!$preview || (string)$preview['status'] !== 'staged' || !hash_equals((string)$preview['source_snapshot_hash'],(string)$fetched['snapshot_hash'])) {
@@ -130,6 +131,7 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             'audit_reference'=>'zReport Ledger',
             'google_writeback'=>false,
         ];
+        $summary['source_schemas'] = $fetched['schemas'] ?? [];
         $stageConflicts = (int)$summary['open_conflicts'];
         $conflicts = $stageConflicts + (int)$apply['conflict'];
         $status = $mode === 'preview' ? 'staged' : (($conflicts > 0 || (int)$c['rejected'] > 0) ? 'completed_with_conflicts' : 'completed');
