@@ -1,0 +1,226 @@
+/*
+ * MERDPOS Beta Design Tokens — canonical visual source of truth.
+ *
+ * Feature code must consume these semantic variables instead of inventing
+ * colours, spacing, radii, typography sizes or control dimensions.
+ * Absolute values live here intentionally; components reference semantics.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Brand + semantic colour pairs. All normal text pairs are WCAG AA. */
+  --color-brand-primary: #1C4587;
+  --color-brand-primary-hover: #173B74;
+  --color-brand-primary-active: #12315F;
+  --color-brand-on-primary: #FFFFFF;
+
+  --color-bg-main: #F3F5F8;
+  --color-bg-subtle: #F7F8FA;
+  --color-surface-main: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-muted: #F5F7FA;
+  --color-surface-selected: #EAF0F8;
+
+  --color-text-primary: #1D2939;
+  --color-text-secondary: #475467;
+  --color-text-muted: #667085;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border-default: #D0D5DD;
+  --color-border-subtle: #E4E7EC;
+  --color-border-strong: #98A2B3;
+
+  --color-focus: #2F6FEB;
+  --color-focus-soft: rgba(47, 111, 235, .22);
+
+  --color-success: #18794E;
+  --color-success-surface: #ECF8F3;
+  --color-warning: #8A5300;
+  --color-warning-surface: #FFF6DF;
+  --color-danger: #B42318;
+  --color-danger-surface: #FFF0EF;
+  --color-info: #175CD3;
+  --color-info-surface: #EFF8FF;
+
+  --color-nav-bg: #111936;
+  --color-nav-bg-hover: #1B2852;
+  --color-nav-bg-subtle: #182441;
+  --color-nav-active: #0F70D1;
+  --color-nav-sub-active: #293B63;
+  --color-nav-text: #EEF4FF;
+  --color-nav-text-muted: #C3D0E8;
+  --color-nav-border: #243154;
+
+  --color-overlay: rgba(17, 25, 54, .42);
+  --color-shadow: rgba(17, 25, 54, .12);
+
+  /* Chart colours — distinct and readable against the light surface. */
+  --color-chart-1: #1C4587;
+  --color-chart-2: #0F766E;
+  --color-chart-3: #A15C00;
+  --color-chart-4: #6D56C9;
+  --color-chart-5: #B42318;
+
+  /* Spacing scale. */
+  --space-0: 0;
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* 1.125 modular type scale. */
+  --type-xs: .79rem;
+  --type-sm: .889rem;
+  --type-md: 1rem;
+  --type-lg: 1.125rem;
+  --type-xl: 1.266rem;
+  --type-2xl: 1.424rem;
+  --type-3xl: 1.602rem;
+  --type-4xl: 1.802rem;
+
+  --line-tight: 1.18;
+  --line-heading: 1.25;
+  --line-body: 1.5;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Geometry. */
+  --radius-control: .625rem;
+  --radius-card: .875rem;
+  --radius-dialog: 1.125rem;
+  --radius-pill: 999rem;
+  --radius-circle: 50%;
+
+  --size-control: 2.75rem;          /* 44px desktop minimum */
+  --size-control-compact: 2.5rem;
+  --size-touch: 3rem;               /* 48px touch target */
+  --size-icon-action: 2.875rem;     /* 46px desktop Add/Search */
+  --size-icon-action-touch: 3rem;   /* 48px mobile */
+  --size-icon-sm: 1rem;
+  --size-icon-md: 1.125rem;
+  --size-icon-lg: 1.25rem;
+
+  --content-max: 90rem;
+  --dialog-max: 42rem;
+  --search-expanded-max: 22rem;
+
+  /* Elevation. */
+  --shadow-card: 0 .0625rem .25rem rgba(17, 25, 54, .08);
+  --shadow-raised: 0 .5rem 1.5rem rgba(17, 25, 54, .12);
+  --shadow-dialog: 0 1.5rem 4rem rgba(17, 25, 54, .22);
+  --shadow-action: 0 .5rem 1.25rem rgba(28, 69, 135, .20);
+
+  /* Motion. */
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+  --ease-standard: cubic-bezier(.2, .8, .2, 1);
+
+  /* Layout breakpoints are documented here for CSS/JS parity. */
+  --breakpoint-phone: 35rem;
+  --breakpoint-tablet: 51.25rem;
+  --breakpoint-desktop-narrow: 65.625rem;
+
+  /* Compatibility aliases while legacy beta CSS is being retired. */
+  --merd-primary: var(--color-brand-primary);
+  --merd-text: var(--color-text-primary);
+  --merd-muted: var(--color-text-muted);
+  --merd-surface: var(--color-surface-main);
+  --merd-surface-soft: var(--color-surface-muted);
+  --merd-border: var(--color-border-subtle);
+  --merd-border-strong: var(--color-border-default);
+  --merd-space-1: var(--space-1);
+  --merd-space-2: var(--space-2);
+  --merd-space-3: var(--space-3);
+  --merd-space-4: var(--space-4);
+  --merd-space-5: var(--space-5);
+  --merd-space-6: var(--space-6);
+  --merd-space-8: var(--space-8);
+  --merd-control-h: var(--size-control);
+  --merd-button-h: var(--size-control);
+  --merd-touch-h: var(--size-touch);
+  --merd-radius-control: var(--radius-control);
+  --merd-radius-card: var(--radius-card);
+  --merd-radius-dialog: var(--radius-dialog);
+  --merd-action-diameter: var(--size-icon-action);
+  --merd-action-gap: var(--space-2);
+
+  --shell-rail: var(--color-nav-bg);
+  --shell-rail-hover: var(--color-nav-bg-hover);
+  --shell-rail-active: var(--color-nav-active);
+  --shell-sub-bg: var(--color-nav-bg-subtle);
+  --shell-sub-active: var(--color-nav-sub-active);
+  --shell-sub: var(--color-nav-text);
+  --shell-sub-muted: var(--color-nav-text-muted);
+  --shell-workspace: var(--color-bg-main);
+  --shell-line: var(--color-border-subtle);
+  --shell-ink: var(--color-text-primary);
+  --shell-muted: var(--color-text-muted);
+  --shell-blue: var(--color-brand-primary);
+
+  --ui-bg: var(--color-bg-main);
+  --ui-surface: var(--color-surface-main);
+  --ui-surface-soft: var(--color-surface-muted);
+  --ui-border: var(--color-border-subtle);
+  --ui-border-strong: var(--color-border-default);
+  --ui-text: var(--color-text-primary);
+  --ui-muted: var(--color-text-muted);
+  --ui-brand: var(--color-brand-primary);
+  --ui-brand-hover: var(--color-brand-primary-hover);
+  --ui-blue: var(--color-focus);
+  --ui-blue-soft: var(--color-info-surface);
+  --ui-green: var(--color-success);
+  --ui-green-soft: var(--color-success-surface);
+  --ui-amber: var(--color-warning);
+  --ui-amber-soft: var(--color-warning-surface);
+  --ui-red: var(--color-danger);
+  --ui-red-soft: var(--color-danger-surface);
+  --ui-shadow: var(--shadow-card);
+  --ui-radius: var(--radius-card);
+  --ui-radius-sm: var(--radius-control);
+}
+
+/* Semantic dark-mode pair. The beta remains light unless the root opts in. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg-main: #0D1324;
+  --color-bg-subtle: #121A30;
+  --color-surface-main: #17213A;
+  --color-surface-raised: #1C2844;
+  --color-surface-muted: #202C49;
+  --color-surface-selected: #243A60;
+  --color-text-primary: #F2F4F7;
+  --color-text-secondary: #D0D5DD;
+  --color-text-muted: #A8B2C1;
+  --color-border-default: #475467;
+  --color-border-subtle: #344054;
+  --color-border-strong: #667085;
+  --color-focus-soft: rgba(132, 202, 255, .26);
+  --color-overlay: rgba(0, 0, 0, .58);
+  --color-shadow: rgba(0, 0, 0, .32);
+}
+
+@media (max-width: 51.25rem) {
+  :root {
+    --size-control: var(--size-touch);
+    --size-icon-action: var(--size-icon-action-touch);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}
