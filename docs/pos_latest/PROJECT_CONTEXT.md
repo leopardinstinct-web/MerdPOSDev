@@ -1,226 +1,223 @@
-# POS LATEST — Current Project Context
+# POS LATEST / MERDPOS — Current Project Context
 
-Last reconciled from local source: 2026-08-06
-
-Repository: `leopardinstinct-web/MerdPOSDev`
-
-Merged source baseline: `4104092e6c2243d07c82c18947d6f819191cd1e4` (`4104092`)
-
-Current planning state: Milestone 1 is source-complete through merged Milestone
-2B. Production use of its security controls remains deployment-gated.
+**Reconciled:** 2026-08-26  
+**Repository:** `leopardinstinct-web/MerdPOSDev`  
+**Active beta branch:** `namecheap-beta-live`  
+**Active deployable beta tree:** `namecheap_beta_live/`
 
 ## Authority
 
-GitHub source is authoritative for implemented behavior. This directory is the
-authoritative project guidance and must be kept synchronized with source.
-Google Drive and `markdown/pos_project_md_sources_updated_2026-06-14/` are
-historical snapshots, not current specifications.
+For current beta work, read in this order:
 
-No production deployment was inspected during this reconciliation. References
-to the older deployed marker `4a54c41` are historical and must not be treated as
-the current repository or production state without separate verification.
+1. `namecheap_beta_live/README.md`
+2. this `PROJECT_CONTEXT.md`
+3. `BETA_AUTHORIZATION_STANDARD.md`
+4. `GUI_STANDARD.md`
+5. `OMNICHANNEL_IDENTITY_STANDARD.md`
+6. `FEATURE_SCOPING_TEMPLATE.md`
+7. relevant API/security/history docs
+8. actual current GitHub source on `namecheap-beta-live`
 
-## Scope and boundaries
+GitHub source is authoritative for what is **coded/wired**. The Namecheap deployed marker and runtime verification are authoritative for what is **live**.
 
-- May read: `docs/`, `markdown/`, `merdpos_staff/`, `backend/`.
-- May edit only after approval: `merdpos_staff/`, `backend/`, and current docs.
-- Never inspect or modify `timesheet_portal/`.
-- Existing Timesheet and payroll behavior must be preserved. New Timesheet
-  development is excluded from the current product roadmap.
-- Never call production APIs/databases or deploy without explicit approval.
+Historical documentation that says `never inspect or modify timesheet_portal/` is obsolete and must not be followed for the current beta. The web portal is an active primary development surface.
 
-## Current application architecture
+## Mandatory implementation-state discipline
 
-### Flutter Android application
+Every beta request must distinguish these states:
 
-The app uses a modular Dart `library`/`part` structure rooted at
-`merdpos_staff/lib/main.dart`.
+```text
+REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
+```
 
-- `models/`: app session, employee, retail product/sale, preserved timesheet row.
-- `services/`: HTTP client, authentication, employees, primary session,
-  retail SQLite/sync, and preserved timesheet parsing.
-- `screens/`: setup, login, home, POS, orders, inventory, financials, and
-  preserved timesheet screen.
-- `dialogs/`: password change and secondary-user login.
-- `widgets/`: shared shell, side rail, common widgets, preserved timesheet table.
-- `theme.dart`: implemented legacy Blue Ice theme; future redesign uses the
-  TapTouch-inspired original MerdPOS tokens after separate UI review.
+Definitions:
 
-The production API base URL is currently compiled into `main.dart` as
-`https://app.merdpos.com/api`. Environment-specific configuration requires a
-future decision.
+- **REQUESTED:** user asked for the change.
+- **DOCUMENTED:** spec/context/README/standard changed only.
+- **CODED:** implementation file exists.
+- **WIRED:** the actual beta runtime entry point loads/calls it and its required API/DB path is connected.
+- **DEPLOYED:** intended commit confirmed in Namecheap `.beta_deployed_commit`.
+- **VERIFIED:** real runtime path or deterministic deployment/runtime verification proves the behavior.
 
-### Authentication and sessions
+Rules:
 
-- Numeric `user_id` and PIN/password only.
-- Flutter authenticates through `backend/api/login.php`.
-- Backend supports `password_hash()`/`password_verify()` and transparently
-  upgrades legacy plaintext secrets on successful login.
-- `get_employees.php` does not return password/PIN fields.
-- `change_password.php` hashes the new numeric secret in both
-  `login_password` and `pin_code` for legacy compatibility.
-- Login and password change use the 2A.1 fail-closed layered lockout service.
-  Production use still requires separate approval and execution of migration
-  012; no migration is executed by application code.
-- One primary employee persists by employee ID; one temporary secondary user
-  is supported. Maximum visible users: two.
-- Device tokens use Android-backed secure storage. Existing SharedPreferences
-  tokens migrate silently after a verified write/read round trip and remain for
-  the approved two-release compatibility window; non-secret metadata stays in
-  SharedPreferences.
+- Never say `implemented` for DOCUMENTED-only work.
+- `Implemented in beta source` requires CODED + WIRED.
+- Never say `live`, `fixed` or `working` without DEPLOYED + VERIFIED.
+- If verification has not happened, state that explicitly.
+- Documentation itself is never evidence that runtime code exists.
 
-### Setup and activation
+This rule was added after a documented `+` Add / collapsed Search UI standard was mistakenly described as implemented before its behavior layer was actually wired.
 
-Flutter setup uses the dedicated POST setup-validation grant and grant-required
-activation contracts. New device tokens are stored only as hashes server-side,
-expire after 180 days, allow a seven-day previous-token overlap, revoke
-immediately, and bind client/store/UUID. Milestone 2A.3 applies the same shared
-authorization to the remaining non-Timesheet device endpoints.
+## Active beta architecture
 
-### Retail v1
+### Web portal
 
-Implemented Flutter modules:
+`namecheap_beta_live/timesheet_portal/`
 
-- local product catalogue with barcode/name/category search;
-- basket and quantity controls;
-- cash/card sale recording (recording only; no payment-terminal integration);
-- order history with pending/synced status;
-- local stock deductions and manual adjustments;
-- same-day local revenue, transaction, and margin summary;
-- manual outbound synchronization of sales and stock movements.
+Current scope includes:
 
-Retail persistence uses `sqflite` database `merdpos_retail.db`. Products,
-sales, sale lines, and stock movements are stored locally. A fresh database is
-seeded with demonstration products. `sync_retail.php` accepts pending sales and
-movements using a device token and writes them transactionally to MySQL.
+- numeric employee login/password change;
+- QR attendance;
+- management/user dashboards;
+- centralized Role / LOA / named permission policy;
+- Stores, Workforce, Roles, Clients, Defaults and DEV diagnostics;
+- Timesheets and disputes;
+- Financials;
+- client-level legacy Google migration;
+- responsive/mobile-ready shared UI standards.
 
-Current retail synchronization is outbound-only. There is no authoritative
-product/price/stock download, conflict-resolution protocol, or per-record
-rejection workflow. The client marks all pending records synced after a broad
-successful response.
+### Backend
 
-### Admin v1
+`namecheap_beta_live/backend/`
 
-`backend/admin/` provides a legacy Blue Ice browser administration console with:
+Contains:
 
-- ADMIN employee login and PHP sessions;
-- dashboard metrics;
-- employees and stores;
-- categories and products;
-- store inventory, reorder levels, and store prices;
-- suppliers;
-- basic purchase-order creation/receiving;
-- sales browser and store summaries;
-- device browser;
-- audit logs and settings/status page.
+- SQL migrations/runners;
+- shared workforce/finance helpers;
+- device/POS API support;
+- deployment validators;
+- schema metadata export.
 
-Admin uses prepared PDO statements, CSRF tokens, session regeneration,
-30-minute inactivity timeout, output escaping, and audit records. The current
-UI is basic and does not yet represent a complete role/permission or CRUD model.
+### Deployment
 
-### PHP API and MySQL
+Repository mirror: `~/git/MerdPOSDev-beta-mirror`  
+Live target: `~/merdpos.com/app/beta`
 
-Current endpoint inventory is maintained in `API_CONTRACT.md`. Schema files
-present at this commit:
+Deployment is performed by `scripts/deploy_namecheap_beta.sh`, also invoked by cron. After every beta source change, provide the immediate manual deploy command; do not rely on waiting for cron.
 
-- `backend/sql/010_retail_platform.sql`
-- `backend/sql/011_admin_platform.sql`
+## Frozen Timesheet/payroll reconciliation
 
-`backend/sql/001_employee_auth_attempts.sql` is referenced historically but is
-absent.
+Do not change without explicit product-owner instruction:
 
-## Build and release state
+- pair IN → next OUT;
+- newer IN replaces an unmatched prior IN;
+- orphan OUT ignored;
+- round IN/OUT independently to nearest 15 minutes;
+- payable = rounded OUT − rounded IN;
+- cross-midnight allowed;
+- no 16-hour cap;
+- wage rate resolved by clock-in date.
 
-The production VPS inspected during Phase 0 has Git and a PHP-CGI wrapper, but
-does not have Flutter, Dart, Java, Gradle, Android SDK, ADB, a Gradle wrapper,
-or resolved Flutter package metadata. Android builds must run on CI or a
-dedicated development/build machine, not this production VPS.
+## Authorization standard
 
-Milestone 1 introduces GitHub Actions using Flutter `3.44.2` exactly for
-formatting, analysis, local-fixture tests, and a debug APK build. PHP files are
-parsed with PHP 8.2 CLI in CI. Gitleaks scans changes with redacted output.
-Debug APK artifacts are retained for seven days. Production release signing,
-deployment automation, and production credentials remain excluded.
+Portal authorization follows `BETA_AUTHORIZATION_STANDARD.md`.
 
-Android release limitations in source:
+```text
+client role → LOA → named permission → UI/API/data scope
+```
 
-- application ID remains `com.example.merdpos_staff`;
-- release build uses debug signing;
-- no landscape lock or dual-display implementation is present;
-- Montserrat is referenced by the theme but is not packaged in `pubspec.yaml`;
-- Milestone 1 tests cover local model behavior and Timesheet parser regression,
-  but broader feature and integration coverage remains absent.
+- UI hiding is not security.
+- APIs must enforce the same permission.
+- DEV-only permissions require actual DEV identity and are not delegable by numeric LOA alone.
+- active client/tenant scoping must be verified through UI → JS → API → auth/client context → DB predicates → response.
 
-See `CI_ENVIRONMENT_PLAN.md` and `PRODUCT_ROADMAP_DRAFT.md`.
+## GUI/mobile standard
 
-## Milestone 1 security implementation and deployment gate
+All beta UI follows `GUI_STANDARD.md`.
 
-Milestones 2A.1, 2A.2, 2A.3, and 2B are merged. Source now includes additive
-migration drafts, shared PHP security components, activation/authentication and
-non-Timesheet endpoint integration, deterministic tests, bearer transport, and
-verified Flutter secure-token migration.
+Binding current rules:
 
-Migrations `012_employee_auth_attempts.sql`, `013_activation_grants.sql`,
-`014_device_token_security.sql`, and `015_security_audit_events.sql` remain
-unexecuted. Production activation, lockout, token lifecycle, and security-audit
-behavior remain unavailable until the production schema is reconciled, the
-migrations and deployment are separately approved, and the reviewed code and
-schema changes are deployed.
+- mobile-ready at implementation time;
+- shared spacing/type/control/table/dialog geometry;
+- Add Store / Employee / Client / Role and equivalent list create actions use a circular `+` icon only;
+- list search starts as a circular magnifier and expands on demand;
+- 48px minimum interactive target on mobile/tablet;
+- no page-level horizontal overflow from tables/forms;
+- dialogs fit the dynamic mobile viewport and keep actions reachable.
 
-The only tracked `devices` definition uses integer client/store IDs,
-`device_uuid VARCHAR(150)`, plaintext `activation_token VARCHAR(150)`, and no
-token lifecycle columns. Production schema is unknown. Migration `014` checks
-visible preconditions, adds no speculative indexes or `updated_at`, and requires
-separate approval before database execution.
+Runtime implementation must be verified in actual code, including loading through the portal entry path. A Markdown rule is DOCUMENTED only.
 
-The legacy SharedPreferences token remains for the approved two-compatible-
-release window and is due for removal in the third compatible release.
+## Legacy Google migration
 
-## Current product milestone
+Client migration is DEV-only and follows:
 
-M2.1–M2.7 are complete and merged. M3 — Barcode POS and durable sales — is
-approved for sequential implementation beginning with M3.1 durable sale model.
-There is no required M2.8. Production reconciliation, migrations, and
-deployment remain separate approval boundaries.
+```text
+Google Sheets → READ ONLY fetch → staging → validation/reconciliation → MERDPOS SQL
+```
 
-M2.1 — Catalogue identity and lifecycle foundation is implemented in source as
-an additive, preconditioned migration draft plus isolated synthetic MariaDB
-tests. It preserves existing product/category IDs and historical references,
-adds exact-text zero-to-many barcode aliases, and enforces client-scoped
-case-insensitive SKU identity while preserving display case. It changes no API
-endpoint, Flutter, SQLite, Timesheet, or payroll behavior. Production schema
-reconciliation, migration execution, and deployment remain separate approval
-boundaries. Later M2 contracts must continue to follow
-`M2_CATALOGUE_DECISIONS.md`.
+Safety rules:
 
-M2.2 — Effective pricing and tax foundation adds a preconditioned shadow schema
-for client AUD settings, product units, effective-dated regular/promotional
-prices, stable tax codes/rates/assignments, overlap rejection, and nullable
-future sale-line audit snapshots. Existing `sell_price`, `store_price`,
-`tax_rate`, cost fields, completed sales, endpoints, admin, Flutter, SQLite,
-checkout, stock, and synchronization remain unchanged and authoritative until
-a separately approved integration and production cutover.
+- source Google Sheets are not modified by the import path;
+- Preview does not write operational attendance/finance data;
+- Sync requires the exact snapshot last Previewed;
+- Sync is blocked with any rejected row/conflict;
+- operational apply is transactional/all-or-nothing;
+- imported historical finance cannot echo back through SQL→Google outbox;
+- final cutover changes authority to MERDPOS SQL and prevents Google from overwriting SQL later;
+- plaintext legacy passwords/secrets are not persisted in staging/audit;
+- known workbooks use deterministic header contracts, not guessed mappings.
 
-M2.3 — Stock ledger and server balance foundation adds a distinct immutable
-shadow ledger, transactionally maintained store-product balances, stable
-idempotency/source identities, compensating reversals, linked transfer legs,
-negative-stock exceptions, and reviewed reconciliation-candidate structures.
-It does not reinterpret the legacy movement table or copy
-`retail_store_inventory.quantity`. No runtime API, admin, Flutter, SQLite,
-checkout, receiving, inventory, or sync behavior changes in this milestone.
+Known source structures:
 
-M2.4 — Initial full catalogue API adds a device-authorized read-only endpoint
-and synthetic integration coverage over the M2.1–M2.3 foundations. It returns
-deterministically ordered tenant/store catalogue content, explicit sellability
-reasons, resolved effective price/tax, authoritative stock, a content revision,
-and an opaque future seed. It does not modify Flutter, SQLite, last-good state,
-checkout, outbound sync, or incremental cursor behavior.
+```text
+Time Sheet:
+USER_NAME / STORE_NAME / LOG_TYPE / DATE / TIME
 
-## Product-owner UX benchmark and visual direction
+Employee Setup:
+NAME / TYPE / USER_ID / PASSWORD / STATUS / LOG_STORE / PAY_RATE
+(header can occur below row 1)
 
-TapTouch is the preferred functional and visual benchmark for future admin,
-catalogue, pricing, inventory, and POS work. OpenClaw did not receive or inspect
-the original MP4; `TAPTOUCH_UX_BENCHMARK.md` records only product-owner-supplied
-observations. The original TapTouch-inspired MerdPOS system supersedes Blue Ice
-for future reviewable UI work. Existing screens remain unchanged, and Flutter
-redesign requires a separate scope.
+PayRate:
+NAME / PAY_RATE
+
+Start Time:
+Store Name / Shift Start Time
+
+General Ledger:
+DATE / STORE_NAME / ACCOUNT / TYPE / HEAD / AMOUNT / Key
+
+zReport Ledger:
+DATE / STORE_NAME / REGISTER_DENOMINATIONS / REGISTER_TOTAL / PETTYCASH_ADDIN
+```
+
+## Full-stack beta change rule
+
+For any DB-backed feature/fix, inspect the complete path before claiming completion:
+
+```text
+UI
+→ runtime JS loading/wiring
+→ endpoint/action
+→ authorization/client context
+→ DB table/column/index/FK contract
+→ transaction/storage/audit
+→ API response
+→ UI re-render
+→ mobile behavior
+```
+
+A schema migration and feature code must deploy in safe order. DB-dependent portal code must not reach live before its required schema has been applied and verified.
+
+## README maintenance rule
+
+README updates are default Definition-of-Done work for beta changes:
+
+- `namecheap_beta_live/README.md` — beta runtime/architecture contract;
+- `namecheap_beta_live/timesheet_portal/README.md` — portal behavior/UI/security/data flow;
+- `namecheap_beta_live/backend/README.md` — backend/migrations/deployment/security;
+- relevant `docs/pos_latest/*.md` — project context, standards, API/history.
+
+Do not update README merely to make a feature appear complete. README must describe the runtime truth, and implementation must be independently wired/verified.
+
+## Current product direction
+
+MERDPOS is evolving from the legacy Google-Sheet-backed Timesheet/Finance workflow into an SQL-authoritative retail operations platform while preserving safe transition/migration paths.
+
+The broader Flutter/POS code remains part of the repository, but the Namecheap web beta is currently an active primary product surface. Historical roadmap notes that excluded Timesheet Portal development are superseded for beta work.
+
+## Deployment command — standard immediate output after changes
+
+```bash
+cd ~/git/MerdPOSDev-beta-mirror
+
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes" \
+git pull --ff-only origin namecheap-beta-live
+
+/bin/bash scripts/deploy_namecheap_beta.sh
+
+echo "=== DEPLOYED ==="
+cat ~/merdpos.com/app/beta/.beta_deployed_commit
+```
+
+When migration/runtime verification matters, also include an appropriate deploy-log tail.
