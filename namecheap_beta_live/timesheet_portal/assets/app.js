@@ -1,11 +1,6 @@
 (function () {
   'use strict';
 
-  // The centralized LOA renderer intentionally omits panels and controls that
-  // the current user is not allowed to see. Older beta.js code still expects a
-  // handful of those IDs to exist, so provide inert placeholders rather than
-  // allowing one missing control to abort the entire shared runtime. API
-  // authorization remains authoritative.
   const betaCompatIds = [
     'workingNow',
     'recentShifts',
@@ -53,6 +48,7 @@
   ].every(id => document.getElementById(id));
 
   if (hasTimesheetDom) {
+    if (window.__timesheetPortalLoaded || document.querySelector('script[data-timesheet-app="1"]')) return;
     const script = document.createElement('script');
     script.src = 'assets/timesheet-app.js?v=20260826permissionhotfix1';
     script.async = false;
@@ -61,8 +57,6 @@
     return;
   }
 
-  // app.js historically owned logout. Preserve that behavior even when the
-  // Timesheet panel is not rendered for the current role.
   const logout = document.getElementById('logoutBtn');
   if (logout && !logout.dataset.logoutRuntimeBound) {
     logout.dataset.logoutRuntimeBound = '1';
