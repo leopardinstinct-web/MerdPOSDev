@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 const path = require('path');
 
 // GitHub's Ubuntu runner already provides stable Google Chrome. Using the
@@ -129,4 +130,89 @@ test('permission-minimal portal DOM does not crash legacy shared beta runtime', 
   expect(shims.financialDate).toBe('1');
   expect(shims.passwordDialog).toBe('1');
   expect(shims.disputeList).toBe('1');
+});
+
+test('Timesheet runtime injects once and switches weeks once per selection', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(String(error?.message || error)));
+
+  let timesheetScriptRequests = 0;
+  let weeksRequests = 0;
+  let reportRequests = 0;
+
+  await page.route('**/assets/timesheet-app.js*', async route => {
+    timesheetScriptRequests += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: fs.readFileSync(asset('timesheet-app.js'), 'utf8'),
+    });
+  });
+  await page.route('**/api/weeks.php', async route => {
+    weeksRequests += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        current_week: '2026-08-24',
+        weeks: [
+          { value: '2026-08-24', label: '24 Aug - 30 Aug 2026' },
+          { value: '2026-08-17', label: '17 Aug - 23 Aug 2026' },
+        ],
+      }),
+    });
+  });
+  await page.route('**/api/timesheet.php?*', async route => {
+    reportRequests += 1;
+    const url = new URL(route.request().url());
+    const week = url.searchParams.get('week_start') || '2026-08-24';
+    const label = week === '2026-08-17' ? '17 Aug - 23 Aug 2026' : '24 Aug - 30 Aug 2026';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        report: {
+          is_super: false,
+          week_label: label,
+          week_start: week,
+          week_end: week === '2026-08-17' ? '2026-08-23' : '2026-08-30',
+          employees: [],
+          show_wages: false,
+        },
+      }),
+    });
+  });
+  await page.route('**/api/logout.php', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true}' }));
+
+  await page.setContent(`<!doctype html>
+    <html><head><base href="https://merdpos-smoke.invalid/"></head><body>
+      <button id="logoutBtn" type="button">Log out</button>
+      <select id="weekSelect"></select>
+      <button id="downloadPdfBtn" type="button">Download</button>
+      <div id="statusBox"></div>
+      <h2 id="reportTitle"></h2>
+      <p id="reportSubtitle"></p>
+      <div id="reportContainer"></div>
+    </body></html>`);
+
+  // Re-evaluating app.js must not inject a second Timesheet script while the
+  // first injected script is pending or after it has initialized.
+  await page.addScriptTag({ path: asset('app.js') });
+  await page.addScriptTag({ path: asset('app.js') });
+
+  await expect.poll(() => weeksRequests).toBe(1);
+  await expect.poll(() => reportRequests).toBe(1);
+  await page.waitForTimeout(50);
+
+  expect(timesheetScriptRequests).toBe(1);
+  expect(pageErrors, `Unexpected browser errors: ${pageErrors.join(' | ')}`).toEqual([]);
+  await expect(page.locator('#weekSelect')).toHaveValue('2026-08-24');
+
+  await page.selectOption('#weekSelect', '2026-08-17');
+  await expect.poll(() => reportRequests).toBe(2);
+  await expect(page.locator('#weekSelect')).toHaveValue('2026-08-17');
+  await expect(page.locator('#reportTitle')).toContainText('17 Aug - 23 Aug 2026');
+  expect(reportRequests).toBe(2);
 });
