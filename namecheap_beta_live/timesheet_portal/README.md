@@ -44,6 +44,8 @@ Current binding interaction rules include:
 - mobile-ready means functional parity, not simply responsive dimensions;
 - top bar remains a single stable row on mobile;
 - bottom navigation and notices respect safe-area/fixed-nav offsets;
+- contextual mobile subnavigation reserves workspace height only while that subnavigation is actually open; direct Home/Finance/DEV-style sections do not keep a phantom top gap;
+- when the software keyboard opens, fixed bottom/context navigation yields so focused fields and dialog actions retain the visual viewport;
 - forms collapse cleanly to one column;
 - dialogs remain inside the visual viewport and their own content remains scrollable when the software keyboard is open;
 - tables scroll within their own container instead of causing page-level horizontal scrolling;
@@ -60,7 +62,8 @@ Canonical runtime layers are:
 - `assets/dashboard-builder.css` — Dashboard-specific composition only;
 - `assets/account-menu.css` — account/client-context composition only;
 - `assets/minimal-controls.js` — behavior-only normalization for circular Add, expandable Search and Search+Add clustering;
-- `assets/mobile-runtime.js` — mobile viewport, dialog compatibility, Dashboard mobile editing and structural runtime audit;
+- `assets/mobile-runtime.js` — mobile viewport, keyboard-state detection, dialog compatibility, Dashboard mobile editing and structural runtime audit;
+- `assets/navigation.js` — authoritative primary/contextual navigation state, including whether a mobile contextual subnav is open;
 - `assets/design-audit.js` — runtime heading, accessibility, Search/Add geometry, touch-target, overflow and contrast checks;
 - `assets/management.js` — runtime loading/wiring;
 - `.htaccess` — cache revalidation for shared cross-portal UI contract assets.
@@ -150,6 +153,7 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `assets/design-system.css` — canonical shared component layer;
 - `assets/app-ui.css` — feature composition, including Clients/Roles/Migration;
 - `assets/shell.css` — desktop/mobile shell and navigation composition;
+- `assets/navigation.js` — primary/contextual navigation state and mobile subnav visibility state;
 - `assets/minimal-controls.js` — shared Add/Search behavior;
 - `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit;
 - `assets/design-audit.js` — contextual design/accessibility runtime audit.
