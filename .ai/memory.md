@@ -5,60 +5,89 @@
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
 
-## Current source state
+## Current source checkpoint
 
-- Recovery baseline documented at handover: `c4d1b0d4d50a7ecf6bf60a49f85410842f4c5888` (`c4d1b0d`).
+Current checked source tip: `9860f1b70f5de3f3cc0e5ada895c66617239a9b9` — `Fix beta state validator literal check`.
+
+The Beta guardrails run for this exact commit (`33008493860`) completed successfully. The green suite includes:
+
+- PHP lint across the beta backend and portal;
+- beta runtime-contract validation;
+- portal permission-policy / LOA runtime validation;
+- deterministic portal loader-order validation;
+- shared `beta_state.php` route/data-scope and management-card permission validation;
+- portal JavaScript syntax checks;
+- forbidden tracked beta path checks;
+- redacted secret scanning.
+
+This is a **CODED + WIRED + source-CI verified** checkpoint only. The current Namecheap `.beta_deployed_commit` marker has not been read in this session, so these changes are not claimed DEPLOYED or VERIFIED.
+
+## Recovery history
+
+- `c4d1b0d4d50a7ecf6bf60a49f85410842f4c5888` — handover recovery baseline.
 - `444e790357e1a006d8120ece9598081df45c77c2` — `Hotfix LOA permission runtime crashes`.
 - `4002bec01fb38706cf9126daef4e48cd32bec061` — `Stop shared Add control mutation loop`.
-- `e5a8e9cb930f04fb0669639a7dd7be67e80032a1` — `Add beta recovery state and guardrails`.
-- `8034463affb1eb7ecbd3ddde84c2efd55d83cc6d` — `Guard permission-gated portal runtime wiring`.
+- `e5a8e9cb930f04fb0669639a7dd7be67e80032a1` — source-controlled recovery state + beta guardrails.
+- `8034463affb1eb7ecbd3ddde84c2efd55d83cc6d` — incident guard for permission-gated DOM and Timesheet runtime split.
+- `b906b4cc0f329d69d7c55ff3e9ebf352c9b9220b` — force dynamically inserted classic scripts to ordered execution.
+- `44b9a5b02c370dea1e8896d62a0f60b486573160` — loader-order guard wired into beta CI.
+- `429a75285de96f61a1045d6ab4e333d4168fc235` — permission-scope shared beta-state payload.
+- `dad011cd9b7453bd0e32964a6893d61c7539f5d0` — authorize shared beta state by consuming feature instead of Dashboard only.
+- `6f79511f7ab69544d31df897c7fe1a76b8124521` — shared beta-state scope validator wired into beta CI.
+- `fc0db7c81a07afab0ca1d36f3bf36728ee8ef25d` — management Dashboard cards/KPIs now mirror their data permissions.
+- `9860f1b70f5de3f3cc0e5ada895c66617239a9b9` — corrected a validator-only false failure; full source suite green.
 
-## Recovery progress
+## Confirmed source regressions resolved
 
-### Phase 1 — source containment
+### Dynamic Roles → Navigation race
 
-Source-level containment is established:
+`assets/management.js` dynamically inserts multiple classic scripts. Dynamic classic scripts are async by default, so merely inserting Roles before Navigation did not guarantee execution order.
 
-- `.ai/` state files are source controlled;
-- `namecheap-beta-live` now has beta-specific GitHub guardrails;
-- the guardrails lint beta PHP, validate the runtime contract, validate authorization/permission coverage, syntax-check portal JavaScript, reject forbidden tracked beta paths and run redacted secret scanning;
-- the first two beta-guardrail runs passed.
+The loader now sets `script.async=false` before `src`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` permanently checks both ordered execution and Roles-before-Navigation wiring.
 
-This is not a Namecheap deployment claim. The current live `.beta_deployed_commit` marker has not been read in this session.
+### Shared state accidentally required Dashboard
 
-### Phase 2 — regression inventory and incident hardening
+`assets/beta.js` uses `api/beta_state.php` for multiple feature flows, but its route was guarded only by `dashboard.view`. A client could raise the Dashboard threshold while leaving Finance, Disputes or Password available, causing otherwise-authorized features to fail initialization.
 
-Started.
+The route now admits the actual consuming feature permissions, while `api/beta_state.php` scopes every sensitive data section separately. Broad route access is not broad data access.
 
-The 2026-08-26 LOA crash hotfix is now protected by deploy-time source validation. `validate_portal_permission_policy.php` verifies the compatibility shims in `assets/app.js`, the isolated `assets/timesheet-app.js` wiring, script load order (`app.js` before `beta.js`) and cache revalidation for the split runtime.
+Current safeguards include:
 
-The latest Add-control hotfix was inspected. `assets/minimal-controls.js` now avoids replacing an already-normalized Add SVG from inside its MutationObserver, preventing the observer from continually retriggering itself and invalidating the pointer target.
+- shifts only for required Timesheet/dispute consumers;
+- disputes only for own-view/review permission;
+- attendance flags only for resolve permission;
+- working-now data only for Workforce, own Timesheet or Finance consumers, and self-only without Workforce access;
+- store enumeration constrained by Stores/Workforce/cross-store Finance scope; Finance-only users receive their active clock-in store context;
+- management summaries separately permission-gated.
 
-Mobile navigation source was inspected. Its contextual submenu state is explicit through `merd-mobile-subnav-open`, and parent-group clicks open the group without navigating.
+### Management Dashboard implied unavailable data
 
-An additional loader-order risk is under investigation: `management.js` comments that Roles mounts before navigation, but both are dynamically inserted scripts. Do not change this loader until the dependent module behavior is fully traced and a deterministic regression check can accompany the change.
+Management mode can result from different permission combinations. Previously all management Workforce/Dispute/Finance/Sync cards rendered even when only one of those capabilities was allowed.
 
-## Important conflict resolved
+`assets/management.js` now hides/constructs cards and KPIs according to `workforce.view`, `finance.management_summary`, `disputes.review`, `system.sync_status` and Timesheet permissions. `validate_beta_state_scope.php` guards both backend data scope and frontend management-card scope.
 
-A transferred handoff note said a new session would remove `design-audit.js`. That instruction is stale relative to current authoritative source.
+## Existing incident guards retained
 
-Current beta runtime/deployment validators explicitly require `assets/design-audit.js`, its `management.js` loader wiring and cache revalidation. It supplies heading, contrast, touch-target, Search/Add placement, accessible-name and overflow regression checks.
-
-Therefore `design-audit.js` must not be deleted unless the authoritative runtime contract, loader, deployment validator and replacement ownership are intentionally changed together.
+- The 2026-08-26 LOA DOM crash remains protected by `validate_portal_permission_policy.php`.
+- `assets/app.js` retains compatibility shims for permission-hidden legacy IDs still directly used by `beta.js`.
+- Timesheet logic remains isolated in `assets/timesheet-app.js`, loaded only when the Timesheet DOM exists.
+- `assets/minimal-controls.js` retains the Add MutationObserver idempotency fix.
+- `assets/navigation.js` retains explicit contextual mobile subnavigation state.
+- `assets/design-audit.js` remains canonical and must not be removed in isolation.
 
 ## Implementation-state discipline
 
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
 
-Do not call a source change live/fixed/working until the Namecheap `.beta_deployed_commit` marker confirms the intended commit and the actual runtime path is verified.
+Never call a source change live/fixed/working until the Namecheap `.beta_deployed_commit` marker confirms the intended commit and the real affected runtime path is checked.
 
 ## Next recovery actions
 
-1. Read the current Namecheap `.beta_deployed_commit` after deploying the current beta branch.
-2. Continue the feature-path regression inventory in `.ai/regression-inventory.md`.
-3. Resolve source-level loader/order risks only with deterministic regression coverage.
-4. Add unauthenticated/local browser smoke coverage before introducing any authenticated Playwright fixtures.
-5. Repair one runtime regression at a time and preserve frozen payroll/timesheet reconciliation.
+1. Add deterministic browser smoke coverage for the shared Add MutationObserver incident and other dependency-sensitive browser behavior without production credentials.
+2. Continue source/runtime-path audit of Finance, Disputes, Password, Dashboard Add/Search and mobile navigation under unusual permission combinations.
+3. Deploy the current branch to Namecheap and confirm `.beta_deployed_commit` before live verification.
+4. Verify representative USER, management and DEV paths on desktop/mobile.
+5. Preserve frozen payroll/timesheet reconciliation throughout recovery.
 
 ## Deployment command after beta source changes
 
