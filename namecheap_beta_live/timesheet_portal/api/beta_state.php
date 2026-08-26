@@ -14,15 +14,21 @@ try {
     $canSyncStatus = beta_has_permission($user, 'system.sync_status', $pdo);
     $isManagement = !empty($user['is_management']);
 
-    $clientDefaults = $pdo->prepare('SELECT default_currency,default_timezone FROM clients WHERE id=? LIMIT 1');
+    $clientDefaults = $pdo->prepare('SELECT id,name,client_code,default_currency,default_timezone FROM clients WHERE id=? LIMIT 1');
     $clientDefaults->execute([(int)$user['client_id']]);
-    $clientDefaultsRow = $clientDefaults->fetch(PDO::FETCH_ASSOC) ?: ['default_currency' => 'AUD', 'default_timezone' => 'Australia/Sydney'];
+    $clientDefaultsRow = $clientDefaults->fetch(PDO::FETCH_ASSOC) ?: [
+        'id' => (int)$user['client_id'],
+        'name' => 'MERDPOS',
+        'client_code' => '',
+        'default_currency' => 'AUD',
+        'default_timezone' => 'Australia/Sydney',
+    ];
     $clientCurrency = strtoupper((string)($clientDefaultsRow['default_currency'] ?: 'AUD'));
     $clientTimezone = (string)($clientDefaultsRow['default_timezone'] ?: 'Australia/Sydney');
     try { new DateTimeZone($clientTimezone); } catch (Throwable) { $clientTimezone = 'Australia/Sydney'; }
 
     $stores = $pdo->prepare(
-        "SELECT id,store_name,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
+        "SELECT id,store_name,store_code,logo_path,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
         . "FROM stores WHERE client_id=? AND status='active' ORDER BY id"
     );
     $stores->execute([$clientCurrency, $clientTimezone, (int)$user['client_id']]);
@@ -96,9 +102,12 @@ try {
     $flagUser['employee_type'] = $canResolveFlags ? 'SUPER' : 'USER';
     $flagUser['role_name'] = $canResolveFlags ? 'SUPER' : 'USER';
 
+    $generatedAt = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+
     json_response([
         'success' => true,
         'csrf' => csrf_token(),
+        'generated_at' => $generatedAt->format(DateTimeInterface::ATOM),
         'is_super' => $canViewAllTimesheets,
         'is_management' => $isManagement,
         'role' => $actualRole,
@@ -109,6 +118,11 @@ try {
         'is_dev' => beta_user_is_dev($user),
         'is_admin' => $actualRole === 'ADMIN',
         'current_user_id' => (string)$user['user_id'],
+        'client' => [
+            'id' => (int)$clientDefaultsRow['id'],
+            'name' => (string)$clientDefaultsRow['name'],
+            'client_code' => (string)$clientDefaultsRow['client_code'],
+        ],
         'client_defaults' => ['currency_code' => $clientCurrency, 'timezone' => $clientTimezone],
         'working' => $working,
         'disputes' => merd_list_disputes($pdo, $disputeUser),
