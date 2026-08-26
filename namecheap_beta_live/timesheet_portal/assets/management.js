@@ -26,37 +26,41 @@
 
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
-    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260826ds1');
-    appendStyle('merd-shell','assets/shell.css?v=20260826ds1');
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260826ud1');
+    appendStyle('merd-shell','assets/shell.css?v=20260826ud1');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260826ds1');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260826ds1');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260826ud1');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260826ud1');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */
-    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
+    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ud1');
 
-    appendScript('merd-navigation','assets/navigation.js?v=20260826ds1',true);
-    appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
-    appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
+    appendScript('merd-navigation','assets/navigation.js?v=20260826ud1',true);
+    appendScript('store-order','assets/store-order.js?v=20260826ud1',true);
+    appendScript('modal-lock','assets/modal-lock.js?v=20260826ud1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260826ds1');
-    appendScript('account-menu','assets/account-menu.js?v=20260826ds1');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260826ud1');
+    appendScript('account-menu','assets/account-menu.js?v=20260826ud1');
 
-    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
+    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ud1');
 
-    /* Functional identity patch remains; its old standalone styling layer is
-       retired because design-system.css now owns the visual grammar. */
-    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260826ds1');
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260826ud1');
 
-    /* Behaviour only. Geometry comes from the canonical design system. */
-    appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');
-    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
+    /* Behaviour layers. */
+    appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ud1');
+    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ud1');
 
-    /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260826ds1');
-    appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
+    /* Mobile-hardening contains functional viewport/keyboard/safe-area rules
+       that must exist whenever mobile-runtime.js is active. */
+    appendStyle('merd-mobile-hardening','assets/mobile-hardening.css?v=20260826ud1');
+
+    /* Shared components first; universal design normalization is deliberately
+       final so legacy feature CSS cannot alter the visual contract. */
+    appendStyle('merd-design-system','assets/design-system.css?v=20260826ud1');
+    appendStyle('merd-universal-design','assets/universal-design.css?v=20260826ud1');
+    appendScript('merd-design-audit','assets/design-audit.js?v=20260826ud1');
   }
   ensureShellAssets();
 
