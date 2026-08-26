@@ -83,11 +83,11 @@ function ui_icon(string $name): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#F5F7FB">
   <title>MERDPOS</title>
-  <link rel="stylesheet" href="assets/styles.css?v=20260826loa1">
-  <link rel="stylesheet" href="assets/modern.css?v=20260826loa1">
-  <link rel="stylesheet" href="assets/typography.css?v=20260826loa1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260826loa1">
-  <link rel="stylesheet" href="assets/app-ui.css?v=20260826loa1">
+  <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260826minimal1">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
@@ -383,9 +383,9 @@ function ui_icon(string $name): string
         'permission_levels'=>$user['permission_levels'] ?? [],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
   </script>
-  <script src="assets/app.js?v=20260826loa1"></script>
-  <script src="assets/beta.js?v=20260826loa1"></script>
-  <script src="assets/management.js?v=20260826loa1"></script>
-  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826loa1"></script><?php endif; ?>
+  <script src="assets/app.js?v=20260826minimal1"></script>
+  <script src="assets/beta.js?v=20260826minimal1"></script>
+  <script src="assets/management.js?v=20260826minimal1"></script>
+  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>
 </html>
