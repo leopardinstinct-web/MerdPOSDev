@@ -5,7 +5,9 @@ require_once __DIR__ . '/../../backend/api/includes/employee_auth.php';
 
 try {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') json_response(['success' => false, 'error' => 'POST required.'], 405);
-    $user = require_login();
+    $user = beta_require_active_user();
+    $pdo = portal_db();
+    beta_require_permission($user, 'password.change_own', $pdo);
     $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
     $input = request_input();
     require_csrf($input);
@@ -17,7 +19,7 @@ try {
     }
     if (!hash_equals($new, $confirm)) throw new MerdWorkforceException('password_mismatch', 'New passwords do not match.');
     if (hash_equals($current, $new)) throw new MerdWorkforceException('password_unchanged', 'Choose a different password.');
-    $pdo = portal_db();
+
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare(
@@ -38,7 +40,7 @@ try {
             );
             $audit->execute([$authClientId, (int)$user['id'], (string)$user['user_id'],
                 substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64), substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255), '{}']);
-        } catch (Throwable) { /* Password change must not fail if optional audit migration is pending. */ }
+        } catch (Throwable) { /* Optional security audit migration must not break password change. */ }
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
