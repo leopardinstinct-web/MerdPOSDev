@@ -54,7 +54,8 @@
     let data = null;
     try { data = text ? JSON.parse(text) : null; }
     catch (_) { throw new Error(`Store API returned invalid data (${response.status}).`); }
-    if (!response.ok || !data?.success || data.actor_role !== 'DEV') {
+    const actorRole = String(data?.actor_role || '').trim().toUpperCase();
+    if (!response.ok || !data?.success || !['DEV','DEVELOPER'].includes(actorRole)) {
       throw new Error(data?.error || 'DEV store access is unavailable.');
     }
     stores = (data.stores || []).slice().sort((a,b) => numericId(a.id) - numericId(b.id));
