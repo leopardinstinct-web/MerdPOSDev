@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 36,
+    "table_count": 37,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -1819,6 +1819,119 @@
                     "constraint": "devices_ibfk_2",
                     "column": "store_id",
                     "references_table": "stores",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "dev_client_preferences",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "employee_id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "auth_client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "selected_client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 4,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 5,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_dev_client_pref_auth",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "auth_client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_dev_client_pref_selected",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "selected_client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_dev_client_pref_auth_client",
+                    "column": "auth_client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_dev_client_pref_employee",
+                    "column": "employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_dev_client_pref_selected_client",
+                    "column": "selected_client_id",
+                    "references_table": "clients",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "RESTRICT"
