@@ -71,7 +71,50 @@
   function renderFinanceRing(rows,defaultCurrency){const root=$('financeRingRoot');if(!root)return;const currencies=new Set(rows.map(row=>String(row.currency_code||defaultCurrency||'AUD').toUpperCase()));if(currencies.size>1){root.innerHTML='<div class="empty-card"><h3>Mixed store currencies</h3><p>Store balances are shown individually. A combined cash total is hidden because currencies cannot be summed safely.</p></div>';return;}const currency=[...currencies][0]||String(defaultCurrency||'AUD').toUpperCase();const register=rows.reduce((sum,row)=>sum+Number(row.register_balance||0),0);const petty=rows.reduce((sum,row)=>sum+Number(row.petty_balance||0),0);const total=register+petty;const stop=total>0?(register/total)*100:50;root.innerHTML=`<div class="finance-ring" style="--ring-stop:${stop.toFixed(2)}%" role="img" aria-label="Register ${esc(money(register,currency))}; Petty Cash ${esc(money(petty,currency))}"></div><div class="finance-legend"><div class="legend-item"><span class="legend-dot" aria-hidden="true"></span><span>Register</span><strong>${esc(money(register,currency))}</strong></div><div class="legend-item"><span class="legend-dot petty" aria-hidden="true"></span><span>Petty Cash</span><strong>${esc(money(petty,currency))}</strong></div><div class="legend-item"><span></span><span>Total</span><strong>${esc(money(total,currency))}</strong></div></div>`;}
   function renderWorkingBars(working,stores){const orderedStores=sortStores(stores||[]);const counts=new Map(orderedStores.map(store=>[store.store_name,0]));for(const person of working)counts.set(person.store_name,(counts.get(person.store_name)||0)+1);const rows=[...counts].map(([store_name,count])=>({store_name,count}));renderBars($('workforceChart'),rows,'store_name',row=>row.count,(row,value)=>String(value));}
   function pendingDisputes(data){return (data.disputes||[]).filter(d=>d.status==='pending').length;}
-  function renderManagement(data){const mgmt=data.management;if(!mgmt)return;displayTimezone=mgmt.timezone||data.client_defaults?.timezone||null;updateClock();const pending=pendingDisputes(data);const root=$('managementKpis');if(root)root.innerHTML=[kpi('◉',(data.working||[]).length,'Working now'),kpi('◇',pending,'Pending disputes',pending>0),kpi('◫',mgmt.active_employees,'Active employees'),kpi('↻',mgmt.sync_attention,'Sync attention',Number(mgmt.sync_attention)>0)].join('');renderWorkingBars(data.working||[],sortStores(data.stores||[]));const financial=sortStores(mgmt.financial_by_store||[]);renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value,row.currency_code||mgmt.currency_code));renderFinanceRing(financial,mgmt.currency_code);const date=$('financeChartDate');if(date)date.textContent=mgmt.business_date||'Today';}
+
+  function setCardVisible(id,visible){
+    const node=$(id);
+    const card=node?.closest('.mgmt-card,.controls-card');
+    if(card)card.hidden=!visible;
+  }
+
+  function applyManagementPermissionVisibility(){
+    const canWorkforceData=can('workforce.view');
+    const canFinanceData=can('finance.management_summary');
+    const canAttendanceData=can('timesheets.view_own')||can('timesheets.view_all');
+    setCardVisible('workingNow',canWorkforceData);
+    setCardVisible('workforceChart',canWorkforceData);
+    setCardVisible('storeFinanceChart',canFinanceData);
+    setCardVisible('financeRingRoot',canFinanceData);
+    setCardVisible('recentShifts',canAttendanceData);
+  }
+
+  function renderManagement(data){
+    applyManagementPermissionVisibility();
+    const mgmt=data.management||{};
+    displayTimezone=mgmt.timezone||data.client_defaults?.timezone||null;
+    updateClock();
+    const pending=pendingDisputes(data);
+    const root=$('managementKpis');
+    if(root){
+      const cards=[];
+      if(can('workforce.view')){
+        cards.push(kpi('◉',(data.working||[]).length,'Working now'));
+        cards.push(kpi('◫',mgmt.active_employees??0,'Active employees'));
+      }
+      if(can('disputes.review'))cards.push(kpi('◇',pending,'Pending disputes',pending>0));
+      if(can('system.sync_status'))cards.push(kpi('↻',mgmt.sync_attention??0,'Sync attention',Number(mgmt.sync_attention)>0));
+      root.innerHTML=cards.join('');
+      root.hidden=cards.length===0;
+    }
+    if(can('workforce.view'))renderWorkingBars(data.working||[],sortStores(data.stores||[]));
+    const financial=can('finance.management_summary')?sortStores(mgmt.financial_by_store||[]):[];
+    if(can('finance.management_summary')){
+      renderBars($('storeFinanceChart'),financial,'store_name',row=>Number(row.register_balance||0)+Number(row.petty_balance||0),(row,value)=>money(value,row.currency_code||mgmt.currency_code));
+      renderFinanceRing(financial,mgmt.currency_code);
+    }
+    const date=$('financeChartDate');if(date&&can('finance.management_summary'))date.textContent=mgmt.business_date||'Today';
+  }
   function updateDisputeBadge(data){const bell=$('timesheetBell');if(!bell)return;const count=pendingDisputes(data);bell.textContent=String(count);bell.hidden=count===0;bell.setAttribute('aria-label',`${count} pending dispute${count===1?'':'s'}`);}
   async function loadDev(){const root=$('devStatus');if(!root||!can('dev.status'))return;try{const data=await json('api/dev_status.php');const tableCount=Object.values(data.tables||{}).filter(v=>v!==null).length;const totalRows=Object.values(data.tables||{}).reduce((sum,v)=>sum+(Number(v)||0),0);root.innerHTML=`<article class="dev-tile"><strong>${esc(data.database)}</strong><span>Database</span></article><article class="dev-tile"><strong>${esc(data.server_version)}</strong><span>MySQL / MariaDB</span></article><article class="dev-tile"><strong>${esc(data.php_version)}</strong><span>PHP</span></article><article class="dev-tile"><strong>${tableCount}</strong><span>Tracked tables</span></article><article class="dev-tile"><strong>${totalRows.toLocaleString()}</strong><span>Rows across tracked tables</span></article><article class="dev-tile"><strong>LOA</strong><span>${esc(data.authorization_model||'central')}</span></article>`;}catch(error){root.innerHTML=`<div class="status-card error-card" role="alert">${esc(error.message)}</div>`;}}
   async function load(){if(!can('dashboard.view')){if(can('dev.status'))loadDev();return;}try{const data=await json('api/beta_state.php');data.stores=sortStores(data.stores||[]);if(data.management){data.management.financial_by_store=sortStores(data.management.financial_by_store||[]);data.management.sales_by_store=sortStores(data.management.sales_by_store||[]);}updateDisputeBadge(data);if(data.is_management)renderManagement(data);if(can('dev.status'))loadDev();window.MERDPOSStoreOrder?.run?.();window.MERDPOSOmnichannelIdentity?.patch?.();window.MERDPOSMinimalControls?.apply?.();window.MERDPOSMobileRuntime?.enhance?.();window.MERDPOSDesignAudit?.run?.();}catch(_){}}
