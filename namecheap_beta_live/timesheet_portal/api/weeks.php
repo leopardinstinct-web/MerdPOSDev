@@ -1,13 +1,16 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/timesheet_logic.php';
 
-$user = beta_require_active_user();
-$clientId = (int)$user['client_id'];
-
 try {
+    $user = beta_require_active_user();
     $pdo = portal_db();
-    $employeeFilter = $user['is_super'] ? null : $user['name'];
+    beta_require_any_permission($user, ['timesheets.view_own','timesheets.view_all'], $pdo);
+    $clientId = (int)$user['client_id'];
+    $canViewAll = beta_has_permission($user, 'timesheets.view_all', $pdo);
+    $employeeFilter = $canViewAll ? null : (string)$user['name'];
+
     $params = [$clientId];
     $sql = 'SELECT user_name, log_type, log_date FROM employee_logs WHERE client_id=?';
     if ($employeeFilter !== null) {
@@ -30,16 +33,18 @@ try {
     }
     krsort($weeks);
     $out = [];
-    foreach ($weeks as $value => $label) {
-        $out[] = ['value' => $value, 'label' => $label];
-    }
+    foreach ($weeks as $value => $label) $out[] = ['value' => $value, 'label' => $label];
+
     json_response([
         'success' => true,
         'source' => 'sql_employee_logs',
         'client_id' => $clientId,
+        'scope' => $canViewAll ? 'all_employees' : 'own',
         'current_week' => monday_of_week(),
         'weeks' => $out,
     ]);
 } catch (Throwable $e) {
+    if ($e instanceof MerdWorkforceException) beta_api_error($e);
+    error_log('MERDPOS weeks failure: ' . get_class($e));
     json_response(['success' => false, 'error' => 'The available weeks could not be loaded.'], 500);
 }
