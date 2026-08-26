@@ -13,9 +13,6 @@ BRANCH="namecheap-beta-live"
 SCHEMA_BRANCH="namecheap-live-schema"
 LOCK="$HOME/.merdpos-beta-deploy.lock"
 
-# Always print a heartbeat before doing any work. The outer cron redirects this
-# to ~/merdpos-beta-deploy.log, so a missing heartbeat means cron never invoked
-# the script at all.
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] MERDPOS beta deploy started (pid $$)"
 
 exec 9>"$LOCK"
@@ -42,7 +39,6 @@ git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-# Deploy backend source first so the server has matching migration code.
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
@@ -54,7 +50,6 @@ rsync -az \
   "$REPO/namecheap_beta_live/backend/" \
   "$LIVE/backend/"
 
-# Apply migrations validated against the live beta schema snapshot.
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
 php "$LIVE/backend/cli/apply_024_store_weekly_hours.php"
@@ -64,8 +59,8 @@ php "$LIVE/backend/cli/apply_027_store_profile_defaults.php"
 php "$LIVE/backend/cli/apply_028_client_role_authority.php"
 php "$LIVE/backend/cli/apply_029_dashboard_layouts.php"
 php "$LIVE/backend/cli/apply_030_dev_client_preferences.php"
+php "$LIVE/backend/cli/apply_031_client_roles_dashboard_templates.php"
 
-# Only deploy the portal once validated migrations have succeeded.
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
