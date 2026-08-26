@@ -27,6 +27,14 @@ try {
     $clientTimezone = (string)($clientDefaultsRow['default_timezone'] ?: 'Australia/Sydney');
     try { new DateTimeZone($clientTimezone); } catch (Throwable) { $clientTimezone = 'Australia/Sydney'; }
 
+    // Canonical store identity is kept separate from active operational store
+    // scope so an inactive store still retains the same name/code/logo wherever
+    // historical or administrative UI displays it.
+    $storeIdentityStmt = $pdo->prepare(
+        'SELECT id,store_name,store_code,logo_path,status FROM stores WHERE client_id=? ORDER BY id'
+    );
+    $storeIdentityStmt->execute([(int)$user['client_id']]);
+
     $stores = $pdo->prepare(
         "SELECT id,store_name,store_code,logo_path,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
         . "FROM stores WHERE client_id=? AND status='active' ORDER BY id"
@@ -128,6 +136,7 @@ try {
         'disputes' => merd_list_disputes($pdo, $disputeUser),
         'attendance_flags' => $canResolveFlags ? merd_list_attendance_flags($pdo, $flagUser) : [],
         'recent_shifts' => $shifts->fetchAll(PDO::FETCH_ASSOC),
+        'store_identity' => $storeIdentityStmt->fetchAll(PDO::FETCH_ASSOC),
         'stores' => $stores->fetchAll(PDO::FETCH_ASSOC),
         'management' => $management,
     ]);
