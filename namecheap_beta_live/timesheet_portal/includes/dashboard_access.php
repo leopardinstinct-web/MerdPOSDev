@@ -51,10 +51,9 @@ function merd_dashboard_user_role(PDO $pdo, array $user): array
     throw new RuntimeException('Dashboard role is not configured for this client.');
 }
 
+/** Always read current policy from SQL so a just-saved policy takes effect in the same request. */
 function merd_dashboard_permission_levels(PDO $pdo, int $clientId): array
 {
-    if (function_exists('beta_permission_levels')) return beta_permission_levels($pdo, $clientId);
-
     $catalog = merd_portal_permission_catalog();
     $levels = [];
     foreach ($catalog as $key => $rule) {
