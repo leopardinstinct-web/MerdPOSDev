@@ -1,14 +1,61 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
-$user = current_user();
-if (!$user) {
+if (!current_user()) {
     header('Location: index.php');
     exit;
 }
-$role = strtoupper((string)($user['role'] ?? $user['actual_employee_type'] ?? $user['employee_type'] ?? 'USER'));
-$isManagement = !empty($user['is_super']);
-$isDev = $role === 'DEV';
-$canDirectory = in_array($role, ['ADMIN', 'SUPER', 'DEV'], true);
+require_once __DIR__ . '/includes/beta_api.php';
+
+try {
+    $user = beta_require_active_user();
+} catch (Throwable $e) {
+    error_log('MERDPOS dashboard authorization failed: ' . get_class($e));
+    header('Location: index.php');
+    exit;
+}
+
+$permissions = (array)($user['permissions'] ?? []);
+$can = static fn(string $key): bool => !empty($permissions[$key]);
+$role = (string)($user['role_key'] ?? $user['role'] ?? 'USER');
+$roleLabel = (string)($user['role_label'] ?? $user['role_name'] ?? $role);
+$authorityLevel = (int)($user['authority_level'] ?? 0);
+$isManagement = !empty($user['is_management']);
+$isDev = !empty($user['is_dev']);
+
+$canDashboard = $can('dashboard.view');
+$canWorkforce = $can('workforce.view');
+$canWorkforceManage = $can('workforce.manage');
+$canPayrates = $can('workforce.payrates.manage');
+$canCredentialReset = $can('workforce.credentials.reset');
+$canStores = $can('stores.view');
+$canStoresManage = $can('stores.manage');
+$canStoreTimings = $can('stores.timings.manage');
+$canTimesheets = $can('timesheets.view_own') || $can('timesheets.view_all');
+$canDisputes = $can('disputes.view_own') || $can('disputes.review');
+$canSubmitDisputes = $can('disputes.submit_own');
+$canReviewDisputes = $can('disputes.review');
+$canResolveFlags = $can('attendance_flags.resolve');
+$canFinance = $can('finance.view');
+$canFinanceSubmit = $can('finance.submit');
+$canOpenDay = $can('finance.open_day');
+$canDevStatus = $can('dev.status');
+$canDirectory = $canWorkforce || $canStores;
+$hasOperations = $canWorkforce || $canStores;
+$hasWorkforceRaw = $canWorkforce || $canTimesheets || $canDisputes;
+
+$panelOrder = [
+    'dashboardPanel' => $canDashboard,
+    'employeesPanel' => $canWorkforce,
+    'storesPanel' => $canStores,
+    'timesheetPanel' => $canTimesheets,
+    'disputesPanel' => $canDisputes,
+    'financialPanel' => $canFinance,
+    'devPanel' => $canDevStatus,
+];
+$initialPanel = 'dashboardPanel';
+foreach ($panelOrder as $panelId => $allowed) {
+    if ($allowed) { $initialPanel = $panelId; break; }
+}
 
 function ui_icon(string $name): string
 {
@@ -36,11 +83,11 @@ function ui_icon(string $name): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#F5F7FB">
   <title>MERDPOS</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/modern.css">
-  <link rel="stylesheet" href="assets/typography.css">
-  <link rel="stylesheet" href="assets/table-ui.css">
-  <link rel="stylesheet" href="assets/app-ui.css">
+  <link rel="stylesheet" href="assets/styles.css?v=20260826loa1">
+  <link rel="stylesheet" href="assets/modern.css?v=20260826loa1">
+  <link rel="stylesheet" href="assets/typography.css?v=20260826loa1">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260826loa1">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260826loa1">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
@@ -52,43 +99,54 @@ function ui_icon(string $name): string
       </div>
     </div>
     <div class="topbar-actions">
-      <div class="user-line">Signed in as <strong><?= htmlspecialchars($user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($role) ?></span></div>
-      <button id="passwordBtn" class="ghost-btn"><?= ui_icon('key') ?><span>Password</span></button>
+      <div class="user-line">Signed in as <strong><?= htmlspecialchars((string)$user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($roleLabel) ?></span></div>
+      <?php if ($can('password.change_own')): ?><button id="passwordBtn" class="ghost-btn"><?= ui_icon('key') ?><span>Password</span></button><?php endif; ?>
       <button id="logoutBtn" class="ghost-btn"><?= ui_icon('logout') ?><span>Log out</span></button>
     </div>
   </header>
 
   <main class="page-shell merd-page-shell">
     <nav class="portal-tabs merd-nav" aria-label="MERDPOS sections">
+      <?php if ($canDashboard): ?>
       <div class="nav-group">
         <span class="nav-group-label">Overview</span>
-        <button class="portal-tab active" data-panel="dashboardPanel"><?= ui_icon('home') ?><span>Dashboard</span></button>
-      </div>
-      <div class="nav-group">
-        <span class="nav-group-label">Workforce</span>
-        <?php if ($canDirectory): ?><button class="portal-tab" data-panel="employeesPanel"><?= ui_icon('users') ?><span>Employees</span></button><?php endif; ?>
-        <button class="portal-tab" data-panel="timesheetPanel"><?= ui_icon('clock') ?><span>Timesheets</span><span id="timesheetBell" class="nav-badge" data-dispute-shortcut hidden>0</span></button>
-        <button class="portal-tab" data-panel="disputesPanel"><?= ui_icon('message') ?><span>Disputes</span></button>
-      </div>
-      <?php if ($canDirectory): ?>
-      <div class="nav-group">
-        <span class="nav-group-label">Operations</span>
-        <button class="portal-tab" data-panel="storesPanel"><?= ui_icon('store') ?><span>Stores</span></button>
+        <button class="portal-tab<?= $initialPanel === 'dashboardPanel' ? ' active' : '' ?>" data-panel="dashboardPanel"><?= ui_icon('home') ?><span>Dashboard</span></button>
       </div>
       <?php endif; ?>
+
+      <?php if ($hasWorkforceRaw): ?>
+      <div class="nav-group">
+        <span class="nav-group-label">Workforce</span>
+        <?php if ($canWorkforce): ?><button class="portal-tab<?= $initialPanel === 'employeesPanel' ? ' active' : '' ?>" data-panel="employeesPanel"><?= ui_icon('users') ?><span>Employees</span></button><?php endif; ?>
+        <?php if ($canTimesheets): ?><button class="portal-tab<?= $initialPanel === 'timesheetPanel' ? ' active' : '' ?>" data-panel="timesheetPanel"><?= ui_icon('clock') ?><span>Timesheets</span><span id="timesheetBell" class="nav-badge" data-dispute-shortcut hidden>0</span></button><?php endif; ?>
+        <?php if ($canDisputes): ?><button class="portal-tab<?= $initialPanel === 'disputesPanel' ? ' active' : '' ?>" data-panel="disputesPanel"><?= ui_icon('message') ?><span>Disputes</span></button><?php endif; ?>
+      </div>
+      <?php endif; ?>
+
+      <?php if ($hasOperations): ?>
+      <div class="nav-group">
+        <span class="nav-group-label">Operations</span>
+        <?php if ($canStores): ?><button class="portal-tab<?= $initialPanel === 'storesPanel' ? ' active' : '' ?>" data-panel="storesPanel"><?= ui_icon('store') ?><span>Stores</span></button><?php endif; ?>
+      </div>
+      <?php endif; ?>
+
+      <?php if ($canFinance): ?>
       <div class="nav-group">
         <span class="nav-group-label">Finance</span>
-        <button class="portal-tab" data-panel="financialPanel"><?= ui_icon('wallet') ?><span>Financial</span></button>
+        <button class="portal-tab<?= $initialPanel === 'financialPanel' ? ' active' : '' ?>" data-panel="financialPanel"><?= ui_icon('wallet') ?><span>Financial</span></button>
       </div>
-      <?php if ($isDev): ?>
+      <?php endif; ?>
+
+      <?php if ($canDevStatus): ?>
       <div class="nav-group">
         <span class="nav-group-label">System</span>
-        <button class="portal-tab dev-tab" data-panel="devPanel"><?= ui_icon('code') ?><span>DEV</span></button>
+        <button class="portal-tab dev-tab<?= $initialPanel === 'devPanel' ? ' active' : '' ?>" data-panel="devPanel"><?= ui_icon('code') ?><span>DEV</span></button>
       </div>
       <?php endif; ?>
     </nav>
 
-    <section id="dashboardPanel" class="portal-panel">
+    <?php if ($canDashboard): ?>
+    <section id="dashboardPanel" class="portal-panel"<?= $initialPanel === 'dashboardPanel' ? '' : ' hidden' ?>>
       <?php if ($isManagement): ?>
       <section class="management-hero">
         <article class="hero-panel">
@@ -98,8 +156,8 @@ function ui_icon(string $name): string
           <div class="live-time"><span class="live-time-dot"></span><span id="liveClock">Live</span></div>
         </article>
         <article class="hero-panel hero-role">
-          <div><div class="hero-kicker">Access level</div><strong><?= htmlspecialchars($role) ?></strong></div>
-          <small><?= $isDev ? 'System diagnostics and management access enabled.' : 'Management operations and approvals enabled.' ?></small>
+          <div><div class="hero-kicker">Access level</div><strong><?= htmlspecialchars($roleLabel) ?> · LOA <?= $authorityLevel ?></strong></div>
+          <small>Capabilities are granted by the current client permission policy.</small>
         </article>
       </section>
 
@@ -111,31 +169,14 @@ function ui_icon(string $name): string
       </section>
 
       <section class="mgmt-grid">
-        <article class="mgmt-card">
-          <div class="mgmt-card-head"><h2>Who is working now</h2><span>Live QR attendance</span></div>
-          <div id="workingNow"><div class="status-card">Loading attendance…</div></div>
-        </article>
-        <article class="mgmt-card">
-          <div class="mgmt-card-head"><h2>Workforce by store</h2><span>Open shifts</span></div>
-          <div id="workforceChart" class="chart-bars"></div>
-        </article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Who is working now</h2><span>Live QR attendance</span></div><div id="workingNow"><div class="status-card">Loading attendance…</div></div></article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Workforce by store</h2><span>Open shifts</span></div><div id="workforceChart" class="chart-bars"></div></article>
       </section>
-
       <section class="mgmt-grid">
-        <article class="mgmt-card">
-          <div class="mgmt-card-head"><h2>Today’s store cash position</h2><span>Register + Petty Cash</span></div>
-          <div id="storeFinanceChart" class="chart-bars"></div>
-        </article>
-        <article class="mgmt-card">
-          <div class="mgmt-card-head"><h2>Register vs Petty Cash</h2><span id="financeChartDate">Today</span></div>
-          <div id="financeRingRoot" class="finance-ring-wrap"></div>
-        </article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Today’s store cash position</h2><span>Register + Petty Cash</span></div><div id="storeFinanceChart" class="chart-bars"></div></article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Register vs Petty Cash</h2><span id="financeChartDate">Today</span></div><div id="financeRingRoot" class="finance-ring-wrap"></div></article>
       </section>
-
-      <section class="controls-card">
-        <div class="mgmt-card-head"><h2>Recent attendance</h2><span>Latest verified QR shifts</span></div>
-        <div id="recentShifts" class="table-scroll"></div>
-      </section>
+      <section class="controls-card"><div class="mgmt-card-head"><h2>Recent attendance</h2><span>Latest verified QR shifts</span></div><div id="recentShifts" class="table-scroll"></div></section>
       <?php else: ?>
       <section id="dashboardSummary" class="card-grid"><div class="status-card">Loading dashboard…</div></section>
       <section id="workingNow" class="card-grid"><div class="status-card">Loading attendance…</div></section>
@@ -144,15 +185,16 @@ function ui_icon(string $name): string
       <button id="refreshBetaBtn" class="secondary-btn" type="button">Refresh live data</button>
       <?php if ($isManagement): ?><section id="dashboardSummary" hidden></section><?php endif; ?>
     </section>
+    <?php endif; ?>
 
-    <?php if ($canDirectory): ?>
-    <section id="employeesPanel" class="portal-panel" hidden>
+    <?php if ($canWorkforce): ?>
+    <section id="employeesPanel" class="portal-panel"<?= $initialPanel === 'employeesPanel' ? '' : ' hidden' ?>>
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Employees</h2><p>Accounts, store assignment, access level and pay rate.</p></div>
+          <div><h2>Employees</h2><p>Accounts, store access, roles and authority. Pay details appear only when permitted.</p></div>
           <div class="directory-actions">
             <label class="search-box" aria-label="Search employees"><?= ui_icon('search') ?><input id="employeeSearch" type="search" placeholder="Search employees"></label>
-            <button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button>
+            <?php if ($canWorkforceManage): ?><button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button><?php endif; ?>
           </div>
         </div>
         <div id="employeeDirectory" class="entity-list"><div class="entity-empty">Loading employees…</div></div>
@@ -160,7 +202,8 @@ function ui_icon(string $name): string
     </section>
     <?php endif; ?>
 
-    <section id="timesheetPanel" class="portal-panel" hidden>
+    <?php if ($canTimesheets): ?>
+    <section id="timesheetPanel" class="portal-panel"<?= $initialPanel === 'timesheetPanel' ? '' : ' hidden' ?>>
       <section class="controls-card timesheet-header-card">
         <div class="week-picker-row">
           <label for="weekSelect" class="week-picker-label">Week</label>
@@ -173,9 +216,11 @@ function ui_icon(string $name): string
       <section id="statusBox" class="status-card">Loading...</section>
       <section id="reportContainer"></section>
     </section>
+    <?php endif; ?>
 
-    <section id="disputesPanel" class="portal-panel" hidden>
-      <?php if (!$isManagement): ?>
+    <?php if ($canDisputes): ?>
+    <section id="disputesPanel" class="portal-panel"<?= $initialPanel === 'disputesPanel' ? '' : ' hidden' ?>>
+      <?php if ($canSubmitDisputes): ?>
       <section class="controls-card">
         <form id="disputeForm" class="form-grid">
           <label id="disputeShiftField">Shift<select name="shift_id" id="disputeShift"></select></label>
@@ -189,17 +234,18 @@ function ui_icon(string $name): string
       </section>
       <?php endif; ?>
       <section class="controls-card"><div id="disputeList" class="table-scroll"></div></section>
-      <?php if ($isManagement): ?><section class="controls-card"><div class="app-panel-head"><h2>Attendance security flags</h2></div><div id="attendanceFlags" class="table-scroll"></div></section><?php endif; ?>
+      <?php if ($canResolveFlags): ?><section class="controls-card"><div class="app-panel-head"><h2>Attendance security flags</h2></div><div id="attendanceFlags" class="table-scroll"></div></section><?php endif; ?>
     </section>
+    <?php endif; ?>
 
-    <?php if ($canDirectory): ?>
-    <section id="storesPanel" class="portal-panel" hidden>
+    <?php if ($canStores): ?>
+    <section id="storesPanel" class="portal-panel"<?= $initialPanel === 'storesPanel' ? '' : ' hidden' ?>>
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Stores</h2><p>Store identity, availability and expected shift start.</p></div>
+          <div><h2>Stores</h2><p>Store identity, availability and operating timings.</p></div>
           <div class="directory-actions">
             <label class="search-box" aria-label="Search stores"><?= ui_icon('search') ?><input id="storeSearch" type="search" placeholder="Search stores"></label>
-            <button id="addStoreBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add store</button>
+            <?php if ($canStoresManage): ?><button id="addStoreBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add store</button><?php endif; ?>
           </div>
         </div>
         <div id="storeDirectory" class="entity-list"><div class="entity-empty">Loading stores…</div></div>
@@ -207,7 +253,8 @@ function ui_icon(string $name): string
     </section>
     <?php endif; ?>
 
-    <section id="financialPanel" class="portal-panel" hidden>
+    <?php if ($canFinance): ?>
+    <section id="financialPanel" class="portal-panel"<?= $initialPanel === 'financialPanel' ? '' : ' hidden' ?>>
       <section class="controls-card">
         <div class="form-grid financial-picker">
           <label>Store<select id="financialStore" required></select></label>
@@ -219,12 +266,11 @@ function ui_icon(string $name): string
       </section>
       <nav class="financial-tabs" aria-label="Financial sections">
         <button type="button" class="financial-tab active" data-finance-panel="cashStatement">Daily Cash</button>
-        <button type="button" class="financial-tab" data-finance-panel="cashMovement">Cash In / Out</button>
-        <button type="button" class="financial-tab" data-finance-panel="cashClosing">Closing</button>
+        <?php if ($canFinanceSubmit): ?><button type="button" class="financial-tab" data-finance-panel="cashMovement">Cash In / Out</button><button type="button" class="financial-tab" data-finance-panel="cashClosing">Closing</button><?php endif; ?>
       </nav>
       <section id="cashStatement" class="controls-card financial-section">
         <div id="financialSummary"><p class="muted">Choose a store and date.</p></div>
-        <?php if ($isManagement): ?>
+        <?php if ($canOpenDay): ?>
         <form id="openDayForm" class="sub-form financial-open-form" hidden>
           <label>Register opening<input name="register_opening" type="number" min="0" step="0.01" required></label>
           <label>Petty Cash opening<input name="petty_cash_opening" type="number" min="0" step="0.01" required></label>
@@ -233,6 +279,7 @@ function ui_icon(string $name): string
         <?php endif; ?>
         <div id="financialEntries" class="table-scroll" hidden></div>
       </section>
+      <?php if ($canFinanceSubmit): ?>
       <section id="cashMovement" class="controls-card financial-section" hidden>
         <form id="cashMovementForm" class="form-grid">
           <label>Action<select name="submission_type"><option value="cash_in">Cash IN</option><option value="cash_out">Cash OUT</option></select></label>
@@ -252,11 +299,13 @@ function ui_icon(string $name): string
         </form>
         <p class="muted">Closing is accepted once only and automatically opens the next business day.</p>
       </section>
+      <?php endif; ?>
       <p id="financialStatus" class="financial-message muted"></p>
     </section>
+    <?php endif; ?>
 
-    <?php if ($isDev): ?>
-    <section id="devPanel" class="portal-panel" hidden>
+    <?php if ($canDevStatus): ?>
+    <section id="devPanel" class="portal-panel"<?= $initialPanel === 'devPanel' ? '' : ' hidden' ?>>
       <section class="controls-card">
         <div class="mgmt-card-head"><h2><?= ui_icon('database') ?> DEV system inspector</h2><span>Read-only diagnostics</span></div>
         <div id="devStatus" class="dev-console"><div class="status-card">Loading system status…</div></div>
@@ -266,6 +315,7 @@ function ui_icon(string $name): string
     <?php endif; ?>
   </main>
 
+  <?php if ($can('password.change_own')): ?>
   <dialog id="passwordDialog" class="portal-dialog">
     <form id="passwordForm" method="dialog">
       <div class="dialog-heading"><h2>Change password</h2><button type="button" id="passwordClose" class="icon-btn" aria-label="Close">×</button></div>
@@ -277,8 +327,9 @@ function ui_icon(string $name): string
       <button type="submit" class="primary-btn">Change password</button>
     </form>
   </dialog>
+  <?php endif; ?>
 
-  <?php if ($canDirectory): ?>
+  <?php if ($canWorkforceManage): ?>
   <dialog id="employeeDialog" class="portal-dialog admin-dialog">
     <form id="employeeAdminForm">
       <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
@@ -290,7 +341,7 @@ function ui_icon(string $name): string
           <label>User ID<input name="user_id" inputmode="numeric" pattern="[0-9]*" maxlength="32" required></label>
           <label>Store<select name="store_id" id="employeeStore" required></select></label>
           <label>Access level<select name="employee_type" id="employeeRole" required></select></label>
-          <label>Hourly rate<input name="hourly_rate" type="number" min="0" max="9999" step="0.01" required></label>
+          <label<?= $canPayrates ? '' : ' hidden' ?>>Hourly rate<input name="hourly_rate" type="number" min="0" max="9999" step="0.01"<?= $canPayrates ? ' required' : '' ?>></label>
           <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
           <label class="full-field">New / reset numeric password<input name="new_password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="20" autocomplete="new-password"><p id="employeePasswordHint" class="form-hint"></p></label>
         </div>
@@ -298,7 +349,9 @@ function ui_icon(string $name): string
       </div>
     </form>
   </dialog>
+  <?php endif; ?>
 
+  <?php if ($canStoresManage): ?>
   <dialog id="storeDialog" class="portal-dialog admin-dialog">
     <form id="storeAdminForm">
       <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
@@ -314,12 +367,25 @@ function ui_icon(string $name): string
       </div>
     </form>
   </dialog>
-  <div id="directoryNotice" class="directory-notice" hidden></div>
   <?php endif; ?>
 
-  <script src="assets/app.js"></script>
-  <script src="assets/beta.js"></script>
-  <script src="assets/management.js"></script>
-  <?php if ($canDirectory): ?><script src="assets/directory.js"></script><?php endif; ?>
+  <?php if ($canDirectory): ?><div id="directoryNotice" class="directory-notice" hidden></div><?php endif; ?>
+
+  <script>
+    window.MERDPOS_AUTH = <?= json_encode([
+        'role_key'=>$role,
+        'role_label'=>$roleLabel,
+        'authority_level'=>$authorityLevel,
+        'client_role_id'=>$user['client_role_id'] ?? null,
+        'client_id'=>(int)$user['client_id'],
+        'auth_client_id'=>(int)($user['auth_client_id'] ?? $user['client_id']),
+        'permissions'=>$permissions,
+        'permission_levels'=>$user['permission_levels'] ?? [],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+  </script>
+  <script src="assets/app.js?v=20260826loa1"></script>
+  <script src="assets/beta.js?v=20260826loa1"></script>
+  <script src="assets/management.js?v=20260826loa1"></script>
+  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826loa1"></script><?php endif; ?>
 </body>
 </html>
