@@ -51,6 +51,7 @@ $designAudit = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal
 $shellCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/shell.css', $errors);
 $appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/app-ui.css', $errors);
 $dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
+$navigationJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/navigation.js', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
@@ -160,6 +161,14 @@ foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {
 beta_contract_require_contains($minimalJs, '.dashboard-add-button', 'Dashboard Add normalization', $errors);
 beta_contract_require_contains($minimalJs, 'clusterSearchAndAdd', 'Search/Add runtime clustering', $errors);
 
+// Mobile shell/navigation state is authoritative. Contextual subnav space exists
+// only while a contextual group is open, and fixed nav yields to the keyboard.
+beta_contract_require_contains($navigationJs, 'merd-mobile-subnav-open', 'mobile contextual subnav state', $errors);
+beta_contract_require_contains($navigationJs, 'syncMobileSubnavState', 'mobile contextual subnav synchronization', $errors);
+beta_contract_require_contains($shellCss, 'body.merd-mobile-subnav-open .app-workspace.merd-page-shell', 'mobile contextual subnav offset', $errors);
+beta_contract_require_contains($shellCss, 'body.merd-keyboard-open .app-rail', 'software-keyboard navigation protection', $errors);
+beta_contract_require_contains($shellCss, 'body.merd-shell.merd-keyboard-open', 'software-keyboard bottom offset reset', $errors);
+
 // Mobile functionality remains runtime-tested, not CSS-only.
 foreach ([
     'visualViewport' => 'mobile visual viewport handling',
@@ -232,4 +241,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical tokens/component ownership, feature CSS isolation, modular headings, shared Add/Search placement, mobile runtime parity, contextual visual/a11y audit, cache revalidation, README contract, and deterministic legacy Sheet reader are wired.\n";
+echo "MERDPOS beta runtime contract validated: beta-only scope, implementation-state discipline, canonical tokens/component ownership, feature CSS isolation, authoritative mobile navigation state, modular headings, shared Add/Search placement, mobile runtime parity, contextual visual/a11y audit, cache revalidation, README contract, and deterministic legacy Sheet reader are wired.\n";
