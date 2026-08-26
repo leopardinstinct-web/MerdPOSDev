@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS client_roles (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_client_role_key (client_id, role_key),
+  UNIQUE KEY uq_client_roles_client_id (client_id, id),
   KEY idx_client_role_authority (client_id, authority_level),
   CONSTRAINT fk_client_roles_client FOREIGN KEY (client_id) REFERENCES clients(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
   CONSTRAINT chk_client_roles_base CHECK (base_role IN ('USER','ADMIN','SUPER','DEV')),
@@ -51,5 +52,5 @@ CREATE TABLE IF NOT EXISTS dashboard_role_layouts (
   UNIQUE KEY uq_dashboard_role_widget (role_id, widget_key),
   KEY idx_dashboard_role_context (client_id, role_id, grid_y, grid_x),
   CONSTRAINT fk_dashboard_role_client FOREIGN KEY (client_id) REFERENCES clients(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-  CONSTRAINT fk_dashboard_role_role FOREIGN KEY (role_id) REFERENCES client_roles(id) ON UPDATE RESTRICT ON DELETE CASCADE
+  CONSTRAINT fk_dashboard_role_role FOREIGN KEY (client_id,role_id) REFERENCES client_roles(client_id,id) ON UPDATE RESTRICT ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
