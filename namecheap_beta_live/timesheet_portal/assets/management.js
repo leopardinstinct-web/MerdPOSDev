@@ -8,20 +8,24 @@
   let displayTimezone=null;
 
   function ensureShellAssets(){
-    if(!document.querySelector('link[data-merd-shell]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260826loa2';link.dataset.merdShell='1';document.head.appendChild(link);}
+    if(!document.querySelector('link[data-merd-shell]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/shell.css?v=20260826ux1';link.dataset.merdShell='1';document.head.appendChild(link);}
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      if(!document.querySelector('link[data-dashboard-builder-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/dashboard-builder.css?v=20260826loa2';link.dataset.dashboardBuilderCss='1';document.head.appendChild(link);}
-      if(!document.querySelector('script[data-dashboard-builder]')){const script=document.createElement('script');script.src='assets/dashboard-builder.js?v=20260826loa2';script.dataset.dashboardBuilder='1';document.body.appendChild(script);}
+      if(!document.querySelector('link[data-dashboard-builder-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/dashboard-builder.css?v=20260826ux1';link.dataset.dashboardBuilderCss='1';document.head.appendChild(link);}
+      if(!document.querySelector('script[data-dashboard-builder]')){const script=document.createElement('script');script.src='assets/dashboard-builder.js?v=20260826ux1';script.dataset.dashboardBuilder='1';document.body.appendChild(script);}
     }
     // Roles is itself a DEV-only permission. Mount before the navigation transform
     // so Operations child-count/flattening remains deterministic.
-    if(can('roles.manage')&&!document.querySelector('script[data-roles-module]')){const script=document.createElement('script');script.src='assets/roles.js?v=20260826loa2';script.dataset.rolesModule='1';document.body.appendChild(script);}
-    if(!document.querySelector('script[data-merd-navigation]')){const script=document.createElement('script');script.src='assets/navigation.js?v=20260826loa2';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('script[data-store-order]')){const script=document.createElement('script');script.src='assets/store-order.js?v=20260826loa2';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('script[data-modal-lock]')){const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260826loa2';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);}
-    if(!document.querySelector('link[data-account-menu-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826loa2';link.dataset.accountMenuCss='1';document.head.appendChild(link);}
-    if(!document.querySelector('script[data-account-menu]')){const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826loa2';script.dataset.accountMenu='1';document.body.appendChild(script);}
-    if(can('stores.profile.manage')&&!document.querySelector('script[data-dev-stores-ui]')){const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260826loa2';script.dataset.devStoresUi='1';document.body.appendChild(script);}
+    if(can('roles.manage')&&!document.querySelector('script[data-roles-module]')){const script=document.createElement('script');script.src='assets/roles.js?v=20260826ux1';script.dataset.rolesModule='1';document.body.appendChild(script);}
+    if(!document.querySelector('script[data-merd-navigation]')){const script=document.createElement('script');script.src='assets/navigation.js?v=20260826ux1';script.dataset.merdNavigation='1';script.defer=true;document.body.appendChild(script);}
+    if(!document.querySelector('script[data-store-order]')){const script=document.createElement('script');script.src='assets/store-order.js?v=20260826ux1';script.dataset.storeOrder='1';script.defer=true;document.body.appendChild(script);}
+    if(!document.querySelector('script[data-modal-lock]')){const script=document.createElement('script');script.src='assets/modal-lock.js?v=20260826ux1';script.dataset.modalLock='1';script.defer=true;document.body.appendChild(script);}
+    if(!document.querySelector('link[data-account-menu-css]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/account-menu.css?v=20260826ux1';link.dataset.accountMenuCss='1';document.head.appendChild(link);}
+    if(!document.querySelector('script[data-account-menu]')){const script=document.createElement('script');script.src='assets/account-menu.js?v=20260826ux1';script.dataset.accountMenu='1';document.body.appendChild(script);}
+    if(can('stores.profile.manage')&&!document.querySelector('script[data-dev-stores-ui]')){const script=document.createElement('script');script.src='assets/dev-stores-ui.js?v=20260826ux1';script.dataset.devStoresUi='1';document.body.appendChild(script);}
+
+    // Loaded last on purpose: this is the cross-portal experience layer, so its
+    // clarity/spacing/focus/motion rules refine rather than fight feature CSS.
+    if(!document.querySelector('link[data-refined-experience]')){const link=document.createElement('link');link.rel='stylesheet';link.href='assets/apple-principles.css?v=20260826a';link.dataset.refinedExperience='1';document.head.appendChild(link);}
   }
   ensureShellAssets();
 
