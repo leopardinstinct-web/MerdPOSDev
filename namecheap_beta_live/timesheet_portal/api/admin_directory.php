@@ -205,11 +205,11 @@ try {
         $role = strtoupper((string)$roleRow['base_role']);
         $roleName = (string)$roleRow['role_label'];
         $clientRoleId = (int)$roleRow['id'];
-        $status = strtolower(trim((string)($input['status'] ?? 'active'));
+        $status = strtolower(trim((string)($input['status'] ?? 'active')));
         $rateText = trim((string)($input['hourly_rate'] ?? '0'));
         $rateEffective = trim((string)($input['rate_effective_date'] ?? ''));
         $newPassword = preg_replace('/\D+/', '', (string)($input['new_password'] ?? ''));
-        $storeAccessMode = strtolower(trim((string)($input['store_access_mode'] ?? 'all'));
+        $storeAccessMode = strtolower(trim((string)($input['store_access_mode'] ?? 'all')));
         $selectedStoreIds = directory_normalize_store_ids($input['store_ids'] ?? []);
 
         if ($name === '' || mb_strlen($name) > 190) throw new MerdWorkforceException('invalid_name', 'Enter an employee name.');
