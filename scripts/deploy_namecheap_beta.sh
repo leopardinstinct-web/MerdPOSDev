@@ -21,7 +21,7 @@ if ! flock -n 9; then
   exit 0
 fi
 
-for command_name in git ssh rsync php flock mktemp; do
+for command_name in git ssh rsync php flock mktemp find; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "ERROR: required command not found in cron PATH: $command_name" >&2
     exit 1
@@ -38,6 +38,22 @@ echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] fetching $BRANCH from GitHub"
 git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
+
+# Fail closed before touching the live beta if any PHP endpoint, include or
+# migration has a parse error. This prevents empty-response HTTP 500 regressions.
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] linting MERDPOS PHP source"
+php_lint_failed=0
+while IFS= read -r -d '' php_file; do
+  if ! php -l "$php_file" >/dev/null; then
+    echo "ERROR: PHP syntax check failed: $php_file" >&2
+    php_lint_failed=1
+  fi
+done < <(find "$REPO/namecheap_beta_live/backend" "$REPO/namecheap_beta_live/timesheet_portal" -type f -name '*.php' -print0)
+if [[ "$php_lint_failed" -ne 0 ]]; then
+  echo "ERROR: beta deployment aborted because PHP syntax validation failed." >&2
+  exit 1
+fi
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] PHP lint passed"
 
 rsync -az \
   --exclude='config.php' \
@@ -60,6 +76,7 @@ php "$LIVE/backend/cli/apply_028_client_role_authority.php"
 php "$LIVE/backend/cli/apply_029_dashboard_layouts.php"
 php "$LIVE/backend/cli/apply_030_dev_client_preferences.php"
 php "$LIVE/backend/cli/apply_031_client_roles_dashboard_templates.php"
+php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
 
 rsync -az \
   --exclude='config.php' \
