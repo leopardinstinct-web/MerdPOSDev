@@ -1,63 +1,111 @@
-# Commit and Delivery Instructions — POS LATEST
+# Commit and Delivery Instructions — POS LATEST / MERDPOS Beta
 
-Current documentation baseline: source commit `29de6f4`. Production deployment
-state was not verified during reconciliation; the historical marker `4a54c41`
-must not be treated as current without an approved production check.
+## Active beta source
 
-## Approval levels
+- Repository: `leopardinstinct-web/MerdPOSDev`
+- Branch: `namecheap-beta-live`
+- Deployable tree: `namecheap_beta_live/`
+- Namecheap mirror: `~/git/MerdPOSDev-beta-mirror`
+- Live beta target: `~/merdpos.com/app/beta`
 
-- Branch implementation requires approved Level 2 scope.
-- Commit, push, and pull request require explicit Level 3 approval.
-- Merge, migration, credential/configuration change, and deployment each require
-  explicit Level 4 approval.
+Do not rely on historical documentation commit markers. Confirm actual HEAD before every change and the Namecheap `.beta_deployed_commit` before calling anything live.
 
-## Never commit
+## Mandatory implementation-state discipline
 
-- `backend/api/config.php`
-- `backend/api/.deployed_version` or `backend/.deployed_version`
-- `.env`, `*.local.php`, credentials, signing keys
-- `merdpos_staff/build/`, `.dart_tool/`, APKs, generated caches
+Every beta delivery must distinguish:
 
-`backend/api/config.sample.php` must contain placeholders only. At the current
-baseline it contains a real-looking value and must be resolved before a future
-commit that includes it.
+```text
+REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED
+```
+
+- Documentation-only changes are not implementation.
+- `Implemented in beta source` requires CODED + WIRED.
+- `Live/fixed/working` requires DEPLOYED + VERIFIED.
+
+Before committing a claimed feature, verify that the runtime entry point actually loads/calls any new JS/CSS/helper/API path. A file existing in Git is not sufficient.
+
+## Never commit/expose
+
+- private `config.php` files containing credentials;
+- `.env`, `*.local.php`, credentials, SSH/private keys, signing keys;
+- server deployed-version/deployed-commit files;
+- generated build/cache output;
+- plaintext passwords/PINs/secrets from Google legacy sources.
+
+Sample configs contain placeholders only.
 
 ## Pre-commit review
 
-Run from the repository after approval:
+Confirm:
 
-```bash
-git status --short --branch
-git diff --check
-git diff --stat
-git diff --name-only
+- changed paths belong to the requested scope;
+- no secrets/excluded artifacts are staged;
+- PHP syntax/lint passes for changed PHP;
+- permission-policy validator still passes for portal API changes;
+- DB migrations have explicit runners and deployment order;
+- DB-dependent portal code cannot publish before required schema verification;
+- UI changes follow `GUI_STANDARD.md` and are mobile-ready;
+- list Add/Search conventions use the shared circular `+` / expandable magnifier behavior where applicable;
+- relevant README/context files describe the new runtime truth.
+
+## README maintenance — default
+
+For beta behavior/architecture changes, update the relevant README as part of the same delivery:
+
+- `namecheap_beta_live/README.md`
+- `namecheap_beta_live/timesheet_portal/README.md`
+- `namecheap_beta_live/backend/README.md`
+
+Also update relevant `docs/pos_latest/*.md` when standards/API/security/context/history changes.
+
+Do not update README as a substitute for wiring. README is a runtime contract, not proof that the runtime code is active.
+
+## Full-stack path check
+
+For a DB-backed beta feature/fix, inspect:
+
+```text
+UI
+→ runtime JS/CSS loading
+→ API endpoint/action
+→ permission/auth/client context
+→ DB tables/columns/indexes/FKs
+→ validation/transaction/storage/audit
+→ response
+→ UI re-render
+→ mobile behavior
 ```
 
-Confirm every changed path belongs to the approved scope and no excluded file
-is staged. Run CI checks defined by `CI_ENVIRONMENT_PLAN.md`.
-
-## Commit flow after explicit approval
-
-```bash
-git add <approved-files-only>
-git diff --cached --check
-git diff --cached --stat
-git commit -m "<clear scoped message>"
-```
-
-Push and pull request are separate explicitly approved actions.
+Do not claim completion if one of these required layers is only assumed.
 
 ## Deployment
 
-There is no automatic deployment authorization. A deployment plan must state:
+After beta source changes, provide the immediate deployment command rather than relying on the scheduled cron:
 
-- exact artifact/file list and source commit;
-- preflight and backups;
-- schema migration and data compatibility, if any;
-- secret/config preservation;
-- health checks;
-- rollback or forward-fix procedure;
-- responsible approver.
+```bash
+cd ~/git/MerdPOSDev-beta-mirror
 
-Never overwrite server `api/config.php`. Never update a deployed-version marker
-until the corresponding reviewed artifact is actually deployed.
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes" \
+git pull --ff-only origin namecheap-beta-live
+
+/bin/bash scripts/deploy_namecheap_beta.sh
+
+echo "=== DEPLOYED ==="
+cat ~/merdpos.com/app/beta/.beta_deployed_commit
+```
+
+When migration/schema behavior matters, also provide an appropriate deploy-log tail.
+
+## Post-deploy verification
+
+A successful deploy script is not by itself functional verification.
+
+Before reporting `live/fixed/working`, confirm as applicable:
+
+- deployed marker is the intended commit;
+- migration/schema verification passed;
+- expected asset/script is present in the live runtime chain;
+- API returns expected authorization/data behavior;
+- UI behavior is visible through the actual interaction path;
+- mobile/responsive interaction remains usable;
+- Google migration remains read-only to source Sheets and Sync safety gates hold.
