@@ -16,7 +16,7 @@ This inventory tracks recovery by execution path. Source/CI inspection does not 
 | Workforce directory | `dashboard.php`, `assets/directory.js`, Workforce API routes | Source path present | Verify list/search/add/edit, store access, role/LOA controls and pay-rate visibility boundaries |
 | Clients | `assets/navigation.js`, `assets/client.js`, client APIs | DEV-only dynamic mount path present | Verify DEV-only visibility, active client switch/return-panel behavior and non-DEV absence |
 | Roles / Permission Policy | `assets/roles.js`, `api/role_authority.php`, `assets/management.js` | Roles execute before Navigation deterministically and CI guards ordering | Verify policy save immediately changes UI/API scope and DEV-only remains locked |
-| Timesheet report | `assets/app.js`, `assets/timesheet-app.js`, `api/weeks.php`, `api/timesheet.php` | Isolated runtime split; load order/cache wiring validated | Verify current week, week change, report rendering, PDF print route and logout for own/all-timesheet roles |
+| Timesheet report | `assets/app.js`, `assets/timesheet-app.js`, `api/weeks.php`, `api/timesheet.php`, Chrome smoke | `app.js` prevents duplicate Timesheet runtime injection; Chrome proves one script load, one initial weeks/report load and one report request per week selection | Verify full authenticated report data, PDF print route and logout for own/all-timesheet roles |
 | Disputes / attendance flags | `assets/beta.js`, `api/beta_state.php`, `api/disputes.php` | Shared state omits disputes/flags unless corresponding view/resolve permission exists | Verify own submit/cancel, review, handover confirmation and flag resolution permission boundaries |
 | Finance | `assets/beta.js`, `api/beta_state.php`, `api/financials.php`, workforce finance helpers | Finance no longer depends on Dashboard for shared CSRF/store context; Finance-only state store scope is active clock-in stores; backend independently enforces active clock-in unless `finance.cross_store` | Verify locked/unlocked store access, open day, queue, cash in/out, close day and offline queue recovery |
 | Dialogs + software keyboard | shared dialogs, `assets/modal-lock.js`, `assets/mobile-runtime.js` | Mobile-safe locking/fallback is a release invariant | Verify active input/action remains reachable with iOS/Android software keyboard |
@@ -64,12 +64,16 @@ Resolved in source across `includes/beta_api.php` and `api/beta_state.php`:
 
 Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent Attendance dashboard surfaces now mirror the permissions of the data they display instead of showing misleading zero/empty cards for a management identity that lacks that specific capability. The shared-state validator also protects this frontend/backend alignment.
 
+### Duplicate Timesheet runtime injection — 2026-08-27
+
+`timesheet-app.js` owns one report runtime. `app.js` now refuses to inject another Timesheet script when the first script is already pending or initialized. The Chrome recovery suite evaluates `app.js` twice and requires exactly one Timesheet script request, one initial weeks request, one initial report request and exactly one additional report request for a user week selection.
+
 ## Current CI checkpoint
 
-Beta guardrails run `33008908165` on commit `c0c0015c317f1681205d6d046c2bdfd026a304ae` completed green with all three jobs:
+Beta guardrails run `33009475284` on commit `bd97706e5e3ae16d0bb040d64e2851d14cbd6a24` completed green with all three jobs:
 
 - Beta source contract;
-- Beta Chromium smoke;
+- Beta Chromium smoke, including Add/permission-minimal/Timesheet regression scenarios;
 - Beta secret scan.
 
 This is not a Namecheap deployment claim.
@@ -78,5 +82,5 @@ This is not a Namecheap deployment claim.
 
 1. Deploy the current branch through the established Namecheap pull/mirror path and confirm `.beta_deployed_commit`.
 2. Run authenticated role verification for USER, management and DEV, especially custom thresholds where Dashboard is denied but Finance/Password/Disputes remain allowed.
-3. Add browser smoke coverage for navigation/contextual mobile state and Timesheet week switching where it can remain credential-free.
+3. Add credential-free browser smoke coverage for navigation/contextual mobile state.
 4. Perform real phone/tablet checks for navigation, dialogs/keyboard, Dashboard edit controls and shared Add/Search touch behavior.
