@@ -1,240 +1,159 @@
+@import url('design-tokens.css?v=20260826ds1');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /*
- * MERDPOS typography system
- * One screen-first family, restrained weights, compact hierarchy.
- * Loaded after styles.css / modern.css so legacy report typography cannot leak through.
+ * MERDPOS typography bootstrap.
+ * The full portal hierarchy is finalized by design-system.css; this file keeps
+ * login/scan/pre-runtime rendering on the same tokenized modular scale.
  */
 
-:root {
-  --merd-font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-html {
-  font-family: var(--merd-font-ui);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
-
+html,
 body,
 button,
 input,
 select,
 textarea,
 table {
-  font-family: var(--merd-font-ui) !important;
+  font-family: var(--font-ui);
 }
 
-body.merd-shell,
-.merd-login-body {
-  font-weight: 400;
+html {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-weight: var(--weight-regular);
   letter-spacing: 0;
 }
 
-.merd-shell h1,
-.merd-shell h2,
-.merd-shell h3,
-.merd-login-body h1,
-.merd-login-body h2,
-.merd-login-body h3 {
-  font-family: var(--merd-font-ui) !important;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-text-primary);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-heading);
+  letter-spacing: -.018em;
 }
 
-.merd-shell strong,
-.merd-login-body strong {
-  font-weight: 600;
+h1 {
+  font-size: clamp(var(--type-3xl), 2.6vw, var(--type-4xl));
 }
 
-/* Brand */
+h2 {
+  font-size: clamp(var(--type-xl), 2vw, var(--type-2xl));
+}
+
+h3 {
+  font-size: var(--type-lg);
+  font-weight: var(--weight-semibold);
+}
+
+h4,
+h5,
+h6 {
+  font-size: var(--type-md);
+  font-weight: var(--weight-semibold);
+}
+
+strong {
+  font-weight: var(--weight-semibold);
+}
+
 .merd-logo-mark {
-  font-weight: 700 !important;
+  font-weight: var(--weight-bold);
 }
+
 .merd-logo-lockup strong {
-  font-size: 23px !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.035em !important;
-}
-.merd-logo-lockup strong span {
-  font-weight: 500 !important;
-}
-.merd-logo-lockup small {
-  font-size: 9px !important;
-  font-weight: 500;
-  letter-spacing: .13em !important;
-}
-
-/* Navigation + controls */
-.merd-nav .portal-tab,
-.merd-shell button,
-.merd-login-body button,
-.merd-shell label,
-.merd-login-body label,
-.week-picker-label {
-  font-weight: 600 !important;
-}
-.merd-nav .portal-tab {
-  font-size: 14px;
-  letter-spacing: -.01em;
-}
-.merd-role-pill,
-.nav-badge,
-.queue-pill,
-.status-pill,
-.warn-pill {
-  font-weight: 600 !important;
-}
-.merd-shell input,
-.merd-shell select,
-.merd-shell textarea,
-.merd-login-body input {
-  font-weight: 400;
-  letter-spacing: 0;
-}
-.week-picker-row select {
-  font-weight: 500 !important;
-}
-
-/* Dashboard hierarchy */
-.hero-kicker {
-  font-weight: 600 !important;
-  letter-spacing: .10em !important;
-}
-.hero-title {
-  font-size: clamp(27px, 2.6vw, 36px) !important;
-  font-weight: 700 !important;
-  letter-spacing: -.035em !important;
-}
-.hero-sub {
-  font-size: 14px;
-  line-height: 1.55;
-}
-.live-time {
-  font-weight: 600 !important;
-}
-.hero-role strong {
-  font-weight: 700 !important;
-}
-.mgmt-kpi .kpi-value {
-  font-weight: 700 !important;
+  font-size: var(--type-xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -.03em;
 }
-.mgmt-kpi .kpi-label,
-.chart-label {
-  font-weight: 500 !important;
-}
-.mgmt-card-head h2 {
-  font-size: 17px !important;
-  font-weight: 600 !important;
-  letter-spacing: -.015em;
-}
-.chart-value,
-.legend-item strong {
-  font-weight: 600 !important;
+
+.merd-logo-lockup strong span {
+  font-weight: var(--weight-medium);
 }
 
-/* Timesheet: modern app-like hierarchy, not poster typography */
-.main-report-card {
-  font-size: 14px;
-}
-.report-title-in-card {
-  text-align: left !important;
-  color: var(--merd-text) !important;
-  font-size: clamp(21px, 2.1vw, 27px) !important;
-  line-height: 1.25 !important;
-  font-weight: 700 !important;
-  letter-spacing: -.03em !important;
-  margin: 2px 0 22px !important;
-}
-.section-title {
-  text-align: left !important;
-  color: var(--merd-text) !important;
-  font-size: clamp(17px, 1.55vw, 21px) !important;
-  line-height: 1.3 !important;
-  font-weight: 600 !important;
-  letter-spacing: -.02em !important;
-  margin: 22px 0 12px !important;
-}
-.employee-wise-title {
-  margin-top: 30px !important;
-}
-.employee-name {
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  letter-spacing: -.015em !important;
+.merd-logo-lockup small {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: .08em;
 }
 
-/* Tables are data UI: quiet typography and tabular numbers */
-.merd-shell table {
-  font-size: 13px;
+.merd-nav .portal-tab,
+button,
+label,
+.week-picker-label {
+  font-weight: var(--weight-semibold);
+}
+
+.hero-title {
+  font-size: clamp(var(--type-3xl), 2.5vw, var(--type-4xl));
+  font-weight: var(--weight-bold);
+  letter-spacing: -.025em;
+}
+
+.hero-sub {
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+}
+
+.mgmt-kpi .kpi-value,
+.stat-card strong {
+  font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
 }
-.merd-shell th {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0 !important;
-  text-transform: none;
+
+.report-title-in-card {
+  color: var(--color-text-primary);
+  font-size: clamp(var(--type-2xl), 2vw, var(--type-3xl));
+  line-height: var(--line-heading);
+  font-weight: var(--weight-bold);
+  letter-spacing: -.02em;
 }
-.merd-shell td {
-  font-size: 13px !important;
-  font-weight: 400;
+
+.section-title {
+  color: var(--color-text-primary);
+  font-size: var(--type-xl);
+  line-height: var(--line-heading);
+  font-weight: var(--weight-semibold);
 }
-.merd-shell td strong,
-.merd-shell .green-total,
-.merd-shell .hours-row,
-.merd-shell .wage-row {
-  font-weight: 600 !important;
+
+.employee-name {
+  font-size: var(--type-lg);
+  font-weight: var(--weight-semibold);
 }
+
 .num,
 .kpi-value,
 .available-amount,
-.chart-value {
+.chart-value,
+table {
   font-variant-numeric: tabular-nums;
 }
 
-/* Personal summary */
-.stat-card span {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  letter-spacing: .035em !important;
-}
-.stat-card strong {
-  font-size: clamp(24px, 2.6vw, 31px) !important;
-  font-weight: 700 !important;
-}
-
-/* Login */
 .merd-login-card h1 {
-  font-size: clamp(26px, 4vw, 31px) !important;
-  font-weight: 700 !important;
-  letter-spacing: -.035em !important;
+  font-size: clamp(var(--type-3xl), 5vw, var(--type-4xl));
 }
 
-@media (max-width: 700px) {
-  body.merd-shell {
-    font-size: 14px;
+@media (max-width: 51.25rem) {
+  body {
+    font-size: var(--type-sm);
   }
+
   .merd-logo-lockup strong {
-    font-size: 21px !important;
+    font-size: var(--type-lg);
   }
-  .merd-nav .portal-tab {
-    font-size: 13px;
-  }
+
   .report-title-in-card {
-    font-size: 20px !important;
-    margin-bottom: 18px !important;
+    font-size: var(--type-2xl);
   }
+
   .section-title {
-    font-size: 17px !important;
-    margin-top: 18px !important;
-  }
-  .employee-name {
-    font-size: 16px !important;
-  }
-  .merd-shell th,
-  .merd-shell td {
-    font-size: 12px !important;
+    font-size: var(--type-lg);
   }
 }
 
@@ -245,12 +164,6 @@ body.merd-shell,
   input,
   select,
   textarea {
-    font-family: var(--merd-font-ui) !important;
-  }
-  .report-title-in-card {
-    font-size: 20pt !important;
-  }
-  .section-title {
-    font-size: 14pt !important;
+    font-family: var(--font-ui);
   }
 }
