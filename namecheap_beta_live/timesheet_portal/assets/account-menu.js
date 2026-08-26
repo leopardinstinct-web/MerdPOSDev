@@ -5,12 +5,15 @@
   const userLine = actions?.querySelector('.user-line');
   const passwordBtn = document.getElementById('passwordBtn');
   const logoutBtn = document.getElementById('logoutBtn');
-  if (!actions || !userLine || !passwordBtn || !logoutBtn) return;
+  if (!actions || !userLine || !logoutBtn) return;
   if (document.getElementById('accountMenu')) return;
 
+  const auth = window.MERDPOS_AUTH || {};
   const name = String(userLine.querySelector('strong')?.textContent || '').trim() || 'Account';
-  const role = String(userLine.querySelector('.merd-role-pill')?.textContent || 'USER').trim().toUpperCase();
-  const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(role) ? role.toLowerCase() : 'user';
+  const roleLabel = String(userLine.querySelector('.merd-role-pill')?.textContent || auth.role_label || 'USER').trim() || 'USER';
+  const roleKey = String(auth.role_key || roleLabel).trim().toUpperCase();
+  const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
+  const authorityLevel = Number(auth.authority_level || 0);
   let context = null;
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
@@ -33,26 +36,32 @@
         <select id="accountClientSelect" aria-label="Select working client"></select>
         <small>Operations, Reports, Finance and Dashboard use this client.</small>
       </div>
+      <div class="account-context-meta" id="accountContextMeta"></div>
       <div class="account-menu-divider account-client-divider" hidden></div>
       <div class="account-menu-slot account-password-slot"></div>
-      <div class="account-menu-divider"></div>
+      <div class="account-menu-divider account-password-divider"></div>
       <div class="account-menu-slot account-logout-slot"></div>
     </div>`;
 
   menu.querySelector('.account-name').textContent = name;
-  menu.querySelector('.account-role-badge').textContent = role;
+  menu.querySelector('.account-role-badge').textContent = roleLabel;
+  menu.querySelector('.account-role-badge').title = `${roleLabel} · LOA ${authorityLevel}`;
 
-  passwordBtn.className = 'account-menu-item';
-  passwordBtn.setAttribute('role', 'menuitem');
-  const passwordText = passwordBtn.querySelector('span');
-  if (passwordText) passwordText.textContent = 'Change password';
+  if (passwordBtn) {
+    passwordBtn.className = 'account-menu-item';
+    passwordBtn.setAttribute('role', 'menuitem');
+    const passwordText = passwordBtn.querySelector('span');
+    if (passwordText) passwordText.textContent = 'Change password';
+    menu.querySelector('.account-password-slot').appendChild(passwordBtn);
+  } else {
+    menu.querySelector('.account-password-slot')?.remove();
+    menu.querySelector('.account-password-divider')?.remove();
+  }
 
   logoutBtn.className = 'account-menu-item is-danger';
   logoutBtn.setAttribute('role', 'menuitem');
   const logoutText = logoutBtn.querySelector('span');
   if (logoutText) logoutText.textContent = 'Log out';
-
-  menu.querySelector('.account-password-slot').appendChild(passwordBtn);
   menu.querySelector('.account-logout-slot').appendChild(logoutBtn);
 
   userLine.remove();
@@ -62,6 +71,7 @@
   const clientBlock = document.getElementById('accountClientContext');
   const clientSelect = document.getElementById('accountClientSelect');
   const clientDivider = menu.querySelector('.account-client-divider');
+  const contextMeta = document.getElementById('accountContextMeta');
 
   async function api(url, options = {}) {
     const response = await fetch(url, {cache:'no-store', ...options});
@@ -85,9 +95,10 @@
     context = data;
     const client = data?.client || {};
     const clientName = String(client.name || '').trim();
+    const clientCode = String(client.client_code || '').trim();
     if (pill && clientName) {
       pill.textContent = clientName;
-      pill.title = `Working client: ${clientName}${client.client_code ? ` (${client.client_code})` : ''}`;
+      pill.title = `Working client: ${clientName}${clientCode ? ` (${clientCode})` : ''}`;
       pill.hidden = false;
     }
 
@@ -99,6 +110,12 @@
       clientSelect.value = selectable ? String(data.active_client_id) : '';
       clientSelect.disabled = false;
     }
+
+    if (contextMeta) {
+      const contextType = data?.cross_client_context ? 'Selected working client' : 'Home client';
+      const code = clientCode ? ` · ${clientCode}` : '';
+      contextMeta.innerHTML = `<span>${esc(contextType)}</span><strong>${esc(clientName || 'MERDPOS')}${esc(code)}</strong><small>${esc(roleLabel)} · LOA ${authorityLevel}</small>`;
+    }
   }
 
   async function loadContext() {
@@ -106,6 +123,7 @@
       applyContext(await api('api/client_context.php?_=' + Date.now(), {headers:{'Accept':'application/json'}}));
     } catch (error) {
       console.error('MERDPOS account client context:', error);
+      if (contextMeta) contextMeta.innerHTML = '<span>Context unavailable</span><small>Refresh the page before making cross-client changes.</small>';
     }
   }
 
@@ -137,7 +155,7 @@
     } catch (error) {
       clientSelect.disabled = false;
       clientSelect.value = String(context.active_client_id);
-      alert(error.message);
+      window.alert(error.message);
     }
   }
 
@@ -156,7 +174,7 @@
     }
   });
 
-  [passwordBtn, logoutBtn].forEach(button => {
+  [passwordBtn, logoutBtn].filter(Boolean).forEach(button => {
     button.addEventListener('click', () => window.setTimeout(close, 0));
   });
 
