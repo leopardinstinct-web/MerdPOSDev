@@ -11,7 +11,7 @@ test('mobile contextual navigation opens without navigating and clears on direct
   page.on('pageerror', error => pageErrors.push(String(error?.message || error)));
   await page.setViewportSize({ width: 390, height: 844 });
 
-  await page.setContent(`<!doctype html>
+  const fixtureHtml = `<!doctype html>
     <html><head>
       <script data-id-order></script>
       <script data-dashboard-builder></script>
@@ -38,8 +38,15 @@ test('mobile contextual navigation opens without navigating and clears on direct
         <section id="employeesPanel" class="portal-panel" hidden>Workforce content</section>
         <section id="financialPanel" class="portal-panel" hidden>Finance content</section>
       </main>
-    </body></html>`);
+    </body></html>`;
 
+  // sessionStorage is intentionally used by navigation.js. Serving the fixture
+  // from a normal HTTPS origin exercises the real browser contract instead of
+  // Chromium's opaque about:blank storage restriction from page.setContent().
+  await page.route('https://merdpos-smoke.invalid/navigation-fixture', async route => {
+    await route.fulfill({ status: 200, contentType: 'text/html', body: fixtureHtml });
+  });
+  await page.goto('https://merdpos-smoke.invalid/navigation-fixture');
   await page.addScriptTag({ path: navigationPath });
 
   await expect(page.locator('.app-frame')).toHaveCount(1);
