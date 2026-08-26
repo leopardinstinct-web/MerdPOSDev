@@ -5,21 +5,8 @@ require_once __DIR__ . '/../includes/beta_api.php';
 
 function timings_actor(PDO $pdo, array $sessionUser): array
 {
-    $authClientId = (int)($sessionUser['auth_client_id'] ?? $sessionUser['client_id']);
-    $stmt = $pdo->prepare('SELECT id,client_id,full_name,employee_type,status FROM employees WHERE id=? AND client_id=? LIMIT 1');
-    $stmt->execute([(int)$sessionUser['id'], $authClientId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($row) || strtolower((string)$row['status']) !== 'active') {
-        throw new MerdWorkforceException('account_inactive', 'Your account is inactive.');
-    }
-    $role = strtoupper(trim((string)$row['employee_type']));
-    if (!in_array($role, ['ADMIN', 'SUPER', 'DEV'], true)) {
-        json_response(['success' => false, 'error' => 'ADMIN, SUPER or DEV access required.'], 403);
-    }
-    $row['employee_type'] = $role;
-    $row['auth_client_id'] = $authClientId;
-    $row['client_id'] = (int)$sessionUser['client_id'];
-    return $row;
+    beta_require_permission($sessionUser, 'stores.timings.manage', $pdo);
+    return $sessionUser;
 }
 
 function timings_normalize_time(mixed $value): ?string
@@ -82,7 +69,8 @@ try {
         json_response([
             'success' => true,
             'csrf' => csrf_token(),
-            'actor_role' => (string)$actor['employee_type'],
+            'actor_role' => (string)($actor['role_key'] ?? $actor['role'] ?? ''),
+            'actor_authority_level' => (int)($actor['authority_level'] ?? 0),
             'active_client_id' => $clientId,
             'stores' => $state['stores'],
             'timings' => $state['timings'],
