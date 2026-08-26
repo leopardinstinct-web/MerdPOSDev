@@ -16,7 +16,10 @@ function legacy_preview_snapshot(PDO $pdo, array $state): ?array
 {
     $id = (int)($state['last_preview_batch_id'] ?? 0);
     if ($id < 1) return null;
-    $stmt = $pdo->prepare("SELECT id,public_id,status,source_snapshot_hash,finished_at FROM legacy_migration_batches WHERE id=? AND client_id=? AND mode='preview' LIMIT 1");
+    $stmt = $pdo->prepare(
+        "SELECT id,public_id,status,source_snapshot_hash,rejected_rows,conflict_rows,warning_rows,finished_at "
+        . "FROM legacy_migration_batches WHERE id=? AND client_id=? AND mode='preview' LIMIT 1"
+    );
     $stmt->execute([$id,(int)$state['client_id']]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return is_array($row) ? $row : null;
@@ -82,6 +85,12 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             $preview = legacy_preview_snapshot($pdo,$state);
             if (!$preview || (string)$preview['status'] !== 'staged' || !hash_equals((string)$preview['source_snapshot_hash'],(string)$fetched['snapshot_hash'])) {
                 throw new MerdWorkforceException('preview_required','The Google source changed or has not been previewed. Run Preview changes again before Sync.');
+            }
+            if ((int)($preview['rejected_rows'] ?? 0) > 0 || (int)($preview['conflict_rows'] ?? 0) > 0) {
+                throw new MerdWorkforceException(
+                    'preview_not_clean',
+                    'Sync is blocked because the latest Preview contains rejected rows or conflicts. Resolve the Preview first; MERDPOS will not partially import a failed migration.'
+                );
             }
         }
 
