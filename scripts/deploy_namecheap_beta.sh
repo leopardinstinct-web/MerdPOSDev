@@ -119,15 +119,36 @@ for live_file in \
     exit 1
   fi
 done
-if ! grep -q 'assets/minimal-controls.js' "$LIVE/timesheet_portal/assets/management.js"; then
-  echo "ERROR: live management runtime is not wiring the minimal-control behavior layer." >&2
+
+if ! grep -q 'assets/minimal-controls.css?v=20260826b' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is not loading the current minimal-control CSS." >&2
+  exit 1
+fi
+if ! grep -q 'assets/minimal-controls.js?v=20260826b' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is not loading the current minimal-control behavior." >&2
+  exit 1
+fi
+if ! grep -q -- '--merd-action-diameter:46px' "$LIVE/timesheet_portal/assets/minimal-controls.css"; then
+  echo "ERROR: live minimal-control CSS is missing the canonical 46px desktop action diameter." >&2
+  exit 1
+fi
+if ! grep -q 'border-radius:50%!important' "$LIVE/timesheet_portal/assets/minimal-controls.css"; then
+  echo "ERROR: live minimal-control CSS is missing the canonical true-circle geometry." >&2
+  exit 1
+fi
+if ! grep -q 'clusterSearchAndAdd' "$LIVE/timesheet_portal/assets/minimal-controls.js"; then
+  echo "ERROR: live minimal-control JS is not clustering Search beside Add." >&2
+  exit 1
+fi
+if ! grep -q '.dashboard-add-button' "$LIVE/timesheet_portal/assets/minimal-controls.js"; then
+  echo "ERROR: live Dashboard Add is not normalized through the shared action primitive." >&2
   exit 1
 fi
 if ! grep -q 'legacy_fetch_sources_known' "$LIVE/timesheet_portal/includes/legacy_migration_orchestrator.php"; then
   echo "ERROR: live migration runtime is not using deterministic known Sheet contracts." >&2
   exit 1
 fi
-echo "Live beta runtime wiring verified (UI standard, minimal controls, deterministic legacy reader, READMEs)."
+echo "Live beta runtime wiring verified (canonical Add/Search primitive, action clustering, mobile UI standard, deterministic legacy reader, READMEs)."
 
 if ! grep -q 'restoreHtmlResponse' "$LIVE/timesheet_portal/includes/database.php"; then
   echo "ERROR: live portal is missing the HTML/DB response-boundary guard." >&2
