@@ -52,19 +52,23 @@
   line-height:1;
 }
 
-.account-role-badge{
+.account-role-badge,
+.account-client-pill{
   display:inline-flex;
   align-items:center;
-  gap:5px;
   min-height:22px;
   padding:3px 7px;
   border-radius:999px;
+  line-height:1;
+  border:1px solid transparent;
+}
+
+.account-role-badge{
+  gap:5px;
   font-size:9px;
   font-weight:800;
   letter-spacing:.07em;
-  line-height:1;
   text-transform:uppercase;
-  border:1px solid transparent;
 }
 .account-role-badge::before{
   content:'';
@@ -96,6 +100,18 @@
   border-color:#CBEADD;
 }
 
+.account-client-pill{
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#184F92;
+  background:#ECF4FF;
+  border-color:#C9DDF7;
+  font-size:10px;
+  font-weight:750;
+}
+
 .account-chevron{
   width:15px;
   height:15px;
@@ -110,13 +126,58 @@
   z-index:1200;
   top:calc(100% + 8px);
   right:0;
-  width:210px;
+  width:280px;
   padding:6px;
   border:1px solid #DCE5EF;
   border-radius:13px;
   background:#FFFFFF;
   box-shadow:0 18px 44px rgba(21,35,53,.16);
 }
+
+.account-client-context{
+  display:grid;
+  gap:7px;
+  padding:8px;
+}
+.account-client-context[hidden]{display:none!important}
+.account-client-context-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.account-client-context-head strong{
+  color:#20334C;
+  font-size:11px;
+}
+.account-client-context-head span{
+  color:#75859A;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.account-client-context select{
+  width:100%;
+  min-height:38px;
+  border:1px solid #CBD8E7;
+  border-radius:9px;
+  background:#FFFFFF;
+  color:#1D334E;
+  padding:7px 32px 7px 9px;
+  font:inherit;
+  font-size:11px;
+}
+.account-client-context select:focus-visible{
+  outline:3px solid rgba(47,111,235,.14);
+  outline-offset:1px;
+}
+.account-client-context small{
+  color:#708096;
+  font-size:9.5px;
+  line-height:1.4;
+}
+
 .account-menu-item{
   width:100%;
   min-height:40px;
@@ -151,9 +212,14 @@
   margin:5px 4px;
   background:#E7EDF4;
 }
+.account-menu-divider[hidden]{display:none!important}
 
+@media(max-width:760px){
+  .account-client-pill{max-width:120px}
+}
 @media(max-width:620px){
-  .account-name{max-width:110px}
-  .account-trigger{padding-left:9px;gap:7px}
-  .account-popover{width:min(210px,calc(100vw - 24px))}
+  .account-name{max-width:90px}
+  .account-client-pill{max-width:92px}
+  .account-trigger{padding-left:9px;gap:6px}
+  .account-popover{width:min(280px,calc(100vw - 24px))}
 }
