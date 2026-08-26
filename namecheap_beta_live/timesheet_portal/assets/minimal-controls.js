@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const plusSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  const plusSvg='<svg data-merd-add-icon="1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const labels={
     addEmployeeBtn:'Add employee',
     addStoreBtn:'Add store',
@@ -17,7 +17,13 @@
     button.classList.add('merd-icon-action','merd-add-action');
     button.setAttribute('aria-label',text);
     button.setAttribute('title',text);
-    button.innerHTML=plusSvg;
+
+    // This function is called from a childList MutationObserver. Replacing an
+    // already-normalized SVG would make the observer trigger itself forever and
+    // can invalidate the pointer target between press and release.
+    const icon=button.querySelector(':scope > svg[data-merd-add-icon="1"]');
+    const iconIsStable=!!icon&&button.children.length===1&&String(button.textContent||'').trim()==='';
+    if(!iconIsStable)button.innerHTML=plusSvg;
   }
 
   function searchWrapperFromInput(input){
