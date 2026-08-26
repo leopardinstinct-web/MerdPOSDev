@@ -58,17 +58,34 @@ beta_contract_require_contains($portalReadme, 'README maintenance', 'portal READ
 // Global minimal-control standard must be BOTH documented and actually loaded.
 beta_contract_require_contains($guiStandard, 'circular `+`', 'GUI standard Add rule', $errors);
 beta_contract_require_contains($guiStandard, 'circular magnifier', 'GUI standard Search rule', $errors);
-beta_contract_require_contains($management, 'assets/minimal-controls.css', 'management runtime minimal-control CSS', $errors);
-beta_contract_require_contains($management, 'assets/minimal-controls.js', 'management runtime minimal-control JS', $errors);
+beta_contract_require_contains($guiStandard, 'right-aligned action cluster', 'GUI standard Search+Add placement', $errors);
+beta_contract_require_contains($guiStandard, 'Visual-equivalence rule', 'GUI standard visual equivalence', $errors);
+beta_contract_require_contains($management, 'assets/minimal-controls.css?v=20260826b', 'management runtime minimal-control CSS', $errors);
+beta_contract_require_contains($management, 'assets/minimal-controls.js?v=20260826b', 'management runtime minimal-control JS', $errors);
 beta_contract_require_contains($management, 'assets/ui-standard.css', 'management runtime UI standard', $errors);
-beta_contract_require_contains($minimalJs, 'addEmployeeBtn', 'minimal Add control implementation', $errors);
-beta_contract_require_contains($minimalJs, 'addStoreBtn', 'minimal Add control implementation', $errors);
-beta_contract_require_contains($minimalJs, 'addClientBtn', 'minimal Add control implementation', $errors);
-beta_contract_require_contains($minimalJs, 'addRoleBtn', 'minimal Add control implementation', $errors);
-beta_contract_require_contains($minimalCss, '.merd-collapsible-search', 'minimal Search control CSS', $errors);
 
-// Core loader cache key must move with this standard so a cached old management.js
-// cannot make a documented/wired feature appear absent after deployment.
+foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {
+    beta_contract_require_contains($minimalJs, $id, 'minimal Add control implementation', $errors);
+}
+// Dashboard Add must use the same primitive; class presence alone is not enough.
+beta_contract_require_contains($minimalJs, '.dashboard-add-button', 'Dashboard Add primitive normalization', $errors);
+beta_contract_require_contains($minimalJs, "makeAddButton(button,'Add widget')", 'Dashboard Add primitive normalization', $errors);
+beta_contract_require_contains($minimalJs, 'clusterSearchAndAdd', 'Search+Add runtime clustering', $errors);
+beta_contract_require_contains($minimalJs, "parent.classList.add('merd-action-cluster')", 'Search+Add runtime clustering', $errors);
+
+// Computed geometry contract: identical desktop diameter/circle for Add/Search,
+// with high-specificity MERDPOS selectors so .primary-btn cannot turn Add into
+// a rounded square again.
+beta_contract_require_contains($minimalCss, '--merd-action-diameter:46px', 'canonical action diameter', $errors);
+beta_contract_require_contains($minimalCss, '.merd-shell button.merd-icon-action', 'high-specificity Add geometry', $errors);
+beta_contract_require_contains($minimalCss, 'border-radius:50%!important', 'canonical true-circle geometry', $errors);
+beta_contract_require_contains($minimalCss, '.merd-shell .dashboard-add-button.merd-icon-action', 'Dashboard Add shared CSS primitive', $errors);
+beta_contract_require_contains($minimalCss, '.merd-shell .merd-collapsible-search', 'minimal Search control CSS', $errors);
+beta_contract_require_contains($minimalCss, '.merd-shell .merd-action-cluster', 'Search+Add placement CSS', $errors);
+beta_contract_require_contains($minimalCss, 'justify-content:flex-end!important', 'right-aligned action cluster', $errors);
+
+// Core loader cache key remains explicit; internal minimal-control assets have
+// their own version bump above so a stale previous primitive cannot survive.
 beta_contract_require_contains($dashboard, 'assets/management.js?v=20260826minimal1', 'dashboard management loader cache key', $errors);
 
 // Known legacy Google workbooks must use deterministic contracts, not generic
@@ -92,4 +109,4 @@ if ($errors) {
     exit(1);
 }
 
-echo "MERDPOS beta runtime contract validated: README/context state discipline, minimal Add/Search wiring, mobile UI layer, and deterministic legacy Sheet reader are present.\n";
+echo "MERDPOS beta runtime contract validated: implementation-state discipline, canonical circular Add/Search geometry, right-aligned Search+Add clustering, mobile UI layer, README contract, and deterministic legacy Sheet reader are present.\n";
