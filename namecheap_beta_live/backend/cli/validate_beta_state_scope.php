@@ -56,7 +56,7 @@ if (!str_contains($state, 'if ($canViewWorkforce || $canViewOwnTimesheets || $ca
 if (str_contains($state, "'disputes' => merd_list_disputes(")) {
     $errors[] = 'Shared beta state must not unconditionally materialize dispute records.';
 }
-if (str_contains($state, "'recent_shifts' => $shifts->fetchAll")) {
+if (str_contains($state, "'recent_shifts' => \$shifts->fetchAll")) {
     $errors[] = 'Shared beta state must not unconditionally materialize recent shifts.';
 }
 
