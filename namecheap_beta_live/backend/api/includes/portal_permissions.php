@@ -51,8 +51,6 @@ function merd_portal_permission_catalog(): array
         'workforce.payrates.manage' => ['label'=>'View / manage employee pay rates','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>80],
         'workforce.credentials.reset' => ['label'=>'Reset another employee password','category'=>'Operations','min_loa'=>90,'dev_only'=>false,'order'=>90],
 
-        // Finance remains available to a clocked-in staff member at their store.
-        // Higher LOA separately grants cross-store / management capabilities.
         'finance.view' => ['label'=>'Use financial screen at permitted store','category'=>'Finance','min_loa'=>1,'dev_only'=>false,'order'=>10],
         'finance.submit' => ['label'=>'Submit register / petty cash entries','category'=>'Finance','min_loa'=>1,'dev_only'=>false,'order'=>20],
         'finance.open_day' => ['label'=>'Set opening register / petty cash balances','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>30],
@@ -65,6 +63,7 @@ function merd_portal_permission_catalog(): array
         'defaults.manage' => ['label'=>'Manage client / store currency and timezone defaults','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>40],
         'clients.manage' => ['label'=>'Add / edit clients','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>50],
         'client_context.switch' => ['label'=>'Switch global working client','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>60],
+        'legacy_migration.manage' => ['label'=>'Configure and run legacy Google migration','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>65],
         'dev.status' => ['label'=>'View DEV diagnostics','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>70],
         'password.change_own' => ['label'=>'Change own password','category'=>'Account','min_loa'=>1,'dev_only'=>false,'order'=>10],
     ];
