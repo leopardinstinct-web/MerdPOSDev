@@ -1,0 +1,214 @@
+# MERDPOS Namecheap Beta — Authoritative Runtime README
+
+**Branch:** `namecheap-beta-live`  
+**Runtime source:** `namecheap_beta_live/`  
+**Deployment target:** Namecheap beta at `~/merdpos.com/app/beta`  
+**Status:** This README is the first-read source for work on the current web beta.
+
+## 1. Source of truth
+
+For the current MERDPOS web beta:
+
+1. GitHub branch `namecheap-beta-live` is authoritative for source.
+2. `namecheap_beta_live/` is the authoritative deployable beta tree.
+3. `docs/pos_latest/PROJECT_CONTEXT.md` supplies project-wide context, but any historical instruction that conflicts with this README is superseded for beta work.
+4. The live Namecheap database/schema must be verified independently from source migrations before DB-dependent behavior is claimed live.
+5. Existing approved Timesheet/payroll reconciliation behavior is frozen unless the product owner explicitly changes it.
+
+## 2. Mandatory implementation-state language
+
+Never collapse planning/documentation and runtime implementation into one status.
+
+Every requested beta change has one of these states:
+
+```text
+REQUESTED
+DOCUMENTED
+CODED
+WIRED
+DEPLOYED
+VERIFIED
+```
+
+Definitions:
+
+- **REQUESTED** — user asked for it.
+- **DOCUMENTED** — standards/context/specification changed only.
+- **CODED** — implementation file exists.
+- **WIRED** — implementation is loaded/called from the actual beta runtime entry path and required API/DB path is connected.
+- **DEPLOYED** — the relevant commit is confirmed in `.beta_deployed_commit` on Namecheap.
+- **VERIFIED** — the intended runtime behavior was checked through the real execution path or a deterministic deploy/runtime validator.
+
+### Language rule
+
+- Do **not** say `implemented` when a change is merely documented or coded.
+- `Implemented in beta source` requires **CODED + WIRED**.
+- `Deployed` requires the Namecheap deployed marker.
+- `Live / working / fixed` requires **DEPLOYED + VERIFIED**.
+- If runtime verification has not happened, say exactly that.
+
+This rule exists because a previous UI standard (`+` Add buttons / collapsed Search) was documented before its runtime behavior layer was actually wired.
+
+## 3. Beta runtime architecture
+
+### `timesheet_portal/`
+
+Current PHP/JavaScript browser portal. Active development surface.
+
+Includes:
+
+- login and QR attendance;
+- dashboard and role-specific widgets;
+- centralized client-role/LOA permission policy;
+- Stores, Workforce, Roles, Clients, Defaults and DEV diagnostics;
+- Timesheets and disputes;
+- Finance;
+- client-specific Google legacy migration/preview/cutover subsystem.
+
+### `backend/`
+
+SQL migrations, device/POS API support, finance/workforce helpers, CLI migration runners and deployment validators.
+
+### Browser authorization
+
+Portal authorization is governed by `docs/pos_latest/BETA_AUTHORIZATION_STANDARD.md`.
+
+The authoritative model is:
+
+```text
+client role → LOA → named permission → UI/API/data scope
+```
+
+DEV-only permissions additionally require an actual DEV identity; numeric LOA alone cannot delegate them.
+
+## 4. GUI contract
+
+Every beta UI follows `docs/pos_latest/GUI_STANDARD.md`.
+
+Binding rules include:
+
+- mobile-ready at implementation time;
+- shared spacing/type/control/table/dialog grammar;
+- Add Store / Employee / Client / Role and equivalent list create actions use the circular `+` control;
+- list search begins as a circular magnifier and expands on demand;
+- 48px minimum interactive targets on mobile/tablet;
+- tables scroll inside their own container rather than causing page-level horizontal overflow.
+
+Runtime enforcement layers:
+
+- `timesheet_portal/assets/ui-standard.css`
+- `timesheet_portal/assets/minimal-controls.css`
+- `timesheet_portal/assets/minimal-controls.js`
+- runtime loading through `timesheet_portal/assets/management.js`
+
+A standard written only in Markdown is **not implementation**.
+
+## 5. Legacy Google migration safety
+
+Google legacy migration is DEV-only.
+
+Architecture:
+
+```text
+Google Sheets → read-only fetch → staging → validate/reconcile → MERDPOS SQL
+```
+
+Rules:
+
+- Preview never writes operational attendance/finance records.
+- Migration source Google Sheets are not modified by the import path.
+- Sync requires the exact source snapshot that was last Previewed.
+- Sync is blocked when the Preview has rejected rows or conflicts.
+- Operational apply is transactional/all-or-nothing.
+- Imported historical finance must not echo back through the existing SQL→Google outbox.
+- Final cutover changes authority to MERDPOS SQL; Google cannot later overwrite SQL.
+- Known legacy tabs use deterministic header contracts; do not guess known workbook schemas.
+
+Current known workbook structures include:
+
+```text
+Attendance / Time Sheet:
+USER_NAME / STORE_NAME / LOG_TYPE / DATE / TIME
+
+Employee Setup:
+NAME / TYPE / USER_ID / PASSWORD / STATUS / LOG_STORE / PAY_RATE
+(real header may occur below row 1)
+
+PayRate:
+NAME / PAY_RATE
+
+Start Time:
+Store Name / Shift Start Time
+
+General Ledger:
+DATE / STORE_NAME / ACCOUNT / TYPE / HEAD / AMOUNT / Key
+
+zReport Ledger:
+DATE / STORE_NAME / REGISTER_DENOMINATIONS / REGISTER_TOTAL / PETTYCASH_ADDIN
+```
+
+Never expose/store plaintext legacy passwords in staging, logs or audit output.
+
+## 6. Frozen payroll/timesheet reconciliation
+
+Do not change without explicit product-owner instruction:
+
+- pair `IN` → next `OUT`;
+- newer `IN` replaces an unmatched previous `IN`;
+- orphan `OUT` ignored;
+- round IN and OUT independently to nearest 15 minutes;
+- payable = rounded OUT − rounded IN;
+- cross-midnight allowed;
+- no 16-hour cap;
+- wage rate is resolved by clock-in date.
+
+## 7. Deployment
+
+Authoritative branch: `namecheap-beta-live`.
+
+Immediate deploy after beta source changes:
+
+```bash
+cd ~/git/MerdPOSDev-beta-mirror
+
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes" \
+git pull --ff-only origin namecheap-beta-live
+
+/bin/bash scripts/deploy_namecheap_beta.sh
+
+echo "=== DEPLOYED ==="
+cat ~/merdpos.com/app/beta/.beta_deployed_commit
+```
+
+The deploy must fail closed on PHP lint, central permission-policy coverage, required migrations/schema checks and other registered release invariants.
+
+## 8. README maintenance — default rule
+
+README maintenance is part of beta implementation, not optional documentation cleanup.
+
+When behavior/architecture changes:
+
+- update this root beta README when the beta contract/runtime architecture changes;
+- update `timesheet_portal/README.md` for portal behavior/UI/security/data-flow changes;
+- update `backend/README.md` for migrations/backend/deployment/security changes;
+- update relevant `docs/pos_latest/*.md` context/standards/history.
+
+A beta feature should not be called complete if the runtime and its relevant README disagree.
+
+## 9. Beta Definition of Done
+
+Before saying a beta change is implemented:
+
+- implementation code exists;
+- runtime entry point actually loads/calls it;
+- UI → JS → endpoint → auth/client context → DB/schema → audit/storage → response/re-render has been checked where applicable;
+- server-side security is authoritative;
+- mobile behavior is covered for user-facing UI;
+- relevant README/context is updated;
+- source lint/validators pass.
+
+Before saying it is live/fixed:
+
+- deploy marker confirms the intended commit;
+- migrations/schema required by that code are live;
+- runtime verification confirms the feature/fix through its actual execution path.
