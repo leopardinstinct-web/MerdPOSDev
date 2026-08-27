@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">MERDPOS mark</title>
+  <desc id="desc">A connected ribbon M representing unified retail channels.</desc>
+  <defs>
+    <linearGradient id="left" x1="32" y1="34" x2="150" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00A8FF"/>
+      <stop offset="0.52" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="right" x1="108" y1="66" x2="232" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6D5DFB"/>
+      <stop offset="0.6" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#5B21B6"/>
+    </linearGradient>
+    <linearGradient id="bridge" x1="76" y1="68" x2="174" y2="138" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1677FF"/>
+      <stop offset="1" stop-color="#6457F5"/>
+    </linearGradient>
+  </defs>
+  <path d="M41 205c-7 0-13-6-13-13V60c0-11 13-17 22-10l73 54-23 31-45-33v90c0 7-6 13-14 13Z" fill="url(#left)"/>
+  <path d="M102 136 75 116l76-57c9-7 22 0 22 11v33l-71 53Z" fill="url(#bridge)"/>
+  <path d="M215 205c-8 0-14-6-14-13v-90l-48 36c-9 7-21 5-28-4l-24-31 78-58c9-7 22 0 22 11v136c0 7-6 13-14 13Z" fill="url(#right)"/>
+</svg>
