@@ -1,0 +1,33 @@
+version: 1
+id: MERD-20260828-timesheets-inline-shifts
+objective: "Apply the approved Timesheets follow-up: role-neutral helper copy, corrected table alignment, and inline expandable shift rows inside Employee summary."
+acceptance:
+  - "Timesheets helper text is appropriate for Admin, Super and User portal users."
+  - "Store summary headers and body values use consistent horizontal alignment."
+  - "Employee summary rows expose shifts inline when the employee is activated."
+  - "The separate Shift details section is removed."
+  - "Existing payroll calculations, rounding, wage visibility and authorization remain unchanged."
+packet_state: RECONNED
+lifecycle: DOCUMENTED
+base_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
+last_seen_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Do not alter frozen timesheet/payroll reconciliation logic."
+  - "Do not broaden wage/pay visibility."
+  - "Preserve mobile shift-card behavior and light/dark readability."
+completed:
+  - "Read the product-owner document and mapped all requested UI changes."
+  - "Inspected current Timesheets renderer, dashboard markup, stylesheet, targeted regression, and recent Timesheets history including 4a47125 and 2a8dc22."
+remaining:
+  - "Implement helper copy, alignment, and inline employee shift expansion."
+  - "Update targeted browser regression and run beta guardrails."
+  - "Verify Namecheap deployment and rendered desktop/mobile light/dark behavior in Opera."
+next_action: "Implement the inline Employee summary shift expansion and alignment/copy changes without changing timesheet data logic."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T00:00:00+05:00"
