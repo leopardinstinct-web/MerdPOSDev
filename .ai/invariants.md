@@ -1,6 +1,15 @@
-# MERDPOS Beta Recovery Invariants
+# MERDPOS Beta Invariants
 
-These rules are binding during recovery unless the product owner explicitly changes them.
+These rules are binding for MERDPOS Beta unless the product owner explicitly changes them.
+
+## GitHub is the standalone source of truth
+
+- The authoritative GitHub beta branch must be sufficient to bootstrap a fresh AI/chat/coding session without prior conversation history.
+- Root `AGENTS.md` and `.ai/README.md` define the mandatory bootstrap path.
+- Chat/project memory is optional context, not required project state.
+- Local workstation files, browser state and temporary outputs are not canonical.
+- Durable new knowledge must be written back to the repository in the appropriate `.ai` or component documentation.
+- Secrets, credentials, cookies and private storage-state must never be stored in the repository knowledge layer.
 
 ## Scope
 
@@ -10,13 +19,19 @@ These rules are binding during recovery unless the product owner explicitly chan
 - Primary browser surface: `namecheap_beta_live/timesheet_portal/`
 - Supporting backend: `namecheap_beta_live/backend/`
 
-Do not silently switch to `main`, the older production portal, archived implementations or the Flutter roadmap.
+Do not silently switch to `main`, the older production portal, archived implementations or the Flutter roadmap when working on Beta.
 
 ## State language
 
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
 
 Never say live/fixed/working without DEPLOYED + VERIFIED.
+
+## Product-stage testing
+
+The beta portal is currently in active product design/restructuring. Do not freeze an intentionally changing interface with exhaustive brittle UI automation.
+
+Keep permanent protection around stable business/security/runtime contracts. For evolving features use targeted smoke, authorization/security checks, deployment verification and visual/runtime verification. Promote a workflow to permanent regression when it is reasonably stable or explicitly prioritised by the product owner.
 
 ## Frozen payroll/timesheet reconciliation
 
@@ -37,6 +52,15 @@ Never say live/fixed/working without DEPLOYED + VERIFIED.
 - API/backend enforcement is authoritative.
 - DEV-only requires an actual DEV identity, not only LOA 1000.
 - DB-backed changes must inspect the full UI → JS → API → auth/client context → DB → response → re-render path.
+- A DEV active-client switch is not proof that employee-owned actions are tenant-native; inspect the authenticated owning client.
+
+## DUMMY destructive testing
+
+- Never mutate MERD production data for regression purposes.
+- Resolve the exact DUMMY client identifier at runtime; never assume a database ID.
+- Abort before mutation unless DUMMY context/identity is proven.
+- Use genuine DUMMY-native identities for employee-owned workflows when required by the endpoint.
+- Never commit regression credentials/storage-state/cookies.
 
 ## Canonical UI ownership
 
@@ -62,9 +86,14 @@ Do not restore retired corrective CSS layers. Do not delete a canonical runtime 
 - Preserve server-side permission enforcement.
 - Do not add production credentials to browser tests or GitHub Actions.
 
-## Recovery style
+## Deployment architecture
 
-- Prefer small attributed fixes over broad rewrites.
-- Before changing a file, inspect its current branch version.
+Namecheap uses the established server-side pull/mirror/deploy process for Beta. Do not restore a GitHub→Namecheap SSH push deployment path unless the product owner explicitly changes the architecture.
+
+## Working style
+
+- Prefer small attributed fixes over broad rewrites unless redesign itself is the task.
+- Before changing a file, inspect its current authoritative branch version.
 - Keep runtime and relevant README/context aligned.
-- Add regression coverage for incidents after the owning path is understood.
+- Add regression coverage for incidents after the owning path is understood, but follow the current product-stage testing strategy rather than automating every changing UI flow.
+- After substantive work, leave GitHub sufficient for a fresh session to understand the new state without the originating chat.
