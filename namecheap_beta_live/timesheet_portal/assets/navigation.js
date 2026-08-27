@@ -283,8 +283,8 @@
         section.directTab?.click();
         return;
       }
-      // Parent click only opens the group. It intentionally does not navigate.
-      setGroup(section.key);
+      // Parent clicks navigate to the section's first submenu item.
+      section.tabs[0]?.click();
     });
 
     section.tabs.forEach(tab => {
