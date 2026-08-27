@@ -51,7 +51,7 @@ test('DEV store enrichment keeps toolbar actions together and dashboard edit act
           <div class="directory-toolbar">
             <div><h2>Stores</h2><p>Legacy description</p></div>
             <div class="directory-actions">
-              <label class="search-box"><input id="storeSearch"></label>
+              <label class="search-box"><input id="storeSearch" type="search"></label>
               <button id="addStoreBtn" type="button">Add store</button>
             </div>
           </div>
@@ -65,12 +65,14 @@ test('DEV store enrichment keeps toolbar actions together and dashboard edit act
       </section>
     </body></html>`);
 
+  await page.addScriptTag({ path: asset('minimal-controls.js') });
   await page.addScriptTag({ path: asset('dev-stores-ui.js') });
 
   await expect(page.locator('.dev-store-identity')).toHaveText('Code MX · ID 1');
   await expect(page.locator('.directory-actions .search-box')).toHaveCount(1);
   await expect(page.locator('.directory-actions #addStoreBtn')).toHaveCount(1);
   await expect(page.locator('.directory-toolbar > div:first-child .search-box')).toHaveCount(0);
+  await expect(page.locator('.directory-actions')).toHaveAttribute('data-merd-action-cluster', 'search-add');
   await expect(page.locator('.dashboard-edit-toggle')).toHaveCSS('white-space', 'nowrap');
   expect(consoleErrors, consoleErrors.join(' | ')).toEqual([]);
 });
