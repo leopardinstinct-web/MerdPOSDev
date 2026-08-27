@@ -64,6 +64,7 @@ body.merd-shell {
 .merd-shell h5,
 .merd-shell h6 {
   margin: 0;
+  font-family: var(--font-display);
   color: var(--color-text-primary);
   font-weight: var(--weight-bold);
   line-height: var(--line-heading);
@@ -222,7 +223,14 @@ body.merd-shell {
   min-height: 7rem;
   padding: var(--space-5);
   overflow: hidden;
+  position: relative;
 }
+
+.hero-panel:first-child {
+  background: radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--color-brand-violet) 9%, transparent), transparent 15rem), linear-gradient(135deg, var(--color-surface-main), color-mix(in srgb, var(--color-brand-primary) 4%, var(--color-surface-main)));
+}
+.hero-panel:first-child::after { content:""; position:absolute; inset:0 auto 0 0; width:.22rem; background:var(--gradient-brand); }
+.hero-kicker { color:var(--color-brand-primary); font-weight:var(--weight-bold); letter-spacing:.08em; text-transform:uppercase; }
 
 .mgmt-kpis,
 .mgmt-grid {
@@ -240,6 +248,8 @@ body.merd-shell {
 }
 
 .mgmt-kpi {
+  position: relative;
+  overflow: hidden;
   min-width: 0;
   min-height: 6.25rem;
   padding: var(--space-4);
@@ -248,6 +258,9 @@ body.merd-shell {
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
+
+.mgmt-kpi::before { content:""; position:absolute; inset:0 auto 0 0; width:.16rem; background:var(--color-brand-primary); opacity:.55; }
+.mgmt-kpi.alert::before { background:var(--color-danger); opacity:.8; }
 
 .mgmt-kpi .kpi-value {
   color: var(--color-text-primary);

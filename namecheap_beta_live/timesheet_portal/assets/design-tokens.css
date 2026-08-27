@@ -10,29 +10,39 @@
   color-scheme: light;
 
   /* Brand + semantic colour pairs. All normal text pairs are WCAG AA. */
-  --color-brand-primary: #1C4587;
-  --color-brand-primary-hover: #173B74;
-  --color-brand-primary-active: #12315F;
+  --color-brand-navy: #031B4B;
+  --color-brand-cyan: #12BDF3;
+  --color-brand-primary: #1D6CFF;
+  --color-brand-primary-hover: #175CE6;
+  --color-brand-primary-active: #124CC2;
+  --color-brand-sky: #2B90FF;
+  --color-brand-indigo: #586CFF;
+  --color-brand-violet: #8B2EFF;
+  --color-brand-purple: #9638FF;
+  --color-brand-light-violet: #B184FF;
+  --color-brand-slate: #6A748B;
+  --color-brand-descriptor: #55617C;
   --color-brand-on-primary: #FFFFFF;
+  --gradient-brand: linear-gradient(115deg, #12BDF3 0%, #1D6CFF 42%, #8B2EFF 100%);
 
-  --color-bg-main: #F3F5F8;
-  --color-bg-subtle: #F7F8FA;
+  --color-bg-main: #F5F7FC;
+  --color-bg-subtle: #F8FAFD;
   --color-surface-main: #FFFFFF;
   --color-surface-raised: #FFFFFF;
   --color-surface-muted: #F5F7FA;
-  --color-surface-selected: #EAF0F8;
+  --color-surface-selected: #EEF2FF;
 
-  --color-text-primary: #1D2939;
+  --color-text-primary: #17223A;
   --color-text-secondary: #475467;
-  --color-text-muted: #667085;
+  --color-text-muted: #6A748B;
   --color-text-inverse: #FFFFFF;
 
   --color-border-default: #D0D5DD;
   --color-border-subtle: #E4E7EC;
   --color-border-strong: #98A2B3;
 
-  --color-focus: #2F6FEB;
-  --color-focus-soft: rgba(47, 111, 235, .22);
+  --color-focus: #1D6CFF;
+  --color-focus-soft: rgba(29, 108, 255, .22);
 
   --color-success: #18794E;
   --color-success-surface: #ECF8F3;
@@ -43,24 +53,24 @@
   --color-info: #175CD3;
   --color-info-surface: #EFF8FF;
 
-  --color-nav-bg: #111936;
-  --color-nav-bg-hover: #1B2852;
-  --color-nav-bg-subtle: #182441;
-  --color-nav-active: #0F70D1;
-  --color-nav-sub-active: #293B63;
-  --color-nav-text: #EEF4FF;
-  --color-nav-text-muted: #C3D0E8;
-  --color-nav-border: #243154;
+  --color-nav-bg: #031B4B;
+  --color-nav-bg-hover: #0A285B;
+  --color-nav-bg-subtle: #071F47;
+  --color-nav-active: #1D6CFF;
+  --color-nav-sub-active: #273B73;
+  --color-nav-text: #F8FAFC;
+  --color-nav-text-muted: #C9D3E6;
+  --color-nav-border: #173A6A;
 
   --color-overlay: rgba(17, 25, 54, .42);
   --color-shadow: rgba(17, 25, 54, .12);
 
   /* Chart colours — distinct and readable against the light surface. */
-  --color-chart-1: #1C4587;
-  --color-chart-2: #0F766E;
-  --color-chart-3: #A15C00;
-  --color-chart-4: #6D56C9;
-  --color-chart-5: #B42318;
+  --color-chart-1: #1D6CFF;
+  --color-chart-2: #8B2EFF;
+  --color-chart-3: #0C89A8;
+  --color-chart-4: #586CFF;
+  --color-chart-5: #55617C;
 
   /* Spacing scale. */
   --space-0: 0;
@@ -93,6 +103,7 @@
   --weight-semibold: 600;
   --weight-bold: 700;
 
+  --font-display: "Space Grotesk", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
@@ -120,7 +131,7 @@
   --shadow-card: 0 .0625rem .25rem rgba(17, 25, 54, .08);
   --shadow-raised: 0 .5rem 1.5rem rgba(17, 25, 54, .12);
   --shadow-dialog: 0 1.5rem 4rem rgba(17, 25, 54, .22);
-  --shadow-action: 0 .5rem 1.25rem rgba(28, 69, 135, .20);
+  --shadow-action: 0 .5rem 1.25rem rgba(29, 108, 255, .20);
 
   /* Motion. */
   --duration-fast: 140ms;

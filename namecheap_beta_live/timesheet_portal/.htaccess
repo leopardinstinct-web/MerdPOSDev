@@ -4,7 +4,7 @@ Options -Indexes
 # Cross-portal contract assets must revalidate after every beta deploy. Browser
 # caching remains permitted, but these files may not stay stale across releases.
 <IfModule mod_headers.c>
-  <FilesMatch "^(app\.js|timesheet-app\.js|beta\.js|management\.js|design-tokens\.css|design-system\.css|design-audit\.js|minimal-controls\.js|mobile-runtime\.js|shell\.css|account-menu\.css|dashboard-builder\.css)$">
+  <FilesMatch "^(app\.js|timesheet-app\.js|beta\.js|management\.js|design-tokens\.css|design-system\.css|design-audit\.js|minimal-controls\.js|mobile-runtime\.js|shell\.css|account-menu\.css|dashboard-builder\.css|brand\/brand\.css|brand\/merdpos-mark\.svg)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>

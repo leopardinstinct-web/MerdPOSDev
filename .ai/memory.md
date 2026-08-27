@@ -36,6 +36,9 @@ For cross-cutting UI/design-system work, inspect both shared primitives and feat
 
 ## Current implementation checkpoint
 
+On 2026-08-27, the selected Concept 7 MERDPOS brand kit was implemented across the Beta shared visual runtime: canonical ribbon mark, brand lockups, shared brand/design tokens, navy navigation identity, Space Grotesk display heading preference, connected dashboard accents and login/attendance brand surfaces. The gradient remains identity-only; semantic status colors remain distinct. This work must not be called DEPLOYED/VERIFIED until the Namecheap pull and rendered live surfaces are checked.
+
+
 The permanent regression suite was merged into `namecheap-beta-live` at:
 
 `df0d690dce1a312fbb523bd80c89715492b5b4b3`

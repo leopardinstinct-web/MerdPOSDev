@@ -29,7 +29,7 @@
 
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
-    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260826ds1');
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827brand2');
     appendStyle('merd-shell','assets/shell.css?v=20260826ds1');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
@@ -58,7 +58,7 @@
     appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260826ds1');
+    appendStyle('merd-design-system','assets/design-system.css?v=20260827brand2');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
   }
   ensureShellAssets();

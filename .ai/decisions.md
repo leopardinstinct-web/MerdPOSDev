@@ -73,3 +73,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Special UI lesson:** Cross-cutting design-system work must inspect both shared primitives and feature-specific styling/history. Token usage alone does not prove readability, semantic correctness or successful propagation.
 
 **Reason:** Two preventable failures occurred: provenance was inferred from current source without checking the relevant history, and implementation requests risked being answered with analysis instead of actual repository changes. These gates make both failures explicit and recoverable in GitHub for future sessions.
+
+## 2026-08-27 ? Apply Concept 7 connected brand kit across Beta UI
+
+**Decision:** Concept 7 is the canonical MERDPOS Beta identity: an interwoven ribbon M representing connected retail channels and one continuous customer journey. The shared product palette is navy `#031B4B`, cyan `#12BDF3`, blue `#1D6CFF`, indigo `#586CFF`, violet `#8B2EFF` plus the supporting brand-kit colors recorded in `BRAND_IDENTITY_STANDARD.md`.
+
+**Typography:** Space Grotesk is the display/brand heading preference; Inter remains the operational UI/body typeface.
+
+**UI application:** The dark navy navigation rail, light workspace, blue functional accent and subtle connected-path treatments carry the brand through the product. The cyan?blue?violet gradient is reserved for identity moments and must not replace success/warning/danger/info semantics. Brand rollout belongs in shared tokens, shared design-system/shell ownership and the isolated `assets/brand/brand.css`, not copied feature CSS.
+
+**Outcome:** The visual system should reinforce the product promise `SMARTER ? FASTER ? TOGETHER` and the business outcome of better customer satisfaction through omnichannel integration without adding decorative friction to operational workflows.
+
+**Supersedes:** The earlier 2026-08-27 interim brand color values (`#111827`, `#2563EB`, `#4F46E5`, `#7C3AED`) in the first connected-brand standard.

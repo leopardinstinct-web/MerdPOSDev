@@ -81,21 +81,22 @@ function ui_icon(string $name): string
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#F5F7FB">
+  <meta name="theme-color" content="#031B4B">
   <title>MERDPOS</title>
+  <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/table-ui.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand2">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
-    <div class="merd-logo-lockup">
-      <div class="merd-logo-mark">M</div>
-      <div>
-        <strong>MERD<span>POS</span></strong>
-        <small>FUTURE-READY RETAIL</small>
+    <div class="merd-logo-lockup merd-brand merd-brand--compact merd-brand--header" aria-label="MERDPOS">
+      <img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true">
+      <div class="merd-brand__copy">
+        <strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong>
       </div>
     </div>
     <div class="topbar-actions">
@@ -149,10 +150,10 @@ function ui_icon(string $name): string
     <section id="dashboardPanel" class="portal-panel"<?= $initialPanel === 'dashboardPanel' ? '' : ' hidden' ?>>
       <?php if ($isManagement): ?>
       <section class="management-hero">
-        <article class="hero-panel">
-          <div class="hero-kicker">Management command centre</div>
-          <h1 class="hero-title">Today across MERDPOS</h1>
-          <p class="hero-sub">Live workforce, attendance exceptions, financial position and store activity in one operational view.</p>
+        <article class="hero-panel merd-brand-path-accent">
+          <div class="hero-kicker">Connected operations</div>
+          <h1 class="hero-title">One view across MERDPOS</h1>
+          <p class="hero-sub">Staff, stores, attendance and financial signals stay connected in one operational view ? helping teams respond faster and serve customers more consistently.</p>
           <div class="live-time"><span class="live-time-dot"></span><span id="liveClock">Live</span></div>
         </article>
         <article class="hero-panel hero-role">

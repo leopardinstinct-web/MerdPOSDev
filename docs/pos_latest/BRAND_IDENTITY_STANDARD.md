@@ -44,9 +44,9 @@ The working dashboard must not repeat the product logo inside cards or data visu
 
 ## Wordmark
 
-- `MERD` uses brand ink on light surfaces and brand-on-dark on dark surfaces.
+- `MERD` uses brand navy on light surfaces and white/high-contrast treatment on dark surfaces.
 - `POS` uses the approved brand gradient at brand scale.
-- Application typography remains the canonical product sans stack; brand treatment must not force decorative type into operational forms, tables or controls.
+- Brand/display headings use **Space Grotesk** where available; operational UI/body typography remains **Inter** with the canonical product sans fallbacks. Do not force display typography into dense forms, tables or controls.
 - The tagline is a brand promise, not a screen heading. Hide it at compact/header scale.
 
 ## Product placement
@@ -68,8 +68,8 @@ The working dashboard must not repeat the product logo inside cards or data visu
 
 Define `X` as the visual width of one main M stem.
 
-- Mark-only clear space: at least `0.75X`.
-- Complete lockup clear space: at least `1X`.
+- Mark-only clear space: at least 25% of the mark height on all sides.
+- Complete lockup clear space: at least 25% of the mark height around the complete identity.
 - Small UI mark: 20–24px minimum where legibility is preserved.
 - Header mark: 28–44px.
 - Primary login mark: approximately 60–80px.

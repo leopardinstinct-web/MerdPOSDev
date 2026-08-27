@@ -94,3 +94,14 @@ dialog-shadow 0 16px 40px rgba(15,23,42,0.24)
 Flutter implementation requires a later dedicated visual proposal and review.
 Do not paste these colors into widgets; map approved tokens through the future
 theme layer when that scope begins.
+## MERDPOS connected brand overlay
+
+The Beta implementation now uses the Concept 7 connected identity palette for shared product tokens while preserving semantic status colors:
+
+- Navy `#031B4B` ? dark navigation / brand ink
+- Cyan `#12BDF3`, Blue `#1D6CFF`, Indigo `#586CFF`, Violet `#8B2EFF` ? connected brand spectrum
+- Slate `#6A748B`, Descriptor `#55617C` ? supporting copy
+- Identity gradient: `#12BDF3 ? #1D6CFF ? #8B2EFF`
+- Display/brand headings: Space Grotesk; operational UI/body: Inter
+
+The gradient is identity only. Success, warning, danger and information states keep their dedicated semantic colors.

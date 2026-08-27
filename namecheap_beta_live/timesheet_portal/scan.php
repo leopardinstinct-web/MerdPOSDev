@@ -13,12 +13,13 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MERDPOS Attendance</title>
   <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/design-tokens.css?v=20260827brand2">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826ds1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand1">
-  <link rel="stylesheet" href="assets/design-system.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand2">
+  <link rel="stylesheet" href="assets/design-system.css?v=20260827brand2">
 </head>
 <body class="login-body merd-login-body merd-shell">
   <main class="login-shell">

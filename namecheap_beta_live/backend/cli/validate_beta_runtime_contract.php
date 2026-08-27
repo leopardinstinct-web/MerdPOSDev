@@ -136,8 +136,8 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
-    'assets/design-tokens.css?v=20260826ds1',
-    'assets/design-system.css?v=20260826ds1',
+    'assets/design-tokens.css?v=20260827brand2',
+    'assets/design-system.css?v=20260827brand2',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260826ds1',
@@ -197,7 +197,7 @@ foreach ([
 
 // Entry pages must use the same canonical design system and contain one H1.
 foreach (['login' => $login, 'attendance scan' => $scan] as $label => $content) {
-    beta_contract_require_contains($content, 'assets/design-system.css?v=20260826ds1', $label . ' design-system load', $errors);
+    beta_contract_require_contains($content, 'assets/design-system.css?v=20260827brand2', $label . ' design-system load', $errors);
     if (preg_match_all('/<h1\b/i', $content) !== 1) {
         $errors[] = $label . ' must contain exactly one H1 in source.';
     }
