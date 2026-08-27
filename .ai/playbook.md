@@ -14,6 +14,21 @@ Before acting:
 
 Do not ask the user to restate repository facts already encoded here unless the repository itself is ambiguous.
 
+### Tool/source editing preference
+
+GitHub on the authoritative beta branch is the primary working surface as well as the source of truth.
+
+For small, bounded source changes, prefer reading and updating the relevant files directly through GitHub. Do not involve a developer workstation merely to search, patch or commit a few files when the GitHub path can do the same work more directly.
+
+Use a remote/local development machine only when it adds concrete value, such as:
+
+- executing PHP/JS/browser tests that cannot run through the repository connector;
+- authenticated live browser verification;
+- complex multi-file transformations that are materially safer with local tooling;
+- environment-specific diagnostics, deployment evidence or logs.
+
+Tool choice should minimise hops while preserving verification. The repository remains canonical regardless of which execution environment is used.
+
 ## 2. Implementation-state discipline
 
 Use exactly:
