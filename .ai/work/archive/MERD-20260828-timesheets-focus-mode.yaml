@@ -1,0 +1,55 @@
+version: 1
+id: MERD-20260828-timesheets-focus-mode
+objective: "Make Employee summary use row-driven focus mode: clicking the row opens complete employee details, hides all other employees, and clicking the focused row again restores the list."
+acceptance:
+  - "No View shifts / Hide shifts text controls remain in Employee summary."
+  - "Each employee summary row itself is keyboard- and pointer-interactive with a clear visual affordance."
+  - "Opening an employee hides all other employee rows and reveals only that employee's complete shift details."
+  - "Clicking or activating the focused employee row again collapses it and restores the complete employee list."
+  - "Existing payroll calculations, rounding, wage visibility, authorization, PDF content, and mobile shift-card behavior remain unchanged."
+packet_state: CLOSED
+lifecycle: VERIFIED
+base_head: "10a6e5de92f18724acd559993565ad9bb4bd30c8"
+last_seen_head: "ef448ccd23e226e88525fe263eaaea07c14b0d45"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/timesheet_portal/assets/app.js"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Do not alter frozen timesheet/payroll reconciliation logic."
+  - "Do not broaden wage/pay visibility."
+  - "Retain light/dark and desktop/mobile readability."
+completed:
+  - "Replaced View shifts / Hide shifts controls with row-level activation and chevron affordance."
+  - "Added pointer plus Enter/Space keyboard activation using row role/button semantics and aria-expanded/aria-controls."
+  - "Opening one employee hides every other employee summary row and shows only the selected employee plus its inline shifts; collapsing restores the full list."
+  - "Updated PDF export to temporarily reveal all summary/detail rows and restore focus-mode state afterward."
+  - "Updated asset cache keys for the new Timesheets JS/CSS."
+  - "Implementation commit ef448ccd23e226e88525fe263eaaea07c14b0d45 pushed to namecheap-beta-live."
+  - "Targeted Timesheets Playwright test passed; full local browser suite passed 6/6."
+  - "Local beta runtime contract, permission policy, loader order, shared beta-state validation, and JS syntax checks passed."
+  - "GitHub Beta source contract, Chromium smoke, and secret scan all passed for ef448ccd."
+  - "Namecheap served the new focus-mode Timesheets JavaScript."
+  - "Authenticated Opera verification confirmed one selected employee remains visible while all other employees hide, collapse restores the full list, and focused detail remains readable on desktop light/dark and mobile light/dark."
+checks:
+  - name: "Targeted Timesheets Playwright"
+    result: "PASS 1/1"
+  - name: "Full local beta browser regressions"
+    result: "PASS 6/6"
+  - name: "Beta runtime / permission / loader / shared-state validators"
+    result: "PASS"
+  - name: "GitHub Beta guardrails"
+    result: "PASS"
+  - name: "Namecheap deployed asset check"
+    result: "PASS"
+  - name: "Opera desktop/mobile light/dark focus-mode verification"
+    result: "PASS"
+remaining: []
+next_action: "None — focus-mode interaction is verified and closed."
+blocked: false
+blocker: null
+commits:
+  - "ef448ccd23e226e88525fe263eaaea07c14b0d45"
+updated_at: "2026-08-28T03:41:00+05:00"
