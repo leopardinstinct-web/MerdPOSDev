@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-27T20:39:00Z"
+updated_at: "2026-08-27T21:05:00Z"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
@@ -9,6 +9,6 @@ active:
     next_action: "Recheck live navigation deployment, then verify the parent activates its first submenu item."
   - id: MERD-20260828-timesheets-standardization
     path: .ai/work/active/MERD-20260828-timesheets-standardization.yaml
-    packet_state: OPEN
-    lifecycle: REQUESTED
-    next_action: "Implement the standardized Timesheets page/header/report renderer and targeted runtime regression without changing API/payroll logic."
+    packet_state: DEPLOYED
+    lifecycle: DEPLOYED
+    next_action: "Visually verify the deployed Timesheets panel on representative desktop/mobile and light/dark surfaces, then adjust or close the packet."
