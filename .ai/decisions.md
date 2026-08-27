@@ -63,3 +63,13 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Maintenance rule:** substantive work must update the knowledge layer when it changes reality. A future session should not need the conversation that produced a change.
 
 **Reason:** Chat context is ephemeral and tool/session-specific. The repository must be self-sustainable, portable and independently understandable.
+
+## 2026-08-27 — Require affected-path history and implementation evidence
+
+**Decision:** Every substantive Beta code change must include a narrow preflight over the current affected source plus relevant Git path/component history. Questions about why prior work behaved or failed a certain way must inspect the relevant commit history/diffs before a confident root-cause answer. When the product owner explicitly requests implementation, analysis/planning alone is not completion if write/execution tools are available.
+
+**Execution contract:** `.ai/task-gates.md` is a mandatory operating contract. It requires concrete implementation evidence for CODED/WIRED claims and deployment/runtime evidence for DEPLOYED/VERIFIED claims.
+
+**Special UI lesson:** Cross-cutting design-system work must inspect both shared primitives and feature-specific styling/history. Token usage alone does not prove readability, semantic correctness or successful propagation.
+
+**Reason:** Two preventable failures occurred: provenance was inferred from current source without checking the relevant history, and implementation requests risked being answered with analysis instead of actual repository changes. These gates make both failures explicit and recoverable in GitHub for future sessions.
