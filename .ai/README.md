@@ -30,6 +30,14 @@ A historical document never overrides newer code plus a newer recorded decision.
 
 Then load task-specific material below.
 
+## Mandatory canonical-branch entry guard
+
+For MERDPOS Beta, the bootstrap must be fetched from the current `namecheap-beta-live` ref explicitly. Do not assume the repository default branch, current checkout, or an inherited feature branch contains the current seed.
+
+Re-bootstrap from the authoritative branch whenever a chat/session is moved into the MERDPOS BETA project, changes repository/branch context, or began outside the project before an explicit implementation request. Before using an existing feature branch, compare it with the current authoritative Beta HEAD. Stale/diverged branches must be reconciled/recreated before substantive Beta work continues.
+
+The repository default branch carries a discovery pointer so sessions that land there can find Beta, but `main` is not the Beta source of truth.
+
 ## Mandatory task preflight
 
 For every substantive code change, read the current affected source and inspect recent Git history for the affected path/component before editing. For questions about why earlier work behaved or failed a certain way, inspect the relevant commit history/diffs before giving a confident root-cause answer.
