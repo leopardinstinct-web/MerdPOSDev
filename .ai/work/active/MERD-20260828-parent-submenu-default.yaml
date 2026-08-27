@@ -1,0 +1,46 @@
+version: 1
+id: MERD-20260828-parent-submenu-default
+objective: "When a side-menu parent with a submenu is clicked, activate that section's first submenu item."
+acceptance:
+  - "Clicking a multi-item side-menu parent opens its submenu and activates the first available submenu item."
+  - "Explicit submenu selection still works normally."
+  - "Direct single-item side-menu sections keep their existing behavior."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "c0910225efe322d705754e636075f8d48ff79c50"
+last_seen_head: "a78f84af16cc9357ba0884d353d3337f5d44bb62"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
+  - "namecheap_beta_live/browser_tests/navigation-runtime.spec.js"
+constraints:
+  - "Reuse the canonical portal-tab click path instead of duplicating panel/group activation state."
+  - "Do not call the behavior DEPLOYED or VERIFIED until Namecheap serves the new navigation runtime and the live interaction is exercised."
+completed:
+  - "Inspected current navigation owner and recent affected-path history; confirmed the previous parent-open-only behavior was intentional and is superseded by the product-owner request."
+  - "Changed parent group clicks to delegate to section.tabs[0].click()."
+  - "Updated navigation-runtime.spec.js to assert first-submenu activation and subsequent explicit submenu/direct-section behavior."
+  - "Beta source contract, Chromium browser regressions, and beta secret scan passed for a78f84af16cc9357ba0884d353d3337f5d44bb62."
+  - "Live cache-busted navigation.js check still served the old parent-open-only implementation, so deployment is not yet evidenced."
+commits:
+  - "f5c6a3c97d8fba9361f7fcd786f20714b50a5208"
+  - "a78f84af16cc9357ba0884d353d3337f5d44bb62"
+checks:
+  - name: "Beta source contract"
+    result: "PASS"
+    evidence: "GitHub Actions run 33106361673"
+  - name: "Beta Chromium smoke"
+    result: "PASS"
+    evidence: "GitHub Actions run 33106361673; includes navigation-runtime.spec.js"
+  - name: "Beta secret scan"
+    result: "PASS"
+    evidence: "GitHub Actions run 33106361673"
+  - name: "Live navigation asset deployment check"
+    result: "FAIL"
+    evidence: "app.merdpos.com cache-busted navigation.js still contains the old parent-open-only code"
+remaining:
+  - "Confirm Namecheap has pulled the source change."
+  - "Exercise a live multi-item side-menu parent and confirm its first submenu/panel becomes active."
+next_action: "Recheck the live cache-busted navigation.js for section.tabs[0]?.click(); once present, exercise the authenticated side-menu parent interaction and close/archive this packet if successful."
+blocked: true
+blocker: "Namecheap has not yet served the source change; established server-side pull/deploy is external to the current source edit."
+updated_at: "2026-08-27T19:03:00Z"
