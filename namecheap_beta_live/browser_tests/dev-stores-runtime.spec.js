@@ -49,9 +49,8 @@ test('DEV store enrichment keeps toolbar actions together and dashboard edit act
       <section id="storesPanel">
         <div class="directory-card">
           <div class="directory-toolbar">
-            <div><h2>Stores</h2><p>Legacy description</p></div>
+            <div><h2>Stores</h2><p>Legacy description</p><label class="search-box"><input id="storeSearch" type="search"></label></div>
             <div class="directory-actions">
-              <label class="search-box"><input id="storeSearch" type="search"></label>
               <button id="addStoreBtn" type="button">Add store</button>
             </div>
           </div>
