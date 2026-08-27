@@ -1,4 +1,6 @@
-# MERDPOS Beta Recovery Decisions
+# MERDPOS Beta Decisions
+
+This file records durable decisions. Later entries may explicitly supersede earlier ones. Historical decisions remain for provenance but are not binding once superseded.
 
 ## 2026-08-27 — Keep `design-audit.js` during recovery
 
@@ -12,20 +14,52 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 
 ## 2026-08-27 — Add beta-specific CI rather than repurpose main CI
 
-**Decision:** Add a dedicated `beta-guardrails.yml` workflow for `namecheap-beta-live`.
+**Decision:** Use a dedicated `beta-guardrails.yml` workflow for `namecheap-beta-live` and keep broader product-area CI path-scoped.
 
-**Reason:** Existing workflows are oriented around `main` and broader Flutter/backend checks. Recovery requires fast deterministic checks over the actual beta deployable tree on every beta push/PR without changing the semantics of the existing main workflow.
-
-The beta guardrail should validate:
-
-- PHP syntax under `namecheap_beta_live/backend` and `namecheap_beta_live/timesheet_portal`;
-- beta runtime-contract invariants;
-- portal permission-policy coverage;
-- JavaScript syntax for portal assets;
-- secret scanning for beta changes.
+**Reason:** Beta requires fast deterministic checks over the actual deployable tree without forcing unrelated Flutter/Android/root-backend suites to run for portal-only work. Product-area checks should run when their own paths change, while beta guardrails remain authoritative for portal source/runtime contracts.
 
 ## 2026-08-27 — Defer authenticated Playwright until fixture strategy exists
 
-**Decision:** Do not add production-credential-dependent browser tests.
+**Historical decision:** Do not add production-credential-dependent browser tests until explicit non-production fixture isolation exists.
 
-**Reason:** Recovery tests must be reproducible and safe. Playwright can be introduced first for unauthenticated/local structural smoke coverage, then for authenticated flows only after explicit non-production fixtures and isolation are defined.
+**Reason at the time:** Recovery tests needed to be reproducible and safe.
+
+**Status:** Superseded by the DUMMY-isolated authenticated regression decision below.
+
+## 2026-08-27 — Use DUMMY-isolated authenticated regression, never MERD mutation
+
+**Decision:** Authenticated regression is allowed when credentials/storage state remain external and all destructive writes are guarded to the exact DUMMY tenant. General authenticated audit may remain read-only; destructive workflows must abort before mutation if DUMMY identity/context is not proven.
+
+**Reason:** This provides real business-path evidence without putting MERD production data at risk.
+
+**Supersedes:** The earlier blanket deferral of authenticated Playwright. The safety principle remains; the fixture/isolation strategy now exists.
+
+## 2026-08-27 — Stage-aware testing: do not over-automate an actively redesigned UI
+
+**Decision:** While the beta webapp is actively being moved, redesigned, included/excluded and restructured, keep a compact safety net rather than exhaustive permanent UI-flow automation.
+
+**Keep now:** runtime smoke, security/authorization/tenant contracts, stable business invariants, deployment guards and targeted verification of changed behavior.
+
+**Defer by default:** brittle contracts around navigation labels, panel order, DOM structure, cosmetic placement and exhaustive CRUD click paths for workflows still being redesigned.
+
+**Promotion rule:** changing features follow `BUILD/CHANGE → QUICK SMOKE → PERMISSION/SECURITY CHECK → DEPLOY → VISUAL/RUNTIME VERIFY`; promote important behavior to permanent regression when the workflow is reasonably stable or the product owner explicitly prioritizes it.
+
+**Reason:** The current goal is product evolution. Tests should protect stable value and safety boundaries, not freeze an intentionally changing interface.
+
+## 2026-08-27 — GitHub is the standalone source of truth and viable AI seed
+
+**Decision:** The authoritative GitHub beta branch must contain enough curated knowledge for a fresh AI/chat/coding session with GitHub access to reconstruct the project and work safely without prior chat history, project memory, local workstation state or undocumented human context.
+
+**Repository bootstrap:**
+
+- root `AGENTS.md` is the entrypoint;
+- `.ai/README.md` defines reading order and authority hierarchy;
+- `.ai/invariants.md` stores binding rules;
+- `.ai/memory.md` stores current state and product stage;
+- `.ai/decisions.md` stores durable choices/supersessions;
+- `.ai/playbook.md` stores reusable learned procedures;
+- test/deployment/component docs beside code remain task-specific authority.
+
+**Maintenance rule:** substantive work must update the knowledge layer when it changes reality. A future session should not need the conversation that produced a change.
+
+**Reason:** Chat context is ephemeral and tool/session-specific. The repository must be self-sustainable, portable and independently understandable.
