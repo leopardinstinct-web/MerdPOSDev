@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-28T00:00:00+05:00"
+updated_at: "2026-08-28T03:11:00+05:00"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
@@ -9,6 +9,6 @@ active:
     next_action: "Recheck live navigation deployment, then verify the parent activates its first submenu item."
   - id: MERD-20260828-timesheets-inline-shifts
     path: .ai/work/active/MERD-20260828-timesheets-inline-shifts.yaml
-    packet_state: RECONNED
-    lifecycle: DOCUMENTED
-    next_action: "Implement the inline Employee summary shift expansion and alignment/copy changes without changing timesheet data logic."
+    packet_state: CHECKED
+    lifecycle: WIRED
+    next_action: "Wait for guardrails/deployment, then verify the live expanded employee focus in Opera across representative desktop/mobile light/dark surfaces and close the packet if clean."
