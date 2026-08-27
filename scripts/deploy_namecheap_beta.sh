@@ -118,6 +118,12 @@ for live_file in \
   "$LIVE/timesheet_portal/assets/shell.css" \
   "$LIVE/timesheet_portal/assets/app-ui.css" \
   "$LIVE/timesheet_portal/assets/dashboard-builder.css" \
+  "$LIVE/timesheet_portal/assets/brand/brand.css" \
+  "$LIVE/timesheet_portal/assets/brand/brand-assets.js" \
+  "$LIVE/timesheet_portal/assets/brand/merdpos-logo-approved.png" \
+  "$LIVE/timesheet_portal/assets/brand/merdpos-mark.png" \
+  "$LIVE/timesheet_portal/assets/brand/merdpos-wordmark.png" \
+  "$LIVE/timesheet_portal/assets/brand/merdpos-tagline.png" \
   "$LIVE/timesheet_portal/assets/account-menu.css" \
   "$LIVE/timesheet_portal/assets/modal-lock.js" \
   "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
@@ -137,6 +143,17 @@ for required_asset in \
   'assets/mobile-runtime.js?v=20260826ds1'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
+    exit 1
+  fi
+done
+
+if ! grep -q 'assets/brand/brand-assets.js?v=20260827brand4' "$LIVE/timesheet_portal/assets/management.js"; then
+  echo "ERROR: live management runtime is missing the canonical brand asset registry." >&2
+  exit 1
+fi
+for canonical_brand_asset in 'merdpos-logo-approved.png' 'merdpos-mark.png' 'merdpos-wordmark.png' 'merdpos-tagline.png'; do
+  if ! grep -q "$canonical_brand_asset" "$LIVE/timesheet_portal/assets/brand/brand-assets.js"; then
+    echo "ERROR: live brand registry is missing canonical asset: $canonical_brand_asset" >&2
     exit 1
   fi
 done

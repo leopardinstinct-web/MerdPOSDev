@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/includes/auth.php';
 if (current_user()) {
     start_app_session();
@@ -16,20 +16,20 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Login</title>
-  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
+  <link rel="icon" href="assets/brand/merdpos-mark.png?v=20260827brand4" type="image/png">
   <link rel="stylesheet" href="assets/design-tokens.css?v=20260827brand2">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826ds1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand2">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand4">
   <link rel="stylesheet" href="assets/design-system.css?v=20260827brand2">
 </head>
 <body class="login-body merd-login-body merd-shell">
   <main class="login-shell">
     <section class="login-card merd-login-card" aria-labelledby="loginTitle">
       <div class="merd-logo-lockup merd-brand merd-brand--primary" aria-label="MERDPOS - Smarter, Faster, Together">
-        <img class="merd-brand__primary-logo" src="assets/brand/merdpos-logo-approved.png" alt="MERDPOS - Smarter Faster Together">
+        <img class="merd-brand__primary-logo" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
       </div>
       <h1 id="loginTitle"><?= isset($_SESSION['pending_qr']) ? 'Complete attendance.' : 'Welcome back.' ?></h1>
       <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Sign in once to securely complete the POS QR attendance scan.' : 'Sign in to your MERDPOS workspace.' ?></p>

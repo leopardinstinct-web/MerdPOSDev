@@ -31,6 +31,7 @@
     /* Tokens are inserted before every runtime visual layer. */
     appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827brand2');
     appendStyle('merd-shell','assets/shell.css?v=20260826ds1');
+    appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
       appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260826ds1');
@@ -51,7 +52,7 @@
 
     /* Functional identity patch remains; its old standalone styling layer is
        retired because design-system.css now owns the visual grammar. */
-    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260826ds1');
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260827brand4');
 
     /* Behaviour only. Geometry comes from the canonical design system. */
     appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');

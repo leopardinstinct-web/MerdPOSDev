@@ -83,18 +83,18 @@ function ui_icon(string $name): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#031B4B">
   <title>MERDPOS</title>
-  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
+  <link rel="icon" href="assets/brand/merdpos-mark.png?v=20260827brand4" type="image/png">
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/table-ui.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand2">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand4">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
     <div class="merd-logo-lockup merd-brand merd-brand--header merd-brand--approved-lockup" aria-label="MERDPOS">
-      <img class="merd-brand__lockup-image" src="assets/brand/merdpos-logo-approved.png?v=20260827exact2" alt="MERDPOS - Smarter Faster Together">
+      <img class="merd-brand__lockup-image" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
     </div>
     <div class="topbar-actions">
       <div class="user-line">Signed in as <strong><?= htmlspecialchars((string)$user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($roleLabel) ?></span></div>
@@ -383,7 +383,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260826minimal1"></script>
   <script src="assets/beta.js?v=20260826minimal1"></script>
-  <script src="assets/management.js?v=20260826minimal1"></script>
+  <script src="assets/management.js?v=20260827brand4"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>
 </html>

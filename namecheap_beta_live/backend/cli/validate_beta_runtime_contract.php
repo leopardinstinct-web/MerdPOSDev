@@ -56,6 +56,9 @@ $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/a
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
 $rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
+$brandAssetsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand-assets.js', $errors);
+$brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand.css', $errors);
+$brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
@@ -153,6 +156,24 @@ foreach ([
 ] as $retiredAsset) {
     beta_contract_require_absent($management, $retiredAsset, 'retired competing CSS layer', $errors);
 }
+
+// Product identity uses exact supplied artwork with one runtime asset registry.
+beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
+beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260827brand4', 'brand identity runtime cache version', $errors);
+foreach (['merdpos-logo-approved.png','merdpos-mark.png','merdpos-wordmark.png','merdpos-tagline.png'] as $assetName) {
+    beta_contract_require_contains($brandAssetsJs, $assetName, 'canonical brand registry', $errors);
+    if (!is_file($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/' . $assetName)) {
+        $errors[] = 'Canonical brand asset is missing: ' . $assetName;
+    }
+    beta_contract_require_contains($brandStandard, $assetName, 'brand identity standard', $errors);
+}
+beta_contract_require_contains($dashboard, 'merdpos-logo-approved.png?v=20260827brand4', 'authenticated full brand lockup', $errors);
+beta_contract_require_contains($login, 'merdpos-logo-approved.png?v=20260827brand4', 'login full brand lockup', $errors);
+beta_contract_require_contains($scan, 'merdpos-mark.png?v=20260827brand4', 'attendance mark-only identity', $errors);
+beta_contract_require_contains($brandCss, '.merd-brand__wordmark-image', 'exact wordmark image utility', $errors);
+beta_contract_require_contains($brandCss, '.merd-brand__tagline-image', 'exact tagline image utility', $errors);
+beta_contract_require_absent($brandCss, '.merd-brand__wordmark{', 'CSS-reconstructed product wordmark', $errors);
+beta_contract_require_absent($brandCss, '.merd-brand__pos{', 'CSS-reconstructed POS wordmark segment', $errors);
 
 // Add/Search behavior is shared rather than feature-local.
 foreach (['addEmployeeBtn','addStoreBtn','addClientBtn','addRoleBtn'] as $id) {

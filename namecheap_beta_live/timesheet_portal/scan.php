@@ -12,20 +12,20 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MERDPOS Attendance</title>
-  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
+  <link rel="icon" href="assets/brand/merdpos-mark.png?v=20260827brand4" type="image/png">
   <link rel="stylesheet" href="assets/design-tokens.css?v=20260827brand2">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826ds1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand2">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand4">
   <link rel="stylesheet" href="assets/design-system.css?v=20260827brand2">
 </head>
 <body class="login-body merd-login-body merd-shell">
   <main class="login-shell">
     <section class="login-card scan-card merd-login-card" aria-live="polite" aria-labelledby="attendanceTitle">
       <div class="merd-logo-lockup merd-brand merd-brand--compact" aria-label="MERDPOS">
-        <img class="merd-brand__mark" src="assets/brand/merdpos-mark-approved.png" alt="MERDPOS">
+        <img class="merd-brand__mark" src="assets/brand/merdpos-mark.png?v=20260827brand4" alt="MERDPOS">
       </div>
       <h1 id="attendanceTitle">Attendance</h1>
       <p id="scanStatus" class="muted" aria-live="polite">Validating the authorised POS QRâ€¦</p>

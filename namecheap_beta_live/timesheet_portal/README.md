@@ -208,3 +208,6 @@ Mobile verification requires both structural runtime checks and real-device test
 ## README maintenance
 
 Update this README by default whenever portal behavior, authorization, UI conventions, data-flow, synchronization, mobile behavior or migration behavior changes. README maintenance is part of beta Definition of Done, but documentation itself must never be mistaken for runtime implementation.
+## Product brand asset library
+
+The product identity is stored as exact supplied artwork under `assets/brand/`. Runtime code uses `assets/brand/brand-assets.js` as the canonical registry for the complete lockup, standalone M mark, MERDPOS wordmark and SMARTER • FASTER • TOGETHER tagline. Use the complete lockup file whenever the complete logo is required; individual elements exist for context-specific use and must not be recomposed into a substitute full logo.

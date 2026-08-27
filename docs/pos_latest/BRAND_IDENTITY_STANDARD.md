@@ -12,11 +12,18 @@ MERDPOS is positioned as a connected retail operations platform. The intended bu
 - **Faster** — fewer unnecessary steps, faster staff workflows and faster customer service.
 - **Together** — stores, staff, inventory, POS, finance, online channels and customer touchpoints operating as one system.
 
-## Canonical mark
+## Canonical asset library
 
-The canonical beta mark is `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-mark.svg`.
+MERDPOS has one complete signature plus three individually addressable identity elements. All are exact supplied artwork; none may be reconstructed from CSS text, paths, or substitute geometry.
 
-The mark uses connected ribbon geometry to form an M. The paths represent retail channels converging into one connected customer experience. Do not add literal carts, barcodes, receipts, terminals, cloud icons or other feature-specific symbols to the mark.
+- **Primary Signature / Full Lockup** — `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-logo-approved.png`. This is the canonical complete logo. Whenever the complete identity is needed, use this file as one image; do not rebuild it from the three elements.
+- **Brand Mark / M Symbol** — `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-mark.png`. This is the standalone recognition symbol for app icons, favicons, mobile/compact identity and places where the product name is already clear.
+- **MERDPOS Wordmark** — `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-wordmark.png`. Use where the product name needs strong horizontal readability but the full signature would be visually too dense.
+- **Brand Promise / Tagline** — `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-tagline.png`. This is supporting identity, not a standalone product identifier; use it on spacious brand surfaces and communications where the promise adds value.
+
+The visual hierarchy is intentional: the M delivers rapid recognition, the wordmark supplies product-name certainty, and the tagline adds the brand promise. On dense product UI, reduce brand density by choosing the appropriate individual element rather than shrinking the complete lockup until it becomes illegible.
+
+`assets/brand/brand-assets.js` is the runtime registry for these canonical paths so feature code never guesses asset filenames.
 
 ## Canonical colors
 
@@ -35,12 +42,13 @@ The approved brand gradient runs blue → indigo → violet.
 
 ## Logo forms
 
-1. **Primary lockup** — mark + MERDPOS + `Smarter • Faster • Together`; use on login and other low-density brand surfaces.
-2. **Compact lockup** — mark + MERDPOS; use in authenticated product shell/header and attendance.
-3. **Mark only** — use for favicon, app icon and very small identity surfaces.
-4. **Monochrome** — single-color output for thermal receipts and print contexts.
+1. **Complete signature** — use the supplied full-lockup file unchanged when all brand elements should appear together.
+2. **Mark only** — use the supplied M element for favicon, app icon, compact/mobile identity and other small recognition surfaces.
+3. **Wordmark only** — use the supplied MERDPOS element when horizontal name recognition is needed without the visual weight of the M.
+4. **Tagline support** — use the supplied SMARTER • FASTER • TOGETHER element only as supporting identity, never as the sole product identifier.
+5. **Monochrome/context variant** — color treatment may adapt for dark/light/print contexts, but geometry, proportions and internal relationships do not change.
 
-The working dashboard must not repeat the product logo inside cards or data visualizations.
+Do not recreate a complete logo by composing the mark, wordmark and tagline in HTML/CSS when the supplied complete signature is available. The working dashboard must not repeat the product logo inside cards or data visualizations.
 
 ## Wordmark
 
@@ -106,8 +114,8 @@ This document is subordinate to `OMNICHANNEL_IDENTITY_STANDARD.md`, `DESIGN_TOKE
 The approved Concept 7 artwork is immutable. Product surfaces must use the exact approved raster artwork or direct crops of that same file (for example, the M mark). Do not redraw, simplify, reinterpret, trace, reshape, or substitute the geometry. Context variants may change colour treatment only where required for dark/light/monochrome use.
 
 Canonical beta assets:
-- 
-amecheap_beta_live/timesheet_portal/assets/brand/merdpos-logo-approved.png - exact approved primary lockup.
-- 
-amecheap_beta_live/timesheet_portal/assets/brand/merdpos-mark-approved.png - exact crop of the approved M mark.
-
+- `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-logo-approved.png` — exact supplied complete signature.
+- `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-mark.png` — exact supplied M mark.
+- `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-wordmark.png` — exact supplied MERDPOS wordmark.
+- `namecheap_beta_live/timesheet_portal/assets/brand/merdpos-tagline.png` — exact supplied SMARTER • FASTER • TOGETHER tagline.
+- `namecheap_beta_live/timesheet_portal/assets/brand/brand-assets.js` — canonical runtime path registry.

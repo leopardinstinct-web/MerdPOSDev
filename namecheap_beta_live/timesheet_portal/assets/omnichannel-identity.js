@@ -3,6 +3,7 @@
 
   if(window.MERDPOSOmnichannelIdentity)return;
   const permissions=window.MERDPOS_AUTH?.permissions||{};
+  const brandAssets=window.MERDPOSBrandAssets||Object.freeze({lockup:'assets/brand/merdpos-logo-approved.png?v=20260827brand4',mark:'assets/brand/merdpos-mark.png?v=20260827brand4',wordmark:'assets/brand/merdpos-wordmark.png?v=20260827brand4',tagline:'assets/brand/merdpos-tagline.png?v=20260827brand4'});
   if(!permissions['dashboard.view'])return;
 
   let state=null;
@@ -13,7 +14,7 @@
     if(!document.querySelector('link[data-merd-brand-css]')){
       const link=document.createElement('link');
       link.rel='stylesheet';
-      link.href='assets/brand/brand.css?v=20260827brand3';
+      link.href='assets/brand/brand.css?v=20260827brand4';
       link.dataset.merdBrandCss='1';
       document.head.appendChild(link);
     }
@@ -21,7 +22,7 @@
       const icon=document.createElement('link');
       icon.rel='icon';
       icon.type='image/png';
-      icon.href='assets/brand/merdpos-mark-approved.png?v=20260827exact3';
+      icon.href=brandAssets.mark;
       icon.dataset.merdBrandIcon='1';
       document.head.appendChild(icon);
     }
@@ -31,13 +32,13 @@
     ensureBrandAssets();
     const root=document.querySelector('.merd-topbar .merd-logo-lockup');
     if(!root)return;
-    const approved='assets/brand/merdpos-logo-approved.png?v=20260827exact3';
+    const approved=brandAssets.lockup;
     const current=root.querySelector('.merd-brand__lockup-image');
-    if(root.dataset.merdBrandPatched==='approved-v3'&&current?.getAttribute('src')===approved)return;
+    if(root.dataset.merdBrandPatched==='approved-v4'&&current?.getAttribute('src')===approved)return;
     root.className='merd-logo-lockup merd-brand merd-brand--header merd-brand--approved-lockup';
     root.setAttribute('aria-label','MERDPOS');
     root.innerHTML=`<img class="merd-brand__lockup-image" src="${approved}" alt="MERDPOS - Smarter Faster Together">`;
-    root.dataset.merdBrandPatched='approved-v3';
+    root.dataset.merdBrandPatched='approved-v4';
   }
 
   async function json(url){

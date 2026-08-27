@@ -62,6 +62,7 @@ Known Sheet schemas must be parsed deterministically; do not introduce generic h
 The Namecheap deployment script is expected to fail closed on at least:
 
 - PHP syntax errors;
+- missing canonical MERDPOS brand registry/assets (`brand-assets.js`, complete lockup, M mark, wordmark or tagline);
 - missing permission-policy/API coverage;
 - permission-gated browser runtime wiring regressions;
 - nondeterministic dependency-sensitive portal script loading;
