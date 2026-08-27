@@ -22,26 +22,41 @@ if (empty($input) && $raw !== '') {
 
 $userId = preg_replace('/\D+/', '', (string)($input['user_id'] ?? ''));
 $password = preg_replace('/\D+/', '', (string)($input['password'] ?? ''));
+$requestedClientCode = strtoupper(trim((string)($input['client_code'] ?? '')));
 if ($userId === '' || $password === '') {
     json_response(['success' => false, 'error' => 'Enter numeric User ID and Password.'], 200);
+}
+if ($requestedClientCode !== '' && !preg_match('/^[A-Z0-9_-]{1,32}$/', $requestedClientCode)) {
+    json_response(['success' => false, 'error' => 'Invalid User ID or Password.'], 200);
 }
 
 try {
     $pdo = portal_db();
+    $authClientId = PORTAL_CLIENT_ID;
+    if ($requestedClientCode !== '') {
+        $clientStmt = $pdo->prepare("SELECT id FROM clients WHERE UPPER(client_code)=? AND status='active' LIMIT 1");
+        $clientStmt->execute([$requestedClientCode]);
+        $resolvedClientId = (int)($clientStmt->fetchColumn() ?: 0);
+        if ($resolvedClientId <= 0) {
+            json_response(['success' => false, 'error' => 'Invalid User ID or Password.'], 200);
+        }
+        $authClientId = $resolvedClientId;
+    }
+
     $fingerprint = 'portal-' . hash('sha256', (string)($_SERVER['REMOTE_ADDR'] ?? '') . '|' . (string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
     $lockout = new MerdAuthLockoutService(new MerdPdoAuthLockoutStore($pdo));
     $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-    $lockout->assertNotLocked(PORTAL_CLIENT_ID, $userId, $fingerprint, 'portal_login', $now);
+    $lockout->assertNotLocked($authClientId, $userId, $fingerprint, 'portal_login', $now);
 
     $stmt = $pdo->prepare(
         "SELECT id,client_id,store_id,full_name,user_id,login_password,pin_code,employee_type,role_name,client_role_id,status "
         . "FROM employees WHERE client_id=? AND user_id=? AND status='active' LIMIT 1"
     );
-    $stmt->execute([PORTAL_CLIENT_ID, $userId]);
+    $stmt->execute([$authClientId, $userId]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!is_array($employee) || !merd_employee_authenticates($employee, $password)) {
-        $lockout->recordFailure(PORTAL_CLIENT_ID, is_array($employee) ? (int)$employee['id'] : null, $userId, $fingerprint, 'portal_login', $now);
+        $lockout->recordFailure($authClientId, is_array($employee) ? (int)$employee['id'] : null, $userId, $fingerprint, 'portal_login', $now);
         json_response(['success' => false, 'error' => 'Invalid User ID or Password.'], 200);
     }
 
@@ -50,7 +65,7 @@ try {
         $upgrade = $pdo->prepare('UPDATE employees SET login_password=?,pin_code=? WHERE id=?');
         $upgrade->execute([$hash, $hash, (int)$employee['id']]);
     }
-    $lockout->recordSuccess(PORTAL_CLIENT_ID, (int)$employee['id'], $userId, $fingerprint, 'portal_login', $now);
+    $lockout->recordSuccess($authClientId, (int)$employee['id'], $userId, $fingerprint, 'portal_login', $now);
 
     $actualRole = strtoupper(trim((string)$employee['employee_type']));
     if ($actualRole === '') $actualRole = 'USER';
