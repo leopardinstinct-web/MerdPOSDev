@@ -9,6 +9,33 @@
   let fetchedAt=0;
   let staleTimer=null;
 
+  function ensureBrandAssets(){
+    if(!document.querySelector('link[data-merd-brand-css]')){
+      const css=document.createElement('link');
+      css.rel='stylesheet';
+      css.href='assets/brand/brand.css?v=20260827brand1';
+      css.dataset.merdBrandCss='1';
+      document.head.appendChild(css);
+    }
+    if(!document.querySelector('link[rel="icon"][data-merd-brand-icon]')){
+      const icon=document.createElement('link');
+      icon.rel='icon';
+      icon.type='image/svg+xml';
+      icon.href='assets/brand/merdpos-mark.svg';
+      icon.dataset.merdBrandIcon='1';
+      document.head.appendChild(icon);
+    }
+  }
+
+  function patchProductBrand(){
+    const root=document.querySelector('.merd-logo-lockup');
+    if(!root||root.dataset.merdBrandPatched==='1')return;
+    root.className='merd-logo-lockup merd-brand merd-brand--header';
+    root.setAttribute('aria-label','MERDPOS');
+    root.innerHTML='<img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true" width="44" height="44"><div class="merd-brand__copy"><strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong></div>';
+    root.dataset.merdBrandPatched='1';
+  }
+
   async function json(url){
     const response=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'}});
     const text=await response.text();
@@ -139,6 +166,8 @@
   }
 
   function patchAll(){
+    ensureBrandAssets();
+    patchProductBrand();
     patchDocumentIdentity();
     patchStoreDirectory();
     patchNamedStoreLabels();
@@ -162,6 +191,8 @@
     }
   }
 
+  ensureBrandAssets();
+  patchProductBrand();
   document.addEventListener('click',event=>{
     if(event.target.closest('[data-panel="storesPanel"],#refreshBetaBtn,.dashboard-rolebar,[data-panel="dashboardPanel"]'))queuePatches();
   });
