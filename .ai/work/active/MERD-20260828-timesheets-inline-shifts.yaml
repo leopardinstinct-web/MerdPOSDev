@@ -7,12 +7,13 @@ acceptance:
   - "Employee summary rows expose shifts inline when the employee is activated."
   - "The separate Shift details section is removed."
   - "Existing payroll calculations, rounding, wage visibility and authorization remain unchanged."
-packet_state: RECONNED
-lifecycle: DOCUMENTED
+packet_state: CHECKED
+lifecycle: WIRED
 base_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
-last_seen_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
+last_seen_head: "df2e3f7a96686972260000c78b9dca8c1b6efafa"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/app.js"
   - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
   - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
   - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
@@ -23,11 +24,25 @@ constraints:
 completed:
   - "Read the product-owner document and mapped all requested UI changes."
   - "Inspected current Timesheets renderer, dashboard markup, stylesheet, targeted regression, and recent Timesheets history including 4a47125 and 2a8dc22."
+  - "Changed helper copy to role-neutral weekly timesheet language."
+  - "Aligned Store summary Store/Employees/Hours/Wages columns explicitly."
+  - "Moved expandable shift rows into Employee summary and removed the standalone Shift details renderer."
+  - "Employee summary now renders for both management and non-super reports while preserving existing wage visibility."
+  - "Updated PDF expansion behavior for inline shift rows."
+  - "Local Chromium regression suite passed 6/6; beta runtime contract and portal loader-order validators passed."
+  - "Implementation commit df2e3f7a96686972260000c78b9dca8c1b6efafa pushed to namecheap-beta-live."
+checks:
+  - name: "Local Playwright browser regressions"
+    result: "PASS 6/6"
+  - name: "Beta runtime contract"
+    result: "PASS"
+  - name: "Portal loader order"
+    result: "PASS"
 remaining:
-  - "Implement helper copy, alignment, and inline employee shift expansion."
-  - "Update targeted browser regression and run beta guardrails."
-  - "Verify Namecheap deployment and rendered desktop/mobile light/dark behavior in Opera."
-next_action: "Implement the inline Employee summary shift expansion and alignment/copy changes without changing timesheet data logic."
+  - "Confirm GitHub Beta guardrails complete successfully for df2e3f7."
+  - "Verify Namecheap serves the new Timesheets assets."
+  - "Visually verify desktop/mobile and light/dark Timesheets alignment and inline expansion in Opera."
+next_action: "Wait for guardrails/deployment, then verify the live Timesheets page in Opera and correct any rendered issue before closing."
 blocked: false
 blocker: null
-updated_at: "2026-08-28T00:00:00+05:00"
+updated_at: "2026-08-28T02:44:00+05:00"
