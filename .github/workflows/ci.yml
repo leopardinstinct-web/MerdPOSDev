@@ -15,6 +15,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.scope.outputs.backend }}
+      mobile: ${{ steps.scope.outputs.mobile }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect product-area changes
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+            echo "mobile=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            base="$BEFORE_SHA"
+          else
+            base="$(git rev-parse HEAD^)"
+          fi
+          changed="$(git diff --name-only "$base" HEAD)"
+          if grep -q '^backend/' <<< "$changed"; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "backend=false" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -q '^merdpos_staff/' <<< "$changed"; then
+            echo "mobile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "mobile=false" >> "$GITHUB_OUTPUT"
+          fi
+
   repository-hygiene:
     name: Repository hygiene
     runs-on: ubuntu-latest
@@ -75,6 +120,8 @@ jobs:
 
   php-lint:
     name: PHP 8.2 lint
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -103,6 +150,8 @@ jobs:
 
   catalogue-schema:
     name: M2 catalogue synthetic migrations
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -144,6 +193,8 @@ jobs:
 
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -192,10 +243,12 @@ jobs:
 
   android-debug-build:
     name: Android debug APK
-    runs-on: ubuntu-latest
     needs:
+      - changes
       - repository-hygiene
       - flutter-checks
+    if: needs.changes.outputs.mobile == 'true' && needs.flutter-checks.result == 'success'
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: merdpos_staff

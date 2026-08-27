@@ -1,0 +1,58 @@
+name: Beta DUMMY live regression
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-dummy-live-regression
+  cancel-in-progress: false
+
+jobs:
+  dummy-core-transactions:
+    name: DUMMY core transactions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MERDPOS_AUTH_STATE_B64: ${{ secrets.MERDPOS_AUTH_STATE_B64 }}
+      MERDPOS_BASE_URL: https://app.merdpos.com/beta/timesheet_portal/
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Confirm system Chrome
+        shell: bash
+        run: google-chrome --version
+
+      - name: Install pinned Playwright runner
+        shell: bash
+        run: npm install --no-save --no-package-lock @playwright/test@1.55.0
+
+      - name: Materialize external auth state
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${MERDPOS_AUTH_STATE_B64:-}" ]]; then
+            echo '::error::Repository secret MERDPOS_AUTH_STATE_B64 is required for the destructive DUMMY live regression.'
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/merdpos"
+          printf '%s' "$MERDPOS_AUTH_STATE_B64" | base64 --decode > "$RUNNER_TEMP/merdpos/auth-state.json"
+          chmod 600 "$RUNNER_TEMP/merdpos/auth-state.json"
+          echo "MERDPOS_AUTH_STATE=$RUNNER_TEMP/merdpos/auth-state.json" >> "$GITHUB_ENV"
+
+      - name: Run DUMMY core transaction regression
+        shell: bash
+        run: node namecheap_beta_live/browser_tests/live-dummy-core-transactions.js
+
+      - name: Remove auth state
+        if: always()
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/merdpos"

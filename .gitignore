@@ -56,3 +56,9 @@ backend/api/config.php
 *.log
 *.dump
 *.sql.gz
+
+# Local authenticated browser regression artifacts
+**/auth-state*.json
+**/storage-state*.json
+**/audit-output/
+**/live-policy*.json
