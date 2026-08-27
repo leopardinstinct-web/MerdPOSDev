@@ -88,7 +88,7 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260826minimal1">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260827visual1">
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>
@@ -203,20 +203,24 @@ function ui_icon(string $name): string
 
     <?php if ($canTimesheets): ?>
     <section id="timesheetPanel" class="portal-panel"<?= $initialPanel === 'timesheetPanel' ? '' : ' hidden' ?>>
-      <section class="controls-card timesheet-header-card">
-        <div class="week-picker-row">
-          <label for="weekSelect" class="week-picker-label">Week</label>
-          <select id="weekSelect" aria-label="Select week"></select>
-          <button id="downloadPdfBtn" class="download-pdf-btn" type="button">Download PDF</button>
+      <header class="timesheet-page-head app-panel-head">
+        <div>
+          <h2>Timesheets</h2>
+          <p>Review weekly hours, wages and shift activity across your stores.</p>
         </div>
+      </header>
+      <section class="controls-card timesheet-toolbar-card">
+        <div class="timesheet-toolbar">
+          <label class="timesheet-week-field" for="weekSelect"><span>Week</span><select id="weekSelect" aria-label="Select week"></select></label>
+          <button id="downloadPdfBtn" class="secondary-btn compact-btn" type="button">Download PDF</button>
+        </div>
+        <p id="reportSubtitle" class="timesheet-period-note">Current calendar week loads by default.</p>
         <p class="sr-only" id="reportTitle">Weekly Timesheet</p>
-        <p class="sr-only" id="reportSubtitle">Current calendar week loads by default.</p>
       </section>
-      <section id="statusBox" class="status-card">Loading...</section>
-      <section id="reportContainer"></section>
+      <section id="statusBox" class="status-card">Loading timesheet...</section>
+      <section id="reportContainer" class="timesheet-report" aria-live="polite"></section>
     </section>
     <?php endif; ?>
-
     <?php if ($canDisputes): ?>
     <section id="disputesPanel" class="portal-panel"<?= $initialPanel === 'disputesPanel' ? '' : ' hidden' ?>>
       <?php if ($canSubmitDisputes): ?>
@@ -382,7 +386,7 @@ function ui_icon(string $name): string
         'permission_levels'=>$user['permission_levels'] ?? [],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
   </script>
-  <script src="assets/app.js?v=20260826minimal1"></script>
+  <script src="assets/app.js?v=20260828timesheet1"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
   <script src="assets/management.js?v=20260827visual1"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>

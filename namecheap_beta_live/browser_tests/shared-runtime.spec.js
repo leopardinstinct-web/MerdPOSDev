@@ -213,6 +213,7 @@ test('Timesheet runtime injects once and switches weeks once per selection', asy
   await page.selectOption('#weekSelect', '2026-08-17');
   await expect.poll(() => reportRequests).toBe(2);
   await expect(page.locator('#weekSelect')).toHaveValue('2026-08-17');
-  await expect(page.locator('#reportTitle')).toContainText('17 Aug - 23 Aug 2026');
+  await expect(page.locator('#reportTitle')).toHaveText('My Timesheet');
+  await expect(page.locator('#reportSubtitle')).toContainText('17 Aug - 23 Aug 2026');
   expect(reportRequests).toBe(2);
 });

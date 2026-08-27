@@ -50,7 +50,7 @@
   if (hasTimesheetDom) {
     if (window.__timesheetPortalLoaded || document.querySelector('script[data-timesheet-app="1"]')) return;
     const script = document.createElement('script');
-    script.src = 'assets/timesheet-app.js?v=20260826permissionhotfix1';
+    script.src = 'assets/timesheet-app.js?v=20260828timesheet1';
     script.async = false;
     script.dataset.timesheetApp = '1';
     document.body.appendChild(script);
