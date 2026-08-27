@@ -1,16 +1,17 @@
 version: 1
 id: MERD-20260828-timesheets-inline-shifts
-objective: "Apply the approved Timesheets follow-up: role-neutral helper copy, corrected table alignment, and inline expandable shift rows inside Employee summary."
+objective: "Apply the approved Timesheets follow-up: role-neutral helper copy, corrected table alignment, inline expandable shift rows inside Employee summary, and clear visual focus for the expanded employee."
 acceptance:
   - "Timesheets helper text is appropriate for Admin, Super and User portal users."
   - "Store summary headers and body values use consistent horizontal alignment."
   - "Employee summary rows expose shifts inline when the employee is activated."
   - "The separate Shift details section is removed."
+  - "The expanded employee row is visually distinct and its attached shift detail reads as one focused block in light/dark and desktop/mobile views."
   - "Existing payroll calculations, rounding, wage visibility and authorization remain unchanged."
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
-last_seen_head: "df2e3f7a96686972260000c78b9dca8c1b6efafa"
+last_seen_head: "24e3fb0db910de76efe69db795f681023426def3"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/app.js"
@@ -23,14 +24,17 @@ constraints:
   - "Preserve mobile shift-card behavior and light/dark readability."
 completed:
   - "Read the product-owner document and mapped all requested UI changes."
-  - "Inspected current Timesheets renderer, dashboard markup, stylesheet, targeted regression, and recent Timesheets history including 4a47125 and 2a8dc22."
+  - "Inspected current Timesheets renderer, dashboard markup, stylesheet, targeted regression, and recent Timesheets history including 4a47125, 2a8dc22, df2e3f7 and cc04c90."
   - "Changed helper copy to role-neutral weekly timesheet language."
   - "Aligned Store summary Store/Employees/Hours/Wages columns explicitly."
   - "Moved expandable shift rows into Employee summary and removed the standalone Shift details renderer."
   - "Employee summary now renders for both management and non-super reports while preserving existing wage visibility."
   - "Updated PDF expansion behavior for inline shift rows."
-  - "Local Chromium regression suite passed 6/6; beta runtime contract and portal loader-order validators passed."
-  - "Implementation commit df2e3f7a96686972260000c78b9dca8c1b6efafa pushed to namecheap-beta-live."
+  - "Kept inline expanded shift cards viewport-width on mobile."
+  - "Added selected-surface tint, brand accent rail, stronger active employee text, active Hide shifts pill, and attached detail-panel borders so the expanded employee has clear visual focus."
+  - "Targeted runtime now asserts the expanded employee receives is-expanded state and Hide shifts label."
+  - "Local Chromium regression suite passed 6/6; beta runtime contract and portal loader-order validators passed after the visual-focus change."
+  - "Visual-focus implementation commit 24e3fb0db910de76efe69db795f681023426def3 pushed to namecheap-beta-live."
 checks:
   - name: "Local Playwright browser regressions"
     result: "PASS 6/6"
@@ -39,10 +43,10 @@ checks:
   - name: "Portal loader order"
     result: "PASS"
 remaining:
-  - "Confirm GitHub Beta guardrails complete successfully for df2e3f7."
-  - "Verify Namecheap serves the new Timesheets assets."
-  - "Visually verify desktop/mobile and light/dark Timesheets alignment and inline expansion in Opera."
-next_action: "Wait for guardrails/deployment, then verify the live Timesheets page in Opera and correct any rendered issue before closing."
+  - "Confirm GitHub Beta guardrails complete successfully for 24e3fb0."
+  - "Verify Namecheap serves table-ui.css?v=20260828timesheet4."
+  - "Visually verify expanded employee focus on desktop/mobile and light/dark Timesheets in Opera."
+next_action: "Wait for guardrails/deployment, then verify the live expanded employee focus in Opera across representative desktop/mobile light/dark surfaces and close the packet if clean."
 blocked: false
 blocker: null
-updated_at: "2026-08-28T02:44:00+05:00"
+updated_at: "2026-08-28T03:11:00+05:00"
