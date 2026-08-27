@@ -23,6 +23,30 @@ function dashboard_data_role(PDO $pdo, array $user): array
     return merd_dashboard_user_role($pdo, $user);
 }
 
+function dashboard_data_last_seven_dates(string $businessDate, DateTimeZone $timezone): array
+{
+    $end = new DateTimeImmutable($businessDate, $timezone);
+    $dates = [];
+    for ($offset = 6; $offset >= 0; $offset--) {
+        $dates[] = $end->modify("-{$offset} days")->format('Y-m-d');
+    }
+    return $dates;
+}
+
+function dashboard_data_fill_series(array $dates, array $rows, bool $integer = false): array
+{
+    $values = [];
+    foreach ($rows as $row) {
+        $date = (string)($row['business_date'] ?? '');
+        if ($date === '') continue;
+        $values[$date] = $integer ? (int)($row['value'] ?? 0) : (float)($row['value'] ?? 0);
+    }
+    return array_map(
+        static fn(string $date): array => ['date'=>$date, 'value'=>$values[$date] ?? ($integer ? 0 : 0.0)],
+        $dates
+    );
+}
+
 try {
     $user = beta_require_active_user();
     $pdo = portal_db();
@@ -45,7 +69,7 @@ try {
     $defaults = $clientDefaults->fetch(PDO::FETCH_ASSOC) ?: ['default_currency'=>'AUD','default_timezone'=>'Australia/Sydney'];
     $currency = strtoupper((string)($defaults['default_currency'] ?: 'AUD'));
     $timezone = (string)($defaults['default_timezone'] ?: 'Australia/Sydney');
-    try { new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; }
+    try { $timezoneObject = new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; $timezoneObject = new DateTimeZone($timezone); }
 
     $working = merd_working_now($pdo, $clientId);
     if (!$roleCanWorkforce) {
@@ -78,7 +102,10 @@ try {
         $storeStmt->execute([$currency,$timezone,$clientId]);
         $stores = $storeStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $businessDate = (new DateTimeImmutable('now', new DateTimeZone($timezone)))->format('Y-m-d');
+        $businessDate = (new DateTimeImmutable('now', $timezoneObject))->format('Y-m-d');
+        $trendDates = dashboard_data_last_seven_dates($businessDate, $timezoneObject);
+        $trendStart = $trendDates[0];
+
         $financialRows = [];
         if ($roleCanFinanceSummary && (isset($allowedMap['store_cash_position']) || isset($allowedMap['cash_mix']))) {
             $financial = $pdo->prepare(
@@ -93,7 +120,7 @@ try {
         }
 
         $salesRows = [];
-        if ($roleCanFinanceSummary && isset($allowedMap['today_sales_by_store'])) {
+        if ($roleCanFinanceSummary && (isset($allowedMap['today_sales_by_store']) || isset($allowedMap['top_stores_sales']))) {
             $sales = $pdo->prepare(
                 "SELECT st.id AS store_id,st.store_name,COALESCE(st.currency_code,?) AS currency_code,COALESCE(SUM(rs.total),0) AS today_sales "
                 . "FROM stores st LEFT JOIN retail_sales rs ON rs.store_id=st.id AND rs.client_id=st.client_id AND DATE(rs.sold_at)=? AND rs.status='completed' "
@@ -101,6 +128,28 @@ try {
             );
             $sales->execute([$currency,$businessDate,$clientId]);
             $salesRows = $sales->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        $salesTrend = [];
+        if ($roleCanFinanceSummary && (isset($allowedMap['sales_change']) || isset($allowedMap['sales_trend_7d']))) {
+            $stmt = $pdo->prepare(
+                "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value "
+                . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? "
+                . "GROUP BY DATE(rs.sold_at) ORDER BY business_date ASC"
+            );
+            $stmt->execute([$clientId,$trendStart,$businessDate]);
+            $salesTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), false);
+        }
+
+        $attendanceTrend = [];
+        if ($roleCanWorkforce && (isset($allowedMap['attendance_change']) || isset($allowedMap['attendance_trend_7d']))) {
+            $stmt = $pdo->prepare(
+                "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value "
+                . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? "
+                . "GROUP BY DATE(s.clock_in_at) ORDER BY business_date ASC"
+            );
+            $stmt->execute([$clientId,$trendStart,$businessDate]);
+            $attendanceTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), true);
         }
 
         $activeEmployees = null;
@@ -117,6 +166,23 @@ try {
             $syncAttention = (int)$stmt->fetchColumn();
         }
 
+        $syncStatuses = [];
+        if ($roleCanSync && isset($allowedMap['sync_status_table'])) {
+            $stmt = $pdo->prepare(
+                "SELECT status,COUNT(*) AS item_count FROM google_sheet_outbox "
+                . "WHERE client_id=? AND status IN ('pending','processing','failed') GROUP BY status"
+            );
+            $stmt->execute([$clientId]);
+            $counts = ['failed'=>0,'processing'=>0,'pending'=>0];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $status = strtolower((string)($row['status'] ?? ''));
+                if (array_key_exists($status, $counts)) $counts[$status] = (int)($row['item_count'] ?? 0);
+            }
+            foreach (['failed','processing','pending'] as $status) {
+                $syncStatuses[] = ['status'=>$status,'count'=>$counts[$status]];
+            }
+        }
+
         $management = [
             'business_date'=>$businessDate,
             'currency_code'=>$currency,
@@ -125,6 +191,11 @@ try {
             'sync_attention'=>$syncAttention,
             'financial_by_store'=>$financialRows,
             'sales_by_store'=>$salesRows,
+            'analytics'=>[
+                'sales_7d'=>$salesTrend,
+                'attendance_7d'=>$attendanceTrend,
+                'sync_statuses'=>$syncStatuses,
+            ],
         ];
     }
 

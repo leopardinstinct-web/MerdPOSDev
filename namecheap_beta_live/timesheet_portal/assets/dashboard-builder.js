@@ -19,7 +19,18 @@
     recent_attendance:{title:'Recent attendance',desc:'Latest attendance visible to this role.',w:8,h:5,minW:5,minH:4,maxW:12,maxH:9},
     my_shift:{title:'My current shift',desc:'Your current QR attendance status.',w:4,h:2,minW:3,minH:2,maxW:6,maxH:4},
     my_disputes:{title:'My open disputes',desc:'Your pending attendance corrections.',w:4,h:3,minW:3,minH:2,maxW:6,maxH:5},
+    sales_change:{title:'Sales change',desc:"Today's completed sales compared with yesterday.",w:3,h:2,minW:3,minH:2,maxW:5,maxH:3},
+    attendance_change:{title:'Attendance change',desc:"Today's clock-ins compared with yesterday.",w:3,h:2,minW:3,minH:2,maxW:5,maxH:3},
+    sales_trend_7d:{title:'Sales — 7 day trend',desc:'Completed sales across the last seven business dates.',w:5,h:4,minW:4,minH:3,maxW:8,maxH:6},
+    attendance_trend_7d:{title:'Attendance — 7 day trend',desc:'Clock-ins across the last seven business dates.',w:5,h:4,minW:4,minH:3,maxW:8,maxH:6},
+    top_stores_sales:{title:'Top stores by sales',desc:"Stores ranked by today's completed sales.",w:5,h:4,minW:4,minH:3,maxW:8,maxH:7},
+    sync_status_table:{title:'Sync status',desc:'Outbox exceptions grouped by current status.',w:5,h:4,minW:4,minH:3,maxW:7,maxH:6},
   };
+  const presets = [
+    {key:'store_operations',title:'Store operations',desc:'Live workforce, sales and exceptions.',widgets:['working_now_count','workforce_by_store','today_sales_by_store','pending_disputes','sync_attention','sync_status_table']},
+    {key:'finance',title:'Finance',desc:'Sales movement, ranking and cash position.',widgets:['sales_change','sales_trend_7d','top_stores_sales','today_sales_by_store','store_cash_position','cash_mix']},
+    {key:'workforce',title:'Workforce',desc:'Attendance movement and live workforce.',widgets:['working_now_count','attendance_change','attendance_trend_7d','workforce_by_store','working_now','recent_attendance']},
+  ];
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -39,6 +50,10 @@
     <aside id="dashboardWidgetDrawer" class="dashboard-widget-drawer" aria-label="Add widgets" aria-hidden="true">
       <div class="dashboard-drawer-head"><h2>Add widget</h2><p>Only widgets available to the selected role are shown.</p></div>
       <label class="dashboard-widget-search"><span aria-hidden="true">⌕</span><input id="dashboardWidgetSearch" type="search" placeholder="Search widgets"></label>
+      <section id="dashboardWidgetTemplates" class="dashboard-widget-templates" aria-label="Quick dashboard templates" hidden>
+        <div class="dashboard-template-label">Quick templates</div>
+        <div id="dashboardTemplateList" class="dashboard-template-list"></div>
+      </section>
       <div id="dashboardWidgetCatalog" class="dashboard-widget-catalog"></div>
       <div class="dashboard-drawer-foot"><button id="dashboardReset" class="dashboard-reset" type="button">Clear this role dashboard</button></div>
     </aside>`;
@@ -50,6 +65,8 @@
   const drawer = document.getElementById('dashboardWidgetDrawer');
   const catalog = document.getElementById('dashboardWidgetCatalog');
   const search = document.getElementById('dashboardWidgetSearch');
+  const templateSection = document.getElementById('dashboardWidgetTemplates');
+  const templateList = document.getElementById('dashboardTemplateList');
   const saveState = document.getElementById('dashboardSaveState');
   const resetButton = document.getElementById('dashboardReset');
 
@@ -81,6 +98,12 @@
     try{return date.toLocaleString([],options);}catch(_){delete options.timeZone;return date.toLocaleString([],options);}
   }
 
+  function shortDate(value){
+    const date=new Date(`${String(value||'')}T00:00:00`);
+    if(Number.isNaN(date.getTime()))return String(value||'');
+    try{return date.toLocaleDateString(undefined,{weekday:'short',day:'numeric'});}catch(_){return String(value||'');}
+  }
+
   function pendingDisputes(){return (data?.disputes||[]).filter(row=>String(row.status)==='pending').length;}
   function openMyDisputes(){return (data?.disputes||[]).filter(row=>['pending','awaiting_employee'].includes(String(row.status))).length;}
 
@@ -90,13 +113,50 @@
     return `<div class="dashboard-bars">${rows.map(row=>{const value=valueFn(row),pct=Math.max(value>0?3:0,(value/max)*100);return `<div class="dashboard-bar-row"><div class="dashboard-bar-label">${esc(labelFn(row))}</div><div class="dashboard-bar-track"><div class="dashboard-bar-fill" style="width:${pct.toFixed(1)}%"></div></div><div class="dashboard-bar-value">${esc(valueLabelFn(row,value))}</div></div>`;}).join('')}</div>`;
   }
 
+  function changeKpi(rows,formatValue,label,neutral=false){
+    const series=Array.isArray(rows)?rows:[],current=num(series.at(-1)?.value),previous=num(series.at(-2)?.value),delta=current-previous;
+    const direction=delta>0?'up':delta<0?'down':'flat',arrow=delta>0?'↑':delta<0?'↓':'→';
+    let relative='No change';
+    if(previous!==0)relative=`${delta>0?'+':''}${((delta/Math.abs(previous))*100).toFixed(1)}%`;
+    else if(current!==0)relative='New activity';
+    const absolute=delta===0?'Same as yesterday':`${delta>0?'+':''}${formatValue(delta)} vs yesterday`;
+    return `<div class="dashboard-change-kpi ${neutral?'is-neutral':`is-${direction}`}"><div class="dashboard-change-main"><strong>${esc(formatValue(current))}</strong><span>${esc(label)}</span></div><div class="dashboard-change-badge"><span aria-hidden="true">${arrow}</span><strong>${esc(relative)}</strong></div><small>${esc(absolute)}</small></div>`;
+  }
+
+  function trendChart(rows,formatValue,label,kind='sales'){
+    const series=Array.isArray(rows)?rows:[];
+    if(!series.length)return '<div class="dashboard-empty-widget">No trend data yet.</div>';
+    const values=series.map(row=>num(row.value)),max=Math.max(...values),min=Math.min(...values),range=Math.max(1,max-min),width=320,height=112,padX=12,padY=14;
+    const points=values.map((value,index)=>{const x=padX+(series.length===1?0:index*(width-padX*2)/(series.length-1)),y=padY+(max-value)*(height-padY*2)/range;return `${x.toFixed(1)},${y.toFixed(1)}`;}).join(' ');
+    const first=series[0],last=series[series.length-1];
+    return `<div class="dashboard-timeseries is-${esc(kind)}"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}"><line class="dashboard-timeseries-baseline" x1="${padX}" y1="${height-padY}" x2="${width-padX}" y2="${height-padY}"></line><polyline class="dashboard-timeseries-line" points="${points}"></polyline></svg><div class="dashboard-timeseries-summary"><div><span>${esc(shortDate(first.date))}</span><strong>${esc(formatValue(first.value))}</strong></div><div class="is-latest"><span>${esc(shortDate(last.date))}</span><strong>${esc(formatValue(last.value))}</strong></div></div></div>`;
+  }
+
+  function topStores(rows,currencyCode){
+    const ranked=(Array.isArray(rows)?rows:[]).slice().sort((a,b)=>num(b.today_sales)-num(a.today_sales)||num(a.store_id)-num(b.store_id)).slice(0,5);
+    if(!ranked.length)return '<div class="dashboard-empty-widget">No store sales yet.</div>';
+    const max=Math.max(1,...ranked.map(row=>num(row.today_sales)));
+    return `<div class="dashboard-top-list">${ranked.map((row,index)=>{const value=num(row.today_sales),pct=Math.max(value>0?3:0,(value/max)*100);return `<div class="dashboard-top-row"><span class="dashboard-top-rank">${index+1}</span><div class="dashboard-top-copy"><div><strong>${esc(row.store_name)}</strong><span>${esc(money(value,row.currency_code||currencyCode))}</span></div><div class="dashboard-top-track"><span style="width:${pct.toFixed(1)}%"></span></div></div></div>`;}).join('')}</div>`;
+  }
+
+  function syncStatusTable(rows){
+    const source=Array.isArray(rows)?rows:[],byStatus=new Map(source.map(row=>[String(row.status),num(row.count)])),ordered=['failed','processing','pending'].map(status=>({status,count:byStatus.get(status)||0})),total=ordered.reduce((sum,row)=>sum+row.count,0),labels={failed:'Failed',processing:'Processing',pending:'Pending'},tones={failed:'danger',processing:'warning',pending:'info'};
+    return `<div class="dashboard-status-wrap">${total===0?'<div class="dashboard-status-clear">All sync queues clear</div>':''}<table class="dashboard-status-table"><thead><tr><th>Status</th><th>Items</th></tr></thead><tbody>${ordered.map(row=>`<tr class="${row.count>0?`is-${tones[row.status]}`:'is-clear'}"><td><span class="dashboard-status-dot" aria-hidden="true"></span>${esc(labels[row.status])}</td><td>${row.count}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+
   function renderBody(key){
     if(!data)return '<div class="dashboard-empty-widget">Loading…</div>';
-    const management=data.management||{}, timezone=management.timezone||data.client_defaults?.timezone||null;
+    const management=data.management||{}, analytics=management.analytics||{}, timezone=management.timezone||data.client_defaults?.timezone||null;
     if(key==='working_now_count')return `<div class="dashboard-kpi"><strong>${num(data.working?.length)}</strong><span>Working now</span><small>Live QR attendance</small></div>`;
     if(key==='pending_disputes')return `<div class="dashboard-kpi"><strong>${pendingDisputes()}</strong><span>Pending disputes</span><small>Waiting for review</small></div>`;
     if(key==='active_employees')return `<div class="dashboard-kpi"><strong>${num(management.active_employees)}</strong><span>Active employees</span><small>Working client</small></div>`;
     if(key==='sync_attention')return `<div class="dashboard-kpi"><strong>${num(management.sync_attention)}</strong><span>Sync attention</span><small>Pending / failed outbox</small></div>`;
+    if(key==='sales_change')return changeKpi(analytics.sales_7d||[],value=>money(value,management.currency_code),'Completed sales');
+    if(key==='attendance_change')return changeKpi(analytics.attendance_7d||[],value=>String(Math.round(num(value))),'Clock-ins',true);
+    if(key==='sales_trend_7d')return trendChart(analytics.sales_7d||[],value=>money(value,management.currency_code),'Completed sales over the last seven days','sales');
+    if(key==='attendance_trend_7d')return trendChart(analytics.attendance_7d||[],value=>String(Math.round(num(value))),'Clock-ins over the last seven days','attendance');
+    if(key==='top_stores_sales')return topStores(management.sales_by_store||[],management.currency_code);
+    if(key==='sync_status_table')return syncStatusTable(analytics.sync_statuses||[]);
     if(key==='my_shift'){const shift=(data.working||[])[0];return shift?`<div class="dashboard-kpi"><strong>Clocked in</strong><span>${esc(shift.store_name||'')}</span><small>Since ${esc(localTime(shift.clock_in_at,timezone))}</small></div>`:'<div class="dashboard-kpi"><strong>Off shift</strong><span>Not clocked in</span><small>Scan a store QR to start</small></div>';}
     if(key==='my_disputes')return `<div class="dashboard-kpi"><strong>${openMyDisputes()}</strong><span>Open disputes</span><small>Your attendance corrections</small></div>`;
     if(key==='working_now'){const rows=data.working||[];if(!rows.length)return '<div class="dashboard-empty-widget">Nobody is clocked in.</div>';return `<div class="dashboard-list">${rows.slice(0,30).map(row=>`<div class="dashboard-list-row"><div><strong>${esc(row.full_name)}</strong><span>${esc(row.store_name)}</span></div><small>${esc(localTime(row.clock_in_at,row.timezone||timezone))}</small></div>`).join('')}</div>`;}
@@ -150,14 +210,35 @@
     renderCatalog();
   }
 
+  function renderTemplates(){
+    if(!templateSection||!templateList)return;
+    const q=String(search?.value||'').trim();
+    if(!layoutApi?.can_edit||q){templateSection.hidden=true;return;}
+    const allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(item=>item.widget_key));
+    const available=presets.map(preset=>({...preset,available:preset.widgets.filter(key=>allowed.has(key))})).filter(preset=>preset.available.length);
+    templateSection.hidden=!available.length;
+    templateList.innerHTML=available.map(preset=>{const missing=preset.available.filter(key=>!added.has(key));return `<button type="button" class="dashboard-template-button" data-template="${esc(preset.key)}" ${missing.length?'':'disabled'}><strong>${esc(preset.title)}</strong><span>${esc(preset.desc)}</span><small>${missing.length?`Add ${missing.length} available widget${missing.length===1?'':'s'}`:'Already applied'}</small></button>`;}).join('');
+    templateList.querySelectorAll('[data-template]').forEach(button=>button.addEventListener('click',()=>applyTemplate(button.dataset.template)));
+  }
+
   function renderCatalog(){
     if(!catalog||!layoutApi)return;const q=String(search?.value||'').trim().toLowerCase(),allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(i=>i.widget_key));
     const rows=Object.entries(defs).filter(([key,def])=>allowed.has(key)&&(!q||`${def.title} ${def.desc}`.toLowerCase().includes(q)));
     catalog.innerHTML=rows.length?rows.map(([key,def])=>`<div class="dashboard-catalog-item ${added.has(key)?'is-added':''}"><div class="dashboard-catalog-copy"><strong>${esc(def.title)}</strong><span>${esc(def.desc)}</span></div><button type="button" class="dashboard-catalog-add" data-add-widget="${esc(key)}" ${added.has(key)?'disabled':''}>${added.has(key)?'✓':'+'}</button></div>`).join(''):'<div class="dashboard-empty-widget">No widgets available for this role.</div>';
     catalog.querySelectorAll('[data-add-widget]').forEach(button=>button.addEventListener('click',()=>addWidget(button.dataset.addWidget)));
+    renderTemplates();
   }
 
   function addWidget(key){if(!layoutApi?.can_edit||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});renderCanvas();saveSoon();}
+
+  function applyTemplate(templateKey){
+    if(!layoutApi?.can_edit)return;
+    const preset=presets.find(row=>row.key===templateKey);if(!preset)return;
+    const allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(item=>item.widget_key));let count=0;
+    preset.widgets.forEach(key=>{if(!allowed.has(key)||added.has(key)||!defs[key])return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});added.add(key);count++;});
+    if(!count){showSave('Template already applied');renderTemplates();return;}
+    renderCanvas();saveSoon();showSave(`${preset.title}: ${count} widget${count===1?'':'s'} added`);
+  }
 
   function renderRolebar(){
     const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;

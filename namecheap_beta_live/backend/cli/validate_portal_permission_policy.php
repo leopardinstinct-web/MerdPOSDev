@@ -8,6 +8,7 @@ $betaApiPath = $root . '/timesheet_portal/includes/beta_api.php';
 $portalAppPath = $root . '/timesheet_portal/assets/app.js';
 $timesheetAppPath = $root . '/timesheet_portal/assets/timesheet-app.js';
 $betaRuntimePath = $root . '/timesheet_portal/assets/beta.js';
+$dashboardBuilderPath = $root . '/timesheet_portal/assets/dashboard-builder.js';
 $dashboardPath = $root . '/timesheet_portal/dashboard.php';
 $htaccessPath = $root . '/timesheet_portal/.htaccess';
 
@@ -18,6 +19,7 @@ $requiredPaths = [
     $portalAppPath,
     $timesheetAppPath,
     $betaRuntimePath,
+    $dashboardBuilderPath,
     $dashboardPath,
     $htaccessPath,
 ];
@@ -53,6 +55,7 @@ foreach ($catalog as $key => $rule) {
 }
 
 $widgetMap = merd_portal_dashboard_widget_permissions();
+$dashboardBuilderSource = (string)file_get_contents($dashboardBuilderPath);
 foreach ($widgetMap as $widget => $permissionPair) {
     if (!is_array($permissionPair) || count($permissionPair) !== 2) {
         $errors[] = "Dashboard widget {$widget} must declare visibility and data permissions.";
@@ -60,6 +63,9 @@ foreach ($widgetMap as $widget => $permissionPair) {
     }
     foreach ($permissionPair as $permission) {
         if (!isset($catalog[(string)$permission])) $errors[] = "Dashboard widget {$widget} references unknown permission {$permission}.";
+    }
+    if (preg_match('/\\b' . preg_quote((string)$widget, '/') . '\\s*:\\s*\\{/', $dashboardBuilderSource) !== 1) {
+        $errors[] = "Dashboard widget {$widget} is permission-registered but has no frontend definition.";
     }
 }
 
@@ -176,4 +182,4 @@ $devOnly = count(array_filter($catalog, static fn(array $rule): bool => !empty($
 echo 'MERDPOS beta permission policy validated; '
     . count($catalog) . " permissions, {$devOnly} DEV-only, "
     . count($widgetMap) . " dashboard widgets, {$protectedCount} protected APIs, {$routeCount} routes registered; "
-    . "permission-gated DOM compatibility and Timesheet runtime split verified.\n";
+    . "dashboard widget frontend contract, permission-gated DOM compatibility and Timesheet runtime split verified.\n";

@@ -31,6 +31,12 @@ function merd_portal_permission_catalog(): array
         'dashboard.widget.store_cash_position' => ['label'=>'Widget: Store cash position','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>100],
         'dashboard.widget.cash_mix' => ['label'=>'Widget: Register vs Petty Cash','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>110],
         'dashboard.widget.today_sales_by_store' => ['label'=>'Widget: Today sales by store','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>120],
+        'dashboard.widget.sales_change' => ['label'=>'Widget: Sales change','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>130],
+        'dashboard.widget.sales_trend_7d' => ['label'=>'Widget: Sales 7-day trend','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>140],
+        'dashboard.widget.top_stores_sales' => ['label'=>'Widget: Top stores by sales','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>150],
+        'dashboard.widget.attendance_change' => ['label'=>'Widget: Attendance change','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>160],
+        'dashboard.widget.attendance_trend_7d' => ['label'=>'Widget: Attendance 7-day trend','category'=>'Dashboard widgets','min_loa'=>50,'dev_only'=>false,'order'=>170],
+        'dashboard.widget.sync_status_table' => ['label'=>'Widget: Sync status table','category'=>'Dashboard widgets','min_loa'=>90,'dev_only'=>false,'order'=>180],
 
         'attendance.scan' => ['label'=>'Use QR attendance','category'=>'Attendance','min_loa'=>1,'dev_only'=>false,'order'=>10],
         'timesheets.view_own' => ['label'=>'View own timesheet','category'=>'Attendance','min_loa'=>1,'dev_only'=>false,'order'=>20],
@@ -97,5 +103,11 @@ function merd_portal_dashboard_widget_permissions(): array
         'store_cash_position' => ['dashboard.widget.store_cash_position','finance.management_summary'],
         'cash_mix' => ['dashboard.widget.cash_mix','finance.management_summary'],
         'today_sales_by_store' => ['dashboard.widget.today_sales_by_store','finance.management_summary'],
+        'sales_change' => ['dashboard.widget.sales_change','finance.management_summary'],
+        'sales_trend_7d' => ['dashboard.widget.sales_trend_7d','finance.management_summary'],
+        'top_stores_sales' => ['dashboard.widget.top_stores_sales','finance.management_summary'],
+        'attendance_change' => ['dashboard.widget.attendance_change','workforce.view'],
+        'attendance_trend_7d' => ['dashboard.widget.attendance_trend_7d','workforce.view'],
+        'sync_status_table' => ['dashboard.widget.sync_status_table','system.sync_status'],
     ];
 }
