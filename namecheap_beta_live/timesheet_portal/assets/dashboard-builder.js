@@ -16,7 +16,7 @@
     store_cash_position:{title:'Store cash position',desc:'Register plus Petty Cash by store.',w:5,h:4,minW:4,minH:3,maxW:8,maxH:7},
     cash_mix:{title:'Register vs Petty Cash',desc:'Current cash mix for the working client.',w:4,h:4,minW:3,minH:3,maxW:6,maxH:6},
     today_sales_by_store:{title:"Today's sales by store",desc:'Completed retail sales grouped by store.',w:5,h:4,minW:4,minH:3,maxW:8,maxH:7},
-    recent_attendance:{title:'Recent attendance',desc:'Latest attendance visible at this role LOA.',w:8,h:5,minW:5,minH:4,maxW:12,maxH:9},
+    recent_attendance:{title:'Recent attendance',desc:'Latest attendance visible to this role.',w:8,h:5,minW:5,minH:4,maxW:12,maxH:9},
     my_shift:{title:'My current shift',desc:'Your current QR attendance status.',w:4,h:2,minW:3,minH:2,maxW:6,maxH:4},
     my_disputes:{title:'My open disputes',desc:'Your pending attendance corrections.',w:4,h:3,minW:3,minH:2,maxW:6,maxH:5},
   };
@@ -30,14 +30,14 @@
   builder.className = 'merd-dashboard-builder';
   builder.innerHTML = `
     <div class="dashboard-rolebar" id="dashboardRolebar">
-      <div><span class="dashboard-rolebar-label">Dashboard role</span><strong id="dashboardRoleTitle">Loading…</strong></div>
-      <div class="dashboard-role-controls"><select id="dashboardRoleSelect" aria-label="Select dashboard role" hidden></select><span id="dashboardRoleLoa" class="dashboard-role-loa"></span></div>
+      <div><span class="dashboard-rolebar-label">Dashboard role</span></div>
+      <div class="dashboard-role-controls"><select id="dashboardRoleSelect" aria-label="Select dashboard role" hidden></select></div>
     </div>
     <div id="dashboardCanvas" class="dashboard-canvas" aria-label="Role dashboard"></div>
     <div id="dashboardSaveState" class="dashboard-save-state" aria-live="polite"></div>
     <button id="dashboardAddButton" class="dashboard-add-button" type="button" aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button>
     <aside id="dashboardWidgetDrawer" class="dashboard-widget-drawer" aria-label="Add widgets" aria-hidden="true">
-      <div class="dashboard-drawer-head"><h2>Add widget</h2><p>Only widgets inside the selected role LOA are available.</p></div>
+      <div class="dashboard-drawer-head"><h2>Add widget</h2><p>Only widgets available to the selected role are shown.</p></div>
       <label class="dashboard-widget-search"><span aria-hidden="true">⌕</span><input id="dashboardWidgetSearch" type="search" placeholder="Search widgets"></label>
       <div id="dashboardWidgetCatalog" class="dashboard-widget-catalog"></div>
       <div class="dashboard-drawer-foot"><button id="dashboardReset" class="dashboard-reset" type="button">Clear this role dashboard</button></div>
@@ -46,8 +46,6 @@
 
   const canvas = document.getElementById('dashboardCanvas');
   const roleSelect = document.getElementById('dashboardRoleSelect');
-  const roleTitle = document.getElementById('dashboardRoleTitle');
-  const roleLoa = document.getElementById('dashboardRoleLoa');
   const addButton = document.getElementById('dashboardAddButton');
   const drawer = document.getElementById('dashboardWidgetDrawer');
   const catalog = document.getElementById('dashboardWidgetCatalog');
@@ -155,16 +153,16 @@
   function renderCatalog(){
     if(!catalog||!layoutApi)return;const q=String(search?.value||'').trim().toLowerCase(),allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(i=>i.widget_key));
     const rows=Object.entries(defs).filter(([key,def])=>allowed.has(key)&&(!q||`${def.title} ${def.desc}`.toLowerCase().includes(q)));
-    catalog.innerHTML=rows.length?rows.map(([key,def])=>`<div class="dashboard-catalog-item ${added.has(key)?'is-added':''}"><div class="dashboard-catalog-copy"><strong>${esc(def.title)}</strong><span>${esc(def.desc)}</span></div><button type="button" class="dashboard-catalog-add" data-add-widget="${esc(key)}" ${added.has(key)?'disabled':''}>${added.has(key)?'✓':'+'}</button></div>`).join(''):'<div class="dashboard-empty-widget">No widgets available at this LOA.</div>';
+    catalog.innerHTML=rows.length?rows.map(([key,def])=>`<div class="dashboard-catalog-item ${added.has(key)?'is-added':''}"><div class="dashboard-catalog-copy"><strong>${esc(def.title)}</strong><span>${esc(def.desc)}</span></div><button type="button" class="dashboard-catalog-add" data-add-widget="${esc(key)}" ${added.has(key)?'disabled':''}>${added.has(key)?'✓':'+'}</button></div>`).join(''):'<div class="dashboard-empty-widget">No widgets available for this role.</div>';
     catalog.querySelectorAll('[data-add-widget]').forEach(button=>button.addEventListener('click',()=>addWidget(button.dataset.addWidget)));
   }
 
   function addWidget(key){if(!layoutApi?.can_edit||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});renderCanvas();saveSoon();}
 
   function renderRolebar(){
-    const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;roleTitle.textContent=role.role_label||role.role_key||'Role';roleLoa.textContent=`LOA ${Number(role.authority_level||0)}`;
+    const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;
     const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;addButton.hidden=!layoutApi?.can_edit;resetButton.hidden=!layoutApi?.can_edit;
-    if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)} · LOA ${Number(r.authority_level)}</option>`).join('');roleSelect.value=String(currentRoleId);}
+    if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)}</option>`).join('');roleSelect.value=String(currentRoleId);}
   }
 
   async function loadData(roleId=currentRoleId){
