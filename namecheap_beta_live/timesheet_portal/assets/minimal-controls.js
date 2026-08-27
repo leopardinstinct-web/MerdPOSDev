@@ -9,6 +9,14 @@
     addRoleBtn:'Add role'
   };
 
+  function ensureControlStyle(){
+    if(document.getElementById('merdMinimalControlStyle'))return;
+    const style=document.createElement('style');
+    style.id='merdMinimalControlStyle';
+    style.textContent='.dashboard-role-controls .dashboard-edit-toggle{flex:0 0 auto;width:max-content;min-width:max-content;max-width:none;white-space:nowrap}';
+    document.head.appendChild(style);
+  }
+
   function makeAddButton(button,label){
     if(!button)return;
     const text=String(label||button.getAttribute('aria-label')||button.textContent||'Add').replace(/^\s*\+\s*/,'').trim()||'Add';
@@ -109,6 +117,7 @@
   }
 
   function apply(root=document){
+    ensureControlStyle();
     Object.entries(labels).forEach(([id,label])=>{
       const button=(root.getElementById?root.getElementById(id):null)||document.getElementById(id);
       makeAddButton(button,label);
