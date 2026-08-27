@@ -88,7 +88,7 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet4">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet5">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260827visual1">
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>
@@ -386,7 +386,7 @@ function ui_icon(string $name): string
         'permission_levels'=>$user['permission_levels'] ?? [],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
   </script>
-  <script src="assets/app.js?v=20260828timesheet2"></script>
+  <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
   <script src="assets/management.js?v=20260827visual1"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>

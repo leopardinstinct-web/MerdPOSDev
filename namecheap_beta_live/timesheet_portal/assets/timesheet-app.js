@@ -191,8 +191,8 @@ function renderEmployeeSummary(report, showPay) {
     const rate = showPay ? rateDisplay(emp) : '';
     const detailId = `employee-shifts-${index}`;
     return `
-      <tr class="employee-summary-row" data-detail-id="${detailId}">
-        <td><button class="employee-summary-toggle" type="button" aria-expanded="false" aria-controls="${detailId}"><span class="employee-summary-name"><strong>${escapeHtml(summary.employee_name)}</strong>${summary.missing_pay_rate && showPay ? ' <span class="warn-pill">Missing rate</span>' : ''}</span><span class="employee-summary-action">View shifts</span></button></td>
+      <tr class="employee-summary-row" data-detail-id="${detailId}" tabindex="0" role="button" aria-expanded="false" aria-controls="${detailId}" aria-label="Review shifts for ${escapeHtml(summary.employee_name)}">
+        <td><span class="employee-summary-primary"><span class="employee-summary-name"><strong>${escapeHtml(summary.employee_name)}</strong>${summary.missing_pay_rate && showPay ? ' <span class="warn-pill">Missing rate</span>' : ''}</span><span class="employee-summary-chevron" aria-hidden="true">›</span></span></td>
         <td>${escapeHtml(summary.user_id || '\u2014')}</td>
         <td class="count">${shiftCount}</td>
         <td class="num">${fmtHours(summary.total_hours)}</td>
@@ -206,19 +206,30 @@ function renderEmployeeSummary(report, showPay) {
 }
 
 function bindEmployeeSummaryRows() {
-  document.querySelectorAll('.employee-summary-toggle').forEach(button => {
-    const row = button.closest('.employee-summary-row');
-    const detail = document.getElementById(button.getAttribute('aria-controls'));
-    const action = button.querySelector('.employee-summary-action');
-    if (!row || !detail) return;
-    const setOpen = open => {
-      detail.hidden = !open;
-      row.classList.toggle('is-expanded', open);
-      button.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (action) action.textContent = open ? 'Hide shifts' : 'View shifts';
-    };
-    button.addEventListener('click', event => { event.stopPropagation(); setOpen(detail.hidden); });
-    row.addEventListener('click', event => { if (event.target.closest('.employee-summary-toggle')) return; button.click(); });
+  const rows = Array.from(document.querySelectorAll('.employee-summary-row'));
+  const details = Array.from(document.querySelectorAll('.employee-shifts-row'));
+
+  const setFocusedEmployee = (row, open) => {
+    const detail = document.getElementById(row.dataset.detailId);
+    if (!detail) return;
+
+    rows.forEach(candidate => {
+      const focused = open && candidate === row;
+      candidate.hidden = open && !focused;
+      candidate.classList.toggle('is-expanded', focused);
+      candidate.setAttribute('aria-expanded', focused ? 'true' : 'false');
+    });
+    details.forEach(candidate => { candidate.hidden = !(open && candidate === detail); });
+  };
+
+  rows.forEach(row => {
+    const activate = () => setFocusedEmployee(row, row.getAttribute('aria-expanded') !== 'true');
+    row.addEventListener('click', activate);
+    row.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      activate();
+    });
   });
 }
 
@@ -253,21 +264,29 @@ function downloadPdf() {
     return;
   }
   document.body.classList.add('pdf-export-mode');
-  document.querySelectorAll('.employee-summary-toggle').forEach(button => {
-    const detail = document.getElementById(button.getAttribute('aria-controls'));
-    if (!detail) return;
+  const summaryRows = Array.from(document.querySelectorAll('.employee-summary-row'));
+  const shiftRows = Array.from(document.querySelectorAll('.employee-shifts-row'));
+  summaryRows.forEach(row => {
+    row.dataset.pdfWasHidden = row.hidden ? '1' : '0';
+    row.dataset.pdfWasExpanded = row.getAttribute('aria-expanded') === 'true' ? '1' : '0';
+    row.hidden = false;
+    row.setAttribute('aria-expanded', 'false');
+  });
+  shiftRows.forEach(detail => {
     detail.dataset.pdfWasHidden = detail.hidden ? '1' : '0';
     detail.hidden = false;
-    button.setAttribute('aria-expanded', 'true');
   });
   window.print();
   setTimeout(() => {
     document.body.classList.remove('pdf-export-mode');
-    document.querySelectorAll('.employee-summary-toggle').forEach(button => {
-      const detail = document.getElementById(button.getAttribute('aria-controls'));
-      if (!detail) return;
+    summaryRows.forEach(row => {
+      row.hidden = row.dataset.pdfWasHidden === '1';
+      row.setAttribute('aria-expanded', row.dataset.pdfWasExpanded === '1' ? 'true' : 'false');
+      delete row.dataset.pdfWasHidden;
+      delete row.dataset.pdfWasExpanded;
+    });
+    shiftRows.forEach(detail => {
       detail.hidden = detail.dataset.pdfWasHidden === '1';
-      button.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
       delete detail.dataset.pdfWasHidden;
     });
   }, 500);
