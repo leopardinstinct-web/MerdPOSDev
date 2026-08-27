@@ -39,7 +39,6 @@
       #storesPanel .dev-store-search input{width:100%}
       #storesPanel .dev-store-actions #addStoreBtn{flex:0 0 auto;white-space:nowrap}
       #storesPanel .dev-store-identity{margin-top:3px}
-      .dashboard-role-controls .dashboard-edit-toggle{flex:0 0 auto;width:max-content;min-width:max-content;max-width:none;white-space:nowrap}
       @media(max-width:720px){
         #storesPanel .directory-toolbar.dev-store-toolbar{display:grid;gap:12px;align-items:stretch}
         #storesPanel .dev-store-heading{width:100%;min-width:0}
