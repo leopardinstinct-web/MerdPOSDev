@@ -136,8 +136,8 @@ for live_file in \
 done
 
 for required_asset in \
-  'assets/design-tokens.css?v=20260827brand2' \
-  'assets/design-system.css?v=20260827brand2' \
+  'assets/design-tokens.css?v=20260827visual1' \
+  'assets/design-system.css?v=20260827visual1' \
   'assets/design-audit.js?v=20260826ds1' \
   'assets/minimal-controls.js?v=20260826ds1' \
   'assets/mobile-runtime.js?v=20260826ds1'; do
