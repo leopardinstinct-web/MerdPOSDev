@@ -616,8 +616,22 @@
 .merd-shell .timesheet-store-table td:nth-child(4),
 .merd-shell .employee-summary-table .num { text-align: right; }
 
-.employee-summary-row { cursor: pointer; }
-.employee-summary-row.is-expanded > td { background: var(--color-surface-muted); }
+.employee-summary-row {
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.employee-summary-row.is-expanded > td {
+  background: var(--color-surface-selected);
+  border-top-color: color-mix(in srgb, var(--color-brand-primary) 32%, var(--color-border-subtle));
+  border-bottom-color: color-mix(in srgb, var(--color-brand-primary) 32%, var(--color-border-subtle));
+}
+.employee-summary-row.is-expanded > td:first-child {
+  box-shadow: inset .25rem 0 0 var(--color-brand-primary);
+}
+.employee-summary-row.is-expanded .employee-summary-toggle {
+  color: var(--color-brand-primary);
+  font-weight: var(--weight-semibold);
+}
 .employee-summary-toggle {
   width: 100%;
   display: flex;
@@ -643,9 +657,24 @@
   font-weight: var(--weight-semibold);
   white-space: nowrap;
 }
+.employee-summary-row.is-expanded .employee-summary-action {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, var(--color-surface-main));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 30%, transparent);
+}
 .employee-shifts-row[hidden] { display: none; }
 .merd-shell .employee-shifts-cell { padding: 0; background: var(--color-surface-muted); }
 .merd-shell .employee-shifts-row .compact-shifts-shell { border: 0; border-radius: 0; }
+.employee-summary-row.is-expanded + .employee-shifts-row .employee-shifts-cell {
+  background: color-mix(in srgb, var(--color-surface-selected) 72%, var(--color-surface-main));
+  box-shadow: inset .25rem 0 0 var(--color-brand-primary);
+}
+.merd-shell .employee-summary-row.is-expanded + .employee-shifts-row .compact-shifts-shell {
+  border-top: 1px solid color-mix(in srgb, var(--color-brand-primary) 26%, var(--color-border-subtle));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-brand-primary) 18%, var(--color-border-subtle));
+  background: var(--color-surface-main);
+}
 
 @media print {
   .employee-summary-action { display: none; }

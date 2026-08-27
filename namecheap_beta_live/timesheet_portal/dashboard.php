@@ -88,7 +88,7 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet3">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet4">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260827visual1">
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>

@@ -97,6 +97,8 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await expect(abidDetail).toBeHidden();
   await abidToggle.click();
   await expect(abidToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(abidRow).toHaveClass(/is-expanded/);
+  await expect(abidToggle).toContainText('Hide shifts');
   await expect(abidDetail).toBeVisible();
   await expect(abidDetail).toContainText('Rounded 20:30');
   await expect(abidDetail).toContainText('$45.00');
