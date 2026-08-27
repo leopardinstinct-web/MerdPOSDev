@@ -1,96 +1,131 @@
 # MERDPOS Beta Regression Inventory
 
-**Started:** 2026-08-27
+**Updated:** 2026-08-27
 
-This inventory tracks recovery by execution path. Source/CI inspection does not equal live Namecheap verification.
+This inventory describes the current safety net. It must be read with `.ai/README.md`, `.ai/memory.md` and `.ai/playbook.md`.
 
-| Path | Current source owner | Source/CI status | Runtime status / next check |
-|---|---|---|---|
-| Login/session bootstrap | `timesheet_portal/index.php`, `api/login.php`, auth/session includes | Canonical login page and API path present | DEPLOYED/VERIFIED unknown; test valid/invalid login and pending QR redirect on beta |
-| Dashboard load | `dashboard.php`, `assets/beta.js`, `assets/management.js` | Permission-aware panel rendering; dynamic script execution deterministic; management cards mirror data permissions | Verify representative USER/management/DEV identities and no console aborts |
-| Shared LOA/permission runtime | `includes/beta_api.php`, `api/beta_state.php`, permission catalogue, `assets/app.js`, `assets/beta.js` | Shared-state route follows consuming feature; payload data permission-scoped; Chrome proves permission-minimal legacy runtime does not page-crash | Verify authenticated role with Dashboard denied but Finance or Password allowed against deployed beta |
-| Dashboard widgets | `assets/dashboard-builder.js`, dashboard APIs | Source contract present; shared loader ordering fixed | Verify add/remove/reorder desktop and mobile |
-| Mobile navigation | `assets/navigation.js`, `assets/shell.css`, `assets/mobile-runtime.js`, `browser_tests/navigation-runtime.spec.js` | Chrome at 390×844 proves contextual parent opens without navigation, contextual child changes panel, and direct Finance clears `merd-mobile-subnav-open` | Still verify outside-close, safe-area and keyboard behavior on a real phone/tablet |
-| Shared Add/Search | `assets/minimal-controls.js`, `assets/design-system.css`, `browser_tests/shared-runtime.spec.js` | Chrome proves Add SVG node stability after repeated MutationObserver activity, Search+Add clustering, and exactly one click action | Still verify Dashboard Add + directory Add/Search geometry/touch behavior on desktop and phone |
-| Stores directory | `dashboard.php`, `assets/directory.js`, Stores API routes | Source path present | Verify list/search/add/edit/inactivate with role boundary and mobile dialog reachability |
-| Workforce directory | `dashboard.php`, `assets/directory.js`, Workforce API routes | Source path present | Verify list/search/add/edit, store access, role/LOA controls and pay-rate visibility boundaries |
-| Clients | `assets/navigation.js`, `assets/client.js`, client APIs | DEV-only dynamic mount path present | Verify DEV-only visibility, active client switch/return-panel behavior and non-DEV absence |
-| Roles / Permission Policy | `assets/roles.js`, `api/role_authority.php`, `assets/management.js` | Roles execute before Navigation deterministically and CI guards ordering | Verify policy save immediately changes UI/API scope and DEV-only remains locked |
-| Timesheet report | `assets/app.js`, `assets/timesheet-app.js`, `api/weeks.php`, `api/timesheet.php`, Chrome smoke | `app.js` prevents duplicate Timesheet runtime injection; Chrome proves one script load, one initial weeks/report load and one report request per week selection | Verify full authenticated report data, PDF print route and logout for own/all-timesheet roles |
-| Disputes / attendance flags | `assets/beta.js`, `api/beta_state.php`, `api/disputes.php` | Shared state omits disputes/flags unless corresponding view/resolve permission exists | Verify own submit/cancel, review, handover confirmation and flag resolution permission boundaries |
-| Finance | `assets/beta.js`, `api/beta_state.php`, `api/financials.php`, workforce finance helpers | Finance no longer depends on Dashboard for shared CSRF/store context; Finance-only state store scope is active clock-in stores; backend independently enforces active clock-in unless `finance.cross_store` | Verify locked/unlocked store access, open day, queue, cash in/out, close day and offline queue recovery |
-| Dialogs + software keyboard | shared dialogs, `assets/modal-lock.js`, `assets/mobile-runtime.js` | Mobile-safe locking/fallback is a release invariant | Verify active input/action remains reachable with iOS/Android software keyboard |
-| Legacy Google migration | migration orchestrator/known reader + migration APIs | Deterministic known-sheet contract and fail-closed source checks present | DEV-only runtime verification; Preview must remain non-operational and Sync transactional |
+The beta portal is in active redesign. This file is **not** a mandate to automate every current screen. Permanent regression should protect stable business/security/runtime contracts; evolving UI workflows should use targeted smoke and runtime verification until they stabilise.
 
-## Incident-derived regression guards
+Source/CI inspection does not equal Namecheap deployment verification.
 
-### LOA permission runtime crash — 2026-08-26
+## Current permanent safety net
 
-Protected by `backend/cli/validate_portal_permission_policy.php` and Chrome smoke coverage:
+| Area | Current protection | Status / intent |
+|---|---|---|
+| Portal runtime contract | PHP/JS source validators, canonical asset checks, loader/deploy guardrails | Permanent |
+| Authorization model | Permission-policy validator, authorization matrix tooling, server-side route/data checks | Permanent |
+| DEV-only boundary | Actual DEV identity required; LOA 1000 alone is insufficient | Permanent |
+| Shared beta-state scope | Validator protects consumer-based route access and permission-scoped payload sections | Permanent |
+| Dynamic loader order | Roles-before-Navigation and `async=false` loader behavior guarded | Permanent |
+| Permission-hidden legacy runtime | Chrome smoke protects against hidden-DOM JS crashes | Permanent |
+| Timesheet runtime injection | Chrome smoke guards duplicate `timesheet-app.js` loading and request multiplication | Permanent |
+| Mobile contextual navigation | 390×844 Chrome smoke protects essential contextual-nav state behavior | Keep as lightweight runtime smoke, not a full UI-design contract |
+| Shared Add/Search runtime | Chrome smoke protects duplicate mutation/click behavior | Keep while component remains canonical |
+| DEV Stores identity | Browser regression accepts backend `Developer` label for DEV store enrichment | Permanent incident guard |
+| Authenticated read-only live audit | Reusable external-storage-state runner | Available; run when meaningful, not after every cosmetic change |
+| DUMMY Financial | Open Day → Cash In → Cash Out → Z Report with final-state assertions | Live DUMMY workflow previously VERIFIED |
+| DUMMY core transactions | Workforce, Stores, Roles/permissions, report surfaces, mobile basics | Live DUMMY run previously `DUMMY_CORE_OK total=30 passed=30`; use as an opt-in safety tool, not a mandatory loop for every redesign |
+| DUMMY destructive workflow | Manual/opt-in GitHub workflow with external auth material | Permanent safety mechanism |
+| CI product-area scoping | Portal-only changes skip unrelated mobile/root-backend heavy jobs | Permanent workflow principle |
 
-- legacy direct DOM references that still exist in `beta.js` must retain compatibility shims in `app.js`;
-- Timesheet runtime remains split into `timesheet-app.js`;
-- `dashboard.php` loads `app.js` before `beta.js`;
-- `app.js` / `timesheet-app.js` remain cache-revalidated;
-- a permission-minimal DOM can execute `app.js → beta.js` without a browser `pageerror`.
+## Intentionally not promoted to exhaustive permanent regression
 
-### Shared Add MutationObserver loop — 2026-08-26
+### Disputes lifecycle
 
-Protected in real Chrome by `browser_tests/shared-runtime.spec.js`:
+The existing API supports dispute create/decision operations, but full DUMMY-native employee-owned lifecycle automation is not a current product-stage requirement.
 
-- the canonical Add SVG remains the same DOM node after repeated unrelated DOM mutations;
-- only one canonical Add SVG remains;
-- Search + Add retain the shared action cluster;
-- one click fires exactly one Add action.
+An experimental branch `dummy-native-disputes` exists. It is unmerged and should be treated as exploration, not pending mandatory work. Reassess current product UX/security requirements before using or merging it.
 
-### Dynamic Roles → Navigation loader race — 2026-08-27
+### Attendance QR/device workflow
 
-Resolved in source by forcing dynamically inserted classic scripts in `assets/management.js` to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` guards both the ordered-script behavior and Roles-before-Navigation dependency in beta CI and Namecheap deploy validation.
+Server-side attendance QR verification/scanning scaffolding exists, including cooldown handling, but the complete POS device/QR product flow was not established as a stable end-to-end feature during the audit.
 
-### Shared state accidentally required Dashboard — 2026-08-27
+Do not treat endpoint presence as feature completeness. Attendance automation remains deferred until the product flow is sufficiently complete/stable or explicitly prioritised.
 
-Resolved in source across `includes/beta_api.php` and `api/beta_state.php`:
+### Navigation/panel/layout details
 
-- `beta_state.php` route access follows the consuming Dashboard, Disputes, Finance or Password feature rather than only `dashboard.view`;
-- recent shifts are loaded only for Timesheet/own-dispute consumers;
-- dispute rows are returned only with dispute-view/review permission;
-- working-now data is limited to Workforce, own-Timesheet or Finance consumers and remains self-only without Workforce access;
-- Finance-only users do not receive a full store enumeration unless their permission set grants broader scope;
-- management summaries remain separately permission-gated.
+Do not permanently assert exact current:
 
-`backend/cli/validate_beta_state_scope.php` protects these boundaries in beta CI and Namecheap deploy validation.
+- navigation labels;
+- panel order;
+- DOM hierarchy;
+- cosmetic layout;
+- exact wording;
+- every CRUD click sequence.
 
-### Management cards implied unavailable data — 2026-08-27
+These are expected to change while the product is being redesigned.
 
-Resolved in `assets/management.js`. Workforce, Finance, Dispute, Sync and Recent Attendance dashboard surfaces mirror the permissions of the data they display instead of showing misleading zero/empty cards for a management identity that lacks that specific capability. The shared-state validator also protects this frontend/backend alignment.
+## Verified live baselines already obtained
 
-### Duplicate Timesheet runtime injection — 2026-08-27
+### Read-only Developer baseline
 
-`timesheet-app.js` owns one report runtime. `app.js` refuses to inject another Timesheet script when the first script is already pending or initialized. The Chrome recovery suite evaluates `app.js` twice and requires exactly one Timesheet script request, one initial weeks request, one initial report request and exactly one additional report request for a user week selection.
+A previous authenticated live audit completed 24/24 across core read-only Developer portal surfaces, report switching and mobile 390×844 checks with no browser runtime errors or failed application HTTP responses.
 
-### Mobile navigation smoke fixture — 2026-08-27
+### DUMMY Financial baseline
 
-The first navigation browser run failed before runtime validation because `page.setContent()` created an opaque `about:blank` document and Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin. Chrome verifies contextual parent open behavior, contextual child navigation and direct-section clearing of mobile subnav state without page-level JavaScript errors.
+Previously live-verified on DUMMY:
 
-### Namecheap deploy recovery guard wiring — 2026-08-27
+- Open Day;
+- Cash In;
+- Cash Out;
+- Z Report / close;
+- final statement reload/closed balances.
 
-`scripts/deploy_namecheap_beta.sh` now runs `validate_portal_loader_order.php` and `validate_beta_state_scope.php` before rsync in addition to the existing runtime-contract and permission-policy validators. Beta CI runs `bash -n` on the deploy script and fails if either recovery validator call disappears.
+### DUMMY core baseline
 
-## Current CI checkpoint
+Previously live-verified:
 
-Recovery implementation checkpoint `5fc28354cb7372db7b93b0470543906076426497` passed Beta guardrails run `33010208846` with all three jobs green:
+`DUMMY_CORE_OK total=30 passed=30`
 
-- Beta source contract, including Namecheap deploy recovery-guard syntax/wiring;
-- Beta Chromium smoke, including Add/permission-minimal/Timesheet/mobile-navigation regression scenarios;
-- Beta secret scan.
+Coverage included:
 
-The state-note commit containing this inventory follows that implementation checkpoint and contains no runtime behavior change.
+- Workforce create/edit/pay-rate/credential-reset/deactivate;
+- Store create/edit/deactivate;
+- Role create/edit/delete;
+- permission LOA change + restoration;
+- report/panel read surfaces;
+- desktop/mobile runtime checks;
+- DUMMY context preservation.
 
-This is not a Namecheap deployment claim.
+These baselines prove those workflows at that checkpoint. They do not freeze the UI or guarantee later deployment state.
 
-## Remaining recovery focus
+## Incident-derived permanent guards
 
-1. Deploy the current branch through the established Namecheap pull/mirror path and confirm `.beta_deployed_commit`.
-2. Run authenticated role verification for USER, management and DEV, especially custom thresholds where Dashboard is denied but Finance/Password/Disputes remain allowed.
-3. Verify Dashboard widget editing and Store/Workforce/Role/Client feature workflows on deployed beta.
-4. Perform real phone/tablet checks for navigation, dialogs/keyboard, Dashboard edit controls and shared Add/Search touch behavior.
+### LOA permission runtime crash
+
+Protected by portal permission-policy validation and browser smoke. Permission-hidden UI must not crash legacy JS; API/backend permission enforcement remains authoritative.
+
+### Shared Add MutationObserver loop
+
+Protected by browser smoke: canonical Add control must not duplicate or trigger multiple actions under unrelated DOM mutations.
+
+### Dynamic Roles → Navigation loader race
+
+Protected by deterministic classic-script insertion/order validation.
+
+### Shared state accidentally required Dashboard
+
+Protected by `validate_beta_state_scope.php`; shared state follows consuming feature permissions while sensitive sections remain independently scoped.
+
+### Management cards implied unavailable data
+
+Management surfaces should not imply access to data the identity cannot actually read.
+
+### Duplicate Timesheet runtime injection
+
+Protected by duplicate-loader guard and browser request-count assertions.
+
+### DEV Stores role-label mismatch
+
+Protected by `dev-stores-runtime.spec.js`; frontend normalization accepts backend Developer/DEV identity representation without weakening DEV-only authorization.
+
+## When to add a new permanent regression
+
+Add one when at least one is true:
+
+1. a stable business/security invariant needs protection;
+2. a real production/beta incident has been understood and needs a narrow guard;
+3. the product owner considers the workflow sufficiently stable;
+4. the cost of recurrence is materially higher than test-maintenance cost.
+
+Do not add a permanent test merely because a screen currently exists.
