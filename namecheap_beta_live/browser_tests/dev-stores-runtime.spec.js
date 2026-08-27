@@ -6,7 +6,7 @@ test.use({ channel: 'chrome' });
 const repoRoot = process.env.GITHUB_WORKSPACE || path.resolve(__dirname, '..', '..');
 const asset = name => path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', name);
 
-test('DEV store enrichment accepts Developer role label from store identity API', async ({ page }) => {
+test('DEV store enrichment keeps toolbar actions together and dashboard edit action on one line', async ({ page }) => {
   const consoleErrors = [];
   page.on('console', message => {
     if (message.type() === 'error') consoleErrors.push(message.text());
@@ -43,10 +43,17 @@ test('DEV store enrichment accepts Developer role label from store identity API'
 
   await page.setContent(`<!doctype html>
     <html><head><base href="https://merdpos-smoke.invalid/"></head><body>
+      <div class="dashboard-role-controls">
+        <button class="secondary-btn compact-btn dashboard-edit-toggle" type="button">Edit dashboard</button>
+      </div>
       <section id="storesPanel">
         <div class="directory-card">
           <div class="directory-toolbar">
-            <div><p>Legacy description</p><label class="search-box"><input id="storeSearch"></label></div>
+            <div><h2>Stores</h2><p>Legacy description</p></div>
+            <div class="directory-actions">
+              <label class="search-box"><input id="storeSearch"></label>
+              <button id="addStoreBtn" type="button">Add store</button>
+            </div>
           </div>
           <div id="storeDirectory">
             <div class="entity-row">
@@ -61,5 +68,9 @@ test('DEV store enrichment accepts Developer role label from store identity API'
   await page.addScriptTag({ path: asset('dev-stores-ui.js') });
 
   await expect(page.locator('.dev-store-identity')).toHaveText('Code MX · ID 1');
+  await expect(page.locator('.directory-actions .search-box')).toHaveCount(1);
+  await expect(page.locator('.directory-actions #addStoreBtn')).toHaveCount(1);
+  await expect(page.locator('.directory-toolbar > div:first-child .search-box')).toHaveCount(0);
+  await expect(page.locator('.dashboard-edit-toggle')).toHaveCSS('white-space', 'nowrap');
   expect(consoleErrors, consoleErrors.join(' | ')).toEqual([]);
 });
