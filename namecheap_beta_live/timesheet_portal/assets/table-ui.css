@@ -576,6 +576,13 @@
     padding-top: var(--space-2);
     border-top: 1px solid var(--color-border-subtle);
   }
+
+  .employee-summary-table .employee-shifts-cell > .compact-shifts-shell {
+    position: sticky;
+    left: 0;
+    width: calc(100vw - 2.5rem);
+    max-width: calc(100vw - 2.5rem);
+  }
 }
 @media (max-width: 35rem) {
   .timesheet-metrics { grid-template-columns: 1fr; }
