@@ -1,12 +1,27 @@
 # MERDPOS Beta — Task Execution Gates
 
-This file is a mandatory operating contract for AI/coding sessions working on MERDPOS Beta. It exists to prevent two recurring failures: answering provenance/root-cause questions without checking repository history, and stopping at analysis/planning when the product owner explicitly asked for implementation.
+This file is a mandatory operating contract for AI/coding sessions working on MERDPOS Beta. It exists to prevent recurring failures around stale branch context, provenance/root-cause claims without history, and stopping at analysis/planning when the product owner explicitly asked for implementation.
+
+## Gate 0 — Canonical branch entry before any Beta work
+
+For every MERDPOS Beta task, independently resolve the current GitHub HEAD of `leopardinstinct-web/MerdPOSDev:namecheap-beta-live` before planning or changing code. Do not trust the repository default branch, the current checkout, a pre-existing feature branch, or branch/session state inherited from a chat that started outside the MERDPOS BETA project.
+
+This re-bootstrap is mandatory when:
+
+- a chat/session is moved into the MERDPOS BETA project;
+- an existing chat changes repository or branch context;
+- the session started outside the project and the product owner later says `implement`, `fix`, `apply`, `do`, `start` or `continue`;
+- a feature branch is already checked out but has not been compared with the current authoritative Beta HEAD.
+
+Read `AGENTS.md` and the bootstrap files from the current `namecheap-beta-live` ref, not from the active working branch. If a feature branch is genuinely required, create it from the current authoritative HEAD after bootstrap. Do not continue substantive Beta work on a stale/diverged branch merely because it already exists; reconcile/recreate it first. Small bounded Beta changes should prefer direct edits on `namecheap-beta-live`.
+
+The default branch may contain a discovery pointer for Beta, but it is not authoritative Beta source.
 
 ## Gate 1 — Current source + affected-path history before substantive work
 
 For every substantive code change, and for every question about why prior work behaved or failed a certain way:
 
-1. Confirm repository `leopardinstinct-web/MerdPOSDev` and branch `namecheap-beta-live`.
+1. Confirm repository `leopardinstinct-web/MerdPOSDev` and authoritative branch `namecheap-beta-live` using Gate 0.
 2. Read the current authoritative version of the affected file/component.
 3. Inspect recent Git history for the affected path/component and open the relevant commit diff(s).
 4. Read applicable `.ai/invariants.md`, `.ai/decisions.md` and task-specific canonical docs.
@@ -30,6 +45,7 @@ When changing or assessing shared UI/typography/design-system behavior:
 
 When the product owner says `implement`, `fix`, `apply`, `do it`, `start`, `continue` or otherwise clearly asks for execution:
 
+- first satisfy Gate 0 if the session/branch context could have been inherited or changed;
 - use available write/execution tools in the same turn before giving a plan-only response;
 - analysis, recommendations, pseudocode or a proposed patch do not count as implementation;
 - prefer direct GitHub edits for small bounded Beta source changes;
@@ -71,7 +87,7 @@ Never convert intent, analysis or a passing unrelated test into a higher lifecyc
 
 After an implementation request, the response must make these facts recoverable without chat archaeology:
 
-- history/provenance checked for the affected path;
+- canonical branch/HEAD and history/provenance checked;
 - files/artifacts actually changed;
 - commit SHA(s) or equivalent concrete implementation evidence;
 - targeted checks actually run and their result;
