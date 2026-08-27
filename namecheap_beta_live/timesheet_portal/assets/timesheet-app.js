@@ -184,7 +184,7 @@ function renderEmployeeSummary(report, showPay) {
 
 function renderShiftRows(emp, showPay) {
   return (emp.rows || []).map(row => `
-    <tr class="${row.is_late ? 'late-row' : ''}">
+    <tr class="compact-shift-row${row.is_late ? ' late-row' : ''}">
       <td class="shift-store" data-label="Store"><strong>${escapeHtml(row.store_name)}</strong></td>
       <td class="shift-clock" data-label="Clock in"><div class="clock-cell"><strong>${escapeHtml(fmtShortDate(row.in_date))} · ${escapeHtml(fmtClock(row.actual_in_time))}</strong><span>Rounded ${escapeHtml(fmtClock(row.rounded_in_time))}</span></div></td>
       <td class="shift-clock" data-label="Clock out"><div class="clock-cell"><strong>${escapeHtml(fmtShortDate(row.out_date))} · ${escapeHtml(fmtClock(row.actual_out_time))}</strong><span>Rounded ${escapeHtml(fmtClock(row.rounded_out_time))}</span></div></td>

@@ -91,6 +91,7 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await expect(details.first()).toHaveAttribute('open', '');
   await expect(details.first()).toContainText('Rounded 20:30');
   await expect(details.first()).toContainText('$45.00');
+  await expect(details.first().locator('tbody tr')).toHaveClass(/compact-shift-row/);
   await expect(details.first().locator('.shift-hours')).not.toContainText('/hr');
 
   expect(pageErrors, `Unexpected browser errors: ${pageErrors.join(' | ')}`).toEqual([]);
