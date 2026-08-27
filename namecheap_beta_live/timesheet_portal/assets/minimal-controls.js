@@ -94,11 +94,24 @@
   function clusterSearchAndAdd(input){
     const wrapper=searchWrapperFromInput(input);
     if(!wrapper)return;
-    const parent=wrapper.parentElement;
+    let parent=wrapper.parentElement;
     if(!parent)return;
-    const addButton=parent.querySelector(':scope > .merd-add-action');
-    if(!addButton)return;
+    let addButton=parent.querySelector(':scope > .merd-add-action');
 
+    // Stores had a DEV-only runtime that historically moved Search into the title
+    // wrapper. The canonical action primitive owns Search + Add composition, so
+    // repair that stale DOM state by returning Search to .directory-actions.
+    if(!addButton&&input.id==='storeSearch'){
+      const actions=document.querySelector('#storesPanel .directory-actions');
+      const storeAdd=actions?.querySelector(':scope > .merd-add-action');
+      if(actions&&storeAdd){
+        actions.insertBefore(wrapper,storeAdd);
+        parent=actions;
+        addButton=storeAdd;
+      }
+    }
+
+    if(!addButton)return;
     parent.classList.add('merd-action-cluster');
     parent.dataset.merdActionCluster='search-add';
 
