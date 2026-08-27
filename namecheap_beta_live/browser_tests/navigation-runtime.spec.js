@@ -6,7 +6,7 @@ test.use({ channel: 'chrome' });
 const repoRoot = process.env.GITHUB_WORKSPACE || path.resolve(__dirname, '..', '..');
 const navigationPath = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', 'navigation.js');
 
-test('mobile contextual navigation opens without navigating and clears on direct section', async ({ page }) => {
+test('mobile parent navigation activates first submenu and clears on direct section', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(String(error?.message || error)));
   await page.setViewportSize({ width: 390, height: 844 });
@@ -55,24 +55,29 @@ test('mobile contextual navigation opens without navigating and clears on direct
   await expect(page.locator('#dashboardPanel')).toBeVisible();
 
   const operations = page.locator('[data-nav-group="operations"]');
+  const stores = page.locator('[data-sidebar-group="operations"] [data-panel="storesPanel"]');
+  const workforce = page.locator('[data-sidebar-group="operations"] [data-panel="employeesPanel"]');
   await operations.click();
 
-  // Parent group click is contextual only: it opens the submenu without
-  // silently navigating away from the current Dashboard panel.
+  // Parent group click opens the submenu and activates its first available item.
   await expect(page.locator('body')).toHaveClass(/merd-mobile-subnav-open/);
-  await expect(page.locator('#dashboardPanel')).toBeVisible();
-  await expect(page.locator('#storesPanel')).toBeHidden();
-  await expect(operations).toHaveAttribute('aria-expanded', 'true');
-
-  await page.locator('[data-sidebar-group="operations"] [data-panel="storesPanel"]').click();
   await expect(page.locator('#dashboardPanel')).toBeHidden();
   await expect(page.locator('#storesPanel')).toBeVisible();
+  await expect(page.locator('#employeesPanel')).toBeHidden();
+  await expect(stores).toHaveClass(/active/);
+  await expect(operations).toHaveAttribute('aria-expanded', 'true');
+
+  // Explicit submenu selection still works after the parent's default selection.
+  await workforce.click();
+  await expect(page.locator('#storesPanel')).toBeHidden();
+  await expect(page.locator('#employeesPanel')).toBeVisible();
+  await expect(workforce).toHaveClass(/active/);
   await expect(page.locator('body')).toHaveClass(/merd-mobile-subnav-open/);
 
   // Finance is a direct single-item section. Selecting it must clear the
   // contextual-mobile state so the workspace does not retain a phantom gap.
   await page.locator('[data-nav-group="finance"]').click();
-  await expect(page.locator('#storesPanel')).toBeHidden();
+  await expect(page.locator('#employeesPanel')).toBeHidden();
   await expect(page.locator('#financialPanel')).toBeVisible();
   await expect(page.locator('body')).not.toHaveClass(/merd-mobile-subnav-open/);
 
