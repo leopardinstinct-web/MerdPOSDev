@@ -5,117 +5,221 @@
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
 
-## Recovery implementation checkpoint
+## Start here for future AI sessions
 
-Recovery implementation checkpoint: `5fc28354cb7372db7b93b0470543906076426497` — `Guard Namecheap deploy recovery checks in beta CI`.
+A future chat with GitHub access should read this file before planning MERDPOS beta work.
 
-Beta guardrails run `33010208846` for that exact implementation commit completed green with all three jobs:
+The beta webapp is in an **active product-design and restructuring stage**. Navigation, panels, workflows, inclusion/exclusion of features, copy and visual design are expected to keep changing. Do not treat the current UI structure as a permanent contract unless the user explicitly says a section is stable.
 
-- **Beta source contract** — PHP lint, runtime contract, portal permission policy, deterministic loader order, shared beta-state permission scope, Namecheap deploy-script syntax/recovery-guard wiring, JavaScript syntax and forbidden-path checks;
-- **Beta Chromium smoke** — shared Add/Search behavior, permission-minimal legacy runtime, Timesheet loader/week switching and mobile contextual navigation;
-- **Beta secret scan** — redacted gitleaks scan of the beta change.
+## Current implementation checkpoint
 
-The state-note commit containing this file follows the implementation checkpoint and contains no runtime behavior change.
+The permanent regression suite was merged into `namecheap-beta-live` at:
 
-This is **CODED + WIRED + source/Chrome-CI verified** only. The Namecheap `.beta_deployed_commit` marker has not been read in this session, so these changes are not claimed DEPLOYED or live-VERIFIED.
+`df0d690dce1a312fbb523bd80c89715492b5b4b3`
 
-## Recovery regressions resolved and guarded
+That merge includes:
 
-### Dynamic Roles → Navigation race
+- authenticated live read-only audit tooling;
+- authorization-matrix verification;
+- DEV/Developer store-identity regression coverage;
+- DUMMY-only destructive Financial and core transaction runners;
+- manual DUMMY destructive GitHub workflow;
+- CI path scoping so portal-only work does not unnecessarily run Flutter/Android/root-backend suites.
 
-`assets/management.js` sets dynamically inserted classic scripts to `async=false`, preserving insertion/execution order. `backend/cli/validate_portal_loader_order.php` requires ordered execution and Roles-before-Navigation wiring.
+Do not claim this commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
 
-### Shared state accidentally required Dashboard
+## Product-stage testing strategy — binding until the user changes it
 
-`api/beta_state.php` is no longer reachable only through `dashboard.view`. Its route follows the consuming Dashboard, Disputes, Finance or Password capability while each sensitive response section is separately permission-scoped. Broad route access is not broad data access.
+The current goal is **product development, not exhaustive UI automation**.
 
-Current boundaries include:
+### Keep and maintain now
 
-- shifts only for required Timesheet/dispute consumers;
-- disputes only for own-view/review permission;
-- attendance flags only for resolve permission;
-- working-now only for Workforce, own Timesheet or Finance consumers, self-only without Workforce access;
-- Finance-only store context limited to the user's active clock-in store unless broader scope is granted;
-- management summaries separately permission-gated.
+1. **Runtime smoke coverage**
+   - portal loads;
+   - no browser runtime errors on critical entry paths;
+   - no unexpected failed application HTTP responses.
 
-`backend/cli/validate_beta_state_scope.php` protects these boundaries and corresponding management-card visibility.
+2. **Security and authorization contracts**
+   - `client role → LOA → named permission → UI/API/data scope`;
+   - DEV-only permissions require actual DEV identity, not LOA 1000 alone;
+   - tenant isolation must not be weakened;
+   - destructive tests must be scoped to exact DUMMY identity/context and must abort otherwise.
 
-### Management Dashboard implied unavailable data
+3. **Stable business invariants**
+   - frozen payroll/timesheet reconciliation logic;
+   - Financial backend/business contracts that have already stabilised;
+   - critical permission boundaries and server-side validation.
 
-Workforce, Finance, Dispute, Sync and Recent Attendance management surfaces mirror the permissions of the data they display instead of rendering misleading empty/zero cards for a management identity that lacks that capability.
+4. **Deployment/runtime guardrails**
+   - canonical runtime assets;
+   - loader order;
+   - beta-state permission scoping;
+   - Namecheap deploy recovery guards;
+   - secret/build-artifact checks.
 
-### LOA permission-hidden DOM crash
+### Do not over-automate yet
 
-`assets/app.js` retains inert compatibility shims for permission-hidden IDs still directly used by legacy `assets/beta.js`. Chrome executes a permission-minimal `app.js → beta.js` DOM and requires zero page-level JavaScript errors.
+While the user is still moving, redesigning, adding and removing webapp features:
 
-### Shared Add MutationObserver loop
+- do not make navigation labels, panel order, DOM structure or cosmetic layout a permanent contract;
+- do not build large Playwright suites for every button and CRUD path merely because the current screen exists;
+- do not block product changes because an old UI-flow test is brittle;
+- do not spend substantial effort automating unfinished flows such as Attendance QR or evolving Dispute UX unless the user explicitly prioritizes them;
+- do not confuse existing scaffolding/endpoints with a finished product feature.
 
-`assets/minimal-controls.js` keeps the canonical Add SVG stable once normalized. Chrome verifies repeated unrelated DOM mutations do not replace that SVG, Search+Add remain clustered and one click fires exactly one action.
+### Promotion rule
 
-### Duplicate Timesheet runtime injection
+Use this progression for a changing feature:
 
-`assets/app.js` refuses to inject a second `timesheet-app.js` while the first runtime is pending or initialized. Chrome evaluates `app.js` twice and requires one Timesheet script request, one initial weeks/report load and one report request per week change.
+`BUILD/CHANGE → QUICK SMOKE → PERMISSION/SECURITY CHECK → DEPLOY → VISUAL/RUNTIME VERIFY`
 
-### Mobile contextual navigation
+Only when the user treats a workflow as relatively stable should its important behavior be promoted into permanent regression coverage.
 
-Chrome at a 390×844 viewport verifies:
+Preferred permanent tests assert **business outcomes and authorization contracts**, not incidental UI placement.
 
-- a contextual parent group opens without navigating away from the current panel;
-- `merd-mobile-subnav-open` is present only while contextual subnavigation is active;
-- selecting a contextual child changes the visible panel;
-- selecting a direct section such as Finance clears contextual mobile-subnav state.
+## DUMMY destructive testing policy
 
-The first mobile-navigation CI failure was a fixture-only problem: `page.setContent()` produced an opaque document where Chromium denied `sessionStorage`. The fixture now runs on a normal HTTPS origin and the runtime assertions pass.
+- All destructive/write automation must target DUMMY only.
+- Verify the exact DUMMY client identifier at runtime; do not assume a database ID.
+- Abort before mutation if the active tenant is not the expected DUMMY tenant.
+- Never use a DEV client switch as proof that employee-owned actions are DUMMY-safe; endpoints that bind to the authenticated employee's owning client must be tested with a genuine DUMMY-native identity or skipped.
+- Never mutate MERD production data for regression purposes.
+- Test-created records should be uniquely named and cleaned up/deactivated/voided when practical.
+- Credentials/storage-state/cookies must never be committed.
 
-## Deployment safety added during recovery
+## Current verified baseline
 
-`scripts/deploy_namecheap_beta.sh` now runs all four source validators before rsync:
+### Live read-only Developer regression
 
-1. `validate_beta_runtime_contract.php`;
-2. `validate_portal_permission_policy.php`;
-3. `validate_portal_loader_order.php`;
-4. `validate_beta_state_scope.php`.
+Previously verified on the live beta with no browser runtime errors or failed app HTTP responses across the core read-only Developer surfaces, including mobile 390×844 checks.
 
-Beta CI syntax-checks the deploy script and fails if either recovery validator call is removed.
+### DUMMY Financial
+
+A live DUMMY run verified:
+
+- Open Day;
+- Cash In;
+- Cash Out;
+- Z Report / close;
+- final statement reload and closing-state assertions.
+
+### DUMMY core transaction runner
+
+A live DUMMY run completed:
+
+`DUMMY_CORE_OK total=30 passed=30`
+
+Coverage includes Workforce CRUD, Store CRUD, Role/permission mutations with restoration, report/panel surfaces, mobile basics, runtime errors, failed app HTTP responses and final DUMMY context preservation.
+
+This does **not** mean every product workflow is permanently stable or should now receive exhaustive UI automation.
+
+## Work intentionally not promoted yet
+
+A follow-up branch named `dummy-native-disputes` was created to explore DUMMY-native login and full Disputes lifecycle testing. That work is **experimental/unmerged** and should not be merged or deployed merely because it exists.
+
+Reason: the webapp remains in active redesign, and exhaustive Dispute/Attendance workflow automation is not currently the highest-value use of effort.
+
+If future work returns to this branch, review its security model and current product requirements first rather than assuming it should be completed.
+
+Attendance QR/device automation remains intentionally deferred until the feature itself is sufficiently complete/stable.
+
+## CI scope policy
+
+Portal-only changes should rely primarily on:
+
+- Repository hygiene;
+- Beta source contract;
+- Beta Chromium smoke;
+- Beta secret scan / repository secret scan.
+
+Flutter/Android jobs should run only when `merdpos_staff/` changes (or on an explicit full/manual CI run).
+
+Root `backend/` PHP/catalogue jobs should run only when their relevant backend area changes (or on an explicit full/manual CI run).
+
+Do not reintroduce unrelated heavy CI jobs for portal-only changes without a concrete dependency reason.
 
 ## Existing invariants retained
 
-- `assets/design-audit.js` remains canonical and must not be removed in isolation.
-- DEV-only permissions require actual DEV identity, not only LOA 1000.
-- Browser portal authorization remains `client role → LOA → named permission → UI/API/data scope`.
-- Frozen payroll/timesheet reconciliation remains unchanged.
-- Retired corrective CSS layers remain retired.
+### Frozen payroll logic — do not modify
+
+- pair `IN → next OUT`;
+- newer IN replaces an unmatched prior IN;
+- orphan OUT ignored;
+- independently round IN and OUT to nearest 15 minutes;
+- payable time = rounded OUT − rounded IN;
+- cross-midnight allowed;
+- no 16-hour cap;
+- wage rate selected by clock-in date.
+
+### Authorization
+
+Binding model:
+
+`client role → LOA → named permission → UI/API/data scope`
+
+Named permissions are independently configurable. Do not invent parent-child permission dependencies.
+
+DEV-only capability requires actual DEV identity.
+
+### Runtime assets
+
+Canonical runtime assets include:
+
+- `design-tokens.css`
+- `design-system.css`
+- `shell.css`
+- `app-ui.css`
+- `dashboard-builder.css`
+- `account-menu.css`
+- `minimal-controls.js`
+- `mobile-runtime.js`
+- `design-audit.js`
+- `management.js`
+
+Retired corrective CSS must not be restored:
+
+- `ui-standard.css`
+- `minimal-controls.css`
+- `mobile-hardening.css`
+- `apple-principles.css`
+- `omnichannel-identity.css`
+
+`design-audit.js` remains required.
+
+## Deployment architecture
+
+Do not restore GitHub→Namecheap SSH deployment from the development PC.
+
+Namecheap pulls/mirrors the authoritative beta branch through the established server-side process using `scripts/deploy_namecheap_beta.sh`.
+
+Public beta URL:
+
+`https://app.merdpos.com/beta/timesheet_portal/`
+
+Historical server target:
+
+`~/merdpos.com/app/beta`
+
+Server mirror:
+
+`~/git/MerdPOSDev-beta-mirror`
 
 ## Implementation-state discipline
 
+Always use:
+
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
 
-Never call a source change live/fixed/working until Namecheap `.beta_deployed_commit` confirms the intended commit and the affected real runtime path is checked.
+Never broadly call a source change live/fixed/working until the intended commit is confirmed by the Namecheap deployment marker/process and the affected runtime path is actually checked.
 
-## Next recovery actions
+## Default priority for new work
 
-1. Deploy the current beta branch through the established Namecheap pull/mirror process and confirm `.beta_deployed_commit`.
-2. Run authenticated USER, management and DEV verification, including unusual client thresholds where Dashboard is denied but Finance/Password/Disputes remain allowed.
-3. Verify Dashboard add/remove/reorder plus Store/Workforce/Role/Client workflows against deployed beta.
-4. Perform real phone/tablet checks for navigation, dialogs/software keyboard, Dashboard edit controls and Add/Search touch behavior.
-5. Continue one-regression-at-a-time hardening without changing frozen payroll logic.
+Unless the user gives a different priority:
 
-## Deployment command after beta source changes
+1. build/redesign/fix the actual beta product;
+2. protect stable security/business contracts;
+3. run quick targeted smoke/runtime verification;
+4. deploy through the established Namecheap pull process;
+5. promote a workflow into permanent regression only after it becomes sufficiently stable.
 
-```bash
-cd ~/git/MerdPOSDev-beta-mirror
-
-GIT_SSH_COMMAND="ssh -i $HOME/.ssh/merdpos_github -o IdentitiesOnly=yes -o BatchMode=yes" \
-git pull --ff-only origin namecheap-beta-live
-
-/bin/bash scripts/deploy_namecheap_beta.sh
-
-echo "=== DEPLOYED ==="
-cat ~/merdpos.com/app/beta/.beta_deployed_commit
-```
-
-When a deploy/schema/runtime failure matters:
-
-```bash
-tail -n 60 ~/merdpos-beta-deploy.log
-```
+The regression suite is a safety net for development, not the product-development goal itself.
