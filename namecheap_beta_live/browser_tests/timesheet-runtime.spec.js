@@ -51,7 +51,7 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   const fixtureHtml = `<!doctype html><html><body class="merd-shell">
     <main>
       <section id="timesheetPanel">
-        <header class="timesheet-page-head app-panel-head"><div><h2>Timesheets</h2><p>Review weekly hours, wages and shift activity across your stores.</p></div></header>
+        <header class="timesheet-page-head app-panel-head"><div><h2>Timesheets</h2><p>Review weekly timesheet activity for the selected week.</p></div></header>
         <section class="controls-card timesheet-toolbar-card"><div class="timesheet-toolbar">
           <label class="timesheet-week-field" for="weekSelect"><span>Week</span><select id="weekSelect"></select></label>
           <button id="downloadPdfBtn" type="button">Download PDF</button>
@@ -71,7 +71,7 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await page.addScriptTag({ path: timesheetPath });
 
   await expect(page.getByRole('heading', { name: 'Timesheets', exact: true })).toBeVisible();
-  await expect(page.getByText('Review weekly hours, wages and shift activity across your stores.')).toBeVisible();
+  await expect(page.getByText('Review weekly timesheet activity for the selected week.')).toBeVisible();
   await expect(page.locator('#weekSelect')).toHaveValue('2026-08-03');
   await expect(page.locator('#reportSubtitle')).toContainText('03 Aug - 09 Aug 2026');
   await expect(page.locator('.timesheet-metric')).toHaveCount(4);
@@ -84,15 +84,24 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await expect(abidSummary).toContainText('$333.00');
   await expect(abidSummary).toContainText('$18.00/hr');
 
-  const details = page.locator('.timesheet-employee-detail');
-  await expect(details).toHaveCount(2);
-  await expect(details.first()).not.toHaveAttribute('open', '');
-  await details.first().locator('summary').click();
-  await expect(details.first()).toHaveAttribute('open', '');
-  await expect(details.first()).toContainText('Rounded 20:30');
-  await expect(details.first()).toContainText('$45.00');
-  await expect(details.first().locator('tbody tr')).toHaveClass(/compact-shift-row/);
-  await expect(details.first().locator('.shift-hours')).not.toContainText('/hr');
+  await expect(page.getByRole('heading', { name: 'Shift details' })).toHaveCount(0);
+  await expect(page.locator('.timesheet-store-table th').nth(1)).toHaveClass(/count/);
+  await expect(page.locator('.timesheet-store-table th').nth(2)).toHaveClass(/num/);
+
+  const employeeRows = page.locator('.employee-summary-row');
+  await expect(employeeRows).toHaveCount(2);
+  const abidRow = employeeRows.filter({ hasText: 'Abid' });
+  const abidToggle = abidRow.locator('.employee-summary-toggle');
+  const abidDetail = page.locator('#employee-shifts-0');
+  await expect(abidToggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(abidDetail).toBeHidden();
+  await abidToggle.click();
+  await expect(abidToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(abidDetail).toBeVisible();
+  await expect(abidDetail).toContainText('Rounded 20:30');
+  await expect(abidDetail).toContainText('$45.00');
+  await expect(abidDetail.locator('tbody tr')).toHaveClass(/compact-shift-row/);
+  await expect(abidDetail.locator('.shift-hours')).not.toContainText('/hr');
 
   expect(pageErrors, `Unexpected browser errors: ${pageErrors.join(' | ')}`).toEqual([]);
 });

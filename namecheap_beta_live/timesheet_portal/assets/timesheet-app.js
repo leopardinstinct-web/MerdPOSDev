@@ -150,38 +150,16 @@ function renderStoreSummary(report, showPay) {
   const rows = report.store_summary.map(store => `
     <tr>
       <td><strong>${escapeHtml(store.store_name)}</strong></td>
-      <td>${escapeHtml(store.total_employees_worked)}</td>
+      <td class="count">${escapeHtml(store.total_employees_worked)}</td>
       <td class="num">${fmtHours(store.total_hours_worked)}</td>
       ${showPay ? `<td class="num">$${fmtMoney(store.total_amount)}</td>` : ''}
     </tr>`).join('');
   return `
     <section class="report-card timesheet-section-card">
       <div class="timesheet-section-head"><div><h3>Store summary</h3><p>Weekly staffing, hours${showPay ? ' and wages' : ''} by store.</p></div></div>
-      <div class="table-scroll"><table class="timesheet-summary-table"><thead><tr><th>Store</th><th>Employees</th><th class="num">Hours</th>${showPay ? '<th class="num">Wages</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="table-scroll"><table class="timesheet-summary-table timesheet-store-table"><thead><tr><th>Store</th><th class="count">Employees</th><th class="num">Hours</th>${showPay ? '<th class="num">Wages</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div>
     </section>`;
 }
-function renderEmployeeSummary(report, showPay) {
-  if (!report.is_super || !Array.isArray(report.employee_summary) || !report.employee_summary.length) return '';
-  const rows = report.employee_summary.map(summary => {
-    const emp = findEmployee(report, summary.employee_name) || {};
-    const shiftCount = Array.isArray(emp.rows) ? emp.rows.length : 0;
-    const rate = showPay ? rateDisplay(emp) : '';
-    return `
-      <tr>
-        <td><strong>${escapeHtml(summary.employee_name)}</strong>${summary.missing_pay_rate && showPay ? ' <span class="warn-pill">Missing rate</span>' : ''}</td>
-        <td>${escapeHtml(summary.user_id || '—')}</td>
-        <td class="num">${shiftCount}</td>
-        <td class="num">${fmtHours(summary.total_hours)}</td>
-        ${showPay ? `<td class="num">$${fmtMoney(summary.total_wage)}</td><td class="num">${escapeHtml(rate)}</td>` : ''}
-      </tr>`;
-  }).join('');
-  return `
-    <section class="report-card timesheet-section-card">
-      <div class="timesheet-section-head"><div><h3>Employee summary</h3><p>One row per employee for the selected week.</p></div></div>
-      <div class="table-scroll"><table class="timesheet-summary-table employee-summary-table"><thead><tr><th>Employee</th><th>User ID</th><th class="num">Shifts</th><th class="num">Hours</th>${showPay ? '<th class="num">Wages</th><th class="num">Rate</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div>
-    </section>`;
-}
-
 function renderShiftRows(emp, showPay) {
   return (emp.rows || []).map(row => `
     <tr class="compact-shift-row${row.is_late ? ' late-row' : ''}">
@@ -192,34 +170,58 @@ function renderShiftRows(emp, showPay) {
       ${showPay ? `<td class="shift-wage num" data-label="Wage">$${fmtMoney(row.wage)}</td>` : ''}
     </tr>`).join('');
 }
-function renderEmployeeDetail(emp, showPay, open = false) {
-  const shiftCount = Array.isArray(emp.rows) ? emp.rows.length : 0;
-  const initial = escapeHtml((String(emp.employee_name || '?').trim().charAt(0) || '?').toUpperCase());
-  const wage = showPay ? '$' + fmtMoney(emp.total_wage) : '';
-  return `
-    <details class="employee-report-card timesheet-employee-detail" ${open ? 'open' : ''}>
-      <summary class="employee-card-header">
-        <span class="employee-identity"><span class="employee-avatar">${initial}</span><span><strong class="employee-name">${escapeHtml(emp.employee_name)}</strong><small class="employee-shift-count">${shiftCount} shift${shiftCount === 1 ? '' : 's'}</small></span></span>
-        <span class="employee-inline-stats">
-          <span class="employee-stat employee-stat-hours"><span>Hours</span><strong>${fmtHours(emp.total_hours)}</strong></span>
-          ${showPay ? `<span class="employee-stat employee-stat-wage"><span>Wages</span><strong>${escapeHtml(wage)}</strong></span><span class="employee-stat employee-stat-rate"><span>Rate</span><strong>${escapeHtml(rateDisplay(emp))}</strong></span>` : ''}
-          <span class="timesheet-expand-label">shifts</span>
-        </span>
-      </summary>
-      <div class="table-scroll compact-shifts-shell">
-        <table class="compact-shift-table${showPay ? ' has-wages' : ''}"><thead><tr><th>Store</th><th>Clock in</th><th>Clock out</th><th class="num">Hours</th>${showPay ? '<th class="num">Wage</th>' : ''}</tr></thead><tbody>${renderShiftRows(emp, showPay)}</tbody></table>
-      </div>
-    </details>`;
+
+function employeeSummaryEntries(report) {
+  const employees = report.employees || [];
+  if (report.is_super && Array.isArray(report.employee_summary) && report.employee_summary.length) {
+    return report.employee_summary.map(summary => ({ summary, emp: findEmployee(report, summary.employee_name) || {} }));
+  }
+  return employees.map(emp => ({
+    summary: { employee_name: emp.employee_name, user_id: emp.user_id, total_hours: emp.total_hours, total_wage: emp.total_wage, missing_pay_rate: emp.pay_rate === null || emp.pay_rate === undefined },
+    emp,
+  }));
 }
 
-function renderEmployeeDetails(report, showPay) {
-  const employees = report.employees || [];
-  if (!employees.length) return '';
-  const heading = report.is_super
-    ? '<div class="timesheet-section-head"><div><h3>Shift details</h3><p>Expand an employee to review actual and rounded clock times.</p></div></div>'
-    : '<div class="timesheet-section-head"><div><h3>Your shifts</h3><p>Actual and rounded clock times for the selected week.</p></div></div>';
-  return `<section class="timesheet-details-section">${heading}${employees.map(emp => renderEmployeeDetail(emp, showPay, !report.is_super)).join('')}</section>`;
+function renderEmployeeSummary(report, showPay) {
+  const entries = employeeSummaryEntries(report);
+  if (!entries.length) return '';
+  const columnCount = showPay ? 6 : 4;
+  const rows = entries.map(({ summary, emp }, index) => {
+    const shiftCount = Array.isArray(emp.rows) ? emp.rows.length : 0;
+    const rate = showPay ? rateDisplay(emp) : '';
+    const detailId = `employee-shifts-${index}`;
+    return `
+      <tr class="employee-summary-row" data-detail-id="${detailId}">
+        <td><button class="employee-summary-toggle" type="button" aria-expanded="false" aria-controls="${detailId}"><span class="employee-summary-name"><strong>${escapeHtml(summary.employee_name)}</strong>${summary.missing_pay_rate && showPay ? ' <span class="warn-pill">Missing rate</span>' : ''}</span><span class="employee-summary-action">View shifts</span></button></td>
+        <td>${escapeHtml(summary.user_id || '\u2014')}</td>
+        <td class="count">${shiftCount}</td>
+        <td class="num">${fmtHours(summary.total_hours)}</td>
+        ${showPay ? `<td class="num">$${fmtMoney(summary.total_wage)}</td><td class="num">${escapeHtml(rate)}</td>` : ''}
+      </tr>
+      <tr id="${detailId}" class="employee-shifts-row" hidden>
+        <td class="employee-shifts-cell" colspan="${columnCount}"><div class="table-scroll compact-shifts-shell"><table class="compact-shift-table${showPay ? ' has-wages' : ''}"><thead><tr><th>Store</th><th>Clock in</th><th>Clock out</th><th class="num">Hours</th>${showPay ? '<th class="num">Wage</th>' : ''}</tr></thead><tbody>${renderShiftRows(emp, showPay)}</tbody></table></div></td>
+      </tr>`;
+  }).join('');
+  return `<section class="report-card timesheet-section-card"><div class="timesheet-section-head"><div><h3>Employee summary</h3><p>Select an employee to review their shifts for the selected week.</p></div></div><div class="table-scroll"><table class="timesheet-summary-table employee-summary-table"><thead><tr><th>Employee</th><th>User ID</th><th class="count">Shifts</th><th class="num">Hours</th>${showPay ? '<th class="num">Wages</th><th class="num">Rate</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
+
+function bindEmployeeSummaryRows() {
+  document.querySelectorAll('.employee-summary-toggle').forEach(button => {
+    const row = button.closest('.employee-summary-row');
+    const detail = document.getElementById(button.getAttribute('aria-controls'));
+    const action = button.querySelector('.employee-summary-action');
+    if (!row || !detail) return;
+    const setOpen = open => {
+      detail.hidden = !open;
+      row.classList.toggle('is-expanded', open);
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (action) action.textContent = open ? 'Hide shifts' : 'View shifts';
+    };
+    button.addEventListener('click', event => { event.stopPropagation(); setOpen(detail.hidden); });
+    row.addEventListener('click', event => { if (event.target.closest('.employee-summary-toggle')) return; button.click(); });
+  });
+}
+
 function renderReport(report) {
   const titleText = report.is_super ? 'Timesheets' : 'My Timesheet';
   const showPay = report.payroll_visible !== false && report.show_wages !== false;
@@ -236,8 +238,8 @@ function renderReport(report) {
     renderOverview(report, showPay),
     renderStoreSummary(report, showPay),
     renderEmployeeSummary(report, showPay),
-    renderEmployeeDetails(report, showPay),
   ].join('');
+  bindEmployeeSummaryRows();
 }
 
 function setControlsDisabled(disabled) {
@@ -251,12 +253,23 @@ function downloadPdf() {
     return;
   }
   document.body.classList.add('pdf-export-mode');
-  document.querySelectorAll('.timesheet-employee-detail').forEach(detail => detail.dataset.pdfWasOpen = detail.open ? '1' : '0');
-  document.querySelectorAll('.timesheet-employee-detail').forEach(detail => { detail.open = true; });
+  document.querySelectorAll('.employee-summary-toggle').forEach(button => {
+    const detail = document.getElementById(button.getAttribute('aria-controls'));
+    if (!detail) return;
+    detail.dataset.pdfWasHidden = detail.hidden ? '1' : '0';
+    detail.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
+  });
   window.print();
   setTimeout(() => {
     document.body.classList.remove('pdf-export-mode');
-    document.querySelectorAll('.timesheet-employee-detail').forEach(detail => { detail.open = detail.dataset.pdfWasOpen === '1'; delete detail.dataset.pdfWasOpen; });
+    document.querySelectorAll('.employee-summary-toggle').forEach(button => {
+      const detail = document.getElementById(button.getAttribute('aria-controls'));
+      if (!detail) return;
+      detail.hidden = detail.dataset.pdfWasHidden === '1';
+      button.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
+      delete detail.dataset.pdfWasHidden;
+    });
   }, 500);
 }
 function navigationLocked() {

@@ -596,3 +596,51 @@
   .timesheet-details-section { gap: 8px; }
   .timesheet-expand-label { display: none; }
 }
+
+/* Timesheets follow-up: aligned summaries + inline employee shifts. */
+.merd-shell .timesheet-store-table th:nth-child(1),
+.merd-shell .timesheet-store-table td:nth-child(1) { text-align: left; }
+.merd-shell .timesheet-store-table th:nth-child(2),
+.merd-shell .timesheet-store-table td:nth-child(2),
+.merd-shell .employee-summary-table .count { text-align: center; }
+.merd-shell .timesheet-store-table th:nth-child(3),
+.merd-shell .timesheet-store-table td:nth-child(3),
+.merd-shell .timesheet-store-table th:nth-child(4),
+.merd-shell .timesheet-store-table td:nth-child(4),
+.merd-shell .employee-summary-table .num { text-align: right; }
+
+.employee-summary-row { cursor: pointer; }
+.employee-summary-row.is-expanded > td { background: var(--color-surface-muted); }
+.employee-summary-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.employee-summary-toggle:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-control);
+}
+.employee-summary-action {
+  color: var(--color-brand-primary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+.employee-shifts-row[hidden] { display: none; }
+.merd-shell .employee-shifts-cell { padding: 0; background: var(--color-surface-muted); }
+.merd-shell .employee-shifts-row .compact-shifts-shell { border: 0; border-radius: 0; }
+
+@media print {
+  .employee-summary-action { display: none; }
+  .employee-shifts-row[hidden] { display: table-row; }
+}
