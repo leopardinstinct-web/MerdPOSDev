@@ -8,12 +8,13 @@ When sources disagree, use this order:
 
 1. Current code and schema on `namecheap-beta-live`.
 2. Binding `.ai/invariants.md`.
-3. Current `.ai/memory.md`.
-4. Later entries in `.ai/decisions.md` that explicitly supersede earlier ones.
-5. Task-specific canonical docs beside the code.
-6. `.ai/playbook.md` operational procedures.
-7. Historical recovery/handover documents and old commits.
-8. Chat history or local-machine recollection.
+3. Mandatory `.ai/task-gates.md` execution/provenance contract.
+4. Current `.ai/memory.md`.
+5. Later entries in `.ai/decisions.md` that explicitly supersede earlier ones.
+6. Task-specific canonical docs beside the code.
+7. `.ai/playbook.md` operational procedures.
+8. Historical recovery/handover documents and old commits.
+9. Chat history or local-machine recollection.
 
 A historical document never overrides newer code plus a newer recorded decision.
 
@@ -22,11 +23,18 @@ A historical document never overrides newer code plus a newer recorded decision.
 1. `AGENTS.md`
 2. `.ai/README.md` (this file)
 3. `.ai/invariants.md`
-4. `.ai/memory.md`
-5. `.ai/decisions.md`
-6. `.ai/playbook.md`
+4. `.ai/task-gates.md`
+5. `.ai/memory.md`
+6. `.ai/decisions.md`
+7. `.ai/playbook.md`
 
 Then load task-specific material below.
+
+## Mandatory task preflight
+
+For every substantive code change, read the current affected source and inspect recent Git history for the affected path/component before editing. For questions about why earlier work behaved or failed a certain way, inspect the relevant commit history/diffs before giving a confident root-cause answer.
+
+When the product owner explicitly asks to implement/fix/apply/do/start/continue, analysis alone is not completion. Follow `.ai/task-gates.md`: use available write/execution tools, report concrete changed artifacts/commit evidence, checks actually run and the exact lifecycle state reached.
 
 ## Task-specific reading map
 
@@ -38,6 +46,7 @@ Read:
 - `namecheap_beta_live/timesheet_portal/includes/beta_api.php`
 - the exact API endpoint being changed
 - corresponding UI/JS consumer
+- recent history for the affected auth/API/UI paths
 
 Binding model: `client role → LOA → named permission → UI/API/data scope`.
 
@@ -46,11 +55,15 @@ Binding model: `client role → LOA → named permission → UI/API/data scope`.
 Read:
 
 - `.ai/invariants.md`
+- `.ai/task-gates.md`
 - `namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php`
 - `namecheap_beta_live/backend/cli/validate_portal_loader_order.php`
 - relevant portal PHP/JS/CSS files
+- recent history for the shared runtime and feature-specific owner being changed
 
 Do not restore retired corrective CSS layers just because older docs mention them.
+
+For cross-cutting UI/design-system work, do not equate token usage with successful standardization. Inspect shared primitives, feature-specific styles, cascade/runtime ownership and actual component states/readability.
 
 ### Beta state/data exposure
 
@@ -114,6 +127,7 @@ Update the knowledge layer when work changes reality:
 - `.ai/memory.md`: current state, checkpoints, what is verified/not verified, current product stage and next priorities.
 - `.ai/decisions.md`: architectural/product choices, including explicit `Supersedes` notes.
 - `.ai/invariants.md`: only binding rules that should not drift casually.
+- `.ai/task-gates.md`: mandatory provenance/execution/evidence gates when those rules change.
 - `.ai/playbook.md`: reusable learned procedures, debugging patterns, testing/deployment workflows and safety guards.
 - `.ai/regression-inventory.md`: actual coverage and known gaps when tests materially change.
 
