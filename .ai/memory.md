@@ -40,6 +40,7 @@ On 2026-08-27, the selected Concept 7 MERDPOS brand kit was implemented across t
 
 On 2026-08-27, the authenticated header oversize regression was traced to the final design-system generic media reset outranking the brand component image dimensions. Commit 59cd4ad483f4d0f13fe547a24db1fb021ee877a5 lowers that generic reset specificity, reasserts bounded authenticated lockup geometry, and adds an immediately available persistent dark/light rail toggle backed by data-theme and localStorage key merdpos-theme. The same change strengthens dark semantic status/chart tokens. Live Opera verification confirmed the compact authenticated header, persisted light/dark switching, readable dark semantic surfaces and the rail theme control. A dark-header follow-up at commit 6130590d227c75a4294a3ec8df5d9af473314ca7 adds a small light backing behind the exact approved lockup so its navy wordmark remains legible without recoloring or reconstructing the brand asset.
 
+On 2026-08-27, the DEV visual-polish pass established two explicit toolbar composition contracts after Opera verification caught regressions. The dashboard is view-first and `Edit dashboard` must remain a single-line, non-shrinking action in the dashboard role toolbar. On Stores, the title remains on the left while Search and Add store remain together inside `.directory-actions` as one compact right-aligned action cluster; feature JavaScript must not move Search into the title wrapper. `browser_tests/dev-stores-runtime.spec.js` protects these two contracts. Future visual changes must inspect the whole rendered toolbar at representative desktop/mobile widths and in light/dark where relevant before claiming VERIFIED.
 
 The permanent regression suite was merged into `namecheap-beta-live` at:
 
@@ -259,4 +260,3 @@ Unless the user gives a different priority:
 The regression suite is a safety net for development, not the product-development goal itself.
 
 On 2026-08-27 the earlier reconstructed ribbon-M asset was corrected: Beta now uses exact crops from the product owner's approved Concept 7 transparent logo file. The primary login uses the exact full lockup; compact dashboard/attendance identity uses the exact M crop. Redrawing/substitution is prohibited; only context-safe colour treatment is allowed. Pending deploy/runtime verification for the corrective commit.
-
