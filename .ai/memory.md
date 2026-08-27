@@ -7,7 +7,21 @@
 
 ## Start here for future AI sessions
 
-A future chat with GitHub access should read this file before planning MERDPOS beta work.
+The actual bootstrap entrypoint is root `AGENTS.md`. A fresh session should then follow `.ai/README.md` and its mandatory reading order before planning MERDPOS beta work.
+
+**Standard rule:** GitHub is the standalone source of truth and must remain a viable seed. A fresh chat with only repository access must be able to reconstruct the beta's architecture, invariants, decisions, current state, deployment model, testing philosophy and reusable operating procedures without prior chat history or local workstation context.
+
+The durable knowledge layer is:
+
+- `AGENTS.md` — root entrypoint;
+- `.ai/README.md` — bootstrap manifest and authority hierarchy;
+- `.ai/invariants.md` — binding rules;
+- `.ai/memory.md` — current state;
+- `.ai/decisions.md` — durable choices and supersessions;
+- `.ai/playbook.md` — reusable learned procedures;
+- task-specific docs/tests beside the code they govern.
+
+Substantive future work must update this knowledge layer when it changes reality. Chat/project memory is supplementary only.
 
 The beta webapp is in an **active product-design and restructuring stage**. Navigation, panels, workflows, inclusion/exclusion of features, copy and visual design are expected to keep changing. Do not treat the current UI structure as a permanent contract unless the user explicitly says a section is stable.
 
@@ -26,7 +40,9 @@ That merge includes:
 - manual DUMMY destructive GitHub workflow;
 - CI path scoping so portal-only work does not unnecessarily run Flutter/Android/root-backend suites.
 
-Do not claim this commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
+The repository AI bootstrap/seed standard was subsequently established directly on `namecheap-beta-live` through `AGENTS.md`, `.ai/README.md`, `.ai/playbook.md`, and updated `.ai/invariants.md` / `.ai/decisions.md`.
+
+Do not claim any commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
 
 ## Product-stage testing strategy — binding until the user changes it
 
