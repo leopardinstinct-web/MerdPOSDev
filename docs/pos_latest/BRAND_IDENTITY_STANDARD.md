@@ -100,3 +100,14 @@ The connected-path geometry may inform future customer-journey, channel-handoff 
 > multiple channels → one connected retail system → one consistent customer experience → better customer satisfaction.
 
 This document is subordinate to `OMNICHANNEL_IDENTITY_STANDARD.md`, `DESIGN_TOKENS.md` and `GUI_STANDARD.md` for operational UX behavior and accessibility.
+
+## Approved artwork immutability
+
+The approved Concept 7 artwork is immutable. Product surfaces must use the exact approved raster artwork or direct crops of that same file (for example, the M mark). Do not redraw, simplify, reinterpret, trace, reshape, or substitute the geometry. Context variants may change colour treatment only where required for dark/light/monochrome use.
+
+Canonical beta assets:
+- 
+amecheap_beta_live/timesheet_portal/assets/brand/merdpos-logo-approved.png - exact approved primary lockup.
+- 
+amecheap_beta_live/timesheet_portal/assets/brand/merdpos-mark-approved.png - exact crop of the approved M mark.
+

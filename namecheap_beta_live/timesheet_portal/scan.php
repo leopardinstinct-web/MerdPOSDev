@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/includes/auth.php';
 start_app_session();
 if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) $_SESSION['pending_qr'] = $_GET['q'];
@@ -12,7 +12,7 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MERDPOS Attendance</title>
-  <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
   <link rel="stylesheet" href="assets/design-tokens.css?v=20260827brand2">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
@@ -25,13 +25,10 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
   <main class="login-shell">
     <section class="login-card scan-card merd-login-card" aria-live="polite" aria-labelledby="attendanceTitle">
       <div class="merd-logo-lockup merd-brand merd-brand--compact" aria-label="MERDPOS">
-        <img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true">
-        <div class="merd-brand__copy">
-          <strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong>
-        </div>
+        <img class="merd-brand__mark" src="assets/brand/merdpos-mark-approved.png" alt="MERDPOS">
       </div>
       <h1 id="attendanceTitle">Attendance</h1>
-      <p id="scanStatus" class="muted" aria-live="polite">Validating the authorised POS QR…</p>
+      <p id="scanStatus" class="muted" aria-live="polite">Validating the authorised POS QRâ€¦</p>
       <div id="scanReceipt" hidden></div>
       <a class="secondary-link" href="dashboard.php">Open workspace</a>
     </section>
@@ -55,3 +52,4 @@ $token = (string)($_SESSION['pending_qr'] ?? '');
   </script>
 </body>
 </html>
+

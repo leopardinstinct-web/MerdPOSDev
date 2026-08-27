@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/includes/auth.php';
 if (!current_user()) {
     header('Location: index.php');
@@ -83,7 +83,7 @@ function ui_icon(string $name): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#031B4B">
   <title>MERDPOS</title>
-  <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
@@ -94,10 +94,7 @@ function ui_icon(string $name): string
 <body class="merd-shell">
   <header class="topbar merd-topbar">
     <div class="merd-logo-lockup merd-brand merd-brand--compact merd-brand--header" aria-label="MERDPOS">
-      <img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true">
-      <div class="merd-brand__copy">
-        <strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong>
-      </div>
+      <img class="merd-brand__mark" src="assets/brand/merdpos-mark-approved.png" alt="MERDPOS">
     </div>
     <div class="topbar-actions">
       <div class="user-line">Signed in as <strong><?= htmlspecialchars((string)$user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($roleLabel) ?></span></div>
@@ -157,30 +154,30 @@ function ui_icon(string $name): string
           <div class="live-time"><span class="live-time-dot"></span><span id="liveClock">Live</span></div>
         </article>
         <article class="hero-panel hero-role">
-          <div><div class="hero-kicker">Access level</div><strong><?= htmlspecialchars($roleLabel) ?> · LOA <?= $authorityLevel ?></strong></div>
+          <div><div class="hero-kicker">Access level</div><strong><?= htmlspecialchars($roleLabel) ?> Â· LOA <?= $authorityLevel ?></strong></div>
           <small>Capabilities are granted by the current client permission policy.</small>
         </article>
       </section>
 
       <section id="managementKpis" class="mgmt-kpis">
-        <article class="mgmt-kpi"><span class="kpi-icon">◉</span><div class="kpi-value">—</div><div class="kpi-label">Working now</div></article>
-        <article class="mgmt-kpi alert"><span class="kpi-icon">◇</span><div class="kpi-value">—</div><div class="kpi-label">Pending disputes</div></article>
-        <article class="mgmt-kpi"><span class="kpi-icon">◫</span><div class="kpi-value">—</div><div class="kpi-label">Active employees</div></article>
-        <article class="mgmt-kpi"><span class="kpi-icon">↻</span><div class="kpi-value">—</div><div class="kpi-label">Sync attention</div></article>
+        <article class="mgmt-kpi"><span class="kpi-icon">â—‰</span><div class="kpi-value">â€”</div><div class="kpi-label">Working now</div></article>
+        <article class="mgmt-kpi alert"><span class="kpi-icon">â—‡</span><div class="kpi-value">â€”</div><div class="kpi-label">Pending disputes</div></article>
+        <article class="mgmt-kpi"><span class="kpi-icon">â—«</span><div class="kpi-value">â€”</div><div class="kpi-label">Active employees</div></article>
+        <article class="mgmt-kpi"><span class="kpi-icon">â†»</span><div class="kpi-value">â€”</div><div class="kpi-label">Sync attention</div></article>
       </section>
 
       <section class="mgmt-grid">
-        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Who is working now</h2><span>Live QR attendance</span></div><div id="workingNow"><div class="status-card">Loading attendance…</div></div></article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Who is working now</h2><span>Live QR attendance</span></div><div id="workingNow"><div class="status-card">Loading attendanceâ€¦</div></div></article>
         <article class="mgmt-card"><div class="mgmt-card-head"><h2>Workforce by store</h2><span>Open shifts</span></div><div id="workforceChart" class="chart-bars"></div></article>
       </section>
       <section class="mgmt-grid">
-        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Today’s store cash position</h2><span>Register + Petty Cash</span></div><div id="storeFinanceChart" class="chart-bars"></div></article>
+        <article class="mgmt-card"><div class="mgmt-card-head"><h2>Todayâ€™s store cash position</h2><span>Register + Petty Cash</span></div><div id="storeFinanceChart" class="chart-bars"></div></article>
         <article class="mgmt-card"><div class="mgmt-card-head"><h2>Register vs Petty Cash</h2><span id="financeChartDate">Today</span></div><div id="financeRingRoot" class="finance-ring-wrap"></div></article>
       </section>
       <section class="controls-card"><div class="mgmt-card-head"><h2>Recent attendance</h2><span>Latest verified QR shifts</span></div><div id="recentShifts" class="table-scroll"></div></section>
       <?php else: ?>
-      <section id="dashboardSummary" class="card-grid"><div class="status-card">Loading dashboard…</div></section>
-      <section id="workingNow" class="card-grid"><div class="status-card">Loading attendance…</div></section>
+      <section id="dashboardSummary" class="card-grid"><div class="status-card">Loading dashboardâ€¦</div></section>
+      <section id="workingNow" class="card-grid"><div class="status-card">Loading attendanceâ€¦</div></section>
       <section class="controls-card"><h2>Recent activity</h2><div id="recentShifts" class="table-scroll"></div></section>
       <?php endif; ?>
       <button id="refreshBetaBtn" class="secondary-btn" type="button">Refresh live data</button>
@@ -198,7 +195,7 @@ function ui_icon(string $name): string
             <?php if ($canWorkforceManage): ?><button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button><?php endif; ?>
           </div>
         </div>
-        <div id="employeeDirectory" class="entity-list"><div class="entity-empty">Loading employees…</div></div>
+        <div id="employeeDirectory" class="entity-list"><div class="entity-empty">Loading employeesâ€¦</div></div>
       </section>
     </section>
     <?php endif; ?>
@@ -249,7 +246,7 @@ function ui_icon(string $name): string
             <?php if ($canStoresManage): ?><button id="addStoreBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add store</button><?php endif; ?>
           </div>
         </div>
-        <div id="storeDirectory" class="entity-list"><div class="entity-empty">Loading stores…</div></div>
+        <div id="storeDirectory" class="entity-list"><div class="entity-empty">Loading storesâ€¦</div></div>
       </section>
     </section>
     <?php endif; ?>
@@ -309,7 +306,7 @@ function ui_icon(string $name): string
     <section id="devPanel" class="portal-panel"<?= $initialPanel === 'devPanel' ? '' : ' hidden' ?>>
       <section class="controls-card">
         <div class="mgmt-card-head"><h2><?= ui_icon('database') ?> DEV system inspector</h2><span>Read-only diagnostics</span></div>
-        <div id="devStatus" class="dev-console"><div class="status-card">Loading system status…</div></div>
+        <div id="devStatus" class="dev-console"><div class="status-card">Loading system statusâ€¦</div></div>
         <p class="dev-note">DEV access intentionally provides a read-only SQL/database inspector rather than arbitrary browser SQL execution. Database changes remain migration-controlled and auditable.</p>
       </section>
     </section>
@@ -319,8 +316,8 @@ function ui_icon(string $name): string
   <?php if ($can('password.change_own')): ?>
   <dialog id="passwordDialog" class="portal-dialog">
     <form id="passwordForm" method="dialog">
-      <div class="dialog-heading"><h2>Change password</h2><button type="button" id="passwordClose" class="icon-btn" aria-label="Close">×</button></div>
-      <p class="muted">Use 6–20 digits. Your password is stored securely.</p>
+      <div class="dialog-heading"><h2>Change password</h2><button type="button" id="passwordClose" class="icon-btn" aria-label="Close">Ã—</button></div>
+      <p class="muted">Use 6â€“20 digits. Your password is stored securely.</p>
       <label>Current password<input name="current_password" type="password" inputmode="numeric" pattern="[0-9]*" required></label>
       <label>New password<input name="new_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required></label>
       <label>Confirm new password<input name="confirm_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required></label>
@@ -333,7 +330,7 @@ function ui_icon(string $name): string
   <?php if ($canWorkforceManage): ?>
   <dialog id="employeeDialog" class="portal-dialog admin-dialog">
     <form id="employeeAdminForm">
-      <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
+      <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">Ã—</button></div>
       <div class="admin-dialog-body">
         <p id="employeeSelfGuard" class="self-guard" hidden>Your own access level and active status are protected here to prevent accidental lockout.</p>
         <div class="admin-form-grid">
@@ -355,7 +352,7 @@ function ui_icon(string $name): string
   <?php if ($canStoresManage): ?>
   <dialog id="storeDialog" class="portal-dialog admin-dialog">
     <form id="storeAdminForm">
-      <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
+      <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">Ã—</button></div>
       <div class="admin-dialog-body">
         <div class="admin-form-grid">
           <input type="hidden" name="id">
@@ -390,3 +387,4 @@ function ui_icon(string $name): string
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>
 </html>
+

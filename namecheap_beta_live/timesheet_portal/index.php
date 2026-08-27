@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/includes/auth.php';
 if (current_user()) {
     start_app_session();
@@ -16,7 +16,7 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Login</title>
-  <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/merdpos-mark-approved.png" type="image/png">
   <link rel="stylesheet" href="assets/design-tokens.css?v=20260827brand2">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
@@ -28,12 +28,8 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
 <body class="login-body merd-login-body merd-shell">
   <main class="login-shell">
     <section class="login-card merd-login-card" aria-labelledby="loginTitle">
-      <div class="merd-logo-lockup merd-brand merd-brand--primary" aria-label="MERDPOS — Smarter, Faster, Together">
-        <img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true">
-        <div class="merd-brand__copy">
-          <strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong>
-          <small class="merd-brand__tagline">Smarter<span class="merd-brand__dot">•</span>Faster<span class="merd-brand__dot">•</span>Together</small>
-        </div>
+      <div class="merd-logo-lockup merd-brand merd-brand--primary" aria-label="MERDPOS - Smarter, Faster, Together">
+        <img class="merd-brand__primary-logo" src="assets/brand/merdpos-logo-approved.png" alt="MERDPOS - Smarter Faster Together">
       </div>
       <h1 id="loginTitle"><?= isset($_SESSION['pending_qr']) ? 'Complete attendance.' : 'Welcome back.' ?></h1>
       <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Sign in once to securely complete the POS QR attendance scan.' : 'Sign in to your MERDPOS workspace.' ?></p>
@@ -60,13 +56,13 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
       error.hidden = true;
       button.disabled = true;
       button.setAttribute('aria-busy', 'true');
-      label.textContent = 'Signing in…';
+      label.textContent = 'Signing inâ€¦';
       const formData = new FormData(event.target);
       try {
         const response = await fetch('api/login.php', { method: 'POST', body: formData });
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Login failed');
-        label.textContent = 'Opening workspace…';
+        label.textContent = 'Opening workspaceâ€¦';
         window.location.href = data.next || 'dashboard.php';
       } catch (errorValue) {
         error.textContent = errorValue.message;
@@ -79,3 +75,4 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
   </script>
 </body>
 </html>
+

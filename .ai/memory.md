@@ -255,3 +255,6 @@ Unless the user gives a different priority:
 5. promote a workflow into permanent regression only after it becomes sufficiently stable.
 
 The regression suite is a safety net for development, not the product-development goal itself.
+
+On 2026-08-27 the earlier reconstructed ribbon-M asset was corrected: Beta now uses exact crops from the product owner's approved Concept 7 transparent logo file. The primary login uses the exact full lockup; compact dashboard/attendance identity uses the exact M crop. Redrawing/substitution is prohibited; only context-safe colour treatment is allowed. Pending deploy/runtime verification for the corrective commit.
+
