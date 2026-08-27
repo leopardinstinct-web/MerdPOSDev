@@ -169,14 +169,20 @@
   }
 
   function normalized(item){const def=defs[item.widget_key]||{w:4,h:3,minW:2,minH:2,maxW:12,maxH:20};const w=Math.max(def.minW,Math.min(def.maxW,num(item.grid_w)||def.w)),h=Math.max(def.minH,Math.min(def.maxH,num(item.grid_h)||def.h));return{widget_key:item.widget_key,grid_x:Math.max(0,Math.min(COLS-w,num(item.grid_x))),grid_y:Math.max(0,num(item.grid_y)),grid_w:w,grid_h:h};}
-  function collision(key,x,y,w,h){return layout.some(item=>item.widget_key!==key&&x<item.grid_x+item.grid_w&&x+w>item.grid_x&&y<item.grid_y+item.grid_h&&y+h>item.grid_y);}
+  function overlaps(items,key,x,y,w,h){return items.some(item=>item.widget_key!==key&&x<item.grid_x+item.grid_w&&x+w>item.grid_x&&y<item.grid_y+item.grid_h&&y+h>item.grid_y);}
+  function collision(key,x,y,w,h){return overlaps(layout,key,x,y,w,h);}
+  function compactLayout(items){
+    const ordered=(items||[]).map((item,index)=>({...normalized(item),_order:index})).sort((a,b)=>a.grid_y-b.grid_y||a.grid_x-b.grid_x||a._order-b._order),placed=[];
+    ordered.forEach(item=>{let found=null;for(let y=0;y<1000&&!found;y++)for(let x=0;x<=COLS-item.grid_w;x++)if(!overlaps(placed,item.widget_key,x,y,item.grid_w,item.grid_h)){found={x,y};break;}if(found){item.grid_x=found.x;item.grid_y=found.y;}delete item._order;placed.push(item);});
+    return placed;
+  }
   function firstOpenPosition(w,h,key=''){for(let y=0;y<1000;y++)for(let x=0;x<=COLS-w;x++)if(!collision(key,x,y,w,h))return{x,y};return{x:0,y:0};}
   function setPos(tile,item){tile.style.gridColumn=`${item.grid_x+1} / span ${item.grid_w}`;tile.style.gridRow=`${item.grid_y+1} / span ${item.grid_h}`;}
   function metrics(){const rect=canvas.getBoundingClientRect(),col=(rect.width-GAP*(COLS-1))/COLS,stepX=col+GAP;canvas.style.setProperty('--db-col-step',`${stepX}px`);canvas.style.setProperty('--db-row-step',`${ROW_STEP}px`);return{rect,stepX,stepY:ROW_STEP};}
 
   function saveSoon(){if(!layoutApi?.can_edit)return;window.clearTimeout(saveTimer);saveTimer=window.setTimeout(saveLayout,280);}
   async function saveLayout(){
-    try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save_layout',role_id:currentRoleId,csrf:layoutApi.csrf,layout})});layout=(layoutApi.layout||[]).map(normalized);showSave('Saved');}
+    try{layout=compactLayout(layout);layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save_layout',role_id:currentRoleId,csrf:layoutApi.csrf,layout})});layout=compactLayout(layoutApi.layout||[]);renderCanvas();showSave('Saved');}
     catch(error){showSave(error.message,true);}
   }
 
@@ -187,7 +193,7 @@
       if(!desktop.matches||event.button!==0||event.target.closest('button'))return;
       event.preventDefault();const m=metrics(),sx=event.clientX,sy=event.clientY,ox=item.grid_x,oy=item.grid_y;canvas.classList.add('is-editing');tile.classList.add('is-dragging');head.setPointerCapture?.(event.pointerId);
       const move=e=>{const x=Math.max(0,Math.min(COLS-item.grid_w,Math.round(ox+(e.clientX-sx)/m.stepX))),y=Math.max(0,Math.round(oy+(e.clientY-sy)/m.stepY));if(!collision(item.widget_key,x,y,item.grid_w,item.grid_h)){item.grid_x=x;item.grid_y=y;setPos(tile,item);}};
-      const up=()=>{head.removeEventListener('pointermove',move);head.removeEventListener('pointerup',up);head.removeEventListener('pointercancel',up);canvas.classList.remove('is-editing');tile.classList.remove('is-dragging');saveSoon();};
+      const up=()=>{head.removeEventListener('pointermove',move);head.removeEventListener('pointerup',up);head.removeEventListener('pointercancel',up);canvas.classList.remove('is-editing');tile.classList.remove('is-dragging');layout=compactLayout(layout);renderCanvas();saveSoon();};
       head.addEventListener('pointermove',move);head.addEventListener('pointerup',up);head.addEventListener('pointercancel',up);
     });
   }
@@ -198,7 +204,7 @@
     handle.addEventListener('pointerdown',event=>{
       if(!desktop.matches||event.button!==0)return;event.preventDefault();event.stopPropagation();const def=defs[item.widget_key],m=metrics(),sx=event.clientX,sy=event.clientY,ow=item.grid_w,oh=item.grid_h;canvas.classList.add('is-editing');tile.classList.add('is-resizing');handle.setPointerCapture?.(event.pointerId);
       const move=e=>{let w=Math.max(def.minW,Math.min(def.maxW,Math.round(ow+(e.clientX-sx)/m.stepX))),h=Math.max(def.minH,Math.min(def.maxH,Math.round(oh+(e.clientY-sy)/m.stepY)));w=Math.min(w,COLS-item.grid_x);if(!collision(item.widget_key,item.grid_x,item.grid_y,w,h)){item.grid_w=w;item.grid_h=h;setPos(tile,item);}};
-      const up=()=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',up);handle.removeEventListener('pointercancel',up);canvas.classList.remove('is-editing');tile.classList.remove('is-resizing');saveSoon();};
+      const up=()=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',up);handle.removeEventListener('pointercancel',up);canvas.classList.remove('is-editing');tile.classList.remove('is-resizing');layout=compactLayout(layout);renderCanvas();saveSoon();};
       handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
     });
   }
@@ -206,7 +212,7 @@
   function renderCanvas(){
     canvas.innerHTML='';
     if(!layout.length){canvas.innerHTML='<div class="dashboard-empty-widget dashboard-empty-canvas">No widgets on this role dashboard.</div>';renderCatalog();return;}
-    layout.forEach(item=>{const def=defs[item.widget_key];if(!def)return;const tile=document.createElement('article');tile.className='dashboard-widget';tile.dataset.widget=item.widget_key;tile.innerHTML=`<div class="dashboard-widget-head"><span class="dashboard-widget-title">${esc(def.title)}</span><div class="dashboard-widget-actions">${layoutApi?.can_edit?'<span data-mobile-order hidden></span><button type="button" class="dashboard-widget-action" data-remove aria-label="Remove widget">×</button>':''}</div></div><div class="dashboard-widget-body">${renderBody(item.widget_key)}</div>${layoutApi?.can_edit?'<div class="dashboard-widget-resize" aria-hidden="true"></div>':''}`;setPos(tile,item);canvas.appendChild(tile);if(layoutApi?.can_edit){tile.querySelector('[data-remove]')?.addEventListener('click',()=>{layout=layout.filter(row=>row.widget_key!==item.widget_key);renderCanvas();saveSoon();});bindMove(tile,item);bindResize(tile,item);}});
+    layout.forEach(item=>{const def=defs[item.widget_key];if(!def)return;const tile=document.createElement('article');tile.className='dashboard-widget';tile.dataset.widget=item.widget_key;tile.innerHTML=`<div class="dashboard-widget-head"><span class="dashboard-widget-title">${esc(def.title)}</span><div class="dashboard-widget-actions">${layoutApi?.can_edit?'<span data-mobile-order hidden></span><button type="button" class="dashboard-widget-action" data-remove aria-label="Remove widget">×</button>':''}</div></div><div class="dashboard-widget-body">${renderBody(item.widget_key)}</div>${layoutApi?.can_edit?'<div class="dashboard-widget-resize" aria-hidden="true"></div>':''}`;setPos(tile,item);canvas.appendChild(tile);if(layoutApi?.can_edit){tile.querySelector('[data-remove]')?.addEventListener('click',()=>{layout=compactLayout(layout.filter(row=>row.widget_key!==item.widget_key));renderCanvas();saveSoon();});bindMove(tile,item);bindResize(tile,item);}});
     renderCatalog();
   }
 
@@ -229,7 +235,7 @@
     renderTemplates();
   }
 
-  function addWidget(key){if(!layoutApi?.can_edit||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});renderCanvas();saveSoon();}
+  function addWidget(key){if(!layoutApi?.can_edit||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});layout=compactLayout(layout);renderCanvas();saveSoon();}
 
   function applyTemplate(templateKey){
     if(!layoutApi?.can_edit)return;
@@ -237,7 +243,7 @@
     const allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(item=>item.widget_key));let count=0;
     preset.widgets.forEach(key=>{if(!allowed.has(key)||added.has(key)||!defs[key])return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});added.add(key);count++;});
     if(!count){showSave('Template already applied');renderTemplates();return;}
-    renderCanvas();saveSoon();showSave(`${preset.title}: ${count} widget${count===1?'':'s'} added`);
+    layout=compactLayout(layout);renderCanvas();saveSoon();showSave(`${preset.title}: ${count} widget${count===1?'':'s'} added`);
   }
 
   function renderRolebar(){
@@ -255,7 +261,7 @@
     const previous=layoutApi?.selected_role||{},previousLoa=Number(previous.authority_level||0),url='api/dashboard_layout.php'+(roleId?`?role_id=${Number(roleId)}`:'');
     try{
       if(animate&&layoutApi){const target=(layoutApi.roles||[]).find(r=>Number(r.id)===Number(roleId)),dir=Number(target?.authority_level||0)>=previousLoa?'left':'right';canvas.classList.add(`role-slide-out-${dir}`);await new Promise(r=>setTimeout(r,150));canvas.className='dashboard-canvas';}
-      layoutApi=await json(url,{headers:{'Accept':'application/json'}});layout=(layoutApi.layout||[]).map(normalized);renderRolebar();data=null;renderCanvas();await loadData(currentRoleId);
+      layoutApi=await json(url,{headers:{'Accept':'application/json'}});layout=compactLayout(layoutApi.layout||[]);renderRolebar();data=null;renderCanvas();await loadData(currentRoleId);
       if(animate&&previous.id){const dir=Number(layoutApi.selected_role?.authority_level||0)>=previousLoa?'right':'left';canvas.classList.add(`role-slide-in-${dir}`);requestAnimationFrame(()=>requestAnimationFrame(()=>canvas.classList.remove(`role-slide-in-${dir}`)));}
     }catch(error){canvas.innerHTML=`<div class="dashboard-empty-widget">${esc(error.message)}</div>`;showSave(error.message,true);}
   }

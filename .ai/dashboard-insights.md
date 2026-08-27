@@ -30,6 +30,10 @@ The permission validator now also fails when a permission-registered dashboard w
 
 The implementation deliberately does not invent business thresholds for cash variance or attendance quality. Attendance direction is visually neutral because a higher or lower clock-in count is contextual rather than inherently good or bad.
 
+## Layout compaction contract
+
+Role dashboards use top-left compaction so permitted widgets do not remain stranded at stale grid coordinates when other widgets are absent. Widget sizes and saved visual order remain meaningful, but persistent blank holes are not part of the dashboard contract. The frontend compacts layouts on load and before/after edits are saved, so DEV preview and non-DEV read-only consumption use the same packed composition.
+
 ## Product-stage rule
 
 These widgets are available through the existing role-aware picker and quick templates; existing seeded role dashboards are not forcibly rewritten. This preserves the current active-design workflow: add useful capabilities without freezing dashboard composition as a permanent UI contract.
