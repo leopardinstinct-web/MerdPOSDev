@@ -5,11 +5,12 @@ These rules are binding for MERDPOS Beta unless the product owner explicitly cha
 ## GitHub is the standalone source of truth
 
 - The authoritative GitHub beta branch must be sufficient to bootstrap a fresh AI/chat/coding session without prior conversation history.
-- Root `AGENTS.md` and `.ai/README.md` define the mandatory bootstrap path.
+- Root `AGENTS.md`, `.ai/README.md` and `.ai/task-gates.md` define the mandatory bootstrap/task-execution path.
 - Chat/project memory is optional context, not required project state.
 - Local workstation files, browser state and temporary outputs are not canonical.
 - Durable new knowledge must be written back to the repository in the appropriate `.ai` or component documentation.
 - Secrets, credentials, cookies and private storage-state must never be stored in the repository knowledge layer.
+- For substantive changes, the current source plus affected-path Git history/commit diffs are required preflight evidence; current source alone is not enough when provenance, prior standardization or root cause matters.
 
 ## Scope
 
@@ -26,6 +27,8 @@ Do not silently switch to `main`, the older production portal, archived implemen
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
 
 Never say live/fixed/working without DEPLOYED + VERIFIED.
+
+Planning, diagnosis, recommendations or a proposed patch do not count as CODED. When the product owner explicitly requests implementation and write/execution tools are available, the work must actually mutate the repository/runtime in that turn unless blocked. Completion claims require the evidence defined in `.ai/task-gates.md`.
 
 ## Product-stage testing
 
@@ -79,6 +82,8 @@ Current authoritative shared runtime includes:
 
 Do not restore retired corrective CSS layers. Do not delete a canonical runtime asset unless its loader, deploy validator, docs and replacement ownership are changed together.
 
+For cross-cutting UI/design-system work, token adoption is not proof of successful standardization. Inspect shared primitive history, feature-specific owner/history, final cascade/runtime ownership and actual component states/readability as required by `.ai/task-gates.md`.
+
 ## Security
 
 - Never commit secrets or private backend config.
@@ -93,7 +98,8 @@ Namecheap uses the established server-side pull/mirror/deploy process for Beta. 
 ## Working style
 
 - Prefer small attributed fixes over broad rewrites unless redesign itself is the task.
-- Before changing a file, inspect its current authoritative branch version.
+- Before changing a file, inspect its current authoritative branch version and relevant affected-path history.
 - Keep runtime and relevant README/context aligned.
 - Add regression coverage for incidents after the owning path is understood, but follow the current product-stage testing strategy rather than automating every changing UI flow.
 - After substantive work, leave GitHub sufficient for a fresh session to understand the new state without the originating chat.
+- For explicit implementation requests, do not stop at a plan when the available tools can perform the change; report concrete implementation evidence and exact lifecycle state.
