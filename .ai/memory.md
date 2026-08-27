@@ -16,6 +16,7 @@ The durable knowledge layer is:
 - `AGENTS.md` — root entrypoint;
 - `.ai/README.md` — bootstrap manifest and authority hierarchy;
 - `.ai/invariants.md` — binding rules;
+- `.ai/task-gates.md` — mandatory affected-path history, implementation-execution and evidence gates;
 - `.ai/memory.md` — current state;
 - `.ai/decisions.md` — durable choices and supersessions;
 - `.ai/playbook.md` — reusable learned procedures;
@@ -24,6 +25,14 @@ The durable knowledge layer is:
 Substantive future work must update this knowledge layer when it changes reality. Chat/project memory is supplementary only.
 
 The beta webapp is in an **active product-design and restructuring stage**. Navigation, panels, workflows, inclusion/exclusion of features, copy and visual design are expected to keep changing. Do not treat the current UI structure as a permanent contract unless the user explicitly says a section is stable.
+
+## Mandatory task execution gates
+
+For every substantive code change, inspect the current affected source plus recent Git history for the affected path/component before editing. For provenance/root-cause questions, current source alone is insufficient; inspect relevant commit diffs.
+
+When the product owner explicitly asks to implement/fix/apply/do/start/continue, analysis or a plan alone is not completion if write/execution tools are available. Implementation claims require concrete changed artifacts/commit evidence; deployment and runtime claims require their own evidence. See `.ai/task-gates.md`.
+
+For cross-cutting UI/design-system work, inspect both shared primitives and feature-specific styling/history. Token usage alone is not proof that typography, surface semantics, disabled/selected states or readability propagated correctly.
 
 ## Current implementation checkpoint
 
@@ -41,6 +50,10 @@ That merge includes:
 - CI path scoping so portal-only work does not unnecessarily run Flutter/Android/root-backend suites.
 
 The repository AI bootstrap/seed standard was subsequently established directly on `namecheap-beta-live` through `AGENTS.md`, `.ai/README.md`, `.ai/playbook.md`, and updated `.ai/invariants.md` / `.ai/decisions.md`.
+
+On 2026-08-27, mandatory history/implementation/evidence gates were added through `.ai/task-gates.md` and wired into `AGENTS.md`, `.ai/README.md`, `.ai/invariants.md` and `.ai/decisions.md`.
+
+The dashboard widget drawer readability issue was CODED/WIRED in `assets/dashboard-builder.css` at commit `17acb3ef4dbacc4f5ad0ed155efac63291bfd12c`. The fix strengthens dark-surface selector ownership, removes whole-card opacity from added widgets, increases catalogue/search/footer readability and limits visual de-emphasis to unavailable controls. Beta source contract, Chromium smoke and secret scan passed for that commit. Do not call it DEPLOYED/VERIFIED until the Namecheap pull and affected live drawer are checked.
 
 Do not claim any commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
 
