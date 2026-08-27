@@ -219,6 +219,8 @@
   right: 0;
   bottom: 0;
   width: min(21rem, 92vw);
+  min-height: 0;
+  overflow: hidden;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);
   border-left: 1px solid var(--color-nav-border);
@@ -234,6 +236,7 @@
 }
 
 .dashboard-drawer-head {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -270,6 +273,7 @@
 }
 
 .dashboard-widget-search {
+  flex: 0 0 auto;
   margin: var(--space-3) var(--space-4) var(--space-2);
   display: flex;
   align-items: center;
@@ -297,8 +301,10 @@
   color: var(--color-nav-text-muted);
 }
 
+/* Templates are a compact shortcut strip; they must never displace widget navigation. */
 .dashboard-widget-templates {
-  padding: var(--space-2) var(--space-3) var(--space-3);
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-3) var(--space-2);
   border-bottom: 1px solid color-mix(in srgb, var(--color-nav-text) 10%, transparent);
 }
 
@@ -307,7 +313,7 @@
 }
 
 .dashboard-template-label {
-  margin: 0 var(--space-1) var(--space-2);
+  margin: 0 var(--space-1) var(--space-1);
   color: var(--color-nav-text-muted);
   font-size: var(--type-xs);
   font-weight: var(--weight-semibold);
@@ -316,17 +322,25 @@
 }
 
 .dashboard-template-list {
-  display: grid;
-  gap: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  padding-bottom: var(--space-1);
 }
 
 .dashboard-widget-drawer .dashboard-template-button {
-  width: 100%;
-  min-height: var(--size-control);
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  text-align: left;
+  flex: 0 0 auto;
+  width: auto;
+  min-height: var(--size-control-compact);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  text-align: center;
+  white-space: nowrap;
   border-radius: var(--radius-control);
   border: 1px solid color-mix(in srgb, var(--color-nav-text) 10%, transparent);
   background: var(--color-nav-bg-subtle);
@@ -345,10 +359,13 @@
   background: color-mix(in srgb, var(--color-nav-bg-subtle) 75%, var(--color-nav-bg));
 }
 
-.dashboard-template-button strong,
+.dashboard-template-button strong {
+  display: block;
+}
+
 .dashboard-template-button span,
 .dashboard-template-button small {
-  display: block;
+  display: none;
 }
 
 .dashboard-widget-drawer .dashboard-template-button strong {
@@ -356,17 +373,16 @@
   font-size: var(--type-sm);
 }
 
-.dashboard-widget-drawer .dashboard-template-button span,
-.dashboard-widget-drawer .dashboard-template-button small {
-  color: var(--color-nav-text-muted);
-  font-size: var(--type-xs);
-  line-height: var(--line-body);
-}
-
+/* The widget catalogue owns the remaining drawer height and is the primary scroll surface. */
 .dashboard-widget-catalog {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: var(--space-2) var(--space-3) var(--space-5);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   display: grid;
+  align-content: start;
   gap: var(--space-2);
 }
 
@@ -424,7 +440,8 @@
 }
 
 .dashboard-drawer-foot {
-  margin-top: auto;
+  flex: 0 0 auto;
+  margin-top: 0;
   padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   border-top: 1px solid color-mix(in srgb, var(--color-nav-text) 10%, transparent);
   display: flex;
