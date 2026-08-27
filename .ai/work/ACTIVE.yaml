@@ -1,9 +1,14 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-28T03:41:00+05:00"
+updated_at: "2026-08-28T04:01:00+05:00"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
     packet_state: CHECKED
     lifecycle: WIRED
     next_action: "Recheck live navigation deployment, then verify the parent activates its first submenu item."
+  - id: MERD-20260828-timesheets-real-device-mobile
+    path: .ai/work/active/MERD-20260828-timesheets-real-device-mobile.yaml
+    packet_state: CHECKED
+    lifecycle: WIRED
+    next_action: "Push the checked mobile fix, then verify Namecheap deployment and phone-width light/dark rendering in Opera."

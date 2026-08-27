@@ -1,0 +1,38 @@
+version: 1
+id: MERD-20260828-timesheets-real-device-mobile
+objective: "Fix real-device Timesheets mobile rendering so dark-mode section headers remain readable and Store/Employee summaries fit the phone viewport without horizontal data loss."
+acceptance:
+  - "Store summary header and helper copy use the correct semantic dark/light surface on a real phone."
+  - "Store summary shows Store, Employees, Hours and Wages without requiring horizontal scrolling."
+  - "Employee summary shows the employee identity and metrics without clipping columns off-screen."
+  - "Focused employee shift details remain viewport-width and preserve the row-focus interaction."
+  - "No payroll, wage, rounding, authorization or data logic changes."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "09a85fb4432aeff5797a1fdd651aa4484d5c2270"
+last_seen_head: "09a85fb4432aeff5797a1fdd651aa4484d5c2270"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Keep the canonical design-system final cascade intact; feature-specific overrides stay in table-ui.css."
+  - "Do not alter frozen payroll/timesheet reconciliation or permissions."
+  - "Preserve desktop table layout and existing mobile shift cards."
+completed:
+  - "Inspected the supplied real-device screenshot and identified semantic surface mismatch plus horizontal summary-table overflow."
+  - "Inspected current Timesheets CSS/runtime, final design-system cascade, mobile table rules and recent Timesheets history."
+completed:
+  - "Inspected the supplied real-device screenshot and identified semantic surface mismatch plus horizontal summary-table overflow."
+  - "Inspected current Timesheets CSS/runtime, final design-system cascade, mobile table rules and recent Timesheets history."
+  - "Added phone-width Store summary card rows and Employee summary card-grid rows with no horizontal table dependency."
+  - "Pinned Timesheets section surfaces to semantic light/dark tokens and removed the old viewport-width sticky detail hack."
+  - "Added a 390px dark-mode browser regression covering Store/Employee overflow, semantic header surface and focused shift-detail width."
+  - "Targeted Timesheets browser test passed; full browser regressions passed 6/6; runtime, permission, loader-order and beta-state validators passed."
+remaining:
+  - "Push source and wait for Namecheap deployment."
+  - "Verify phone-width light/dark rendering and focused employee detail in Opera."
+next_action: "Push the checked mobile fix, then verify Namecheap deployment and phone-width light/dark rendering in Opera."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T04:01:00+05:00"

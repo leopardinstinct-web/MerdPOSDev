@@ -670,3 +670,137 @@
 @media print {
   .employee-shifts-row[hidden] { display: table-row; }
 }
+
+/* Real-device Timesheets mobile layout: no horizontal data loss. */
+@media (max-width: 51.25rem) {
+  .merd-shell .timesheet-section-card,
+  .merd-shell .timesheet-section-head {
+    background: var(--color-surface-main) !important;
+    color: var(--color-text-primary);
+  }
+
+  .merd-shell .timesheet-section-card > .table-scroll {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .merd-shell .timesheet-summary-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    background: transparent !important;
+  }
+
+  .merd-shell .timesheet-summary-table thead { display: none; }
+  .merd-shell .timesheet-summary-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .merd-shell .timesheet-store-table tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-main);
+  }
+  .merd-shell .timesheet-store-table tr:last-child { border-bottom: 0; }
+  .merd-shell .timesheet-store-table td {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: left !important;
+    overflow-wrap: anywhere;
+  }
+  .merd-shell .timesheet-store-table td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: var(--space-2) !important;
+    border-bottom: 1px solid var(--color-border-subtle) !important;
+  }
+  .merd-shell .timesheet-store-table td::before,
+  .merd-shell .employee-summary-row > td::before {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--type-xs);
+    line-height: 1.15;
+    font-weight: var(--weight-semibold);
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+  .merd-shell .timesheet-store-table td:nth-child(1)::before { content: 'Store'; }
+  .merd-shell .timesheet-store-table td:nth-child(2)::before { content: 'Employees'; }
+  .merd-shell .timesheet-store-table td:nth-child(3)::before { content: 'Hours'; }
+  .merd-shell .timesheet-store-table td:nth-child(4)::before { content: 'Wages'; }
+
+  .merd-shell .employee-summary-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-main);
+  }
+  .merd-shell .employee-summary-row > td {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: left !important;
+    overflow-wrap: anywhere;
+  }
+  .merd-shell .employee-summary-row > td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: var(--space-2) !important;
+    border-bottom: 1px solid var(--color-border-subtle) !important;
+    box-shadow: none !important;
+  }
+  .merd-shell .employee-summary-row > td:first-child::before { content: 'Employee'; }
+  .merd-shell .employee-summary-row > td:nth-child(2)::before { content: 'User ID'; }
+  .merd-shell .employee-summary-row > td:nth-child(3)::before { content: 'Shifts'; }
+  .merd-shell .employee-summary-row > td:nth-child(4)::before { content: 'Hours'; }
+  .merd-shell .employee-summary-row > td:nth-child(5)::before { content: 'Wages'; }
+  .merd-shell .employee-summary-row > td:nth-child(6)::before { content: 'Rate'; }
+  .merd-shell .employee-summary-row.is-expanded {
+    background: var(--color-surface-selected);
+    box-shadow: inset .3rem 0 0 var(--color-brand-primary);
+  }
+  .merd-shell .employee-summary-row.is-expanded > td {
+    background: transparent !important;
+  }
+
+  .merd-shell .employee-shifts-row:not([hidden]) {
+    display: block;
+    width: 100%;
+  }
+  .merd-shell .employee-shifts-cell {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 !important;
+    box-shadow: inset .3rem 0 0 var(--color-brand-primary);
+  }
+  .merd-shell .employee-summary-table .employee-shifts-cell > .compact-shifts-shell {
+    position: static !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+@media (max-width: 27.5rem) {
+  .merd-shell .timesheet-store-table tr,
+  .merd-shell .employee-summary-row {
+    gap: var(--space-2) var(--space-3);
+    padding-inline: var(--space-3);
+  }
+}
+

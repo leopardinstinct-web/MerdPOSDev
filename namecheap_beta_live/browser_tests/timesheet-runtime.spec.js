@@ -5,6 +5,9 @@ test.use({ channel: 'chrome' });
 
 const repoRoot = process.env.GITHUB_WORKSPACE || path.resolve(__dirname, '..', '..');
 const timesheetPath = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', 'timesheet-app.js');
+const tokensPath = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', 'design-tokens.css');
+const tableUiPath = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', 'table-ui.css');
+const designSystemPath = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal', 'assets', 'design-system.css');
 
 const report = {
   week_start: '2026-08-03',
@@ -118,6 +121,34 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await expect(otherRow).toHaveAttribute('aria-expanded', 'true');
   await expect(abidRow).toBeHidden();
   await expect(otherDetail).toBeVisible();
+
+  // Reproduce the real-device phone layout with the canonical final cascade.
+  await otherRow.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await page.addStyleTag({ path: tokensPath });
+  await page.addStyleTag({ path: tableUiPath });
+  await page.addStyleTag({ path: designSystemPath });
+
+  await expect(abidRow).toBeVisible();
+  await expect(otherRow).toBeVisible();
+  await expect(page.locator('.timesheet-store-table thead')).toBeHidden();
+  await expect(page.locator('.employee-summary-table > thead')).toBeHidden();
+  const storeFitsPhone = await page.locator('.timesheet-store-table').evaluate(el => el.scrollWidth <= el.clientWidth + 1);
+  const employeeFitsPhone = await page.locator('.employee-summary-table').evaluate(el => el.scrollWidth <= el.clientWidth + 1);
+  const pageFitsPhone = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+  expect(storeFitsPhone).toBeTruthy();
+  expect(employeeFitsPhone).toBeTruthy();
+  expect(pageFitsPhone).toBeTruthy();
+  await expect(page.locator('.timesheet-store-table tbody tr').first()).toHaveCSS('display', 'grid');
+  await expect(abidRow).toHaveCSS('display', 'grid');
+  await expect(page.locator('.timesheet-section-head').first()).toHaveCSS('background-color', 'rgb(23, 33, 58)');
+
+  await abidRow.click();
+  await expect(otherRow).toBeHidden();
+  await expect(abidDetail).toBeVisible();
+  const detailFitsPhone = await abidDetail.evaluate(el => el.scrollWidth <= el.clientWidth + 1);
+  expect(detailFitsPhone).toBeTruthy();
 
   expect(pageErrors, `Unexpected browser errors: ${pageErrors.join(' | ')}`).toEqual([]);
 });
