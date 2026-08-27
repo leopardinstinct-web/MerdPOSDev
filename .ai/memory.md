@@ -1,4 +1,4 @@
-# MERDPOS Beta AI State
+﻿# MERDPOS Beta AI State
 
 **Updated:** 2026-08-27
 **Authoritative repository:** `leopardinstinct-web/MerdPOSDev`
@@ -13,13 +13,13 @@ The actual bootstrap entrypoint is root `AGENTS.md`. A fresh session should then
 
 The durable knowledge layer is:
 
-- `AGENTS.md` — root entrypoint;
-- `.ai/README.md` — bootstrap manifest and authority hierarchy;
-- `.ai/invariants.md` — binding rules;
-- `.ai/task-gates.md` — mandatory affected-path history, implementation-execution and evidence gates;
-- `.ai/memory.md` — current state;
-- `.ai/decisions.md` — durable choices and supersessions;
-- `.ai/playbook.md` — reusable learned procedures;
+- `AGENTS.md` â€” root entrypoint;
+- `.ai/README.md` â€” bootstrap manifest and authority hierarchy;
+- `.ai/invariants.md` â€” binding rules;
+- `.ai/task-gates.md` â€” mandatory affected-path history, implementation-execution and evidence gates;
+- `.ai/memory.md` â€” current state;
+- `.ai/decisions.md` â€” durable choices and supersessions;
+- `.ai/playbook.md` â€” reusable learned procedures;
 - task-specific docs/tests beside the code they govern.
 
 Substantive future work must update this knowledge layer when it changes reality. Chat/project memory is supplementary only.
@@ -37,6 +37,8 @@ For cross-cutting UI/design-system work, inspect both shared primitives and feat
 ## Current implementation checkpoint
 
 On 2026-08-27, the selected Concept 7 MERDPOS brand kit was implemented across the Beta shared visual runtime: canonical ribbon mark, brand lockups, shared brand/design tokens, navy navigation identity, Space Grotesk display heading preference, connected dashboard accents and login/attendance brand surfaces. The gradient remains identity-only; semantic status colors remain distinct. This work must not be called DEPLOYED/VERIFIED until the Namecheap pull and rendered live surfaces are checked.
+
+On 2026-08-27, the authenticated header oversize regression was traced to the final design-system generic media reset outranking the brand component image dimensions. Commit 59cd4ad483f4d0f13fe547a24db1fb021ee877a5 lowers that generic reset specificity, reasserts bounded authenticated lockup geometry, and adds an immediately available persistent dark/light rail toggle backed by data-theme and localStorage key merdpos-theme. The same change strengthens dark semantic status/chart tokens. Live Opera verification confirmed the compact authenticated header and visible theme control after deployment; the dark rendered state still requires a visual exercise before calling that state VERIFIED.
 
 
 The permanent regression suite was merged into `namecheap-beta-live` at:
@@ -60,7 +62,7 @@ The dashboard widget drawer readability issue was CODED/WIRED in `assets/dashboa
 
 Do not claim any commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
 
-## Product-stage testing strategy — binding until the user changes it
+## Product-stage testing strategy â€” binding until the user changes it
 
 The current goal is **product development, not exhaustive UI automation**.
 
@@ -72,7 +74,7 @@ The current goal is **product development, not exhaustive UI automation**.
    - no unexpected failed application HTTP responses.
 
 2. **Security and authorization contracts**
-   - `client role → LOA → named permission → UI/API/data scope`;
+   - `client role â†’ LOA â†’ named permission â†’ UI/API/data scope`;
    - DEV-only permissions require actual DEV identity, not LOA 1000 alone;
    - tenant isolation must not be weakened;
    - destructive tests must be scoped to exact DUMMY identity/context and must abort otherwise.
@@ -103,7 +105,7 @@ While the user is still moving, redesigning, adding and removing webapp features
 
 Use this progression for a changing feature:
 
-`BUILD/CHANGE → QUICK SMOKE → PERMISSION/SECURITY CHECK → DEPLOY → VISUAL/RUNTIME VERIFY`
+`BUILD/CHANGE â†’ QUICK SMOKE â†’ PERMISSION/SECURITY CHECK â†’ DEPLOY â†’ VISUAL/RUNTIME VERIFY`
 
 Only when the user treats a workflow as relatively stable should its important behavior be promoted into permanent regression coverage.
 
@@ -123,7 +125,7 @@ Preferred permanent tests assert **business outcomes and authorization contracts
 
 ### Live read-only Developer regression
 
-Previously verified on the live beta with no browser runtime errors or failed app HTTP responses across the core read-only Developer surfaces, including mobile 390×844 checks.
+Previously verified on the live beta with no browser runtime errors or failed app HTTP responses across the core read-only Developer surfaces, including mobile 390Ã—844 checks.
 
 ### DUMMY Financial
 
@@ -172,13 +174,13 @@ Do not reintroduce unrelated heavy CI jobs for portal-only changes without a con
 
 ## Existing invariants retained
 
-### Frozen payroll logic — do not modify
+### Frozen payroll logic â€” do not modify
 
-- pair `IN → next OUT`;
+- pair `IN â†’ next OUT`;
 - newer IN replaces an unmatched prior IN;
 - orphan OUT ignored;
 - independently round IN and OUT to nearest 15 minutes;
-- payable time = rounded OUT − rounded IN;
+- payable time = rounded OUT âˆ’ rounded IN;
 - cross-midnight allowed;
 - no 16-hour cap;
 - wage rate selected by clock-in date.
@@ -187,7 +189,7 @@ Do not reintroduce unrelated heavy CI jobs for portal-only changes without a con
 
 Binding model:
 
-`client role → LOA → named permission → UI/API/data scope`
+`client role â†’ LOA â†’ named permission â†’ UI/API/data scope`
 
 Named permissions are independently configurable. Do not invent parent-child permission dependencies.
 
@@ -220,7 +222,7 @@ Retired corrective CSS must not be restored:
 
 ## Deployment architecture
 
-Do not restore GitHub→Namecheap SSH deployment from the development PC.
+Do not restore GitHubâ†’Namecheap SSH deployment from the development PC.
 
 Namecheap pulls/mirrors the authoritative beta branch through the established server-side process using `scripts/deploy_namecheap_beta.sh`.
 
@@ -240,7 +242,7 @@ Server mirror:
 
 Always use:
 
-`REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
+`REQUESTED â†’ DOCUMENTED â†’ CODED â†’ WIRED â†’ DEPLOYED â†’ VERIFIED`
 
 Never broadly call a source change live/fixed/working until the intended commit is confirmed by the Namecheap deployment marker/process and the affected runtime path is actually checked.
 
@@ -257,4 +259,5 @@ Unless the user gives a different priority:
 The regression suite is a safety net for development, not the product-development goal itself.
 
 On 2026-08-27 the earlier reconstructed ribbon-M asset was corrected: Beta now uses exact crops from the product owner's approved Concept 7 transparent logo file. The primary login uses the exact full lockup; compact dashboard/attendance identity uses the exact M crop. Redrawing/substitution is prohibited; only context-safe colour treatment is allowed. Pending deploy/runtime verification for the corrective commit.
+
 
