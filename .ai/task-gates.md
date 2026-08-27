@@ -53,6 +53,16 @@ Minimum evidence:
 
 CI green proves only the checks that ran. A commit does not prove deployment. Deployment does not prove the affected behavior works.
 
+### Visual UI verification gate
+
+For visual changes involving alignment, spacing, typography, contrast, responsive geometry, layering or control placement:
+
+- source/CSS correctness and passing CI are not enough for **VERIFIED**;
+- inspect the rendered component at the affected viewport/surface before claiming **VERIFIED**;
+- check the actual visual result, not only the intended grid/flex rule or DOM position;
+- for alignment changes, compare the rendered visual/box centers of the elements that are meant to align rather than assuming common top edges or shared containers imply optical alignment;
+- if the intended runtime has not deployed yet, stop at **CODED/WIRED** and state that rendered verification remains pending.
+
 Never convert intent, analysis or a passing unrelated test into a higher lifecycle state.
 
 ## Gate 4 — Completion report
