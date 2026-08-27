@@ -238,13 +238,29 @@
   border-bottom: 1px solid color-mix(in srgb, var(--color-nav-text) 10%, transparent);
 }
 
-.dashboard-drawer-head h2 {
+/* Dark-surface semantics must outrank later light-surface global heading rules. */
+.dashboard-widget-drawer .dashboard-drawer-head h2 {
+  margin: 0;
   color: var(--color-nav-text);
+  font-size: var(--type-lg);
+  line-height: var(--line-heading);
 }
 
-.dashboard-drawer-head p {
+.dashboard-widget-drawer .dashboard-drawer-head p {
   margin: var(--space-1) 0 0;
   color: var(--color-nav-text-muted);
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+}
+
+.dashboard-widget-drawer .merd-dashboard-drawer-close {
+  background: transparent;
+  color: var(--color-nav-text-muted);
+}
+
+.dashboard-widget-drawer .merd-dashboard-drawer-close:hover {
+  background: color-mix(in srgb, var(--color-nav-text) 10%, transparent);
+  color: var(--color-nav-text);
 }
 
 .dashboard-widget-search {
@@ -259,7 +275,7 @@
   border: 1px solid color-mix(in srgb, var(--color-nav-text) 10%, transparent);
 }
 
-.dashboard-widget-search input {
+.dashboard-widget-drawer .dashboard-widget-search input {
   width: 100%;
   min-height: 0;
   padding: 0;
@@ -268,9 +284,10 @@
   background: transparent;
   color: var(--color-nav-text);
   box-shadow: none;
+  font-size: var(--type-sm);
 }
 
-.dashboard-widget-search input::placeholder {
+.dashboard-widget-drawer .dashboard-widget-search input::placeholder {
   color: var(--color-nav-text-muted);
 }
 
@@ -292,8 +309,10 @@
   border: 1px solid color-mix(in srgb, var(--color-nav-text) 8%, transparent);
 }
 
+/* Added widgets remain readable; only the unavailable action is visually de-emphasised. */
 .dashboard-catalog-item.is-added {
-  opacity: .55;
+  background: color-mix(in srgb, var(--color-nav-bg-subtle) 82%, var(--color-nav-bg));
+  border-color: color-mix(in srgb, var(--color-nav-text) 12%, transparent);
 }
 
 .dashboard-catalog-copy strong,
@@ -301,21 +320,35 @@
   display: block;
 }
 
-.dashboard-catalog-copy strong {
+.dashboard-widget-drawer .dashboard-catalog-copy strong {
   color: var(--color-nav-text);
-  font-size: var(--type-xs);
-}
-
-.dashboard-catalog-copy span {
-  margin-top: var(--space-1);
-  color: var(--color-nav-text-muted);
-  font-size: var(--type-xs);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-semibold);
   line-height: var(--line-body);
 }
 
-.dashboard-catalog-add {
+.dashboard-widget-drawer .dashboard-catalog-copy span {
+  margin-top: var(--space-1);
+  color: var(--color-nav-text-muted);
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+}
+
+.dashboard-widget-drawer .dashboard-catalog-add {
   background: color-mix(in srgb, var(--color-focus) 20%, var(--color-nav-bg-subtle));
   color: var(--color-nav-text);
+}
+
+.dashboard-widget-drawer .dashboard-catalog-add:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-focus) 44%, var(--color-nav-bg-subtle));
+  color: var(--color-nav-text);
+}
+
+.dashboard-widget-drawer .dashboard-catalog-add:disabled {
+  background: color-mix(in srgb, var(--color-nav-text) 8%, var(--color-nav-bg-subtle));
+  color: var(--color-nav-text-muted);
+  opacity: .78;
+  cursor: default;
 }
 
 .dashboard-drawer-foot {
@@ -326,15 +359,16 @@
   justify-content: flex-end;
 }
 
-.dashboard-reset {
+.dashboard-widget-drawer .dashboard-reset {
   min-height: var(--size-control);
   border: 0;
   background: transparent;
   color: var(--color-nav-text-muted);
+  font-size: var(--type-sm);
   cursor: pointer;
 }
 
-.dashboard-reset:hover {
+.dashboard-widget-drawer .dashboard-reset:hover {
   color: var(--color-nav-text);
 }
 
