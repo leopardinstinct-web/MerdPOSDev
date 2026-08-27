@@ -8,27 +8,29 @@ When sources disagree, use this order:
 
 1. Current code and schema on `namecheap-beta-live`.
 2. Binding `.ai/invariants.md`.
-3. Mandatory `.ai/task-gates.md` execution/provenance contract.
-4. Current `.ai/memory.md`.
-5. Later entries in `.ai/decisions.md` that explicitly supersede earlier ones.
-6. Task-specific canonical docs beside the code.
-7. `.ai/playbook.md` operational procedures.
-8. Historical recovery/handover documents and old commits.
-9. Chat history or local-machine recollection.
+3. Mandatory `.ai/task-gates.md` execution/provenance/checkpoint contract.
+4. The active `.ai/work/active/<task-id>.yaml` packet for resumable state of that task only.
+5. Current `.ai/memory.md`.
+6. Later entries in `.ai/decisions.md` that explicitly supersede earlier ones.
+7. Task-specific canonical docs beside the code.
+8. `.ai/playbook.md` operational procedures.
+9. Historical recovery/handover documents and old commits.
+10. Chat history or local-machine recollection.
 
-A historical document never overrides newer code plus a newer recorded decision.
+A work packet records execution state; it never overrides current code, binding invariants, task gates, or a newer durable decision. A historical document never overrides newer code plus a newer recorded decision.
 
-## Mandatory reading order for a fresh session
+## Mandatory lean reading order for a fresh session
 
 1. `AGENTS.md`
 2. `.ai/README.md` (this file)
 3. `.ai/invariants.md`
 4. `.ai/task-gates.md`
-5. `.ai/memory.md`
-6. `.ai/decisions.md`
-7. `.ai/playbook.md`
+5. `.ai/work/ACTIVE.yaml`
+6. If the task matches an active packet, read that packet.
+7. Load the task-specific material below.
+8. Read targeted sections of `.ai/memory.md`, `.ai/decisions.md`, `.ai/playbook.md` and regression docs only when they are relevant to the affected area, provenance question, deployment step, or packet.
 
-Then load task-specific material below.
+Do not eagerly read every durable file into active context. Discoverability is mandatory; context saturation is not. Prefer narrow reads/searches over whole-file loading when only one section is relevant.
 
 ## Mandatory canonical-branch entry guard
 
@@ -37,6 +39,20 @@ For MERDPOS Beta, the bootstrap must be fetched from the current `namecheap-beta
 Re-bootstrap from the authoritative branch whenever a chat/session is moved into the MERDPOS BETA project, changes repository/branch context, or began outside the project before an explicit implementation request. Before using an existing feature branch, compare it with the current authoritative Beta HEAD. Stale/diverged branches must be reconciled/recreated before substantive Beta work continues.
 
 The repository default branch carries a discovery pointer so sessions that land there can find Beta, but `main` is not the Beta source of truth.
+
+## Resumable work packets
+
+`.ai/work/` is the canonical mid-task state layer for work that cannot be safely treated as a single bounded turn.
+
+Use a packet when the task spans multiple meaningful implementation checkpoints, multiple tools/environments, deployment plus runtime verification, a real blocker, or likely cross-chat continuation. Small isolated changes completed and evidenced in one continuous turn may remain packetless.
+
+The packet must stay compact and factual: objective, acceptance criteria, packet state, project lifecycle state, starting/current HEAD, owned/affected paths, constraints, completed checkpoints, exact checks/evidence, remaining work and one explicit `next_action`.
+
+Checkpoint only at meaningful boundaries. Do not turn work packets into transcripts.
+
+Before resuming a packet, compare its recorded `last_seen_head` with current `namecheap-beta-live`. If HEAD moved, inspect the intervening diff for packet-owned paths. Non-overlap can refresh the packet and continue; overlap requires rereading current source/history and revising stale assumptions before editing.
+
+See `.ai/work/README.md` for the schema and `.ai/task-gates.md` for the mandatory concurrency/checkpoint rules.
 
 ## Mandatory task preflight
 
@@ -55,6 +71,7 @@ Read:
 - the exact API endpoint being changed
 - corresponding UI/JS consumer
 - recent history for the affected auth/API/UI paths
+- relevant authorization sections from `.ai/decisions.md` / `.ai/playbook.md` when needed
 
 Binding model: `client role → LOA → named permission → UI/API/data scope`.
 
@@ -62,12 +79,12 @@ Binding model: `client role → LOA → named permission → UI/API/data scope`.
 
 Read:
 
-- `.ai/invariants.md`
-- `.ai/task-gates.md`
+- applicable UI/runtime sections of `.ai/invariants.md` and `.ai/task-gates.md`
 - `namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php`
 - `namecheap_beta_live/backend/cli/validate_portal_loader_order.php`
 - relevant portal PHP/JS/CSS files
 - recent history for the shared runtime and feature-specific owner being changed
+- targeted design/runtime decisions or playbook sections only when relevant
 
 Do not restore retired corrective CSS layers just because older docs mention them.
 
@@ -85,8 +102,8 @@ Read:
 
 Read:
 
-- `.ai/memory.md` section `Product-stage testing strategy`
-- `.ai/regression-inventory.md`
+- targeted product-stage testing guidance from `.ai/memory.md` / `.ai/playbook.md`
+- `.ai/regression-inventory.md` when permanent coverage or a known incident guard is relevant
 - `namecheap_beta_live/browser_tests/LIVE_REGRESSION.md`
 - `.github/workflows/beta-guardrails.yml`
 
@@ -96,7 +113,7 @@ The current beta is in active redesign. Prefer business/security/runtime contrac
 
 Read:
 
-- `.ai/memory.md` DUMMY policy
+- targeted DUMMY policy from `.ai/invariants.md` / `.ai/memory.md`
 - `namecheap_beta_live/browser_tests/LIVE_REGRESSION.md`
 - existing DUMMY runners before creating new ones
 
@@ -108,7 +125,7 @@ Read:
 
 - `scripts/deploy_namecheap_beta.sh`
 - `namecheap_beta_live/backend/README.md`
-- `.ai/playbook.md` deployment section
+- deployment section of `.ai/playbook.md`
 
 Namecheap pulls/mirrors the beta branch through the established server-side process. Do not reintroduce a GitHub-to-Namecheap SSH deployment architecture unless the product owner explicitly changes that decision.
 
@@ -130,16 +147,18 @@ For stable features, add durable regression coverage around business outcomes an
 
 The repository must remain a self-sustainable seed after every meaningful session.
 
-Update the knowledge layer when work changes reality:
+Use the right layer for the right kind of state:
 
-- `.ai/memory.md`: current state, checkpoints, what is verified/not verified, current product stage and next priorities.
+- `.ai/work/active/*.yaml`: current resumable execution state; compact and task-specific.
+- `.ai/work/archive/*.yaml`: closed execution records worth preserving.
+- `.ai/memory.md`: curated current project state, verified checkpoints and priorities; not a transcript.
 - `.ai/decisions.md`: architectural/product choices, including explicit `Supersedes` notes.
 - `.ai/invariants.md`: only binding rules that should not drift casually.
-- `.ai/task-gates.md`: mandatory provenance/execution/evidence gates when those rules change.
+- `.ai/task-gates.md`: mandatory provenance/execution/checkpoint/evidence gates.
 - `.ai/playbook.md`: reusable learned procedures, debugging patterns, testing/deployment workflows and safety guards.
 - `.ai/regression-inventory.md`: actual coverage and known gaps when tests materially change.
 
-Keep these files concise enough to bootstrap a new session. Move long historical detail to ordinary docs rather than letting the bootstrap layer become an unstructured transcript.
+Close/archive a packet when its task is complete and promote only durable lessons into the curated knowledge layer. Do not copy the packet's step-by-step history into `.ai/memory.md`.
 
 ## What must never be required for bootstrap
 

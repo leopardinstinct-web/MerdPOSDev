@@ -1,0 +1,40 @@
+version: 1
+id: MERD-20260827-work-packet-system
+objective: "Make multi-step MERDPOS implementations resumable, lean-context, concurrency-safe and independent of chat history."
+acceptance:
+  - "Fresh sessions can discover active work before reconstructing task state from chat."
+  - "Non-trivial work has a compact checkpoint schema with one exact next action."
+  - "Concurrent/stale HEAD changes trigger affected-path reconciliation before edits."
+  - "Bootstrap no longer requires eagerly loading all durable project documents."
+packet_state: CLOSED
+lifecycle: WIRED
+base_head: "d2789f548c2018c2b60787426d0451787c06fbb6"
+last_seen_head: "d2789f548c2018c2b60787426d0451787c06fbb6"
+affected_paths:
+  - "AGENTS.md"
+  - ".ai/README.md"
+  - ".ai/task-gates.md"
+  - ".ai/work/README.md"
+  - ".ai/work/ACTIVE.yaml"
+  - ".ai/work/archive/MERD-20260827-work-packet-system.yaml"
+constraints:
+  - "GitHub remains the standalone source of truth."
+  - "Existing REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED lifecycle remains authoritative."
+  - "Work packets must stay compact and must not become another narrative handover system."
+  - "Secrets/authentication artifacts must never be stored in packets."
+completed:
+  - "Resolved canonical beta HEAD before implementation."
+  - "Inspected current bootstrap/invariant/decision/task-gate sources and recent task-gate history."
+  - "Added mandatory lean bootstrap routing through ACTIVE.yaml and relevant packet state."
+  - "Added resumable packet schema, checkpoint discipline and stale-HEAD concurrency protocol."
+  - "Wired packet rules into root bootstrap and mandatory task execution gates."
+checks:
+  - name: "repository readback"
+    result: "PENDING"
+    evidence: "Run after implementation commit is created."
+remaining:
+  - "Read back committed files and confirm the new bootstrap/work-packet wiring exists on namecheap-beta-live."
+next_action: "Read back the committed work-packet files and bootstrap gates from namecheap-beta-live, then record verification in the completion report."
+blocked: false
+blocker: null
+updated_at: "2026-08-27T23:39:00+05:00"
