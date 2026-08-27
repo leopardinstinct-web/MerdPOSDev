@@ -51,6 +51,8 @@ Services:
 - `services/auth_service.dart`
 - `services/employee_service.dart`
 - `services/primary_login_store.dart`
+- `services/checkout_tender.dart` — exact M3.3 tender planning and checkout
+  calculation value objects.
 - `services/retail_db.dart`
 - `services/timesheet_parser.dart` — preserve.
 
@@ -207,6 +209,9 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
 - `backend/tests/durable_sale_model_migration_test.php` and
   `backend/tests/run_durable_sale_model.php` — isolated M3.1 preservation,
   identity, exact tender, constraint, and precondition tests.
+- `backend/sql/021_split_sale_tenders.sql` and M3.3 split-tender migration
+  tests — source-only additive ordered tender components that preserve M3.1
+  tender history and remain outside runtime ingestion until M3.4.
 - `M3_IMPLEMENTATION_DECISIONS.md` and `M3_1_DURABLE_SALE_CONTRACT.md` — approved
   M3 decomposition, withheld operating decisions, and durable sale/receipt
   data contract.
@@ -216,6 +221,9 @@ rotated. Do not reproduce or test it. Git-history cleanup is deferred.
   `pos_current_order_panel.dart`, `pos_category_rail.dart`, and
   `pos_product_grid.dart` — four-zone POS composition, local category/search,
   confirmed in-memory Clear, and fixed order actions.
+- `M3_3_CHECKOUT_TENDER_DECISIONS.md`, `checkout_tender_dialog.dart`, and
+  `test/checkout_tender_test.dart` — exact cash/card split tender rules,
+  additive SQLite v6 persistence, atomic rollback, retry, and restart coverage.
 - `TAPTOUCH_UX_BENCHMARK.md` — product-owner-supplied TapTouch observations and
   Adopt/Adapt/Defer/Do-not-adopt dispositions; no direct MP4 inspection.
 - `merdpos-design-brief-taptouch-inspired.md` — approved future MerdPOS visual

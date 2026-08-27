@@ -1,14 +1,15 @@
 # M3 Barcode POS and Durable Sales — Implementation Decisions
 
-Status: approved roadmap; M3.1 and M3.2 are merged and M3.2.1 is implemented in source. Each later M3
-sub-milestone starts only after the preceding pull request is merged.
+Status: approved roadmap; M3.1, M3.2, and M3.2.1 are merged and M3.3 is
+implemented in source. Each later M3 sub-milestone starts only after the
+preceding pull request is merged.
 
 ## Reviewable decomposition
 
 1. M3.1 — durable sale model.
 2. M3.2 — HID scanner and basket behavior.
    - M3.2.1 — POS work-surface refinement only.
-3. M3.3 — exact checkout and single tender.
+3. M3.3 — exact checkout and cash/card split tender.
 4. M3.4 — durable sale synchronization and per-sale acknowledgement.
 5. M3.5 — order detail, restart hardening, and completion of the
    TapTouch-inspired MerdPOS POS treatment.
@@ -48,3 +49,20 @@ direction.
 
 Existing checkout behavior is preserved during M3.1; no new operating policy
 is inferred.
+
+## Automatically adopted M3.3 decisions
+
+- SQLite v6 preserves each legacy M3.1 tender as sequence 1 and permits ordered
+  cash/card-recorded components per sale.
+- Card components cannot exceed the remaining balance. Only final cash may
+  exceed it, with the excess stored as change; incomplete plans cannot commit.
+- Exact tax-inclusive line rounding follows the fixed M2 rule. Resolved price,
+  promotion, tax, UOM, product, and barcode context is snapshotted.
+- Sale, lines, all tenders, stock effects, and outbox state commit atomically.
+- Stable checkout identity makes exact retries idempotent and rejects
+  conflicting identity reuse.
+- Projected-stock warnings remain non-blocking and completed offline sales stay
+  pending rather than being charged again after connectivity failure.
+
+M3.3 does not add manual discount policy, stock blocking/override, void/refund,
+printer/cash-drawer hardware, payment-terminal calls, or M3.4 server ingestion.

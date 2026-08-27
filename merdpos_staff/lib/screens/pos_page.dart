@@ -38,6 +38,8 @@ class _PosPageState extends State<PosPage> {
   String? _selectedCategory;
   bool _loading = true;
   bool _checkingOut = false;
+  TenderPlan? _pendingTenderPlan;
+  String? _pendingCheckoutUid;
   String _scannerStatus = 'Scanner ready';
   bool _scannerError = false;
 
@@ -260,23 +262,50 @@ class _PosPageState extends State<PosPage> {
     _recoverScannerFocus();
   }
 
-  Future<void> _checkout(String method) async {
-    if (_basket.lines.isEmpty) return;
-    setState(() => _checkingOut = true);
+  Future<void> _checkout(CheckoutTenderMode mode) async {
+    if (_basket.lines.isEmpty || _checkingOut) return;
+    final CheckoutAmounts amounts;
     try {
-      await RetailDb.completeSale(
+      amounts = CheckoutAmounts.fromBasket(_basket);
+    } catch (error) {
+      _setScannerStatus(cleanError(error), error: true);
+      return;
+    }
+    final TenderPlan? tenderPlan = await showDialog<TenderPlan>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => CheckoutTenderDialog(
+        totalCents: amounts.totalCents,
+        initialMode: mode,
+        initialPlan: _pendingTenderPlan?.totalCents == amounts.totalCents
+            ? _pendingTenderPlan
+            : null,
+      ),
+    );
+    _recoverScannerFocus();
+    if (tenderPlan == null || !mounted) return;
+    setState(() {
+      _checkingOut = true;
+      _pendingTenderPlan = tenderPlan;
+      _pendingCheckoutUid ??= const Uuid().v4();
+    });
+    try {
+      final CheckoutCommitResult result = await RetailDb.completeCheckout(
         session: widget.session,
         cashier: widget.cashier,
         lines: _basket.lines,
-        paymentMethod: method,
+        tenderPlan: tenderPlan,
+        saleUid: _pendingCheckoutUid,
       );
       if (!mounted) return;
-      setState(_basket.clear);
-      await _load();
+      await _showCheckoutOutcome(result);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Sale completed • $method')));
+      setState(() {
+        _basket.clear();
+        _pendingTenderPlan = null;
+        _pendingCheckoutUid = null;
+      });
+      await _load();
     } catch (error) {
       if (mounted)
         ScaffoldMessenger.of(
@@ -286,6 +315,76 @@ class _PosPageState extends State<PosPage> {
       if (mounted) setState(() => _checkingOut = false);
       _recoverScannerFocus();
     }
+  }
+
+  Future<void> _showCheckoutOutcome(CheckoutCommitResult result) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: <Widget>[
+            Icon(Icons.check_circle, color: _PosColors.success),
+            SizedBox(width: 10),
+            Text('Sale completed'),
+          ],
+        ),
+        content: SizedBox(
+          width: 430,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                result.saleNumber,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...result.tenders.map(
+                (component) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    component.type == TenderType.cash
+                        ? 'Cash'
+                        : 'Card recorded',
+                  ),
+                  trailing: Text('\$${centsToMoney(component.amountCents)}'),
+                  subtitle: component.changeCents > 0
+                      ? Text('Change \$${centsToMoney(component.changeCents)}')
+                      : null,
+                ),
+              ),
+              const Divider(),
+              Text(
+                'Total \$${centsToMoney(result.totalCents)}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Saved locally • pending synchronization',
+                style: TextStyle(
+                  color: _PosColors.warning,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Next order'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -342,8 +441,9 @@ class _PosPageState extends State<PosPage> {
       }
     },
     onClear: _clearBasket,
-    onCash: () => _checkout('cash'),
-    onCard: () => _checkout('card'),
+    onCash: () => _checkout(CheckoutTenderMode.cash),
+    onCard: () => _checkout(CheckoutTenderMode.card),
+    onSplit: () => _checkout(CheckoutTenderMode.split),
     quantityText: _quantityText,
   );
 

@@ -11,6 +11,7 @@ class PosCurrentOrderPanel extends StatelessWidget {
     required this.onClear,
     required this.onCash,
     required this.onCard,
+    required this.onSplit,
     required this.quantityText,
   });
 
@@ -22,6 +23,7 @@ class PosCurrentOrderPanel extends StatelessWidget {
   final VoidCallback onClear;
   final VoidCallback onCash;
   final VoidCallback onCard;
+  final VoidCallback onSplit;
   final String Function(BasketLine line) quantityText;
 
   @override
@@ -278,6 +280,15 @@ class PosCurrentOrderPanel extends StatelessWidget {
                 onPressed: checkingOut || basket.lines.isEmpty ? null : onCard,
                 icon: const Icon(Icons.credit_card),
                 label: const Text('Card'),
+              ),
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: FilledButton.icon(
+                key: const Key('split-checkout'),
+                onPressed: checkingOut || basket.lines.isEmpty ? null : onSplit,
+                icon: const Icon(Icons.call_split),
+                label: const Text('Split'),
               ),
             ),
           ],

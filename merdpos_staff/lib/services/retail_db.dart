@@ -20,7 +20,7 @@ class RetailSyncHealth {
 }
 
 class RetailDb {
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
   static const bool developmentCatalogueFixtures = bool.fromEnvironment(
     'MERDPOS_DEVELOPMENT_CATALOGUE_FIXTURES',
     defaultValue: false,
@@ -300,6 +300,16 @@ class RetailDb {
       }
       await _createDurableSaleTables(db);
     }
+    if (oldVersion >= 5 && oldVersion < 6) {
+      await db.execute('ALTER TABLE sale_tenders RENAME TO sale_tenders_v5');
+      await _createTenderTable(db);
+      await db.execute('''INSERT INTO sale_tenders(
+        id,tender_uid,sale_id,sequence,tender_type,currency_code,amount_due,
+        amount_tendered,change_due,recorded_at_utc
+      ) SELECT id,tender_uid,sale_id,1,tender_type,currency_code,amount_due,
+        amount_tendered,change_due,recorded_at_utc FROM sale_tenders_v5''');
+      await db.execute('DROP TABLE sale_tenders_v5');
+    }
   }
 
   static Future<void> _createCatalogueTables(DatabaseExecutor db) async {
@@ -451,18 +461,7 @@ class RetailDb {
     await db.execute(
       'CREATE UNIQUE INDEX IF NOT EXISTS sale_lines_uid_idx ON sale_lines(sale_id,line_uid) WHERE line_uid IS NOT NULL',
     );
-    await db.execute('''CREATE TABLE sale_tenders(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tender_uid TEXT NOT NULL UNIQUE,
-      sale_id INTEGER NOT NULL UNIQUE,
-      tender_type TEXT NOT NULL CHECK(tender_type IN ('cash','card_recorded')),
-      currency_code TEXT NOT NULL,
-      amount_due TEXT NOT NULL,
-      amount_tendered TEXT NOT NULL,
-      change_due TEXT NOT NULL,
-      recorded_at_utc TEXT NOT NULL,
-      FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE RESTRICT
-    )''');
+    await _createTenderTable(db);
     await db.execute('''CREATE TABLE sale_outbox(
       sale_id INTEGER PRIMARY KEY,
       state TEXT NOT NULL CHECK(state IN ('pending','sending','acknowledged','rejected')),
@@ -473,6 +472,26 @@ class RetailDb {
       last_error_message TEXT,
       created_at_utc TEXT NOT NULL,
       acknowledged_at_utc TEXT,
+      FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE RESTRICT
+    )''');
+  }
+
+  static Future<void> _createTenderTable(DatabaseExecutor db) async {
+    await db.execute('''CREATE TABLE sale_tenders(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tender_uid TEXT NOT NULL UNIQUE,
+      sale_id INTEGER NOT NULL,
+      sequence INTEGER NOT NULL CHECK(sequence > 0),
+      tender_type TEXT NOT NULL CHECK(tender_type IN ('cash','card_recorded')),
+      currency_code TEXT NOT NULL,
+      amount_due TEXT NOT NULL,
+      amount_tendered TEXT NOT NULL,
+      change_due TEXT NOT NULL,
+      recorded_at_utc TEXT NOT NULL,
+      actor_id TEXT,
+      device_uuid TEXT,
+      external_reference TEXT,
+      UNIQUE(sale_id,sequence),
       FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE RESTRICT
     )''');
   }
@@ -847,6 +866,7 @@ class RetailDb {
       await txn.insert('sale_tenders', <String, Object?>{
         'tender_uid': uuid.v4(),
         'sale_id': saleId,
+        'sequence': 1,
         'tender_type': tenderType,
         'currency_code': 'AUD',
         'amount_due': total.toStringAsFixed(2),
@@ -861,6 +881,250 @@ class RetailDb {
         'created_at_utc': occurredAt.toIso8601String(),
       });
       return saleId;
+    });
+  }
+
+  static Future<CheckoutCommitResult> completeCheckout({
+    required AppSession session,
+    required Employee cashier,
+    required List<BasketLine> lines,
+    required TenderPlan tenderPlan,
+    String? saleUid,
+    @visibleForTesting Database? databaseOverride,
+  }) async {
+    if (lines.isEmpty) throw StateError('Basket is empty.');
+    final PosBasket basket = PosBasket();
+    for (final BasketLine line in lines) {
+      basket.add(line.product, barcodeUsed: line.barcodeUsed);
+      basket.setQuantity(basket.lines.length - 1, line.quantity);
+    }
+    final CheckoutAmounts amounts = CheckoutAmounts.fromBasket(basket);
+    if (tenderPlan.totalCents != amounts.totalCents || !tenderPlan.complete) {
+      throw StateError('Tender composition does not satisfy the sale total.');
+    }
+    final DateTime occurredAt = DateTime.now().toUtc();
+    final Uuid uuid = const Uuid();
+    final String durableUid = saleUid ?? uuid.v4();
+    final String dateCode =
+        '${occurredAt.year.toString().padLeft(4, '0')}'
+        '${occurredAt.month.toString().padLeft(2, '0')}'
+        '${occurredAt.day.toString().padLeft(2, '0')}';
+    final String saleNumber =
+        'S-$dateCode-${durableUid.substring(0, 8).toUpperCase()}';
+    if (kIsWeb) throw UnsupportedError('Durable checkout requires SQLite.');
+    final Database db = databaseOverride ?? await database;
+    return db.transaction((Transaction txn) async {
+      final List<Map<String, Object?>> existing = await txn.query(
+        'sales',
+        columns: <String>['id', 'sale_number', 'total_decimal'],
+        where: 'sale_uid=?',
+        whereArgs: <Object?>[durableUid],
+        limit: 1,
+      );
+      if (existing.isNotEmpty) {
+        final int existingId = existing.single['id'] as int;
+        if (moneyToCents(existing.single['total_decimal'].toString()) !=
+            amounts.totalCents) {
+          throw StateError(
+            'Checkout identity conflicts with an existing sale.',
+          );
+        }
+        final List<Map<String, Object?>> existingLines = await txn.query(
+          'sale_lines',
+          columns: <String>[
+            'server_product_id',
+            'barcode',
+            'quantity',
+            'gross_amount',
+          ],
+          where: 'sale_id=?',
+          whereArgs: <Object?>[existingId],
+          orderBy: 'id ASC',
+        );
+        if (existingLines.length != lines.length) {
+          throw StateError(
+            'Checkout identity conflicts with an existing sale.',
+          );
+        }
+        for (int index = 0; index < lines.length; index++) {
+          final Map<String, Object?> stored = existingLines[index];
+          final BasketLine requested = lines[index];
+          if (stored['server_product_id'] != requested.product.id ||
+              stored['barcode']?.toString() != requested.barcodeUsed ||
+              (stored['quantity'] as num).toDouble() != requested.quantity ||
+              moneyToCents(stored['gross_amount'].toString()) !=
+                  amounts.lines[index].grossCents) {
+            throw StateError(
+              'Checkout identity conflicts with an existing sale.',
+            );
+          }
+        }
+        final List<Map<String, Object?>> tenderRows = await txn.query(
+          'sale_tenders',
+          where: 'sale_id=?',
+          whereArgs: <Object?>[existingId],
+          orderBy: 'sequence ASC',
+        );
+        if (tenderRows.length != tenderPlan.components.length) {
+          throw StateError(
+            'Checkout identity conflicts with an existing sale.',
+          );
+        }
+        for (int index = 0; index < tenderRows.length; index++) {
+          final Map<String, Object?> stored = tenderRows[index];
+          final TenderComponent requested = tenderPlan.components[index];
+          if (stored['tender_type']?.toString() != requested.typeValue ||
+              moneyToCents(stored['amount_tendered'].toString()) !=
+                  requested.amountCents ||
+              moneyToCents(stored['change_due'].toString()) !=
+                  requested.changeCents) {
+            throw StateError(
+              'Checkout identity conflicts with an existing sale.',
+            );
+          }
+        }
+        return CheckoutCommitResult(
+          saleId: existingId,
+          saleUid: durableUid,
+          saleNumber: existing.single['sale_number'].toString(),
+          totalCents: moneyToCents(existing.single['total_decimal'].toString()),
+          tenders: tenderRows
+              .map(
+                (row) => TenderComponent(
+                  type: row['tender_type'] == 'cash'
+                      ? TenderType.cash
+                      : TenderType.cardRecorded,
+                  amountCents: moneyToCents(row['amount_tendered'].toString()),
+                  changeCents: moneyToCents(row['change_due'].toString()),
+                  externalReference: row['external_reference']?.toString(),
+                ),
+              )
+              .toList(growable: false),
+        );
+      }
+      for (final BasketLine line in lines) {
+        final List<Map<String, Object?>> currentProducts = await txn.query(
+          'products',
+          where: 'id=?',
+          whereArgs: <Object?>[line.product.id],
+          limit: 1,
+        );
+        if (currentProducts.isEmpty)
+          throw StateError('Product no longer exists.');
+        final String? currentError = productConfigurationError(
+          RetailProduct.fromMap(currentProducts.single),
+        );
+        if (currentError != null) throw BasketValidationException(currentError);
+      }
+      final String tenderSummary = tenderPlan.components.length == 1
+          ? tenderPlan.components.single.typeValue
+          : 'split';
+      final int saleId = await txn.insert('sales', <String, Object?>{
+        'sale_number': saleNumber,
+        'client_id': session.clientId,
+        'store_id': session.storeId,
+        'cashier_id': cashier.id,
+        'cashier_name': cashier.fullName,
+        'subtotal': amounts.subtotalCents / 100,
+        'discount': 0,
+        'tax': amounts.taxCents / 100,
+        'total': amounts.totalCents / 100,
+        'payment_method': tenderSummary,
+        'status': 'completed',
+        'sync_status': 'pending',
+        'created_at': occurredAt.toIso8601String(),
+        'sale_uid': durableUid,
+        'device_uuid': session.deviceUuid,
+        'occurred_at_utc': occurredAt.toIso8601String(),
+        'currency_code': 'AUD',
+        'subtotal_decimal': centsToMoney(amounts.subtotalCents),
+        'manual_discount_decimal': '0.00',
+        'tax_decimal': centsToMoney(amounts.taxCents),
+        'total_decimal': centsToMoney(amounts.totalCents),
+        'receipt_contract_version': 'm3.receipt.v1',
+      });
+      for (int index = 0; index < lines.length; index++) {
+        final BasketLine line = lines[index];
+        final CheckoutLineAmounts lineAmounts = amounts.lines[index];
+        await txn.insert('sale_lines', <String, Object?>{
+          'sale_id': saleId,
+          'line_uid': uuid.v4(),
+          'product_id': line.product.id,
+          'barcode': line.barcodeUsed,
+          'product_name': line.product.name,
+          'quantity': line.quantity,
+          'unit_price': line.product.price,
+          'unit_cost': line.product.cost,
+          'line_total': lineAmounts.grossCents / 100,
+          'server_product_id': line.product.id,
+          'catalogue_unit_price': line.product.priceExact,
+          'unit_of_measure': line.product.unitOfMeasure,
+          'tax_code': line.product.taxCode,
+          'tax_rate_basis_points': line.product.taxRateBasisPoints,
+          'tax_inclusive': 1,
+          'sku_snapshot': line.product.sku,
+          'original_unit_price': line.product.priceExact,
+          'price_type': line.product.priceType,
+          'price_version_id': line.product.priceVersionId,
+          'promotion_name': line.product.promotionName,
+          'campaign_reference': line.product.campaignReference,
+          'automatic_promotion_json': line.product.promotionName == null
+              ? null
+              : jsonEncode(<String, Object?>{
+                  'name': line.product.promotionName,
+                  'campaign_reference': line.product.campaignReference,
+                  'price_version_id': line.product.priceVersionId,
+                }),
+          'manual_discount_amount': '0.00',
+          'taxable_amount': centsToMoney(lineAmounts.grossCents),
+          'net_amount': centsToMoney(lineAmounts.netCents),
+          'tax_amount': centsToMoney(lineAmounts.taxCents),
+          'gross_amount': centsToMoney(lineAmounts.grossCents),
+          'currency_code': 'AUD',
+          'tax_rate_version_id': line.product.taxRateVersionId,
+        });
+        await txn.insert('stock_movements', <String, Object?>{
+          'product_id': line.product.id,
+          'movement_type': 'sale',
+          'quantity': -line.quantity,
+          'quantity_decimal': (-line.quantity).toStringAsFixed(3),
+          'reference': durableUid,
+          'note': 'POS sale',
+          'sync_status': 'pending',
+          'created_at': occurredAt.toIso8601String(),
+          'server_product_id': line.product.id,
+        });
+      }
+      for (int index = 0; index < tenderPlan.components.length; index++) {
+        final TenderComponent component = tenderPlan.components[index];
+        await txn.insert('sale_tenders', <String, Object?>{
+          'tender_uid': uuid.v4(),
+          'sale_id': saleId,
+          'sequence': index + 1,
+          'tender_type': component.typeValue,
+          'currency_code': 'AUD',
+          'amount_due': centsToMoney(amounts.totalCents),
+          'amount_tendered': centsToMoney(component.amountCents),
+          'change_due': centsToMoney(component.changeCents),
+          'recorded_at_utc': occurredAt.toIso8601String(),
+          'actor_id': cashier.id.toString(),
+          'device_uuid': session.deviceUuid,
+          'external_reference': component.externalReference,
+        });
+      }
+      await txn.insert('sale_outbox', <String, Object?>{
+        'sale_id': saleId,
+        'state': 'pending',
+        'attempt_count': 0,
+        'created_at_utc': occurredAt.toIso8601String(),
+      });
+      return CheckoutCommitResult(
+        saleId: saleId,
+        saleUid: durableUid,
+        saleNumber: saleNumber,
+        totalCents: amounts.totalCents,
+        tenders: tenderPlan.components,
+      );
     });
   }
 
