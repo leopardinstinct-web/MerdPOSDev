@@ -1,0 +1,114 @@
+/* MERDPOS brand identity layer.
+ * Brand promise: Smarter • Faster • Together.
+ * Brand idea: connected retail channels creating one consistent customer journey.
+ * Operational rule: gradient is identity, never semantic status.
+ */
+:root {
+  --merd-brand-ink:#111827;
+  --merd-brand-blue:#2563EB;
+  --merd-brand-indigo:#4F46E5;
+  --merd-brand-violet:#7C3AED;
+  --merd-brand-tagline:#475569;
+  --merd-brand-on-dark:#F8FAFC;
+}
+
+.merd-brand {
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  color:var(--merd-brand-ink);
+  text-decoration:none;
+}
+.merd-brand__mark {
+  display:block;
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+}
+.merd-brand__copy {
+  display:grid;
+  gap:3px;
+  min-width:0;
+  line-height:1;
+}
+.merd-brand__wordmark {
+  display:block;
+  color:var(--merd-brand-ink);
+  font-family:Inter,Roboto,"Segoe UI",Arial,sans-serif;
+  font-size:23px;
+  font-weight:760;
+  letter-spacing:.055em;
+  white-space:nowrap;
+}
+.merd-brand__pos {
+  background:linear-gradient(90deg,var(--merd-brand-blue),var(--merd-brand-indigo) 52%,var(--merd-brand-violet));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.merd-brand__tagline {
+  display:block;
+  color:var(--merd-brand-tagline);
+  font-family:Inter,Roboto,"Segoe UI",Arial,sans-serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.merd-brand__dot {
+  display:inline-block;
+  margin:0 .45em;
+  color:var(--merd-brand-indigo);
+  letter-spacing:0;
+}
+.merd-brand--primary {
+  gap:16px;
+}
+.merd-brand--primary .merd-brand__mark {
+  width:68px;
+  height:68px;
+  flex-basis:68px;
+}
+.merd-brand--primary .merd-brand__wordmark {
+  font-size:31px;
+}
+.merd-brand--primary .merd-brand__tagline {
+  margin-top:3px;
+  font-size:10px;
+}
+.merd-brand--compact .merd-brand__tagline {
+  display:none;
+}
+.merd-brand--on-dark .merd-brand__wordmark {
+  color:var(--merd-brand-on-dark);
+}
+.merd-brand--on-dark .merd-brand__tagline {
+  color:#CBD5E1;
+}
+
+/* Preserve the existing shell hook while replacing the placeholder logo. */
+.merd-logo-lockup.merd-brand {
+  margin:0;
+}
+.merd-logo-lockup.merd-brand > * {
+  min-width:0;
+}
+
+@media (max-width:820px) {
+  .merd-brand--header .merd-brand__copy { display:none; }
+  .merd-brand--header .merd-brand__mark { width:36px;height:36px;flex-basis:36px; }
+  .merd-brand--primary .merd-brand__mark { width:60px;height:60px;flex-basis:60px; }
+  .merd-brand--primary .merd-brand__wordmark { font-size:27px; }
+  .merd-brand--primary .merd-brand__tagline { font-size:9px;letter-spacing:.20em; }
+}
+
+@media print {
+  .merd-brand__pos {
+    background:none;
+    color:#000;
+    -webkit-text-fill-color:#000;
+  }
+  .merd-brand__wordmark,.merd-brand__tagline { color:#000; }
+}
