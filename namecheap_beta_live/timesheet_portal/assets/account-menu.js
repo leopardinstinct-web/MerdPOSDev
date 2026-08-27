@@ -13,7 +13,6 @@
   const roleLabel = String(userLine.querySelector('.merd-role-pill')?.textContent || auth.role_label || 'USER').trim() || 'USER';
   const roleKey = String(auth.role_key || roleLabel).trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
-  const authorityLevel = Number(auth.authority_level || 0);
   let context = null;
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
@@ -32,11 +31,9 @@
     </summary>
     <div class="account-popover" role="menu" aria-label="Account options">
       <div class="account-client-context" id="accountClientContext" hidden>
-        <div class="account-client-context-head"><strong>Working client</strong><span>Global context</span></div>
+        <div class="account-client-context-head"><strong>Working client</strong></div>
         <select id="accountClientSelect" aria-label="Select working client"></select>
-        <small>Operations, Reports, Finance and Dashboard use this client.</small>
       </div>
-      <div class="account-context-meta" id="accountContextMeta"></div>
       <div class="account-menu-divider account-client-divider" hidden></div>
       <div class="account-menu-slot account-password-slot"></div>
       <div class="account-menu-divider account-password-divider"></div>
@@ -45,7 +42,6 @@
 
   menu.querySelector('.account-name').textContent = name;
   menu.querySelector('.account-role-badge').textContent = roleLabel;
-  menu.querySelector('.account-role-badge').title = `${roleLabel} · LOA ${authorityLevel}`;
 
   if (passwordBtn) {
     passwordBtn.className = 'account-menu-item';
@@ -71,7 +67,6 @@
   const clientBlock = document.getElementById('accountClientContext');
   const clientSelect = document.getElementById('accountClientSelect');
   const clientDivider = menu.querySelector('.account-client-divider');
-  const contextMeta = document.getElementById('accountContextMeta');
 
   async function api(url, options = {}) {
     const response = await fetch(url, {cache:'no-store', ...options});
@@ -110,12 +105,6 @@
       clientSelect.value = selectable ? String(data.active_client_id) : '';
       clientSelect.disabled = false;
     }
-
-    if (contextMeta) {
-      const contextType = data?.cross_client_context ? 'Selected working client' : 'Home client';
-      const code = clientCode ? ` · ${clientCode}` : '';
-      contextMeta.innerHTML = `<span>${esc(contextType)}</span><strong>${esc(clientName || 'MERDPOS')}${esc(code)}</strong><small>${esc(roleLabel)} · LOA ${authorityLevel}</small>`;
-    }
   }
 
   async function loadContext() {
@@ -123,7 +112,6 @@
       applyContext(await api('api/client_context.php?_=' + Date.now(), {headers:{'Accept':'application/json'}}));
     } catch (error) {
       console.error('MERDPOS account client context:', error);
-      if (contextMeta) contextMeta.innerHTML = '<span>Context unavailable</span><small>Refresh the page before making cross-client changes.</small>';
     }
   }
 
