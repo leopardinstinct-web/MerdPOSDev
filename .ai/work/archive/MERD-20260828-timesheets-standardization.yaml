@@ -1,0 +1,54 @@
+version: 1
+id: MERD-20260828-timesheets-standardization
+objective: "Standardize Timesheets with the MERDPOS page hierarchy and replace the duplicated oversized report layout with a compact consistent weekly report."
+packet_state: CLOSED
+lifecycle: VERIFIED
+base_head: "bddbcd4b468a37d86d912dfd4893c28f5d861a20"
+verified_head: "2a8dc22475a278de521d3afe0f61d02f28517a0a"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/browser_tests/shared-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Frozen payroll/timesheet reconciliation logic was not changed."
+  - "Existing permission-driven pay visibility/redaction remains authoritative."
+completed:
+  - "Added visible Timesheets title and helper text, then a standard week/download toolbar."
+  - "Rebuilt the report into weekly metrics, store summary, employee summary and expandable shift details."
+  - "Separated Hours, Wage and Rate; preserved actual and rounded clock times."
+  - "Kept management employee details collapsed by default."
+  - "Added targeted Timesheets browser regression coverage and updated the shared week-switch contract."
+  - "During real Opera mobile verification, found expanded shift detail rows still inherited desktop table layout because renderShiftRows omitted the existing compact-shift-row hook."
+  - "Fixed the mobile row hook in commit 2a8dc22475a278de521d3afe0f61d02f28517a0a and added a regression assertion for it."
+  - "Verified the deployed authenticated Timesheets panel in Opera on desktop light/dark and mobile light/dark."
+  - "Verified expanded mobile shift details render as stacked cards with Store, Clock in, Clock out, Hours and Wage clearly separated."
+commits:
+  - "4a47125c54b6099a6d285b26e0a1722f1446cc92"
+  - "2a8dc22475a278de521d3afe0f61d02f28517a0a"
+checks:
+  - name: "Local Playwright browser regressions"
+    result: "PASS 6/6"
+  - name: "GitHub Beta guardrails for implementation"
+    result: "PASS"
+    evidence: "run 33116083438"
+  - name: "GitHub Beta guardrails for mobile visual fix"
+    result: "PASS"
+    evidence: "run 33117367854; source contract, Chromium smoke and secret scan all succeeded"
+  - name: "Live asset deployment"
+    result: "PASS"
+    evidence: "cache-busted app.merdpos.com timesheet-app.js contains compact-shift-row from 2a8dc224"
+  - name: "Authenticated Opera desktop light/dark visual verification"
+    result: "PASS"
+  - name: "Authenticated Opera mobile light/dark visual verification"
+    result: "PASS"
+  - name: "Authenticated Opera expanded mobile shift-detail verification"
+    result: "PASS"
+remaining: []
+next_action: null
+blocked: false
+blocker: null
+closed_reason: "Acceptance criteria met with deployed runtime and representative authenticated visual verification."
+updated_at: "2026-08-27T21:20:00Z"
