@@ -7,10 +7,12 @@ acceptance:
   - "Employee summary shows the employee identity and metrics without clipping columns off-screen."
   - "Focused employee shift details remain viewport-width and preserve the row-focus interaction."
   - "No payroll, wage, rounding, authorization or data logic changes."
-packet_state: CHECKED
-lifecycle: WIRED
+packet_state: CLOSED
+lifecycle: VERIFIED
 base_head: "09a85fb4432aeff5797a1fdd651aa4484d5c2270"
-last_seen_head: "09a85fb4432aeff5797a1fdd651aa4484d5c2270"
+last_seen_head: "42871af4f84f0d51ffce956b342faa5a63a5b26d"
+commits:
+  - "42871af4f84f0d51ffce956b342faa5a63a5b26d Fix real-device Timesheets mobile layout"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
@@ -22,17 +24,28 @@ constraints:
 completed:
   - "Inspected the supplied real-device screenshot and identified semantic surface mismatch plus horizontal summary-table overflow."
   - "Inspected current Timesheets CSS/runtime, final design-system cascade, mobile table rules and recent Timesheets history."
-completed:
-  - "Inspected the supplied real-device screenshot and identified semantic surface mismatch plus horizontal summary-table overflow."
-  - "Inspected current Timesheets CSS/runtime, final design-system cascade, mobile table rules and recent Timesheets history."
   - "Added phone-width Store summary card rows and Employee summary card-grid rows with no horizontal table dependency."
   - "Pinned Timesheets section surfaces to semantic light/dark tokens and removed the old viewport-width sticky detail hack."
   - "Added a 390px dark-mode browser regression covering Store/Employee overflow, semantic header surface and focused shift-detail width."
   - "Targeted Timesheets browser test passed; full browser regressions passed 6/6; runtime, permission, loader-order and beta-state validators passed."
-remaining:
-  - "Push source and wait for Namecheap deployment."
-  - "Verify phone-width light/dark rendering and focused employee detail in Opera."
-next_action: "Push the checked mobile fix, then verify Namecheap deployment and phone-width light/dark rendering in Opera."
+  - "GitHub Beta source contract, Chromium smoke and secret scan all passed for 42871af."
+  - "Namecheap served the new real-device mobile stylesheet after deployment."
+  - "Opera phone-width verification passed for light and dark Store summary, Employee summary and focused employee shift detail; no columns were clipped or horizontally dependent."
+checks:
+  - name: "Targeted Timesheets Playwright"
+    result: "PASS 1/1"
+  - name: "Full beta Playwright"
+    result: "PASS 6/6"
+  - name: "Beta runtime/permission/loader/state validators"
+    result: "PASS"
+  - name: "GitHub Beta guardrails"
+    result: "PASS"
+  - name: "Namecheap asset deployment"
+    result: "PASS"
+  - name: "Opera real phone-width light/dark visual verification"
+    result: "PASS"
+remaining: []
+next_action: "None; task verified and closed."
 blocked: false
 blocker: null
-updated_at: "2026-08-28T04:01:00+05:00"
+updated_at: "2026-08-28T04:08:00+05:00"
