@@ -16,18 +16,23 @@ if (isset($_GET['q']) && is_string($_GET['q']) && strlen($_GET['q']) <= 1400) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Login</title>
+  <link rel="icon" href="assets/brand/merdpos-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/styles.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826ds1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260826ds1">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827brand1">
   <link rel="stylesheet" href="assets/design-system.css?v=20260826ds1">
 </head>
 <body class="login-body merd-login-body merd-shell">
   <main class="login-shell">
     <section class="login-card merd-login-card" aria-labelledby="loginTitle">
-      <div class="merd-logo-lockup" aria-label="MERDPOS">
-        <div class="merd-logo-mark">M</div>
-        <div><strong>MERD<span>POS</span></strong><small>FUTURE-READY RETAIL</small></div>
+      <div class="merd-logo-lockup merd-brand merd-brand--primary" aria-label="MERDPOS — Smarter, Faster, Together">
+        <img class="merd-brand__mark" src="assets/brand/merdpos-mark.svg" alt="" aria-hidden="true">
+        <div class="merd-brand__copy">
+          <strong class="merd-brand__wordmark">MERD<span class="merd-brand__pos">POS</span></strong>
+          <small class="merd-brand__tagline">Smarter<span class="merd-brand__dot">•</span>Faster<span class="merd-brand__dot">•</span>Together</small>
+        </div>
       </div>
       <h1 id="loginTitle"><?= isset($_SESSION['pending_qr']) ? 'Complete attendance.' : 'Welcome back.' ?></h1>
       <p class="muted"><?= isset($_SESSION['pending_qr']) ? 'Sign in once to securely complete the POS QR attendance scan.' : 'Sign in to your MERDPOS workspace.' ?></p>
