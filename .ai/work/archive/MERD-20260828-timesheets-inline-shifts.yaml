@@ -1,0 +1,56 @@
+version: 1
+id: MERD-20260828-timesheets-inline-shifts
+objective: "Apply the approved Timesheets follow-up: role-neutral helper copy, corrected table alignment, inline expandable shift rows inside Employee summary, and clear visual focus for the expanded employee."
+acceptance:
+  - "Timesheets helper text is appropriate for Admin, Super and User portal users."
+  - "Store summary headers and body values use consistent horizontal alignment."
+  - "Employee summary rows expose shifts inline when the employee is activated."
+  - "The separate Shift details section is removed."
+  - "The expanded employee row is visually distinct and its attached shift detail reads as one focused block in light/dark and desktop/mobile views."
+  - "Existing payroll calculations, rounding, wage visibility and authorization remain unchanged."
+packet_state: CLOSED
+lifecycle: VERIFIED
+base_head: "25c37033ae3c7cfb60c6770a37483403d6ae0bb1"
+last_seen_head: "24e3fb0db910de76efe69db795f681023426def3"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Do not alter frozen timesheet/payroll reconciliation logic."
+  - "Do not broaden wage/pay visibility."
+  - "Preserve mobile shift-card behavior and light/dark readability."
+completed:
+  - "Read the product-owner document and mapped all requested UI changes."
+  - "Changed helper copy to role-neutral weekly timesheet language."
+  - "Aligned Store summary Store/Employees/Hours/Wages columns explicitly."
+  - "Moved expandable shift rows into Employee summary and removed the standalone Shift details renderer."
+  - "Employee summary renders for management and non-super reports while preserving wage visibility."
+  - "Updated PDF expansion behavior for inline shift rows."
+  - "Kept inline expanded shift cards viewport-width on mobile."
+  - "Added selected-surface tint, brand accent rail, stronger active employee text, active Hide shifts pill, and attached detail-panel borders so the expanded employee has clear visual focus."
+  - "Targeted runtime asserts is-expanded state and Hide shifts label."
+  - "Implementation commit df2e3f7a96686972260000c78b9dca8c1b6efafa delivered inline shifts; cc04c908dfc3bd9a8dfb73591f58d9c94314504e preserved mobile width; 24e3fb0db910de76efe69db795f681023426def3 added expanded-row visual focus."
+checks:
+  - name: "Local Playwright browser regressions"
+    result: "PASS 6/6"
+  - name: "Beta runtime contract"
+    result: "PASS"
+  - name: "Portal loader order"
+    result: "PASS"
+  - name: "GitHub Beta guardrails"
+    result: "PASS"
+    evidence: "run 33121746300 for 24e3fb0db910de76efe69db795f681023426def3"
+  - name: "Namecheap deployment"
+    result: "PASS"
+    evidence: "Live table-ui.css serves the expanded-row focus selectors and dashboard cache-busted Timesheets renders them."
+  - name: "Opera visual verification"
+    result: "PASS"
+    evidence: "Expanded employee row/detail visually checked on desktop light, desktop dark, mobile light and mobile dark; selected tint, accent rail, Hide shifts pill and attached shift detail remain readable and in focus."
+remaining: []
+next_action: "Closed."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T03:11:00+05:00"
