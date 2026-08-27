@@ -234,7 +234,7 @@ if ! grep -q 'Cache-Control "no-cache, must-revalidate"' "$LIVE/timesheet_portal
   echo "ERROR: live portal is missing design-system cache revalidation." >&2
   exit 1
 fi
-for cache_asset in 'design-tokens\\.css' 'design-system\\.css' 'brand\\/brand\\.css' 'brand\\/merdpos-mark\\.svg' 'design-audit\\.js' 'minimal-controls\\.js' 'mobile-runtime\\.js'; do
+for cache_asset in 'design-tokens\\.css' 'design-system\\.css' 'brand\\/brand\\.css' 'brand\\/brand-assets\\.js' 'brand\\/merdpos-logo-approved\\.png' 'brand\\/merdpos-mark\\.png' 'brand\\/merdpos-wordmark\\.png' 'brand\\/merdpos-tagline\\.png' 'design-audit\\.js' 'minimal-controls\\.js' 'mobile-runtime\\.js'; do
   if ! grep -q "$cache_asset" "$LIVE/timesheet_portal/.htaccess"; then
     echo "ERROR: live portal is not revalidating shared design asset pattern: $cache_asset" >&2
     exit 1
