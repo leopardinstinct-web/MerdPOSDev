@@ -1,0 +1,38 @@
+version: 1
+id: MERD-20260828-timesheets-standardization
+objective: "Standardize Timesheets with the MERDPOS page hierarchy and replace the duplicated oversized report layout with a compact consistent weekly report."
+acceptance:
+  - "Timesheets starts with a visible Timesheets title and helper line, followed by the week selector and Download PDF action."
+  - "Weekly totals, store totals, employee totals, pay rates, shift counts, actual/rounded clock times, hours and wages remain available according to existing permissions."
+  - "Management employee detail is compact by default and expandable rather than rendering every employee shift table permanently."
+  - "Timesheets uses canonical MERDPOS tokens, cards, tables, spacing and responsive behavior in light and dark themes."
+  - "Payroll pairing, rounding, rate resolution, API authorization and source data are unchanged."
+packet_state: OPEN
+lifecycle: REQUESTED
+base_head: "bddbcd4b468a37d86d912dfd4893c28f5d861a20"
+last_seen_head: "bddbcd4b468a37d86d912dfd4893c28f5d861a20"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/timesheet-app.js"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/timesheet_portal/assets/app-ui.css"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+constraints:
+  - "Do not alter frozen payroll/timesheet reconciliation logic."
+  - "Do not broaden timesheet/pay visibility; existing permission-driven redaction remains authoritative."
+  - "Prefer canonical design tokens and shared table/control grammar over a new parallel visual system."
+completed:
+  - "Reviewed product-owner screenshots showing missing page title/helper hierarchy, oversized selector card, duplicated summaries, permanently expanded employee tables and rate text crowded into Hours cells."
+  - "Inspected current dashboard Timesheets markup, timesheet-app.js report renderer, API/report schema, current table/report CSS and relevant affected-path history."
+  - "Confirmed recent report styling work attempted compact responsive employee cards, but current source still duplicates employee summary + employee-wise detail and retains legacy Timesheets-specific visual layers."
+commits: []
+checks: []
+remaining:
+  - "Implement standardized Timesheets hierarchy and compact report rendering."
+  - "Add targeted browser regression coverage for hierarchy, preserved data and collapsed/expanded employee details."
+  - "Run source/browser guardrails."
+  - "Deploy and visually verify representative desktop/mobile and dark/light states."
+next_action: "Implement the standardized Timesheets page/header/report renderer and targeted runtime regression without changing API/payroll logic."
+blocked: false
+blocker: null
+updated_at: "2026-08-27T20:39:00Z"
