@@ -9,7 +9,8 @@ acceptance:
 packet_state: CLOSED
 lifecycle: WIRED
 base_head: "d2789f548c2018c2b60787426d0451787c06fbb6"
-last_seen_head: "d2789f548c2018c2b60787426d0451787c06fbb6"
+last_seen_head: "12c81a962cc02247d005500ba530eec7f3fc1f4c"
+implementation_commit: "12c81a962cc02247d005500ba530eec7f3fc1f4c"
 affected_paths:
   - "AGENTS.md"
   - ".ai/README.md"
@@ -28,13 +29,17 @@ completed:
   - "Added mandatory lean bootstrap routing through ACTIVE.yaml and relevant packet state."
   - "Added resumable packet schema, checkpoint discipline and stale-HEAD concurrency protocol."
   - "Wired packet rules into root bootstrap and mandatory task execution gates."
+  - "Read back AGENTS.md, task-gates.md, work/README.md and ACTIVE.yaml from the authoritative branch after commit."
+  - "Confirmed authoritative branch HEAD equals implementation commit 12c81a962cc02247d005500ba530eec7f3fc1f4c before packet closure metadata update."
 checks:
   - name: "repository readback"
-    result: "PENDING"
-    evidence: "Run after implementation commit is created."
-remaining:
-  - "Read back committed files and confirm the new bootstrap/work-packet wiring exists on namecheap-beta-live."
-next_action: "Read back the committed work-packet files and bootstrap gates from namecheap-beta-live, then record verification in the completion report."
+    result: "PASS"
+    evidence: "Authoritative branch returned the lean startup, Gate 0.5 work-packet/concurrency rules, packet schema and empty active index."
+  - name: "branch head"
+    result: "PASS"
+    evidence: "namecheap-beta-live resolved to 12c81a962cc02247d005500ba530eec7f3fc1f4c after implementation commit."
+remaining: []
+next_action: "None — task closed. Future qualifying implementations should create/resume an active packet before substantial execution."
 blocked: false
 blocker: null
-updated_at: "2026-08-27T23:39:00+05:00"
+updated_at: "2026-08-27T23:50:00+05:00"
