@@ -15,6 +15,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      mobile: ${{ steps.scope.outputs.mobile }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect mobile app changes
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "mobile=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            base="$BEFORE_SHA"
+          else
+            base="$(git rev-parse HEAD^)"
+          fi
+          if git diff --name-only "$base" HEAD | grep -q '^merdpos_staff/'; then
+            echo "mobile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "mobile=false" >> "$GITHUB_OUTPUT"
+          fi
+
   repository-hygiene:
     name: Repository hygiene
     runs-on: ubuntu-latest
@@ -106,7 +143,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mariadb:
-        image: mariadb:10.11.14@sha256:dbe56e20372fc6d6b8e0e396866ba89c4c7f128c38c4f59aaa54d957db95790c
+        image: mariadb:10.11.14@sha256:dbe56e20372fc6d6b8e0e396866ba89c4c7f128c38c4f59aaa54d95790c
         env:
           MARIADB_ROOT_PASSWORD: synthetic-ci-only
         ports:
@@ -144,6 +181,8 @@ jobs:
 
   flutter-checks:
     name: Flutter 3.44.2 analysis and tests
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -192,10 +231,12 @@ jobs:
 
   android-debug-build:
     name: Android debug APK
-    runs-on: ubuntu-latest
     needs:
+      - changes
       - repository-hygiene
       - flutter-checks
+    if: needs.changes.outputs.mobile == 'true' && needs.flutter-checks.result == 'success'
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: merdpos_staff
