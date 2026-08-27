@@ -128,12 +128,17 @@ async function main() {
       submission_type: 'z_report',
       business_date: businessDate,
       store_id: Number(store.id),
-      payload: { register_total: '125.00', petty_cash_addin: '0.00' },
+      payload: { register_total: '150.00', petty_cash_addin: '0.00' },
     }, 'financial z_report');
-    record('Financial Z Report', true, 'Register closing 125.00');
+    record('Financial Z Report', true, 'Register closing 150.00');
 
     const statement = await readJson(await request.get(BASE + `api/financials.php?store_id=${store.id}&business_date=${businessDate}`), 'financial statement');
-    record('Financial statement reload', !!statement.statement, `store_id=${store.id}; date=${businessDate}`);
+    const accounts = Array.isArray(statement.statement?.accounts) ? statement.statement.accounts : [];
+    const register = accounts.find(row => row.account === 'Register');
+    const petty = accounts.find(row => row.account === 'Petty Cash');
+    const balancesOk = register?.status === 'closed' && Number(register?.closing) === 150
+      && petty?.status === 'closed' && Number(petty?.closing) === 20;
+    record('Financial statement balances', balancesOk, JSON.stringify({ register, petty }));
 
     const passed = results.filter(result => result.ok).length;
     const failed = results.length - passed;
