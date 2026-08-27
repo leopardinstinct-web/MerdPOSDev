@@ -14,7 +14,7 @@
 .merd-dashboard-builder {
   position: relative;
   min-height: calc(100vh - 4.75rem);
-  padding: var(--space-4) 3.625rem var(--space-10) var(--space-3);
+  padding: var(--space-4) var(--space-3) var(--space-10);
   overflow: hidden;
 }
 
@@ -206,11 +206,13 @@
 
 /* Position only. Geometry and colours are owned by the canonical icon action. */
 .dashboard-add-button {
-  position: fixed;
-  right: var(--space-4);
-  top: calc(3.625rem + var(--space-6));
-  z-index: 34;
+  position: static;
+  z-index: auto;
 }
+
+.dashboard-edit-toggle { white-space: nowrap; }
+.merd-dashboard-builder:not(.is-edit-mode) .dashboard-widget-head { cursor: default; }
+.merd-dashboard-builder:not(.is-edit-mode) .dashboard-widget:hover { border-color: var(--color-border-subtle); box-shadow: var(--shadow-card); }
 
 .dashboard-widget-drawer {
   position: fixed;

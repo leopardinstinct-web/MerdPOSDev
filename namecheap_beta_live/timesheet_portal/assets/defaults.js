@@ -9,7 +9,7 @@
     if (document.querySelector('link[data-defaults-css]')) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'assets/defaults.css?v=20260825a';
+    link.href = 'assets/defaults.css?v=20260827visual1';
     link.dataset.defaultsCss = '1';
     document.head.appendChild(link);
   }

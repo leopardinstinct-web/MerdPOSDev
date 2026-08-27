@@ -110,6 +110,12 @@ body.merd-shell {
   color: var(--color-brand-on-primary);
 }
 
+.rail-group-btn.active[aria-expanded="true"] {
+  background: var(--color-nav-bg-hover);
+  color: var(--color-nav-text);
+}
+.rail-group-btn.active[aria-expanded="true"] .rail-chevron { color: var(--color-nav-text-muted); }
+
 .rail-group-btn:focus-visible,
 .sidebar-group .portal-tab:focus-visible {
   outline: .1875rem solid var(--color-focus-soft);

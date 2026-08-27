@@ -55,7 +55,7 @@
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260826a';
+    clientScript.src = 'assets/client.js?v=20260827visual1';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
   }

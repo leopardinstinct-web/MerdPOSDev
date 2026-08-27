@@ -34,7 +34,7 @@
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-  let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null;
+  let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null, editMode = false;
 
   panel.classList.add('dashboard-builder-active');
   const builder = document.createElement('section');
@@ -42,11 +42,10 @@
   builder.innerHTML = `
     <div class="dashboard-rolebar" id="dashboardRolebar">
       <div><span class="dashboard-rolebar-label">Dashboard role</span></div>
-      <div class="dashboard-role-controls"><select id="dashboardRoleSelect" aria-label="Select dashboard role" hidden></select></div>
+      <div class="dashboard-role-controls"><select id="dashboardRoleSelect" aria-label="Select dashboard role" hidden></select><button id="dashboardEditToggle" class="secondary-btn compact-btn dashboard-edit-toggle" type="button" aria-pressed="false" hidden>Edit dashboard</button><button id="dashboardAddButton" class="dashboard-add-button" type="button" aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button></div>
     </div>
     <div id="dashboardCanvas" class="dashboard-canvas" aria-label="Role dashboard"></div>
     <div id="dashboardSaveState" class="dashboard-save-state" aria-live="polite"></div>
-    <button id="dashboardAddButton" class="dashboard-add-button" type="button" aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button>
     <aside id="dashboardWidgetDrawer" class="dashboard-widget-drawer" aria-label="Add widgets" aria-hidden="true">
       <div class="dashboard-drawer-head"><h2>Add widget</h2><p>Only widgets available to the selected role are shown.</p></div>
       <label class="dashboard-widget-search"><span aria-hidden="true">⌕</span><input id="dashboardWidgetSearch" type="search" placeholder="Search widgets"></label>
@@ -61,6 +60,7 @@
 
   const canvas = document.getElementById('dashboardCanvas');
   const roleSelect = document.getElementById('dashboardRoleSelect');
+  const editToggle = document.getElementById('dashboardEditToggle');
   const addButton = document.getElementById('dashboardAddButton');
   const drawer = document.getElementById('dashboardWidgetDrawer');
   const catalog = document.getElementById('dashboardWidgetCatalog');
@@ -187,7 +187,7 @@
   }
 
   function bindMove(tile,item){
-    if(!layoutApi?.can_edit)return;
+    if(!layoutApi?.can_edit||!editMode)return;
     const head=tile.querySelector('.dashboard-widget-head');
     head.addEventListener('pointerdown',event=>{
       if(!desktop.matches||event.button!==0||event.target.closest('button'))return;
@@ -199,7 +199,7 @@
   }
 
   function bindResize(tile,item){
-    if(!layoutApi?.can_edit)return;
+    if(!layoutApi?.can_edit||!editMode)return;
     const handle=tile.querySelector('.dashboard-widget-resize'); if(!handle)return;
     handle.addEventListener('pointerdown',event=>{
       if(!desktop.matches||event.button!==0)return;event.preventDefault();event.stopPropagation();const def=defs[item.widget_key],m=metrics(),sx=event.clientX,sy=event.clientY,ow=item.grid_w,oh=item.grid_h;canvas.classList.add('is-editing');tile.classList.add('is-resizing');handle.setPointerCapture?.(event.pointerId);
@@ -212,14 +212,14 @@
   function renderCanvas(){
     canvas.innerHTML='';
     if(!layout.length){canvas.innerHTML='<div class="dashboard-empty-widget dashboard-empty-canvas">No widgets on this role dashboard.</div>';renderCatalog();return;}
-    layout.forEach(item=>{const def=defs[item.widget_key];if(!def)return;const tile=document.createElement('article');tile.className='dashboard-widget';tile.dataset.widget=item.widget_key;tile.innerHTML=`<div class="dashboard-widget-head"><span class="dashboard-widget-title">${esc(def.title)}</span><div class="dashboard-widget-actions">${layoutApi?.can_edit?'<span data-mobile-order hidden></span><button type="button" class="dashboard-widget-action" data-remove aria-label="Remove widget">×</button>':''}</div></div><div class="dashboard-widget-body">${renderBody(item.widget_key)}</div>${layoutApi?.can_edit?'<div class="dashboard-widget-resize" aria-hidden="true"></div>':''}`;setPos(tile,item);canvas.appendChild(tile);if(layoutApi?.can_edit){tile.querySelector('[data-remove]')?.addEventListener('click',()=>{layout=compactLayout(layout.filter(row=>row.widget_key!==item.widget_key));renderCanvas();saveSoon();});bindMove(tile,item);bindResize(tile,item);}});
+    layout.forEach(item=>{const def=defs[item.widget_key];if(!def)return;const tile=document.createElement('article');tile.className='dashboard-widget';tile.dataset.widget=item.widget_key;tile.innerHTML=`<div class="dashboard-widget-head"><span class="dashboard-widget-title">${esc(def.title)}</span><div class="dashboard-widget-actions">${(layoutApi?.can_edit&&editMode)?'<span data-mobile-order hidden></span><button type="button" class="dashboard-widget-action" data-remove aria-label="Remove widget">×</button>':''}</div></div><div class="dashboard-widget-body">${renderBody(item.widget_key)}</div>${(layoutApi?.can_edit&&editMode)?'<div class="dashboard-widget-resize" aria-hidden="true"></div>':''}`;setPos(tile,item);canvas.appendChild(tile);if(layoutApi?.can_edit&&editMode){tile.querySelector('[data-remove]')?.addEventListener('click',()=>{layout=compactLayout(layout.filter(row=>row.widget_key!==item.widget_key));renderCanvas();saveSoon();});bindMove(tile,item);bindResize(tile,item);}});
     renderCatalog();
   }
 
   function renderTemplates(){
     if(!templateSection||!templateList)return;
     const q=String(search?.value||'').trim();
-    if(!layoutApi?.can_edit||q){templateSection.hidden=true;return;}
+    if(!layoutApi?.can_edit||!editMode||q){templateSection.hidden=true;return;}
     const allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(item=>item.widget_key));
     const available=presets.map(preset=>({...preset,available:preset.widgets.filter(key=>allowed.has(key))})).filter(preset=>preset.available.length);
     templateSection.hidden=!available.length;
@@ -235,10 +235,10 @@
     renderTemplates();
   }
 
-  function addWidget(key){if(!layoutApi?.can_edit||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});layout=compactLayout(layout);renderCanvas();saveSoon();}
+  function addWidget(key){if(!layoutApi?.can_edit||!editMode||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});layout=compactLayout(layout);renderCanvas();saveSoon();}
 
   function applyTemplate(templateKey){
-    if(!layoutApi?.can_edit)return;
+    if(!layoutApi?.can_edit||!editMode)return;
     const preset=presets.find(row=>row.key===templateKey);if(!preset)return;
     const allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(item=>item.widget_key));let count=0;
     preset.widgets.forEach(key=>{if(!allowed.has(key)||added.has(key)||!defs[key])return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});added.add(key);count++;});
@@ -248,7 +248,7 @@
 
   function renderRolebar(){
     const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;
-    const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;addButton.hidden=!layoutApi?.can_edit;resetButton.hidden=!layoutApi?.can_edit;
+    const canEdit=!!layoutApi?.can_edit;if(!canEdit)editMode=false;const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;editToggle.hidden=!canEdit;editToggle.setAttribute('aria-pressed',editMode?'true':'false');editToggle.textContent=editMode?'Done editing':'Edit dashboard';addButton.hidden=!(canEdit&&editMode);resetButton.hidden=!(canEdit&&editMode);builder.classList.toggle('is-edit-mode',canEdit&&editMode);
     if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)}</option>`).join('');roleSelect.value=String(currentRoleId);}
   }
 
@@ -266,12 +266,13 @@
     }catch(error){canvas.innerHTML=`<div class="dashboard-empty-widget">${esc(error.message)}</div>`;showSave(error.message,true);}
   }
 
-  function toggleDrawer(force=null){if(!layoutApi?.can_edit)return;const open=force===null?!drawer.classList.contains('open'):!!force;drawer.classList.toggle('open',open);drawer.setAttribute('aria-hidden',open?'false':'true');addButton.setAttribute('aria-expanded',open?'true':'false');if(open)renderCatalog();}
+  function toggleDrawer(force=null){if(!layoutApi?.can_edit||(!editMode&&force!==false))return;const open=force===null?!drawer.classList.contains('open'):!!force;drawer.classList.toggle('open',open);drawer.setAttribute('aria-hidden',open?'false':'true');addButton.setAttribute('aria-expanded',open?'true':'false');if(open)renderCatalog();}
 
   roleSelect.addEventListener('change',()=>loadRole(Number(roleSelect.value),true));
+  editToggle.addEventListener('click',()=>{if(!layoutApi?.can_edit)return;const next=!editMode;if(!next)toggleDrawer(false);editMode=next;renderRolebar();renderCanvas();});
   addButton.addEventListener('click',()=>toggleDrawer());
   search.addEventListener('input',renderCatalog);
-  resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
+  resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit||!editMode)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
   document.addEventListener('pointerdown',event=>{if(drawer.classList.contains('open')&&!drawer.contains(event.target)&&!addButton.contains(event.target))toggleDrawer(false);});
 
   window.MERDPOSDashboardBuilder={reloadRoles:async()=>{const selected=currentRoleId;await loadRole(selected,false);},refreshData:()=>loadData(currentRoleId)};

@@ -51,6 +51,7 @@ $designAudit = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal
 $shellCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/shell.css', $errors);
 $appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/app-ui.css', $errors);
 $dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
+$dashboardBuilderJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.js', $errors);
 $navigationJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/navigation.js', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
@@ -139,8 +140,8 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
-    'assets/design-tokens.css?v=20260827theme1',
-    'assets/design-system.css?v=20260827theme1',
+    'assets/design-tokens.css?v=20260827visual1',
+    'assets/design-system.css?v=20260827visual1',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260826ds1',
@@ -193,6 +194,7 @@ beta_contract_require_contains($tokens, ':root[data-theme="dark"]', 'semantic da
 beta_contract_require_contains($management, 'MERDPOSTheme', 'theme persistence runtime', $errors);
 beta_contract_require_contains($navigationJs, 'rail-theme-toggle', 'immediate theme toggle wiring', $errors);
 beta_contract_require_contains($shellCss, '.rail-theme-toggle', 'theme toggle shell styling', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'dashboardEditToggle', 'DEV dashboard explicit edit mode', $errors);
 
 // Mobile functionality remains runtime-tested, not CSS-only.
 foreach ([

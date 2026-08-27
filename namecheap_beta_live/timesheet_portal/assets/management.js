@@ -37,19 +37,19 @@
 
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
-    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827theme1');
-    appendStyle('merd-shell','assets/shell.css?v=20260827theme1');
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827visual1');
+    appendStyle('merd-shell','assets/shell.css?v=20260827visual1');
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260826ds1');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260826ds1');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260827visual1');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260827visual1');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */
     if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
 
-    appendScript('merd-navigation','assets/navigation.js?v=20260827theme1',true);
+    appendScript('merd-navigation','assets/navigation.js?v=20260827visual1',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
@@ -67,7 +67,7 @@
     appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260827theme1');
+    appendStyle('merd-design-system','assets/design-system.css?v=20260827visual1');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
   }
   ensureShellAssets();

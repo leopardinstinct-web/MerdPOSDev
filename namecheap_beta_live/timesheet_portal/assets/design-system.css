@@ -670,6 +670,14 @@ body.merd-shell {
   background: color-mix(in srgb, var(--color-info-surface) 55%, transparent);
 }
 
+:root[data-theme="dark"] .merd-shell table tbody tr { background: var(--color-surface-main); }
+:root[data-theme="dark"] .merd-shell table tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.late-row) { background: var(--color-surface-muted) !important; }
+:root[data-theme="dark"] .merd-shell table tbody tr.green-total,
+:root[data-theme="dark"] .merd-shell table tbody tr.wage-row { background: var(--color-success-surface) !important; color: var(--color-success); }
+:root[data-theme="dark"] .merd-shell table tbody tr.hours-row { background: var(--color-info-surface) !important; color: var(--color-info); }
+:root[data-theme="dark"] .merd-shell table tbody tr.late-row { background: var(--color-danger-surface) !important; }
+.merd-shell .queue-pill.is-clear { background: var(--color-success-surface); color: var(--color-success); }
+
 .merd-shell table :where(.num, [data-numeric="true"]) {
   text-align: right;
   font-variant-numeric: tabular-nums;

@@ -21,7 +21,7 @@
 .merd-brand--header.merd-brand--approved-lockup{display:inline-flex;align-items:center;min-width:0}
 .merd-shell .merd-topbar .merd-logo-lockup.merd-brand--header{flex:0 1 auto;width:auto;min-width:0;max-width:13.75rem;height:2.875rem;overflow:hidden}
 .merd-shell .merd-topbar .merd-brand__lockup-image{display:block;width:auto;height:2.875rem;max-width:13.75rem;object-fit:contain}
-:root[data-theme="dark"] .merd-shell .merd-topbar .merd-logo-lockup.merd-brand--header{background:rgba(255,255,255,.96);border-radius:.5rem;box-shadow:0 0 0 .2rem rgba(255,255,255,.96)}
+:root[data-theme="dark"] .merd-shell .merd-topbar .merd-logo-lockup.merd-brand--header{background:rgba(255,255,255,.92);border-radius:.35rem;box-shadow:0 0 0 .0625rem rgba(255,255,255,.55)}
 .merd-login-card{position:relative;overflow:hidden}
 .merd-login-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--merd-brand-gradient)}
 .merd-login-body{background:radial-gradient(circle at 12% 8%,rgba(18,189,243,.10),transparent 32rem),radial-gradient(circle at 90% 92%,rgba(139,46,255,.09),transparent 34rem),var(--color-bg-main,#F5F7FC)}

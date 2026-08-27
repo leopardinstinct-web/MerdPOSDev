@@ -89,8 +89,8 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/table-ui.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/app-ui.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827theme1">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260827visual1">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
@@ -383,8 +383,8 @@ function ui_icon(string $name): string
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
   </script>
   <script src="assets/app.js?v=20260826minimal1"></script>
-  <script src="assets/beta.js?v=20260826minimal1"></script>
-  <script src="assets/management.js?v=20260827theme1"></script>
+  <script src="assets/beta.js?v=20260827visual1"></script>
+  <script src="assets/management.js?v=20260827visual1"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>
 </html>

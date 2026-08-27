@@ -579,3 +579,18 @@
   .migration-actions > :where(button, .migration-foot) { width: 100%; }
   .migration-actions > button { justify-content: center; }
 }
+
+
+/* Whole-surface visual audit polish: compact headers, dense admin rows, healthy finance states. */
+.merd-shell .directory-toolbar { align-items: flex-start; }
+.merd-shell .directory-toolbar > :first-child { flex: 1 1 auto; }
+.merd-shell .directory-toolbar .directory-actions.merd-action-cluster { flex: 0 0 auto; width: auto; margin-left: auto; }
+.merd-shell .clients-admin-toolbar.merd-action-cluster { width: auto !important; margin-left: auto; }
+.merd-shell .directory-layout { gap: var(--space-3); }
+.merd-shell .entity-row { min-height: 4rem; padding-block: var(--space-2); }
+.merd-shell .roles-list { gap: var(--space-2); }
+.merd-shell .role-row { grid-template-columns: minmax(0,1.35fr) minmax(5.75rem,.45fr) minmax(5.75rem,.45fr) minmax(6.5rem,.5fr) auto; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+.merd-shell .financial-day-not-opened { min-height: 0; padding: var(--space-4); }
+.merd-shell .financial-day-not-opened h2 { margin: 0; font-size: var(--type-lg); }
+.merd-shell .financial-day-not-opened p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); }
+@media (max-width:51.25rem){.merd-shell .directory-toolbar .directory-actions.merd-action-cluster,.merd-shell .clients-admin-toolbar.merd-action-cluster{width:100%!important;margin-left:0}.merd-shell .role-row{grid-template-columns:1fr}}

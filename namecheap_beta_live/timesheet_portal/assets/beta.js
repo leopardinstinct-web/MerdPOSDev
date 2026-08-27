@@ -132,7 +132,7 @@
   function renderFinancialStatement(){
     const summary=$('financialSummary'),accounts=financialStatement.accounts||[],openForm=$('openDayForm');
     if(financialStatement.day_status==='not_open'){
-      summary.innerHTML='<div class="empty-card"><h2>Financial day not opened</h2><p>A SUPER user must confirm the opening balances.</p></div>';
+      summary.innerHTML='<div class="empty-card financial-day-not-opened"><h2>Opening balances required</h2><p>A SUPER user must confirm the opening balances before this financial day can begin.</p></div>';
       if(openForm)openForm.hidden=false;$('financialEntries').hidden=true;updateAvailable();return;
     }
     if(openForm)openForm.hidden=true;
@@ -152,7 +152,7 @@
   $('closingForm').addEventListener('submit',event=>{event.preventDefault();const f=Object.fromEntries(new FormData(event.target)),total=Number(f.register_total),petty=Number(f.petty_cash_addin||0),registerAvailable=effectiveAvailable('Register');if(registerAvailable===null){alert('Open this financial day before closing it.');return;}if(!Number.isFinite(total)||total<0||!Number.isFinite(petty)||petty<0||petty>total){alert('Enter valid closing totals. Petty Cash transfer cannot exceed the Register total.');return;}if(total-registerAvailable+petty<0){alert('Register total is below the recorded balance. Review Cash IN / OUT first.');return;}if(!confirm('Close this financial day? This can only be done once.'))return;if(queueFinancial('z_report',{register_total:total,petty_cash_addin:petty,denominations:String(f.denominations||'').split(',').map(v=>v.trim()).filter(Boolean)}))event.target.reset();});
 
   function getQueue() { try { const v=JSON.parse(localStorage.getItem(queueKey)||'[]'); return Array.isArray(v)?v:[]; } catch (_) { return []; } }
-  function updateQueueBadge() { const count=getQueue().length; $('financialQueue').textContent=`${count} pending`; updateAvailable(); }
+  function updateQueueBadge() { const count=getQueue().length,badge=$('financialQueue'); if(badge){badge.textContent=count?`${count} pending`:'✓ Up to date';badge.classList.toggle('is-clear',count===0);} updateAvailable(); }
   async function flushQueue() {
     if (!state || !navigator.onLine) { updateQueueBadge(); return; }
     const queue = getQueue(), remaining = [];
