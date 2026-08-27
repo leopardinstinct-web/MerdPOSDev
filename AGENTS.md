@@ -4,6 +4,16 @@ This repository is the standalone source of truth for MERDPOS Beta.
 
 A fresh AI/chat/coding session with GitHub access must be able to reconstruct the project without relying on prior chat history, project memory, local files, or undocumented human context.
 
+## Mandatory branch-entry guard
+
+For any task that is about MERDPOS Beta, do not trust the repository's default branch, the current checkout, a feature branch already open in the session, or branch state inherited from a chat that started elsewhere.
+
+Before planning or implementing Beta work, independently resolve the current `namecheap-beta-live` HEAD from GitHub and read this bootstrap from that exact branch/ref. This re-bootstrap is mandatory when a chat is moved into the MERDPOS BETA project, when an existing session changes repository/branch context, and immediately before an explicit `implement`/`fix`/`apply`/`do` request if the session began outside the project.
+
+If a feature branch is genuinely needed, create it from the current `namecheap-beta-live` HEAD only after this bootstrap. Do not continue substantive Beta work on a stale or diverged branch merely because it was already checked out. Reconcile/recreate it against the current authoritative branch first. Small bounded Beta changes should continue to prefer direct edits on `namecheap-beta-live`.
+
+The repository default branch may carry only a discovery pointer for Beta. It is not the Beta source of truth.
+
 ## Mandatory startup
 
 Before planning or changing MERDPOS Beta, read in this order:
