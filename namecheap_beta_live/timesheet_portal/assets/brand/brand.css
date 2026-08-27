@@ -19,13 +19,15 @@
 .merd-brand--primary{display:block}
 .merd-brand--compact{display:inline-flex;align-items:center}
 .merd-brand--header.merd-brand--approved-lockup{display:inline-flex;align-items:center;min-width:0}
+.merd-shell .merd-topbar .merd-logo-lockup.merd-brand--header{flex:0 1 auto;width:auto;min-width:0;max-width:13.75rem;height:2.875rem;overflow:hidden}
+.merd-shell .merd-topbar .merd-brand__lockup-image{display:block;width:auto;height:2.875rem;max-width:13.75rem;object-fit:contain}
 .merd-login-card{position:relative;overflow:hidden}
 .merd-login-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--merd-brand-gradient)}
 .merd-login-body{background:radial-gradient(circle at 12% 8%,rgba(18,189,243,.10),transparent 32rem),radial-gradient(circle at 90% 92%,rgba(139,46,255,.09),transparent 34rem),var(--color-bg-main,#F5F7FC)}
 .merd-topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;background:linear-gradient(90deg,var(--merd-brand-cyan),var(--merd-brand-blue) 48%,var(--merd-brand-violet));opacity:.82}
 .merd-logo-lockup.merd-brand{margin:0}.merd-logo-lockup.merd-brand>*{min-width:0}
 .merd-brand-path-accent::before{content:"";display:block;width:2.75rem;height:.22rem;margin-bottom:.65rem;border-radius:999px;background:var(--merd-brand-gradient)}
-@media(max-width:820px){.merd-brand__primary-logo{width:min(100%,20rem)}.merd-brand__lockup-image{height:40px;max-width:190px}.merd-brand--header .merd-brand__mark{width:42px;height:36px;flex-basis:42px}}
+@media(max-width:820px){.merd-brand__primary-logo{width:min(100%,20rem)}.merd-brand__lockup-image{height:40px;max-width:190px}.merd-brand--header .merd-brand__mark{width:42px;height:36px;flex-basis:42px}.merd-shell .merd-topbar .merd-logo-lockup.merd-brand--header{height:2.5rem;max-width:11.875rem}.merd-shell .merd-topbar .merd-brand__lockup-image{height:2.5rem;max-width:11.875rem}}
 @media print{.merd-brand__asset,.merd-brand__primary-logo,.merd-brand__lockup-image,.merd-brand__mark,.merd-brand__wordmark-image,.merd-brand__tagline-image{filter:grayscale(1) contrast(1.7)}.merd-topbar::after,.merd-login-card::before{display:none}}
 
 /* Dashboard widget picker — approved Option 2 glass treatment. */

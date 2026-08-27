@@ -1,4 +1,12 @@
 (function(){
+  const THEME_KEY='merdpos-theme';
+  const validTheme=value=>value==='dark'||value==='light';
+  const currentTheme=()=>document.documentElement.dataset.theme==='dark'?'dark':'light';
+  const syncThemeMeta=theme=>{const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='dark'?'#0D1324':'#031B4B';};
+  const setTheme=(theme,persist=true)=>{const next=validTheme(theme)?theme:'light';document.documentElement.dataset.theme=next;syncThemeMeta(next);if(persist){try{localStorage.setItem(THEME_KEY,next);}catch(_){}}window.dispatchEvent(new CustomEvent('merdpos-themechange',{detail:{theme:next}}));return next;};
+  let storedTheme=null;try{storedTheme=localStorage.getItem(THEME_KEY);}catch(_){}
+  if(validTheme(storedTheme)){document.documentElement.dataset.theme=storedTheme;syncThemeMeta(storedTheme);}
+  window.MERDPOSTheme=Object.freeze({current:currentTheme,set:setTheme,toggle:()=>setTheme(currentTheme()==='dark'?'light':'dark')});
   const $=id=>document.getElementById(id);
   const permissions=window.MERDPOS_AUTH?.permissions||{};
   const can=key=>!!permissions[key];
@@ -29,8 +37,8 @@
 
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
-    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827brand2');
-    appendStyle('merd-shell','assets/shell.css?v=20260826ds1');
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827theme1');
+    appendStyle('merd-shell','assets/shell.css?v=20260827theme1');
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
@@ -41,7 +49,7 @@
     /* Roles mounts before navigation so Operations structure is deterministic. */
     if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
 
-    appendScript('merd-navigation','assets/navigation.js?v=20260826ds1',true);
+    appendScript('merd-navigation','assets/navigation.js?v=20260827theme1',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
@@ -59,7 +67,7 @@
     appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260827brand2');
+    appendStyle('merd-design-system','assets/design-system.css?v=20260827theme1');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
   }
   ensureShellAssets();

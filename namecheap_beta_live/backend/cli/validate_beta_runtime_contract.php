@@ -139,8 +139,8 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
-    'assets/design-tokens.css?v=20260827brand2',
-    'assets/design-system.css?v=20260827brand2',
+    'assets/design-tokens.css?v=20260827theme1',
+    'assets/design-system.css?v=20260827theme1',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260826ds1',
@@ -189,6 +189,10 @@ beta_contract_require_contains($navigationJs, 'syncMobileSubnavState', 'mobile c
 beta_contract_require_contains($shellCss, 'body.merd-mobile-subnav-open .app-workspace.merd-page-shell', 'mobile contextual subnav offset', $errors);
 beta_contract_require_contains($shellCss, 'body.merd-keyboard-open .app-rail', 'software-keyboard navigation protection', $errors);
 beta_contract_require_contains($shellCss, 'body.merd-shell.merd-keyboard-open', 'software-keyboard bottom offset reset', $errors);
+beta_contract_require_contains($tokens, ':root[data-theme="dark"]', 'semantic dark theme tokens', $errors);
+beta_contract_require_contains($management, 'MERDPOSTheme', 'theme persistence runtime', $errors);
+beta_contract_require_contains($navigationJs, 'rail-theme-toggle', 'immediate theme toggle wiring', $errors);
+beta_contract_require_contains($shellCss, '.rail-theme-toggle', 'theme toggle shell styling', $errors);
 
 // Mobile functionality remains runtime-tested, not CSS-only.
 foreach ([

@@ -217,9 +217,25 @@
   --color-border-default: #475467;
   --color-border-subtle: #344054;
   --color-border-strong: #667085;
+  --color-success: #6CE9A6;
+  --color-success-surface: #14382B;
+  --color-warning: #FEC84B;
+  --color-warning-surface: #3B2E10;
+  --color-danger: #FDA29B;
+  --color-danger-surface: #492126;
+  --color-info: #84CAFF;
+  --color-info-surface: #172F4D;
+  --color-chart-1: #66A3FF;
+  --color-chart-2: #B184FF;
+  --color-chart-3: #55D6BE;
+  --color-chart-4: #8D9CFF;
+  --color-chart-5: #B8C1D1;
   --color-focus-soft: rgba(132, 202, 255, .26);
   --color-overlay: rgba(0, 0, 0, .58);
   --color-shadow: rgba(0, 0, 0, .32);
+  --shadow-card: 0 .0625rem .25rem rgba(0, 0, 0, .24);
+  --shadow-raised: 0 .5rem 1.5rem rgba(0, 0, 0, .34);
+  --shadow-dialog: 0 1.5rem 4rem rgba(0, 0, 0, .48);
 }
 
 @media (max-width: 51.25rem) {

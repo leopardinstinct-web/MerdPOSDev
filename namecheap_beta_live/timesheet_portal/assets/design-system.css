@@ -47,13 +47,11 @@ body.merd-shell {
   box-sizing: border-box;
 }
 
-.merd-shell img,
-.merd-shell svg,
-.merd-shell canvas {
+:where(.merd-shell img, .merd-shell svg, .merd-shell canvas) {
   max-width: 100%;
 }
 
-.merd-shell img {
+:where(.merd-shell img) {
   height: auto;
 }
 
