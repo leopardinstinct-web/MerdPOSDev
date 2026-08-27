@@ -93,8 +93,8 @@ function ui_icon(string $name): string
 </head>
 <body class="merd-shell">
   <header class="topbar merd-topbar">
-    <div class="merd-logo-lockup merd-brand merd-brand--compact merd-brand--header" aria-label="MERDPOS">
-      <img class="merd-brand__mark" src="assets/brand/merdpos-mark-approved.png" alt="MERDPOS">
+    <div class="merd-logo-lockup merd-brand merd-brand--header merd-brand--approved-lockup" aria-label="MERDPOS">
+      <img class="merd-brand__lockup-image" src="assets/brand/merdpos-logo-approved.png?v=20260827exact2" alt="MERDPOS - Smarter Faster Together">
     </div>
     <div class="topbar-actions">
       <div class="user-line">Signed in as <strong><?= htmlspecialchars((string)$user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($roleLabel) ?></span></div>
@@ -387,4 +387,7 @@ function ui_icon(string $name): string
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>
 </html>
+
+
+
 
