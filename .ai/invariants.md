@@ -91,6 +91,12 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 - Operational success, warning, danger and information colors remain separate semantic status tokens and are not part of the brand master palette.
 - Approved raster logo artwork remains immutable; baked-in intermediate gradient pixels in the supplied logo are an artwork exception, not additional UI palette colors.
 
+## DEV UI Studio safety
+
+- UI Studio is available only to an actual DEV identity; a permission or LOA alone is not sufficient.
+- UI Studio is preview-only browser tooling. It must not call mutation APIs, write database state, modify repository source, or affect other users.
+- Draft UI changes may persist only as local browser preview state and must remain visibly identified as preview-only.
+- A UI Studio change-set becomes real only after it is translated into canonical source, committed, deployed and runtime-verified through the normal lifecycle.
 ## Security
 
 - Never commit secrets or private backend config.

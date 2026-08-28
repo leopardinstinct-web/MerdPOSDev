@@ -105,3 +105,12 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 
 **Supersedes:** The 2026-08-27 connected-brand palette decision that treated Blue `#1D6CFF`, Indigo `#586CFF` and supporting extended spectrum values as canonical brand colors.
 
+## 2026-08-29 — DEV UI Studio is a preview/handoff tool, not a source editor
+
+**Decision:** MERDPOS Beta provides a DEV-only UI Studio for rapid visual iteration on the currently rendered application. It may preview styling, visibility and DOM placement changes in the current browser and accumulate them into a structured change-set.
+
+**Safety boundary:** UI Studio must require an actual DEV identity and must not call application mutation APIs, write database state, modify repository source, or affect other users. Its draft is local browser state and must be visibly labelled `PREVIEW ONLY`.
+
+**Handoff contract:** A UI Studio change-set is design intent, not deployed code. Applying it to MERDPOS still requires editing the canonical owner files, running normal guards, deploying the authoritative branch and visually verifying the affected runtime.
+
+**Reason:** This preserves fast interactive UI iteration without creating a second visual source of truth or bypassing MERDPOS authorization/deployment discipline.

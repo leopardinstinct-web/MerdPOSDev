@@ -61,6 +61,8 @@ $brandAssetsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_port
 $omnichannelJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/omnichannel-identity.js', $errors);
 $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand.css', $errors);
 $accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.css', $errors);
+$uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
+$uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
@@ -188,6 +190,21 @@ foreach ([
     beta_contract_require_absent($management, $retiredAsset, 'retired competing CSS layer', $errors);
 }
 
+// DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
+beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV identity flag', $errors);
+beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
+beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
+beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio1', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio1', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
+beta_contract_require_contains($uiStudioJs, 'PREVIEW ONLY', 'UI Studio preview-only label', $errors);
+beta_contract_require_contains($uiStudioJs, 'getChangeSet', 'UI Studio structured handoff', $errors);
+beta_contract_require_contains($uiStudioJs, "kind:'move'", 'UI Studio move patch support', $errors);
+beta_contract_require_absent($uiStudioJs, 'fetch(', 'UI Studio mutation/network isolation', $errors);
+beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio mutation/network isolation', $errors);
+beta_contract_require_absent($uiStudioJs, '/api/', 'UI Studio mutation/network isolation', $errors);
+beta_contract_require_contains($uiStudioCss, 'var(--color-brand-violet)', 'UI Studio master palette use', $errors);
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260828palette1', 'brand identity runtime cache version', $errors);

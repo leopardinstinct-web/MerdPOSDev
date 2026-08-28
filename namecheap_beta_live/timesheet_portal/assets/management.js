@@ -10,6 +10,7 @@
   const $=id=>document.getElementById(id);
   const permissions=window.MERDPOS_AUTH?.permissions||{};
   const can=key=>!!permissions[key];
+  const isDev=window.MERDPOS_AUTH?.is_dev===true;
   const esc=value=>String(value??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const money=(value,currency='AUD')=>{try{return Number(value||0).toLocaleString(undefined,{style:'currency',currency:String(currency||'AUD').toUpperCase()});}catch(_){return `${String(currency||'AUD').toUpperCase()} ${Number(value||0).toFixed(2)}`;}};
   const sortStores=rows=>(Array.isArray(rows)?rows.slice():[]).sort((a,b)=>Number(a?.store_id??a?.id??Number.MAX_SAFE_INTEGER)-Number(b?.store_id??b?.id??Number.MAX_SAFE_INTEGER));
@@ -69,6 +70,11 @@
     /* Canonical component layer must be the final stylesheet in the beta. */
     appendStyle('merd-design-system','assets/design-system.css?v=20260827visual1');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
+
+    if(isDev){
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260829studio1');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260829studio1');
+    }
   }
   ensureShellAssets();
 

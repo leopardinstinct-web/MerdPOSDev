@@ -172,6 +172,7 @@ Historical Google data is being migrated into SQL, while new portal transactions
 - `assets/minimal-controls.js` — shared Add/Search behavior;
 - `assets/mobile-runtime.js` — mobile runtime enhancement and self-audit;
 - `assets/design-audit.js` — contextual design/accessibility runtime audit;
+- `assets/ui-studio.js` + `assets/ui-studio.css` — actual-DEV-only local visual preview/change-set tooling; see `UI_STUDIO.md`;
 - `../browser_tests/shared-runtime.spec.js` — credential-free Chrome regression smoke tests for shared runtime incidents.
 
 ## Deployment

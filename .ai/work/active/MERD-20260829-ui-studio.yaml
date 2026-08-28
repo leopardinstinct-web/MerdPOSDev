@@ -1,0 +1,48 @@
+version: 1
+id: MERD-20260829-ui-studio
+objective: "Provide a DEV-only visual editor for fast MERDPOS Beta UI preview changes and structured change-set handoff to canonical source."
+acceptance:
+  - "Only an actual DEV identity can load or open UI Studio."
+  - "Selecting an element never writes server source, APIs, database state, or other users' UI."
+  - "Editor supports palette color changes, spacing/size/radius/font changes, visibility, and moving elements before/after/inside another element."
+  - "Multiple preview edits accumulate into a readable/exportable change-set."
+  - "Preview drafts can be cleared/reset and remain visibly marked PREVIEW ONLY."
+  - "Canonical source remains the only production source of truth; exported edits require normal code/deploy/verify lifecycle."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "957d5c49f833edd4308c4fbacffc1affca2aca98"
+last_seen_head: "957d5c49f833edd4308c4fbacffc1affca2aca98"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
+  - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
+  - "namecheap_beta_live/timesheet_portal/README.md"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
+  - ".ai/invariants.md"
+  - ".ai/decisions.md"
+  - ".ai/regression-inventory.md"
+constraints:
+  - "DEV-only means actual DEV identity, not LOA or a named permission alone."
+  - "No preview edit may call mutation APIs or persist UI changes to the server."
+  - "Do not alter payroll, finance, authorization, or business data behavior."
+  - "Use the five-color MERDPOS master palette for brand-facing color controls."
+completed:
+  - "Resolved authoritative HEAD and re-read current bootstrap/invariants/task gates."
+  - "Inspected current dashboard/management runtime and recent management/shell/design-audit history."
+  - "Implemented DEV-gated UI Studio chrome, local draft persistence, selectable element inspector, palette/spacing/size/visibility edits, before/after/inside movement and structured JSON handoff."
+  - "Added source contract proving actual-DEV gating and forbidding fetch/XMLHttpRequest/API ownership in UI Studio."
+  - "Added permanent Chrome regression: non-DEV unavailable; DEV style + move change-set passed 2/2."
+  - "Full browser regression suite passed 16/16."
+  - "PHP lint passed 94 files; JS syntax passed 24 portal asset files; runtime, permission, loader-order and beta-state validators passed."
+remaining:
+  - "Commit and push the checked implementation."
+  - "Confirm GitHub guardrails and Namecheap deployment."
+  - "Verify authenticated live DEV UI Studio interaction and visual fit."
+next_action: "Commit/push checked UI Studio, then deploy and verify it in authenticated Opera."
+blocked: false
+blocker: null
+updated_at: "2026-08-29T01:48:00+05:00"
