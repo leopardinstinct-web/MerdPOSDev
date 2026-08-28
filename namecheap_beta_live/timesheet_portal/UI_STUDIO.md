@@ -1,46 +1,38 @@
 # MERDPOS UI Studio
 
-UI Studio is a DEV-only visual preview tool for fast Beta UI iteration.
+UI Studio is a DEV-only visual preview tool for fast Beta UI iteration. MERDPOS stays visible as the canvas: Studio has no inspector drawer, textarea, or persistent editor panel.
 
-## What it does
+## Native circular interaction
 
-- Opens on top of the currently rendered authenticated MERDPOS page.
-- Lets DEV select a rendered element without triggering its normal click action.
-- Adds explicit scope: **This element**, **This component type**, **All matching elements**, or **All pages**.
-- Previews background/text colors from the five-color MERDPOS master palette.
-- Previews padding, margin, gap, radius, width and font-size changes.
-- Can hide an element or move it before, after, or inside another rendered element.
-- Accumulates multiple edits into a human-readable and JSON change-set.
-- Keeps the draft in browser local storage so a refresh does not lose the current preview.
-- On phones, uses a compact floating action wheel plus a <=46dvh inspector/change sheet so the app remains visible behind the editor.
+- Opening Studio shows one draggable circular **UI** hub on desktop and mobile.
+- The hub uses native browser Popover plus local HTML/CSS/JavaScript only; no circular-menu, React, icon-font, or CDN runtime dependency is required.
+- Clicking **UI** opens an adaptive radial menu toward the visible space around the hub.
+- Dragging the hub moves it around the viewport and stores desktop/mobile positions separately in browser local storage.
+- **Select** closes the menu so DEV can click a rendered MERDPOS element without triggering its normal action.
+- **Color** opens a nested palette ring for White, Canvas (`#F5F7FC`), Navy, Cyan and Violet plus a BG/Text target toggle.
+- **Layout** opens nested rings for padding, margin, gap, radius, width and font-size presets.
+- **Scope** exposes This element, This component type, All matching elements and All pages.
+- **Move** exposes Before, After and Inside; structural movement remains This element only.
+- **Hide/Show** changes visibility in the preview.
+- **Changes** exposes Copy, Chat, Undo, Reset and Clear without displaying the JSON on screen.
+
+## Copy and Chat handoff
+
+The structured draft remains internal. **Copy** writes the raw JSON change-set to the clipboard. **Chat** writes an apply-to-canonical-source instruction, readable change summary and the same JSON to the clipboard for pasting into ChatGPT.
+
+`window.MERDPOS_UI_STUDIO.getChangeSet()` remains available to an authorized connected-browser workflow.
 
 ## Safety boundary
 
-UI Studio never writes source files, calls MERDPOS APIs, changes database state, or affects another user's browser. The tool is gated by the actual `is_dev` identity flag and labels its work `PREVIEW ONLY`.
+UI Studio never writes source files, calls MERDPOS APIs, changes database state, or affects another user's browser. It is gated by the actual `is_dev` identity flag and labels its temporary work `DEV - PREVIEW ONLY`.
 
-A UI Studio change-set is design intent. It becomes part of MERDPOS only after the canonical owner files are edited, committed to `namecheap-beta-live`, deployed through the normal Namecheap process, and runtime-verified.
-
-## Workflow
-
-1. Open **DEV → UI Studio → Open UI Studio**.
-2. Choose **Select element**, then click the UI element to change.
-3. Choose **Apply to** scope, then make one or more preview changes.
-4. For structural movement, choose **Move before…**, **Move after…**, or **Move inside…**, then click the destination.
-5. Repeat across the current MERDPOS interface; the change-set grows as you work.
-6. Use **Copy change-set**, or leave UI Studio open and ask ChatGPT to read the open draft through the browser connection.
-7. Ask ChatGPT to apply the draft. Normal source/deploy/verify gates still apply.
+A UI Studio change-set is design intent. It becomes MERDPOS only after canonical owner files are edited, committed to `namecheap-beta-live`, deployed through the normal Namecheap process, and runtime-verified.
 
 ## Scope semantics
 
 - **This element** targets only the clicked DOM node.
 - **This component type** targets the same element role inside the current component on the current page.
-- **All matching elements** targets matching elements in the current portal page/panel.
-- **All pages** removes the page-specific scope and targets the shared matching component across portal pages.
+- **All matching elements** targets matching elements in the current portal panel.
+- **All pages** removes panel-specific scope and targets the shared matching component across portal pages.
 
-Movement commands stay intentionally limited to **This element**. Broad structural movement is too ambiguous for a preview handoff.
-
-## Mobile compact mode
-
-On phone widths, opening UI Studio no longer covers most of MERDPOS. A circular quick-action control provides **Select**, **Edit**, **Changes**, **Undo**, and **Exit**. The editor sheet appears only when needed and is capped at 46% of the dynamic viewport height.
-
-The circular interaction uses the vendored `yandongCoder/circular-menu` 1.0.6 package (ISC) under `assets/vendor/circular-menu/`; MERDPOS styling and behavior remain owned by UI Studio.
+The radial layout deliberately computes item coordinates in JavaScript rather than depending on experimental CSS `@function` or `sibling-index()` support. Inline SVG icons keep the controller self-contained.

@@ -122,3 +122,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Mobile contract:** At phone widths UI Studio uses a compact floating quick-action wheel and opens the inspector/change sheet only on demand, capped at 46dvh so the underlying MERDPOS screen stays visible. The wheel vendors `yandongCoder/circular-menu` 1.0.6 under its declared ISC license; MERDPOS owns the wrapper, tokens, actions and safety boundary.
 
 **Reason:** The visual editor is useful only when the product remains visible while editing, and change-set scope must represent design intent without ChatGPT inferring global rules from duplicated exact selectors.
+
+## 2026-08-29 - UI Studio uses native draggable radial controls only
+
+**Decision:** UI Studio has no persistent inspector/change-set panel on desktop or mobile. The rendered MERDPOS application is always the canvas; one draggable `UI` hub is the only persistent Studio chrome.
+
+**Interaction:** The hub opens nested radial layers for Select, Color, Layout, Scope, Move, Hide/Show, Changes and Exit. Color opens the five-color master palette as a second ring. Changes exposes Copy/Chat/Undo/Reset/Clear from the circle. Scope remains explicit (`element`, `component`, `matching`, `pages`), and DOM movement remains element-only.
+
+**Runtime:** The radial controller uses the browser Popover API plus local HTML/CSS/JavaScript and inline SVG icons. Item coordinates and opening direction are calculated in JavaScript so the menu adapts to visible viewport space without experimental CSS functions or third-party menu runtimes.
+
+**Safety:** The controller remains actual-DEV-only, preview-only, local-browser state. Copy/Chat are clipboard handoffs; Studio still performs no source, API, or database writes.
+
+**Supersedes:** The earlier 2026-08-29 mobile contract that used `yandongCoder/circular-menu` plus an inspector/change sheet. The subsequently explored `react-circular-menu` approach was not promoted to source and is not part of the runtime.

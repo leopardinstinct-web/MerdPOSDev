@@ -21,7 +21,7 @@ Source/CI inspection does not equal Namecheap deployment verification.
 | Timesheet runtime injection | Chrome smoke guards duplicate `timesheet-app.js` loading and request multiplication | Permanent |
 | Mobile UX contract | 390x844 Chrome smoke protects four-destination primary nav, utility bottom sheet, contextual page header/subtabs, labelled table cards and horizontal-overflow safety | Permanent usability/runtime contract; do not freeze exact cosmetic coordinates |
 | Brand master palette | Source contract + Chrome regression protect the five canonical brand colors and reject retired extended-spectrum literals from brand-facing CSS | Permanent brand/design-system contract |
-| DEV UI Studio | Source contract forbids network/mutation ownership; Chrome smoke checks actual-DEV gating, preview style edits, element move patches, explicit all-pages scope, compact mobile circular actions and structured change-set output | Permanent tooling/safety contract |
+| DEV UI Studio | Source contract forbids network/mutation ownership and third-party circular runtimes; Chrome smoke checks actual-DEV gating, native Popover radial editing, draggable/adaptive placement, nested palette/layout/scope layers, move patches, all-pages scope and Copy/Chat handoff with no inspector panel | Permanent tooling/safety contract |
 | Shared Add/Search runtime | Chrome smoke protects duplicate mutation/click behavior | Keep while component remains canonical |
 | DEV Stores identity | Browser regression accepts backend `Developer` label for DEV store enrichment | Permanent incident guard |
 | Authenticated read-only live audit | Reusable external-storage-state runner | Available; run when meaningful, not after every cosmetic change |

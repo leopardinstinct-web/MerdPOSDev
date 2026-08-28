@@ -72,10 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-circular-menu-css','assets/vendor/circular-menu/circular-menu.css?v=1.0.6');
-      appendScript('merd-circular-menu','assets/vendor/circular-menu/circular-menu.js?v=1.0.6');
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260829studio3');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260829studio3');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260829studio5');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260829studio5');
     }
   }
   ensureShellAssets();
