@@ -2,7 +2,7 @@
   const THEME_KEY='merdpos-theme';
   const validTheme=value=>value==='dark'||value==='light';
   const currentTheme=()=>document.documentElement.dataset.theme==='dark'?'dark':'light';
-  const syncThemeMeta=theme=>{const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='dark'?'#0D1324':'#031B4B';};
+  const syncThemeMeta=theme=>{const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content='#031B4B';};
   const setTheme=(theme,persist=true)=>{const next=validTheme(theme)?theme:'light';document.documentElement.dataset.theme=next;syncThemeMeta(next);if(persist){try{localStorage.setItem(THEME_KEY,next);}catch(_){}}window.dispatchEvent(new CustomEvent('merdpos-themechange',{detail:{theme:next}}));return next;};
   let storedTheme=null;try{storedTheme=localStorage.getItem(THEME_KEY);}catch(_){}
   if(validTheme(storedTheme)){document.documentElement.dataset.theme=storedTheme;syncThemeMeta(storedTheme);}
@@ -37,7 +37,7 @@
 
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
-    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827visual1');
+    appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260828palette1');
     appendStyle('merd-shell','assets/shell.css?v=20260828mobile1');
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
@@ -53,14 +53,14 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260828mobile1');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260828palette1');
     appendScript('account-menu','assets/account-menu.js?v=20260828mobile1');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
 
     /* Functional identity patch remains; its old standalone styling layer is
        retired because design-system.css now owns the visual grammar. */
-    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260827brand4');
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260828palette1');
 
     /* Behaviour only. Geometry comes from the canonical design system. */
     appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');

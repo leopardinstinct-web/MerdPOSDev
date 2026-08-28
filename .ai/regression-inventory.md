@@ -1,6 +1,6 @@
 # MERDPOS Beta Regression Inventory
 
-**Updated:** 2026-08-27
+**Updated:** 2026-08-28
 
 This inventory describes the current safety net. It must be read with `.ai/README.md`, `.ai/memory.md` and `.ai/playbook.md`.
 
@@ -20,6 +20,7 @@ Source/CI inspection does not equal Namecheap deployment verification.
 | Permission-hidden legacy runtime | Chrome smoke protects against hidden-DOM JS crashes | Permanent |
 | Timesheet runtime injection | Chrome smoke guards duplicate `timesheet-app.js` loading and request multiplication | Permanent |
 | Mobile UX contract | 390x844 Chrome smoke protects four-destination primary nav, utility bottom sheet, contextual page header/subtabs, labelled table cards and horizontal-overflow safety | Permanent usability/runtime contract; do not freeze exact cosmetic coordinates |
+| Brand master palette | Source contract + Chrome regression protect the five canonical brand colors and reject retired extended-spectrum literals from brand-facing CSS | Permanent brand/design-system contract |
 | Shared Add/Search runtime | Chrome smoke protects duplicate mutation/click behavior | Keep while component remains canonical |
 | DEV Stores identity | Browser regression accepts backend `Developer` label for DEV store enrichment | Permanent incident guard |
 | Authenticated read-only live audit | Reusable external-storage-state runner | Available; run when meaningful, not after every cosmetic change |

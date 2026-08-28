@@ -84,6 +84,13 @@ Do not restore retired corrective CSS layers. Do not delete a canonical runtime 
 
 For cross-cutting UI/design-system work, token adoption is not proof of successful standardization. Inspect shared primitive history, feature-specific owner/history, final cascade/runtime ownership and actual component states/readability as required by `.ai/task-gates.md`.
 
+## Brand master palette
+
+- The canonical MERDPOS brand master palette is exactly: White `#FFFFFF`, App Background `#F5F7FC`, Brand Navy `#031B4B`, Brand Cyan `#12BDF3`, and Violet `#8B2EFF`.
+- Brand-facing CSS must consume these master tokens or derive interaction/dark/neutral treatments from them; do not add blue/indigo/purple/slate brand-master literals back into shared UI.
+- Operational success, warning, danger and information colors remain separate semantic status tokens and are not part of the brand master palette.
+- Approved raster logo artwork remains immutable; baked-in intermediate gradient pixels in the supplied logo are an artwork exception, not additional UI palette colors.
+
 ## Security
 
 - Never commit secrets or private backend config.

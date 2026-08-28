@@ -90,7 +90,7 @@ function ui_icon(string $name): string
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#031B4B">
-  <script>try{const t=localStorage.getItem('merdpos-theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0D1324':'#031B4B';}}catch(_){}</script>
+  <script>try{const t=localStorage.getItem('merdpos-theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content='#031B4B';}}catch(_){}</script>
   <title>MERDPOS</title>
   <link rel="icon" href="assets/brand/merdpos-mark.png?v=20260827brand4" type="image/png">
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
@@ -98,7 +98,7 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/table-ui.css?v=20260828mobile1">
   <link rel="stylesheet" href="assets/app-ui.css?v=20260828mobile1">
-  <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
+  <link rel="stylesheet" href="assets/brand/brand.css?v=20260828palette1">
 </head>
 <body class="merd-shell">
   <div id="shellAccountSources" hidden data-user-name="<?= htmlspecialchars((string)$user['name']) ?>" data-role-label="<?= htmlspecialchars($roleLabel) ?>" data-role-key="<?= htmlspecialchars($role) ?>">

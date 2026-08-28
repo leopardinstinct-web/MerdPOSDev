@@ -1,0 +1,46 @@
+version: 1
+id: MERD-20260828-brand-master-palette
+objective: "Make White, App Background, Brand Navy, Brand Cyan and Violet the canonical MERDPOS brand master palette and wire live brand-facing UI to it."
+acceptance:
+  - "Master palette is exactly #FFFFFF, #F5F7FC, #031B4B, #12BDF3 and #8B2EFF."
+  - "Retired blue/indigo/purple/slate brand-master tokens are removed from canonical tokens and brand identity CSS."
+  - "Brand-facing hover/dark/neutral treatments derive from the five master colors rather than adding new brand literals."
+  - "Operational success/warning/danger/info semantics remain separate and accessible."
+  - "Approved logo artwork remains unchanged even if its raster gradient contains baked-in intermediate colors."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "4f0c3e086b31a8d5b47d1fe30956add7d75b4ecf"
+last_seen_head: "4f0c3e086b31a8d5b47d1fe30956add7d75b4ecf"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/design-tokens.css"
+  - "namecheap_beta_live/timesheet_portal/assets/brand/brand.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/assets/omnichannel-identity.js"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "namecheap_beta_live/browser_tests/brand-palette-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/timesheet-runtime.spec.js"
+  - "docs/pos_latest/BRAND_IDENTITY_STANDARD.md"
+  - "docs/pos_latest/DESIGN_TOKENS.md"
+  - ".ai/invariants.md"
+  - ".ai/decisions.md"
+  - ".ai/regression-inventory.md"
+constraints:
+  - "Do not redraw or recolor the approved logo artwork unless explicitly requested."
+  - "Preserve semantic status colors and accessibility contracts."
+  - "Do not change authorization, payroll, financial mutation or data behavior."
+completed:
+  - "Resolved authoritative HEAD and inspected token/brand/account CSS history plus current durable brand decision."
+  - "Implemented exact five-color master tokens, derived brand UI shades, cache bumps, durable docs/decision/invariant updates and source contract."
+  - "Retired extended-spectrum brand literals now have zero occurrences in live portal CSS/JS/PHP source."
+  - "Targeted brand palette regression passed 1/1."
+  - "Full browser regression suite passed 14/14 after updating Timesheets to assert the semantic surface token instead of obsolete RGB."
+  - "PHP lint passed 94 files; JS syntax passed 36 files; runtime, permission, loader-order and beta-state validators passed."
+remaining:
+  - "Push checked implementation and confirm GitHub guardrails."
+  - "Wait for Namecheap deployment and visually verify representative light/dark desktop/mobile surfaces."
+next_action: "Push checked five-color master palette implementation, confirm CI/deployment, then visually verify light/dark desktop/mobile."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T22:42:00+05:00"

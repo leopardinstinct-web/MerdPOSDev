@@ -93,3 +93,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Mobile contract:** primary bottom navigation is role-aware and limited to four high-frequency destinations; secondary client/account/theme/About/system utilities belong in a thumb-reachable bottom sheet; phone pages use a consistent title/helper/client-context header with contextual subtabs; safe gutters target 24px and touch targets remain at least 48px; desktop data tables adapt to labelled card rows on phones unless a feature owns a stronger mobile renderer; important actions and loading states stay reachable and local to the affected content.
 
 **Verification rule:** cross-cutting mobile changes require a 390px runtime smoke plus authenticated light/dark rendered verification. The contract protects usability outcomes (overflow, reachability, readable hierarchy, utility access), not exact cosmetic coordinates.
+## 2026-08-28 ? Adopt five-color MERDPOS brand master palette
+
+**Decision:** The canonical MERDPOS brand master palette is restricted to White `#FFFFFF`, App Background `#F5F7FC`, Brand Navy `#031B4B`, Brand Cyan `#12BDF3`, and Violet `#8B2EFF`.
+
+**Runtime application:** `design-tokens.css` owns the five master literals. Primary interactive emphasis derives from Violet; Navy owns structural/navigation foundations; Cyan is the identity/accent color; White and App Background own light surfaces. Hover/active/dark/border/muted/overlay treatments must derive from those masters rather than introducing additional brand literals.
+
+**Semantic exception:** Success, warning, danger and information remain dedicated operational semantic colors for meaning and accessibility. They are not additions to the brand master palette.
+
+**Artwork exception:** Approved logo raster assets stay unchanged. Any baked-in intermediate gradient pixels in those supplied assets do not become UI palette tokens.
+
+**Supersedes:** The 2026-08-27 connected-brand palette decision that treated Blue `#1D6CFF`, Indigo `#586CFF` and supporting extended spectrum values as canonical brand colors.
+

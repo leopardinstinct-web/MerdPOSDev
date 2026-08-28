@@ -58,7 +58,9 @@ $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
 $rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
 $brandAssetsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand-assets.js', $errors);
+$omnichannelJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/omnichannel-identity.js', $errors);
 $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand.css', $errors);
+$accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.css', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
@@ -89,6 +91,33 @@ foreach ([
 beta_contract_require_contains($rootReadme, 'README maintenance', 'root beta README', $errors);
 beta_contract_require_contains($backendReadme, 'README maintenance', 'backend README', $errors);
 beta_contract_require_contains($portalReadme, 'README maintenance', 'portal README', $errors);
+
+// Five-color brand master palette is binding. Derived UI shades may use color-mix,
+// while operational success/warning/danger/info colors remain separate semantics.
+foreach ([
+    '--color-brand-white: #FFFFFF' => 'master White',
+    '--color-brand-background: #F5F7FC' => 'master App Background',
+    '--color-brand-navy: #031B4B' => 'master Brand Navy',
+    '--color-brand-cyan: #12BDF3' => 'master Brand Cyan',
+    '--color-brand-violet: #8B2EFF' => 'master Violet',
+] as $needle => $label) {
+    beta_contract_require_contains($tokens, $needle, $label, $errors);
+}
+foreach ([
+    '--color-brand-sky:',
+    '--color-brand-indigo:',
+    '--color-brand-purple:',
+    '--color-brand-light-violet:',
+    '--color-brand-slate:',
+    '--color-brand-descriptor:',
+] as $retiredBrandToken) {
+    beta_contract_require_absent($tokens, $retiredBrandToken, 'five-color master palette', $errors);
+}
+foreach (['#1D6CFF', '#2B90FF', '#586CFF', '#9638FF', '#B184FF', '#6A748B'] as $retiredBrandLiteral) {
+    beta_contract_require_absent($brandCss . $accountMenuCss, $retiredBrandLiteral, 'brand-facing CSS master-palette compliance', $errors);
+}
+beta_contract_require_contains($brandCss, '--merd-brand-gradient:var(--gradient-brand', 'brand CSS master gradient', $errors);
+beta_contract_require_contains($accountMenuCss, 'var(--color-brand-cyan)', 'About splash master palette wiring', $errors);
 
 // Canonical design-system ownership.
 foreach ([
@@ -140,11 +169,12 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
-    'assets/design-tokens.css?v=20260827visual1',
+    'assets/design-tokens.css?v=20260828palette1',
     'assets/design-system.css?v=20260827visual1',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260828mobile1',
+    'assets/account-menu.css?v=20260828palette1',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -160,7 +190,9 @@ foreach ([
 
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
-beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260827brand4', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260828palette1', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($omnichannelJs, 'assets/brand/brand.css?v=20260828palette1', 'brand stylesheet cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/brand/brand.css?v=20260828palette1', 'authenticated brand stylesheet cache version', $errors);
 foreach (['merdpos-logo-approved.png','merdpos-mark.png','merdpos-wordmark.png','merdpos-tagline.png'] as $assetName) {
     beta_contract_require_contains($brandAssetsJs, $assetName, 'canonical brand registry', $errors);
     if (!is_file($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/' . $assetName)) {

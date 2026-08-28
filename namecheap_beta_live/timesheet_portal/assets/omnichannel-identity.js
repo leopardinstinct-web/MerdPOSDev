@@ -14,7 +14,7 @@
     if(!document.querySelector('link[data-merd-brand-css]')){
       const link=document.createElement('link');
       link.rel='stylesheet';
-      link.href='assets/brand/brand.css?v=20260827brand4';
+      link.href='assets/brand/brand.css?v=20260828palette1';
       link.dataset.merdBrandCss='1';
       document.head.appendChild(link);
     }

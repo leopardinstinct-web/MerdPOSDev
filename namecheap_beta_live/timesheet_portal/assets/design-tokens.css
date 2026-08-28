@@ -9,40 +9,38 @@
 :root {
   color-scheme: light;
 
-  /* Brand + semantic colour pairs. All normal text pairs are WCAG AA. */
+  /* MERDPOS five-color brand master palette. These are the only canonical brand color literals. */
+  --color-brand-white: #FFFFFF;
+  --color-brand-background: #F5F7FC;
   --color-brand-navy: #031B4B;
   --color-brand-cyan: #12BDF3;
-  --color-brand-primary: #1D6CFF;
-  --color-brand-primary-hover: #175CE6;
-  --color-brand-primary-active: #124CC2;
-  --color-brand-sky: #2B90FF;
-  --color-brand-indigo: #586CFF;
   --color-brand-violet: #8B2EFF;
-  --color-brand-purple: #9638FF;
-  --color-brand-light-violet: #B184FF;
-  --color-brand-slate: #6A748B;
-  --color-brand-descriptor: #55617C;
-  --color-brand-on-primary: #FFFFFF;
-  --gradient-brand: linear-gradient(115deg, #12BDF3 0%, #1D6CFF 42%, #8B2EFF 100%);
 
-  --color-bg-main: #F5F7FC;
-  --color-bg-subtle: #F8FAFD;
-  --color-surface-main: #FFFFFF;
-  --color-surface-raised: #FFFFFF;
-  --color-surface-muted: #F5F7FA;
-  --color-surface-selected: #EEF2FF;
+  /* Derived brand interaction aliases. */
+  --color-brand-primary: var(--color-brand-violet);
+  --color-brand-primary-hover: color-mix(in srgb, var(--color-brand-violet) 88%, var(--color-brand-navy));
+  --color-brand-primary-active: color-mix(in srgb, var(--color-brand-violet) 76%, var(--color-brand-navy));
+  --color-brand-on-primary: var(--color-brand-white);
+  --gradient-brand: linear-gradient(115deg, var(--color-brand-cyan) 0%, var(--color-brand-violet) 100%);
 
-  --color-text-primary: #17223A;
-  --color-text-secondary: #475467;
-  --color-text-muted: #6A748B;
-  --color-text-inverse: #FFFFFF;
+  --color-bg-main: var(--color-brand-background);
+  --color-bg-subtle: color-mix(in srgb, var(--color-brand-background) 60%, var(--color-brand-white));
+  --color-surface-main: var(--color-brand-white);
+  --color-surface-raised: var(--color-brand-white);
+  --color-surface-muted: color-mix(in srgb, var(--color-brand-background) 82%, var(--color-brand-white));
+  --color-surface-selected: color-mix(in srgb, var(--color-brand-violet) 8%, var(--color-brand-white));
 
-  --color-border-default: #D0D5DD;
-  --color-border-subtle: #E4E7EC;
-  --color-border-strong: #98A2B3;
+  --color-text-primary: var(--color-brand-navy);
+  --color-text-secondary: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
+  --color-text-muted: color-mix(in srgb, var(--color-brand-navy) 62%, var(--color-brand-white));
+  --color-text-inverse: var(--color-brand-white);
 
-  --color-focus: #1D6CFF;
-  --color-focus-soft: rgba(29, 108, 255, .22);
+  --color-border-default: color-mix(in srgb, var(--color-brand-navy) 22%, var(--color-brand-white));
+  --color-border-subtle: color-mix(in srgb, var(--color-brand-navy) 12%, var(--color-brand-white));
+  --color-border-strong: color-mix(in srgb, var(--color-brand-navy) 40%, var(--color-brand-white));
+
+  --color-focus: var(--color-brand-violet);
+  --color-focus-soft: color-mix(in srgb, var(--color-brand-violet) 22%, transparent);
 
   --color-success: #18794E;
   --color-success-surface: #ECF8F3;
@@ -53,24 +51,24 @@
   --color-info: #175CD3;
   --color-info-surface: #EFF8FF;
 
-  --color-nav-bg: #031B4B;
-  --color-nav-bg-hover: #0A285B;
-  --color-nav-bg-subtle: #071F47;
-  --color-nav-active: #1D6CFF;
-  --color-nav-sub-active: #273B73;
-  --color-nav-text: #F8FAFC;
-  --color-nav-text-muted: #C9D3E6;
-  --color-nav-border: #173A6A;
+  --color-nav-bg: var(--color-brand-navy);
+  --color-nav-bg-hover: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
+  --color-nav-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 94%, var(--color-brand-white));
+  --color-nav-active: var(--color-brand-violet);
+  --color-nav-sub-active: color-mix(in srgb, var(--color-brand-violet) 38%, var(--color-brand-navy));
+  --color-nav-text: var(--color-brand-white);
+  --color-nav-text-muted: color-mix(in srgb, var(--color-brand-white) 78%, var(--color-brand-navy));
+  --color-nav-border: color-mix(in srgb, var(--color-brand-white) 18%, var(--color-brand-navy));
 
-  --color-overlay: rgba(17, 25, 54, .42);
-  --color-shadow: rgba(17, 25, 54, .12);
+  --color-overlay: color-mix(in srgb, var(--color-brand-navy) 42%, transparent);
+  --color-shadow: color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
 
-  /* Chart colours — distinct and readable against the light surface. */
-  --color-chart-1: #1D6CFF;
-  --color-chart-2: #8B2EFF;
-  --color-chart-3: #0C89A8;
-  --color-chart-4: #586CFF;
-  --color-chart-5: #55617C;
+  /* Chart colours use the master palette first, then operational semantics for distinction. */
+  --color-chart-1: var(--color-brand-violet);
+  --color-chart-2: var(--color-brand-cyan);
+  --color-chart-3: var(--color-brand-navy);
+  --color-chart-4: var(--color-success);
+  --color-chart-5: var(--color-warning);
 
   /* Spacing scale. */
   --space-0: 0;
@@ -128,10 +126,10 @@
   --search-expanded-max: 22rem;
 
   /* Elevation. */
-  --shadow-card: 0 .0625rem .25rem rgba(17, 25, 54, .08);
-  --shadow-raised: 0 .5rem 1.5rem rgba(17, 25, 54, .12);
-  --shadow-dialog: 0 1.5rem 4rem rgba(17, 25, 54, .22);
-  --shadow-action: 0 .5rem 1.25rem rgba(29, 108, 255, .20);
+  --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 8%, transparent);
+  --shadow-raised: 0 .5rem 1.5rem color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
+  --shadow-dialog: 0 1.5rem 4rem color-mix(in srgb, var(--color-brand-navy) 22%, transparent);
+  --shadow-action: 0 .5rem 1.25rem color-mix(in srgb, var(--color-brand-violet) 20%, transparent);
 
   /* Motion. */
   --duration-fast: 140ms;
@@ -205,18 +203,18 @@
 /* Semantic dark-mode pair. The beta remains light unless the root opts in. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg-main: #0D1324;
-  --color-bg-subtle: #121A30;
-  --color-surface-main: #17213A;
-  --color-surface-raised: #1C2844;
-  --color-surface-muted: #202C49;
-  --color-surface-selected: #243A60;
-  --color-text-primary: #F2F4F7;
-  --color-text-secondary: #D7DCE5;
-  --color-text-muted: #B4BECC;
-  --color-border-default: #475467;
-  --color-border-subtle: #344054;
-  --color-border-strong: #667085;
+  --color-bg-main: var(--color-brand-navy);
+  --color-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 94%, var(--color-brand-white));
+  --color-surface-main: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
+  --color-surface-raised: color-mix(in srgb, var(--color-brand-navy) 82%, var(--color-brand-white));
+  --color-surface-muted: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
+  --color-surface-selected: color-mix(in srgb, var(--color-brand-violet) 28%, var(--color-brand-navy));
+  --color-text-primary: var(--color-brand-white);
+  --color-text-secondary: color-mix(in srgb, var(--color-brand-white) 84%, var(--color-brand-navy));
+  --color-text-muted: color-mix(in srgb, var(--color-brand-white) 70%, var(--color-brand-navy));
+  --color-border-default: color-mix(in srgb, var(--color-brand-white) 28%, var(--color-brand-navy));
+  --color-border-subtle: color-mix(in srgb, var(--color-brand-white) 18%, var(--color-brand-navy));
+  --color-border-strong: color-mix(in srgb, var(--color-brand-white) 42%, var(--color-brand-navy));
   --color-success: #6CE9A6;
   --color-success-surface: #14382B;
   --color-warning: #FEC84B;
@@ -225,17 +223,18 @@
   --color-danger-surface: #492126;
   --color-info: #84CAFF;
   --color-info-surface: #172F4D;
-  --color-chart-1: #66A3FF;
-  --color-chart-2: #B184FF;
-  --color-chart-3: #55D6BE;
-  --color-chart-4: #8D9CFF;
-  --color-chart-5: #B8C1D1;
-  --color-focus-soft: rgba(132, 202, 255, .26);
-  --color-overlay: rgba(0, 0, 0, .58);
-  --color-shadow: rgba(0, 0, 0, .32);
-  --shadow-card: 0 .0625rem .25rem rgba(0, 0, 0, .24);
-  --shadow-raised: 0 .5rem 1.5rem rgba(0, 0, 0, .34);
-  --shadow-dialog: 0 1.5rem 4rem rgba(0, 0, 0, .48);
+  --color-chart-1: var(--color-brand-violet);
+  --color-chart-2: var(--color-brand-cyan);
+  --color-chart-3: var(--color-brand-white);
+  --color-chart-4: var(--color-success);
+  --color-chart-5: var(--color-warning);
+  --color-focus-soft: color-mix(in srgb, var(--color-brand-violet) 30%, transparent);
+  --color-overlay: color-mix(in srgb, var(--color-brand-navy) 74%, transparent);
+  --color-shadow: color-mix(in srgb, var(--color-brand-navy) 54%, transparent);
+  --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 46%, transparent);
+  --shadow-raised: 0 .5rem 1.5rem color-mix(in srgb, var(--color-brand-navy) 58%, transparent);
+  --shadow-dialog: 0 1.5rem 4rem color-mix(in srgb, var(--color-brand-navy) 72%, transparent);
+
 }
 
 @media (max-width: 51.25rem) {

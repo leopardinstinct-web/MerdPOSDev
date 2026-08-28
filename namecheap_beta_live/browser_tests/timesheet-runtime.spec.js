@@ -142,7 +142,15 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   expect(pageFitsPhone).toBeTruthy();
   await expect(page.locator('.timesheet-store-table tbody tr').first()).toHaveCSS('display', 'grid');
   await expect(abidRow).toHaveCSS('display', 'grid');
-  await expect(page.locator('.timesheet-section-head').first()).toHaveCSS('background-color', 'rgb(23, 33, 58)');
+  const expectedSurface = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.background = 'var(--color-surface-main)';
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return value;
+  });
+  expect(await page.locator('.timesheet-section-head').first().evaluate(el => getComputedStyle(el).backgroundColor)).toBe(expectedSurface);
 
   await abidRow.click();
   await expect(otherRow).toBeHidden();

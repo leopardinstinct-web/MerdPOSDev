@@ -27,18 +27,21 @@ The visual hierarchy is intentional: the M delivers rapid recognition, the wordm
 
 ## Canonical colors
 
+The MERDPOS **brand master palette is exactly five colors**:
+
 ```text
-brand ink      #111827
-brand blue     #2563EB
-brand indigo   #4F46E5
-brand violet   #7C3AED
-brand tagline  #475569
-brand on dark  #F8FAFC
+White             #FFFFFF
+App Background    #F5F7FC
+Brand Navy        #031B4B
+Brand Cyan        #12BDF3
+Violet            #8B2EFF
 ```
 
-The approved brand gradient runs blue → indigo → violet.
+Brand-facing CSS must use these master colors through `design-tokens.css`, or derive hover, dark, border, muted and overlay treatments from them with semantic token aliases / `color-mix()`. Do not introduce additional blue, indigo, purple, slate or decorative brand literals.
 
-**Gradient is identity, not state.** Never use the brand gradient as a replacement for semantic success, warning, danger or information colors.
+The product identity gradient is **Brand Cyan ? Violet**. Gradient is identity, not state; success, warning, danger and information retain dedicated semantic status colors because they communicate operational meaning rather than brand identity.
+
+The approved raster logo artwork remains immutable and may contain baked-in intermediate gradient colors from the supplied master artwork. That artwork exception does not make those intermediate raster colors part of the UI master palette.
 
 ## Logo forms
 

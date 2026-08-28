@@ -94,14 +94,18 @@ dialog-shadow 0 16px 40px rgba(15,23,42,0.24)
 Flutter implementation requires a later dedicated visual proposal and review.
 Do not paste these colors into widgets; map approved tokens through the future
 theme layer when that scope begins.
-## MERDPOS connected brand overlay
+## MERDPOS five-color brand master palette ? current Beta override
 
-The Beta implementation now uses the Concept 7 connected identity palette for shared product tokens while preserving semantic status colors:
+The current Beta brand master palette is deliberately restricted to five canonical colors:
 
-- Navy `#031B4B` ? dark navigation / brand ink
-- Cyan `#12BDF3`, Blue `#1D6CFF`, Indigo `#586CFF`, Violet `#8B2EFF` ? connected brand spectrum
-- Slate `#6A748B`, Descriptor `#55617C` ? supporting copy
-- Identity gradient: `#12BDF3 ? #1D6CFF ? #8B2EFF`
-- Display/brand headings: Space Grotesk; operational UI/body: Inter
+- White `#FFFFFF`
+- App Background `#F5F7FC`
+- Brand Navy `#031B4B`
+- Brand Cyan `#12BDF3`
+- Violet `#8B2EFF`
 
-The gradient is identity only. Success, warning, danger and information states keep their dedicated semantic colors.
+`design-tokens.css` is the runtime source of truth. Brand-facing hover, active, dark, border, muted, shadow and overlay shades are derived from these five masters rather than introducing more brand literals. Primary interactive emphasis resolves to Violet; Navy remains the structural/navigation foundation; Cyan is the high-energy identity/accent color; White and App Background define the light surface system.
+
+The CSS identity gradient is Cyan ? Violet. The approved raster logo remains exact supplied artwork and is exempt from palette-token reconstruction; baked-in intermediate pixels in that image are not additional UI master colors.
+
+Operational success, warning, danger and information colors remain dedicated semantic status tokens and are not part of the brand master palette.
