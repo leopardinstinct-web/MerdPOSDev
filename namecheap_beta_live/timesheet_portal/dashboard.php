@@ -383,13 +383,13 @@ function ui_icon(string $name): string
             <div><dt>Channel</dt><dd><?= htmlspecialchars($productChannel) ?></dd></div>
           </dl>
         </div>
-        <p class="merd-about-foot">Smarter · Faster · Together</p>
+        <p class="merd-about-foot">Smarter &middot; Faster &middot; Together</p>
       </section>
       <section class="merd-about-art" aria-hidden="true">
         <span class="merd-about-shape shape-a"></span><span class="merd-about-shape shape-b"></span><span class="merd-about-shape shape-c"></span>
         <img src="assets/brand/M_Icon.svg?v=20260828about1" alt="">
       </section>
-      <button id="merdposAboutClose" class="merd-about-close" type="button" aria-label="Close About MERDPOS">×</button>
+      <button id="merdposAboutClose" class="merd-about-close" type="button" aria-label="Close About MERDPOS">&times;</button>
     </div>
   </dialog>
 

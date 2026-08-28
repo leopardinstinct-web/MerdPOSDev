@@ -65,6 +65,8 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
   expect(source).toContain('assets/management.js?v=20260828shell1');
+  expect(source).toContain('Smarter &middot; Faster &middot; Together');
+  expect(source).toContain('&times;</button>');
 });
 
 test('desktop rail mounts client/account/theme/About in requested order', async ({ page }) => {
