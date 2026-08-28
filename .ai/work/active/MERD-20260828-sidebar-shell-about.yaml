@@ -11,7 +11,7 @@ acceptance:
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "13a8b51ff5a5ec1e444917557abc70a481de0657"
-last_seen_head: "d0d3444ab5bc827954847978b1bd57dd7d47cdae"
+last_seen_head: "5f1e6971dba7a74c0b042eebf2991ccd23cc54d3"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
@@ -34,10 +34,11 @@ completed:
   - "Targeted shell regression passed 3/3; full local browser suite passed 10/10."
   - "PHP lint passed for 94 files; JS syntax passed for 34 files; runtime, permission, loader-order and beta-state validators all passed."
   - "Supplied SVG exact Git blob verified as f6644f47dd3b6d3d585d85976fe22adda94a5246, matching the uploaded file's Git object hash."
+  - "Final wiring audit caught and corrected the dashboard cache key so management.js?v=20260828shell1 loads the new shell runtime; targeted 3/3 and full 10/10 browser suites passed again."
 remaining:
   - "Commit/push the checked implementation and wait for CI/Namecheap deployment."
   - "Visually verify desktop/mobile light/dark plus About/client/account utilities in the authenticated live app."
 next_action: "Commit and push the checked shell implementation, then wait for CI/Namecheap and visually verify the live shell."
 blocked: false
 blocker: null
-updated_at: "2026-08-28T18:26:41+05:00"
+updated_at: "2026-08-28T18:31:00+05:00"
