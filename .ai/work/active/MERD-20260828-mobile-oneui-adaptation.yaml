@@ -13,7 +13,7 @@ acceptance:
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "557e2ad41a2505a317917ec8be699eed7fc949e1"
-last_seen_head: "557e2ad41a2505a317917ec8be699eed7fc949e1"
+last_seen_head: "721d81b975b60e5e0231571510e43658002bedda"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/assets/shell.css"
   - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
@@ -39,10 +39,12 @@ completed:
   - "Updated mobile runtime/deploy cache guard consistently across management loader, runtime validator and Namecheap deploy script."
   - "Targeted mobile/shell tests passed 5/5; full browser regression suite passed 12/12."
   - "PHP lint passed 94 files; JS syntax passed 35 files; runtime contract, permission policy, loader-order, shared beta-state and deploy-script syntax checks passed."
+  - "Live phone pass exposed dashboard-builder hiding the new mobile header; corrected the selector, aligned dashboard phone gutters and bumped dashboard-builder CSS cache."
+  - "Post-fix targeted browser tests passed 6/6 and full browser suite passed 13/13."
 remaining:
-  - "Commit/push the checked mobile system change and confirm GitHub guardrails."
+  - "Commit/push the dashboard mobile-header correction and confirm GitHub guardrails."
   - "Wait for Namecheap deployment and verify authenticated phone light/dark behavior plus utility sheet and representative major surfaces."
 next_action: "Commit and push the checked mobile UX system change, then verify CI, Namecheap deployment and authenticated phone light/dark rendering."
 blocked: false
 blocker: null
-updated_at: "2026-08-28T20:08:00+05:00"
+updated_at: "2026-08-28T20:18:00+05:00"

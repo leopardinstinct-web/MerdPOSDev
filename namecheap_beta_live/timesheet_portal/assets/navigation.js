@@ -8,7 +8,7 @@
   if (!document.querySelector('link[data-dashboard-builder-css]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'assets/dashboard-builder.css?v=20260825a';
+    link.href = 'assets/dashboard-builder.css?v=20260828mobile1';
     link.dataset.dashboardBuilderCss = '1';
     document.head.appendChild(link);
   }

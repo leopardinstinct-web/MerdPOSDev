@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 const path = require('path');
 
 test.use({ channel: 'chrome' });
@@ -59,6 +60,12 @@ async function mount(page) {
   await expect(page.locator('#dashboardPanel > .merd-mobile-page-head')).toBeVisible();
   return errors;
 }
+
+test('dashboard builder preserves mobile page header and shared phone gutter', async () => {
+  const source = fs.readFileSync(asset('dashboard-builder.css'), 'utf8');
+  expect(source).toContain(':not(.merd-dashboard-builder):not(.merd-mobile-page-head)');
+  expect(source).toContain('var(--merd-mobile-gutter, var(--space-3))');
+});
 
 test('phone shell uses four primary destinations and a bottom utility sheet', async ({ page }) => {
   const errors = await mount(page);
