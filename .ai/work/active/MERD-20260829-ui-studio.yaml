@@ -13,7 +13,7 @@ acceptance:
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "957d5c49f833edd4308c4fbacffc1affca2aca98"
-last_seen_head: "8183e4b405d16c7c37df5d9e5bc1befde7d43376"
+last_seen_head: "834f1e4d7cdff7ddb0ebc9e22fd0a26bf6199ce0"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
@@ -42,10 +42,15 @@ completed:
   - "Full browser regression suite passed 18/18, including All pages scope and compact circular mobile UI Studio coverage."
   - "PHP lint passed 94 files; JS syntax passed 25 portal asset files; runtime, permission, loader-order and beta-state validators passed."
   - "Vendored yandongCoder/circular-menu 1.0.6 (ISC) for DEV-only mobile quick actions."
+  - "Pushed scope/mobile enhancement as 834f1e4d7cdff7ddb0ebc9e22fd0a26bf6199ce0; Beta guardrails run 149 passed."
+  - "Namecheap serves studio2 management/UI Studio/circular-menu assets; authenticated desktop live check confirmed the Apply to scope control and all four options."
+  - "Authenticated mobile live check confirmed compact hub/app visibility but exposed the radial menu too low because rem nav height was parsed as a raw number."
+  - "Fixed radial positioning by resolving CSS lengths to pixels and clamping the 188px wheel inside the viewport above the bottom navigation; full browser suite passed 18/18."
 remaining:
-  - "Confirm GitHub guardrails and Namecheap deployment."
-  - "Verify authenticated live DEV UI Studio circular mobile workflow and scope control."
-next_action: "Commit/push the checked scope/mobile enhancement, then confirm CI, Namecheap deployment, and authenticated live DEV behavior."
+  - "Commit/push the live-discovered circular menu geometry fix."
+  - "Confirm CI and Namecheap deployment of the fix."
+  - "Re-verify the authenticated mobile circular menu fits above navigation, then close/archive the packet."
+next_action: "Commit/push the checked circular-menu geometry fix, then deploy and re-verify authenticated mobile fit."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T02:41:00+05:00"
+updated_at: "2026-08-29T02:55:00+05:00"

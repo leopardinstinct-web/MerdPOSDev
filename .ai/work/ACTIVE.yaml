@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-29T02:42:00+05:00"
+updated_at: "2026-08-29T02:55:00+05:00"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
@@ -21,4 +21,4 @@ active:
     path: .ai/work/active/MERD-20260829-ui-studio.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Commit/push checked UI Studio scope/mobile enhancement, then confirm CI, Namecheap deployment, and authenticated live DEV behavior."
+    next_action: "Commit/push checked circular-menu geometry fix, then deploy and re-verify authenticated mobile fit."

@@ -10,7 +10,7 @@ const studioJsPath = path.join(portalRoot, 'assets', 'ui-studio.js');
 const circularCssPath = path.join(portalRoot, 'assets', 'vendor', 'circular-menu', 'circular-menu.css');
 const circularJsPath = path.join(portalRoot, 'assets', 'vendor', 'circular-menu', 'circular-menu.js');
 
-const fixture = `<!doctype html><html><head></head><body>
+const fixture = `<!doctype html><html><head><style>:root{--shell-mobile-nav-h:4.75rem}</style></head><body>
   <button id="openUiStudioBtn" type="button">Open UI Studio</button>
   <main class="merd-page-shell">
     <section id="demoPanel" class="portal-panel">
@@ -127,7 +127,15 @@ test('mobile UI Studio stays compact and exposes circular quick actions', async 
   await expect(page.locator('#cardA')).toBeVisible();
 
   await page.locator('.merd-ui-studio-mobile-hub').click();
-  await expect(page.locator('.merd-ui-studio-radial')).toHaveClass(/opened-nav/);
+  const radial = page.locator('.merd-ui-studio-radial');
+  await expect(radial).toHaveClass(/opened-nav/);
+  await expect(radial).toBeVisible();
+  const radialBox = await radial.boundingBox();
+  const viewport = page.viewportSize();
+  expect(radialBox.x).toBeGreaterThanOrEqual(0);
+  expect(radialBox.y).toBeGreaterThanOrEqual(0);
+  expect(radialBox.x + radialBox.width).toBeLessThanOrEqual(viewport.width);
+  expect(radialBox.y + radialBox.height).toBeLessThanOrEqual(viewport.height - 64);
   await page.locator('.merd-ui-studio-radial a[aria-label="Select element"]').click();
   await page.locator('#cardA').click();
   await expect(page.locator('.merd-ui-studio')).toBeVisible();

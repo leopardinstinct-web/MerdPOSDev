@@ -312,9 +312,20 @@
     if(last.kind==='move'){reloadWith(next);return;}
     state.patches=next;persist();applyAll();setStatus('Last preview change removed.');
   }
+  function cssLengthPx(value,fallback=0){
+    const raw=String(value||'').trim(),number=parseFloat(raw);
+    if(!Number.isFinite(number))return fallback;
+    if(raw.endsWith('rem'))return number*(parseFloat(getComputedStyle(document.documentElement).fontSize)||16);
+    if(raw.endsWith('vh'))return number*window.innerHeight/100;
+    if(raw.endsWith('vw'))return number*window.innerWidth/100;
+    return number;
+  }
   function mobileMenuPoint(){
-    const bottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shell-mobile-nav-h'))||76;
-    return [Math.max(106,window.innerWidth-104),Math.max(112,window.innerHeight-bottom-108)];
+    const navHeight=cssLengthPx(getComputedStyle(document.documentElement).getPropertyValue('--shell-mobile-nav-h'),76);
+    const radius=94,edge=10;
+    const x=Math.min(window.innerWidth-radius-edge,Math.max(radius+edge,window.innerWidth-104));
+    const y=Math.min(window.innerHeight-navHeight-radius-edge,Math.max(radius+edge,window.innerHeight-navHeight-108));
+    return [x,y];
   }
   function initMobileRadial(){
     if(radialMenu||typeof window.CMenu!=='function')return;
