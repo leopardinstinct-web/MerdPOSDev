@@ -13,10 +13,13 @@
   ];
   const cssEscape=value=>window.CSS?.escape?CSS.escape(String(value)):String(value).replace(/[^a-zA-Z0-9_-]/g,'\\$&');
   const attrEscape=value=>String(value).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
-  const state={patches:[],selected:null,hovered:null,selectMode:false,moveMode:null,applying:false};
+  const state={patches:[],selected:null,hovered:null,selectMode:false,moveMode:null,applying:false,scope:'element'};
   let studioRoot=null;
   let previewBadge=null;
   let previewStyle=null;
+  let mobileHub=null;
+  let radialRoot=null;
+  let radialMenu=null;
 
   function isStudioNode(node){return !!node?.closest?.('[data-ui-studio]');}
   function isEditable(node){
@@ -55,6 +58,39 @@
     }
     return parts.join(' > ');
   }
+  const SCOPE_LABELS={element:'This element',component:'This component type',matching:'All matching elements',pages:'All pages'};
+  const stableClasses=el=>[...el.classList].filter(c=>!c.startsWith('merd-ui-studio')&&!['active','open','selected','hidden'].includes(c));
+  function matchSelectorFor(el){
+    const classes=stableClasses(el).slice(0,3);
+    if(classes.length)return `${el.tagName.toLowerCase()}${classes.map(c=>`.${cssEscape(c)}`).join('')}`;
+    const attr=uniqueAttributeSelector(el);if(attr)return attr;
+    return el.tagName.toLowerCase();
+  }
+  function panelFor(el){return el.closest?.('.portal-panel')||null;}
+  function componentRootFor(el){return el.closest?.('.merd-mobile-page-head,.controls-card,.mgmt-card,.directory-card,.report-launch-card,.hero-panel,.status-card,dialog.portal-dialog')||null;}
+  function classSelectorFor(el){
+    if(!el)return '';
+    const classes=stableClasses(el).slice(0,2);
+    return classes.length?`${el.tagName.toLowerCase()}${classes.map(c=>`.${cssEscape(c)}`).join('')}`:el.tagName.toLowerCase();
+  }
+  function scopeSelectorFor(el,scope=state.scope){
+    if(!el)return '';
+    if(scope==='element')return selectorFor(el);
+    const target=matchSelectorFor(el);
+    const panel=panelFor(el),panelPrefix=panel?.id?`#${cssEscape(panel.id)} `:'';
+    if(scope==='matching')return `${panelPrefix}${target}`.trim();
+    const component=componentRootFor(el);
+    if(scope==='component'&&component&&component!==el){
+      return `${panelPrefix}${classSelectorFor(component)} ${target}`.trim();
+    }
+    if(scope==='pages'){
+      if(component?.classList?.contains('merd-mobile-page-head'))return `.merd-mobile-page-head ${target}`;
+      return target;
+    }
+    return `${panelPrefix}${target}`.trim();
+  }
+  function scopeMatchCount(selector){try{return document.querySelectorAll(selector).length;}catch(_){return 0;}}
+
   function persist(){
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,patches:state.patches}));}catch(_){}
   }
@@ -77,7 +113,7 @@
     const bySelector=new Map();
     for(const patch of state.patches){
       if(patch.kind!=='style'||!patch.selector||!patch.property)continue;
-      const selector=patch.runtimeKey?runtimeSelector(patch.runtimeKey):patch.selector;
+      const selector=patch.scope&&patch.scope!=='element'?patch.selector:(patch.runtimeKey?runtimeSelector(patch.runtimeKey):patch.selector);
       if(!bySelector.has(selector))bySelector.set(selector,[]);
       bySelector.get(selector).push(`${patch.property}:${patch.value} !important`);
     }
@@ -124,11 +160,12 @@
     updateBadge();
   }
   function upsertStyle(selector,property,value){
-    const existing=state.patches.find(p=>p.kind==='style'&&p.selector===selector&&p.property===property);
+    const scope=currentScope();
+    const existing=state.patches.find(p=>p.kind==='style'&&p.selector===selector&&p.property===property&&((p.scope||'element')===scope));
     const node=state.selected||find(selector);
-    const runtimeKey=currentRuntimeKey()||existing?.runtimeKey||(node?runtimeKeyFor(node):'');
-    state.patches=state.patches.filter(p=>!(p.kind==='style'&&p.selector===selector&&p.property===property));
-    if(value!==null&&value!=='')state.patches.push({kind:'style',selector,runtimeKey,property,value});
+    const runtimeKey=scope==='element'?(currentRuntimeKey()||existing?.runtimeKey||(node?runtimeKeyFor(node):'')):'';
+    state.patches=state.patches.filter(p=>!(p.kind==='style'&&p.selector===selector&&p.property===property&&((p.scope||'element')===scope)));
+    if(value!==null&&value!=='')state.patches.push({kind:'style',scope,selector,runtimeKey,property,value});
     persist();applyAll();
   }
   function recordMove(selector,target,position){
@@ -141,7 +178,8 @@
   }
   function patchSummary(patch){
     if(patch.kind==='move')return `${patch.selector} → move ${patch.position} ${patch.target}`;
-    return `${patch.selector} → ${patch.property}: ${patch.value}`;
+    const label=SCOPE_LABELS[patch.scope||'element']||patch.scope||'This element';
+    return `[${label}] ${patch.selector} → ${patch.property}: ${patch.value}`;
   }
   function exportPayload(){
     return {
@@ -181,6 +219,15 @@
     previewBadge.hidden=true;
     previewBadge.addEventListener('click',openStudio);
     document.body.appendChild(previewBadge);
+    mobileHub=document.createElement('button');
+    mobileHub.type='button';
+    mobileHub.className='merd-ui-studio-mobile-hub';
+    mobileHub.dataset.uiStudio='mobile-hub';
+    mobileHub.hidden=true;
+    mobileHub.setAttribute('aria-label','Open UI Studio quick actions');
+    mobileHub.textContent='UI';
+    mobileHub.addEventListener('click',toggleMobileRadial);
+    document.body.appendChild(mobileHub);
 
     studioRoot=document.createElement('aside');
     studioRoot.className='merd-ui-studio';
@@ -200,6 +247,15 @@
         <section class="ui-studio-section" data-studio-inspector hidden>
           <div class="ui-studio-section-head"><strong>Selected element</strong><button type="button" data-studio-reset>Reset element</button></div>
           <code data-studio-selector></code>
+          <div class="ui-studio-scope-row">
+            <label>Apply to<select data-studio-scope>
+              <option value="element">This element</option>
+              <option value="component">This component type</option>
+              <option value="matching">All matching elements</option>
+              <option value="pages">All pages</option>
+            </select></label>
+            <span data-studio-match-count>1 match</span>
+          </div>
           <div class="ui-studio-grid">
             ${paletteOptions('Background')}
             ${paletteOptions('Text color')}
@@ -217,7 +273,7 @@
             <button type="button" data-studio-move="inside">Move inside…</button>
           </div>
         </section>
-        <section class="ui-studio-section">
+        <section class="ui-studio-section" data-studio-changes-section>
           <div class="ui-studio-section-head"><strong>Change-set</strong><span><b data-studio-count>0</b> changes</span></div>
           <ol class="ui-studio-changes" data-studio-changes></ol>
           <textarea data-studio-output readonly aria-label="UI Studio change-set JSON"></textarea>
@@ -243,16 +299,55 @@
     const node=studioRoot?.querySelector('[data-studio-status]');
     if(node)node.textContent=text;
   }
+  const isMobileStudio=()=>window.matchMedia('(max-width: 51.25rem)').matches;
+  function hideMobilePanel(){if(studioRoot&&isMobileStudio())studioRoot.hidden=true;}
+  function showMobilePanel(view='inspector'){
+    if(!studioRoot)return;
+    studioRoot.dataset.mobileView=view;
+    studioRoot.hidden=false;
+  }
+  function undoLast(){
+    if(!state.patches.length)return;
+    const last=state.patches[state.patches.length-1],next=state.patches.slice(0,-1);
+    if(last.kind==='move'){reloadWith(next);return;}
+    state.patches=next;persist();applyAll();setStatus('Last preview change removed.');
+  }
+  function mobileMenuPoint(){
+    const bottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shell-mobile-nav-h'))||76;
+    return [Math.max(106,window.innerWidth-104),Math.max(112,window.innerHeight-bottom-108)];
+  }
+  function initMobileRadial(){
+    if(radialMenu||typeof window.CMenu!=='function')return;
+    radialRoot=document.createElement('div');radialRoot.className='merd-ui-studio-radial';radialRoot.dataset.uiStudio='radial';document.body.appendChild(radialRoot);
+    const styles=getComputedStyle(document.documentElement),navy=styles.getPropertyValue('--color-brand-navy').trim()||'#031B4B',violet=styles.getPropertyValue('--color-brand-violet').trim()||'#8B2EFF';
+    radialMenu=window.CMenu(radialRoot).config({totalAngle:180,spaceDeg:2,background:navy,backgroundHover:violet,pageBackground:'transparent',percent:.36,diameter:188,position:'bottom',horizontal:true,hideAfterClick:true,menus:[
+      {title:'Select',click:()=>{hideMobilePanel();startSelect();}},
+      {title:'Edit',click:()=>state.selected?showMobilePanel('inspector'):startSelect()},
+      {title:'Changes',click:()=>showMobilePanel('changes')},
+      {title:'Undo',click:undoLast,disabled:()=>!state.patches.length},
+      {title:'Exit',click:closeStudio}
+    ]});
+    radialRoot.querySelectorAll('a').forEach((a,i)=>{a.href='#';a.setAttribute('aria-label',['Select element','Edit selected element','View change-set','Undo last change','Exit UI Studio'][i]||'UI Studio action');a.addEventListener('click',event=>event.preventDefault());});
+  }
+  function toggleMobileRadial(){initMobileRadial();if(!radialMenu)return;radialRoot.classList.contains('opened-nav')?radialMenu.hide():radialMenu.show(mobileMenuPoint());}
+
   function openStudio(){
     ensureChrome();
-    studioRoot.hidden=false;
     document.body.classList.add('merd-ui-studio-open');
+    if(isMobileStudio()){
+      initMobileRadial();
+      mobileHub.hidden=false;
+      studioRoot.hidden=true;
+      document.body.classList.add('merd-ui-studio-mobile-compact');
+    }else studioRoot.hidden=false;
     setStatus(state.patches.length?'Draft preview is active.':'Preview only — no server changes.');
   }
   function closeStudio(){
     if(!studioRoot)return;
     studioRoot.hidden=true;
-    document.body.classList.remove('merd-ui-studio-open','merd-ui-studio-selecting','merd-ui-studio-moving');
+    if(mobileHub)mobileHub.hidden=true;
+    if(radialMenu)radialMenu.hide();
+    document.body.classList.remove('merd-ui-studio-open','merd-ui-studio-mobile-compact','merd-ui-studio-selecting','merd-ui-studio-moving');
     state.selectMode=false;state.moveMode=null;clearHover();
   }
   function clearHover(){
@@ -267,13 +362,13 @@
     clearSelected();clearHover();
     state.selected=el;
     el.classList.add('merd-ui-studio-selected');
-    const selector=selectorOverride||selectorFor(el);
+    const elementSelector=selectorOverride||selectorFor(el);
     const runtimeKey=runtimeKeyFor(el);
     const inspector=studioRoot.querySelector('[data-studio-inspector]');
     inspector.hidden=false;
-    inspector.dataset.selector=selector;
+    inspector.dataset.elementSelector=elementSelector;
     inspector.dataset.runtimeKey=runtimeKey;
-    studioRoot.querySelector('[data-studio-selector]').textContent=selector;
+    applyScope(state.scope,false);
     const style=getComputedStyle(el);
     for(const input of inspector.querySelectorAll('[data-style-prop]')){
       input.value='';
@@ -284,14 +379,31 @@
     setInstruction('Selected. Adjust values below or choose a move command.');
   }
   function currentSelector(){return studioRoot?.querySelector('[data-studio-inspector]')?.dataset.selector||'';}
+  function currentScope(){return studioRoot?.querySelector('[data-studio-inspector]')?.dataset.scope||state.scope||'element';}
   function currentRuntimeKey(){return studioRoot?.querySelector('[data-studio-inspector]')?.dataset.runtimeKey||'';}
+  function applyScope(scope,announce=true){
+    if(!state.selected)return;
+    state.scope=SCOPE_LABELS[scope]?scope:'element';
+    const inspector=studioRoot?.querySelector('[data-studio-inspector]');if(!inspector)return;
+    const selector=scopeSelectorFor(state.selected,state.scope);
+    inspector.dataset.scope=state.scope;inspector.dataset.selector=selector;
+    const select=inspector.querySelector('[data-studio-scope]');if(select)select.value=state.scope;
+    const code=studioRoot.querySelector('[data-studio-selector]');if(code)code.textContent=selector;
+    const count=scopeMatchCount(selector),match=inspector.querySelector('[data-studio-match-count]');
+    if(match)match.textContent=`${count} match${count===1?'':'es'}`;
+    inspector.querySelectorAll('[data-studio-move]').forEach(button=>button.disabled=state.scope!=='element');
+    if(announce)setStatus(`${SCOPE_LABELS[state.scope]} selected - ${count} match${count===1?'':'es'}.`);
+  }
   function startSelect(){
+    if(radialMenu)radialMenu.hide();
+    if(isMobileStudio())hideMobilePanel();
     state.selectMode=true;state.moveMode=null;clearHover();
     document.body.classList.add('merd-ui-studio-selecting');
     document.body.classList.remove('merd-ui-studio-moving');
     setInstruction('Click an element in the MERDPOS interface to edit it.');
   }
   function startMove(position){
+    if(currentScope()!=='element'){setStatus('Move commands use This element scope. Switch scope to This element first.');return;}
     const selector=currentSelector();
     if(!selector)return;
     state.moveMode={selector,position};state.selectMode=false;clearHover();
@@ -334,10 +446,11 @@
     catch(_){const output=studioRoot.querySelector('[data-studio-output]');output.focus();output.select();setStatus('Clipboard was blocked. The change-set is selected for manual copy.');}
   }
   function bindChrome(){
-    studioRoot.querySelector('[data-studio-close]').addEventListener('click',closeStudio);
+    studioRoot.querySelector('[data-studio-close]').addEventListener('click',()=>isMobileStudio()?hideMobilePanel():closeStudio);
     studioRoot.querySelector('[data-studio-select]').addEventListener('click',startSelect);
     studioRoot.querySelector('[data-studio-reset]').addEventListener('click',resetSelected);
     studioRoot.querySelector('[data-studio-hide]').addEventListener('click',toggleHidden);
+    studioRoot.querySelector('[data-studio-scope]').addEventListener('change',event=>applyScope(event.target.value));
     studioRoot.querySelectorAll('[data-studio-move]').forEach(button=>button.addEventListener('click',()=>startMove(button.dataset.studioMove)));
     studioRoot.querySelectorAll('[data-style-prop]').forEach(input=>input.addEventListener('change',()=>{
       const selector=currentSelector();if(!selector)return;
@@ -349,13 +462,7 @@
       upsertStyle(selector,index===0?'background-color':'color',select.value||null);
     }));
     studioRoot.querySelector('[data-studio-copy]').addEventListener('click',copyChanges);
-    studioRoot.querySelector('[data-studio-undo]').addEventListener('click',()=>{
-      if(!state.patches.length)return;
-      const last=state.patches[state.patches.length-1];
-      const next=state.patches.slice(0,-1);
-      if(last.kind==='move'){reloadWith(next);return;}
-      state.patches=next;persist();applyAll();
-    });
+    studioRoot.querySelector('[data-studio-undo]').addEventListener('click',undoLast);
     studioRoot.querySelector('[data-studio-clear]').addEventListener('click',()=>{
       try{localStorage.removeItem(STORAGE_KEY);}catch(_){}
       location.reload();
@@ -399,7 +506,7 @@
       return;
     }
     state.selectMode=false;document.body.classList.remove('merd-ui-studio-selecting');
-    selectElement(el);updateHideButton();
+    selectElement(el);updateHideButton();if(isMobileStudio())showMobilePanel('inspector');
   },true);
 
   let applyQueued=false;

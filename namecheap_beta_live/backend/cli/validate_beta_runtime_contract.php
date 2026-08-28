@@ -63,6 +63,8 @@ $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.css', $errors);
 $uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
 $uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
+$circularMenuJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/vendor/circular-menu/circular-menu.js', $errors);
+$circularMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/vendor/circular-menu/circular-menu.css', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
@@ -195,12 +197,22 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio1', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio1', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio2', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio2', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
 beta_contract_require_contains($uiStudioJs, 'PREVIEW ONLY', 'UI Studio preview-only label', $errors);
 beta_contract_require_contains($uiStudioJs, 'getChangeSet', 'UI Studio structured handoff', $errors);
 beta_contract_require_contains($uiStudioJs, "kind:'move'", 'UI Studio move patch support', $errors);
+beta_contract_require_contains($management, 'assets/vendor/circular-menu/circular-menu.css?v=1.0.6', 'UI Studio circular menu stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/vendor/circular-menu/circular-menu.js?v=1.0.6', 'UI Studio circular menu runtime wiring', $errors);
+beta_contract_require_contains($circularMenuJs, 'global.CMenu = factory()', 'vendored circular-menu global runtime', $errors);
+beta_contract_require_contains($circularMenuCss, '.circular-menu', 'vendored circular-menu stylesheet', $errors);
+beta_contract_require_contains($uiStudioJs, "component:'This component type'", 'UI Studio component scope', $errors);
+beta_contract_require_contains($uiStudioJs, "matching:'All matching elements'", 'UI Studio matching scope', $errors);
+beta_contract_require_contains($uiStudioJs, "pages:'All pages'", 'UI Studio all-pages scope', $errors);
+beta_contract_require_contains($uiStudioJs, 'scopeSelectorFor', 'UI Studio scope selector engine', $errors);
+beta_contract_require_contains($uiStudioJs, 'merd-ui-studio-mobile-hub', 'UI Studio compact mobile hub', $errors);
+beta_contract_require_contains($uiStudioCss, 'max-height:46dvh', 'UI Studio compact mobile inspector height', $errors);
 beta_contract_require_absent($uiStudioJs, 'fetch(', 'UI Studio mutation/network isolation', $errors);
 beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio mutation/network isolation', $errors);
 beta_contract_require_absent($uiStudioJs, '/api/', 'UI Studio mutation/network isolation', $errors);

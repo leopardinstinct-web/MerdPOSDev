@@ -114,3 +114,11 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Handoff contract:** A UI Studio change-set is design intent, not deployed code. Applying it to MERDPOS still requires editing the canonical owner files, running normal guards, deploying the authoritative branch and visually verifying the affected runtime.
 
 **Reason:** This preserves fast interactive UI iteration without creating a second visual source of truth or bypassing MERDPOS authorization/deployment discipline.
+
+## 2026-08-29 — UI Studio mobile editing stays compact and scope is explicit
+
+**Decision:** UI Studio scope is part of each style patch: `element`, `component`, `matching`, or `pages`. Broad scopes preview shared CSS intent directly instead of requiring repeated per-page edits. DOM movement remains element-only.
+
+**Mobile contract:** At phone widths UI Studio uses a compact floating quick-action wheel and opens the inspector/change sheet only on demand, capped at 46dvh so the underlying MERDPOS screen stays visible. The wheel vendors `yandongCoder/circular-menu` 1.0.6 under its declared ISC license; MERDPOS owns the wrapper, tokens, actions and safety boundary.
+
+**Reason:** The visual editor is useful only when the product remains visible while editing, and change-set scope must represent design intent without ChatGPT inferring global rules from duplicated exact selectors.

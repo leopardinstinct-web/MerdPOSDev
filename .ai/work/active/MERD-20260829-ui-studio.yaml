@@ -6,17 +6,20 @@ acceptance:
   - "Selecting an element never writes server source, APIs, database state, or other users' UI."
   - "Editor supports palette color changes, spacing/size/radius/font changes, visibility, and moving elements before/after/inside another element."
   - "Multiple preview edits accumulate into a readable/exportable change-set."
+  - "Style/visibility edits can explicitly target This element, This component type, All matching elements, or All pages."
+  - "On mobile, UI Studio keeps the underlying app visible using a compact circular quick-action control and <=46dvh editor sheet."
   - "Preview drafts can be cleared/reset and remain visibly marked PREVIEW ONLY."
   - "Canonical source remains the only production source of truth; exported edits require normal code/deploy/verify lifecycle."
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "957d5c49f833edd4308c4fbacffc1affca2aca98"
-last_seen_head: "957d5c49f833edd4308c4fbacffc1affca2aca98"
+last_seen_head: "8183e4b405d16c7c37df5d9e5bc1befde7d43376"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
+  - "namecheap_beta_live/timesheet_portal/assets/vendor/circular-menu/"
   - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
   - "namecheap_beta_live/timesheet_portal/README.md"
   - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
@@ -36,13 +39,13 @@ completed:
   - "Implemented DEV-gated UI Studio chrome, local draft persistence, selectable element inspector, palette/spacing/size/visibility edits, before/after/inside movement and structured JSON handoff."
   - "Added source contract proving actual-DEV gating and forbidding fetch/XMLHttpRequest/API ownership in UI Studio."
   - "Added permanent Chrome regression: non-DEV unavailable; DEV style + move change-set passed 2/2."
-  - "Full browser regression suite passed 16/16."
-  - "PHP lint passed 94 files; JS syntax passed 24 portal asset files; runtime, permission, loader-order and beta-state validators passed."
+  - "Full browser regression suite passed 18/18, including All pages scope and compact circular mobile UI Studio coverage."
+  - "PHP lint passed 94 files; JS syntax passed 25 portal asset files; runtime, permission, loader-order and beta-state validators passed."
+  - "Vendored yandongCoder/circular-menu 1.0.6 (ISC) for DEV-only mobile quick actions."
 remaining:
-  - "Commit and push the checked implementation."
   - "Confirm GitHub guardrails and Namecheap deployment."
-  - "Verify authenticated live DEV UI Studio interaction and visual fit."
-next_action: "Commit/push checked UI Studio, then deploy and verify it in authenticated Opera."
+  - "Verify authenticated live DEV UI Studio circular mobile workflow and scope control."
+next_action: "Commit/push the checked scope/mobile enhancement, then confirm CI, Namecheap deployment, and authenticated live DEV behavior."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T01:48:00+05:00"
+updated_at: "2026-08-29T02:41:00+05:00"
