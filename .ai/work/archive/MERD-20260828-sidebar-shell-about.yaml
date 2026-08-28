@@ -1,0 +1,43 @@
+version: 1
+id: MERD-20260828-sidebar-shell-about
+objective: "Remove the authenticated topbar, move working-client/account utilities into the navigation rail, and add a MERDPOS About splash launched by the exact supplied M_Icon.svg asset."
+acceptance:
+  - "No authenticated topbar remains in dashboard.php or rendered shell."
+  - "Working client context is mounted before Home on desktop without changing authorization or switching semantics."
+  - "Change password and Log out are mounted above the theme control."
+  - "An About button follows the theme control and uses the exact supplied M_Icon.svg asset."
+  - "About opens an accessible MERDPOS-branded splash with approved logo, version and release metadata."
+  - "Mobile keeps primary navigation usable through an adaptive utility menu rather than overcrowding the bottom rail."
+packet_state: CLOSED
+lifecycle: VERIFIED
+base_head: "13a8b51ff5a5ec1e444917557abc70a481de0657"
+last_seen_head: "557e2ad41a2505a317917ec8be699eed7fc949e1"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
+  - "namecheap_beta_live/timesheet_portal/assets/shell.css"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/brand/M_Icon.svg"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
+constraints:
+  - "Preserve client role -> LOA -> named permission -> UI/API/data scope."
+  - "Preserve existing password, logout and client-switch API flows."
+  - "Preserve current Reports-centre/navigation behavior."
+  - "Do not redraw or restyle the supplied SVG paths."
+completed:
+  - "Resolved current authoritative HEAD and reconciled unfinished work onto d0d3444 after confirming the intervening commit touched only M_Icon.svg."
+  - "Removed topbar markup and wired client/account/theme/About controls into the navigation rail."
+  - "Added a responsive More utility surface for mobile and a MERDPOS About dialog with product metadata."
+  - "Added shell-account-runtime.spec.js for source contract, desktop utility order/About behavior and mobile utility behavior."
+  - "Targeted shell regression passed 3/3; full local browser suite passed 10/10."
+  - "PHP lint passed for 94 files; JS syntax passed for 34 files; runtime, permission, loader-order and beta-state validators all passed."
+  - "Supplied SVG exact Git blob verified as f6644f47dd3b6d3d585d85976fe22adda94a5246, matching the uploaded file's Git object hash."
+  - "Final wiring audit caught and corrected the dashboard cache key so management.js?v=20260828shell1 loads the new shell runtime; targeted 3/3 and full 10/10 browser suites passed again."
+  - "Final GitHub guardrails passed and the authenticated Namecheap shell/About flow was visually verified in Opera on desktop/mobile light/dark at commit 557e2ad."
+remaining: []
+next_action: "Closed: shell redesign verified live in authenticated Opera on desktop/mobile light/dark."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T19:10:08+05:00"

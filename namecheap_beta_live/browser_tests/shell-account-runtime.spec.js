@@ -64,7 +64,7 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
   expect(source).toContain('id="shellAccountSources"');
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
-  expect(source).toContain('assets/management.js?v=20260828shell1');
+  expect(source).toContain('assets/management.js?v=20260828mobile1');
   expect(source).toContain('Smarter &middot; Faster &middot; Together');
   expect(source).toContain('&times;</button>');
 });
@@ -88,13 +88,12 @@ test('desktop rail mounts client/account/theme/About in requested order', async 
   await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open', false);
   expect(pageErrors).toEqual([]);
 });
-test('mobile keeps primary navigation compact and exposes utilities through More', async ({ page }) => {
+test('mobile utility sheet opens without a More navigation tab', async ({ page }) => {
   const pageErrors = await mountShell(page, 390);
   await expect(page.locator('.rail-client-section')).toBeHidden();
+  await expect(page.locator('.rail-mobile-tools-section')).toHaveCount(0);
   await expect(page.locator('.rail-shell-utilities')).toBeHidden();
-  const more = page.locator('.rail-mobile-tools-btn');
-  await expect(more).toBeVisible();
-  await more.click();
+  await page.evaluate(() => window.MERDPOSShellUtilities.open());
   await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);
   await expect(page.locator('.rail-shell-utilities')).toBeVisible();
   await expect(page.locator('.rail-mobile-client-select')).toHaveValue('1');

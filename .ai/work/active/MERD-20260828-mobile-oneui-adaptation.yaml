@@ -1,0 +1,48 @@
+version: 1
+id: MERD-20260828-mobile-oneui-adaptation
+objective: "Adapt MERDPOS mobile UX using the supplied Samsung One UI guidelines as an interaction reference while preserving MERDPOS identity, permissions and business logic."
+acceptance:
+  - "Mobile primary navigation shows at most four role-appropriate destinations and no More navigation tab."
+  - "Client/account/theme/About and DEV/system utilities open through a thumb-reachable bottom utility sheet."
+  - "Major panels receive a consistent mobile title/helper/context header with an account trigger."
+  - "Phone layouts use safe 24px gutters, 48px touch targets and stronger focus-block card treatment."
+  - "Common data tables become readable stacked mobile cards while Timesheets keeps its specialized verified mobile layout."
+  - "Employee/Store search and primary Add actions remain easy to reach on phone."
+  - "Loading states remain inline and accessible rather than blocking the entire screen."
+  - "Mobile light/dark and 390px phone rendering pass overflow/touch/readability checks."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "557e2ad41a2505a317917ec8be699eed7fc949e1"
+last_seen_head: "557e2ad41a2505a317917ec8be699eed7fc949e1"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/shell.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js"
+  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
+  - "namecheap_beta_live/timesheet_portal/assets/app-ui.css"
+  - "namecheap_beta_live/timesheet_portal/assets/table-ui.css"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/browser_tests/mobile-ux-runtime.spec.js"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "scripts/deploy_namecheap_beta.sh"
+constraints:
+  - "Use One UI as a mobile UX reference, not a visual clone; MERDPOS branding remains canonical."
+  - "Preserve client role -> LOA -> named permission -> UI/API/data scope."
+  - "Do not change payroll pairing/rounding, financial mutation logic or backend authorization."
+  - "Do not restore the removed global topbar."
+completed:
+  - "Resolved authoritative HEAD 557e2ad and read bootstrap/invariants/task gates/active work index."
+  - "Inspected current mobile shell, utility overlay, runtime audit, table owners and recent shell/real-device Timesheets history."
+  - "Implemented four-destination phone nav, utility bottom sheet, mobile page headers/subtabs, safe gutters, reachable Add actions, inline loading and generic labelled table-card adaptation."
+  - "Updated mobile runtime/deploy cache guard consistently across management loader, runtime validator and Namecheap deploy script."
+  - "Targeted mobile/shell tests passed 5/5; full browser regression suite passed 12/12."
+  - "PHP lint passed 94 files; JS syntax passed 35 files; runtime contract, permission policy, loader-order, shared beta-state and deploy-script syntax checks passed."
+remaining:
+  - "Commit/push the checked mobile system change and confirm GitHub guardrails."
+  - "Wait for Namecheap deployment and verify authenticated phone light/dark behavior plus utility sheet and representative major surfaces."
+next_action: "Commit and push the checked mobile UX system change, then verify CI, Namecheap deployment and authenticated phone light/dark rendering."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T20:08:00+05:00"

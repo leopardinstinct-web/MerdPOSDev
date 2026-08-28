@@ -96,8 +96,8 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260828timesheet6">
-  <link rel="stylesheet" href="assets/app-ui.css?v=20260828reports1">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260828mobile1">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260828mobile1">
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>
 <body class="merd-shell">
@@ -463,7 +463,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260828shell1"></script>
+  <script src="assets/management.js?v=20260828mobile1"></script>
   <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>

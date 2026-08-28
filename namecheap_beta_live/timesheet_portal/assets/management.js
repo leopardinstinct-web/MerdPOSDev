@@ -38,7 +38,7 @@
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
     appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260827visual1');
-    appendStyle('merd-shell','assets/shell.css?v=20260828shell1');
+    appendStyle('merd-shell','assets/shell.css?v=20260828mobile1');
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
@@ -53,8 +53,8 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260828shell1');
-    appendScript('account-menu','assets/account-menu.js?v=20260828shell1');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260828mobile1');
+    appendScript('account-menu','assets/account-menu.js?v=20260828mobile1');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
 
@@ -64,7 +64,7 @@
 
     /* Behaviour only. Geometry comes from the canonical design system. */
     appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');
-    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260826ds1');
+    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260828mobile1');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
     appendStyle('merd-design-system','assets/design-system.css?v=20260827visual1');

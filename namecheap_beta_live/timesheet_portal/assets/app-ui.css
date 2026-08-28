@@ -682,3 +682,189 @@
 .reports-sales-card > strong { color: var(--color-text-primary); font-size: var(--type-md); overflow-wrap: anywhere; }
 .reports-sales-card .reports-sales-value { color: var(--color-brand-primary); font-size: var(--type-xl); font-weight: var(--weight-bold); }
 .reports-sales-total { background: var(--color-info-surface); border-color: color-mix(in srgb, var(--color-brand-primary) 22%, var(--color-border-subtle)); }
+
+/* Mobile UX reference adaptation: viewing-area header + focus blocks + reachable actions. */
+.merd-mobile-page-head { display: none; }
+@media (max-width: 51.25rem) {
+  .merd-mobile-page-head {
+    position: sticky;
+    top: 0;
+    z-index: 55;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3rem;
+    gap: .75rem 1rem;
+    align-items: start;
+    margin: 0 calc(var(--merd-mobile-gutter) * -1) 1rem;
+    padding: 1.65rem var(--merd-mobile-gutter) 1rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--color-bg-main) 94%, transparent);
+    backdrop-filter: blur(.8rem) saturate(135%);
+    transition: padding 180ms ease, box-shadow 180ms ease;
+  }
+  .merd-mobile-page-copy { min-width: 0; }
+  .merd-mobile-context {
+    display: block;
+    margin-bottom: .35rem;
+    color: var(--color-brand-primary);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .merd-mobile-page-head h1 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 7vw, 2.2rem);
+    line-height: 1.08;
+  }
+  .merd-mobile-page-head p {
+    max-width: 38rem;
+    margin: .45rem 0 0;
+    color: var(--color-text-secondary);
+    font-size: .9375rem;
+    line-height: 1.45;
+  }
+  .merd-mobile-account-trigger {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--color-border-default);
+    border-radius: 50%;
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-card);
+  }
+  .merd-mobile-account-trigger .ui-icon { width: 1.35rem; height: 1.35rem; }
+  .merd-mobile-account-trigger:focus-visible {
+    outline: .1875rem solid var(--color-focus-soft);
+    outline-offset: .125rem;
+  }
+  .merd-mobile-subtabs {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: .5rem;
+    margin-top: .15rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .merd-mobile-subtabs:empty { display: none; }
+  .merd-mobile-subtabs::-webkit-scrollbar { display: none; }
+  .merd-mobile-subtab {
+    flex: 0 0 auto;
+    min-height: 2.75rem;
+    padding: .55rem .9rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 999px;
+    background: var(--color-surface-raised);
+    color: var(--color-text-secondary);
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .merd-mobile-subtab.active {
+    border-color: color-mix(in srgb, var(--color-brand-primary) 48%, var(--color-border-default));
+    background: var(--color-surface-selected);
+    color: var(--color-brand-primary);
+  }
+  body.merd-mobile-header-collapsed .merd-mobile-page-head {
+    grid-template-columns: minmax(0, 1fr) 3rem;
+    padding-top: .65rem;
+    padding-bottom: .65rem;
+    box-shadow: var(--shadow-card);
+  }
+  body.merd-mobile-header-collapsed .merd-mobile-context,
+  body.merd-mobile-header-collapsed .merd-mobile-page-head p { display: none; }
+  body.merd-mobile-header-collapsed .merd-mobile-page-head h1 {
+    font-size: 1.2rem;
+    line-height: 3rem;
+  }
+  body.merd-mobile-header-collapsed .merd-mobile-subtabs { margin-top: 0; }
+
+  .portal-panel > .app-panel-head:not(.merd-mobile-page-head) { display: none; }
+  .directory-toolbar > :first-child { display: none; }
+  .directory-toolbar { margin: 0 0 1rem; }
+  .directory-actions,
+  .merd-shell .directory-toolbar .directory-actions.merd-action-cluster {
+    width: 100% !important;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .65rem;
+    margin: 0 !important;
+  }
+  .directory-actions .search-box,
+  .directory-actions input[type="search"] { width: 100%; min-height: 3rem; }
+  #employeesPanel,
+  #storesPanel { padding-bottom: 5.5rem; }
+  #addEmployeeBtn,
+  #addStoreBtn {
+    position: fixed;
+    right: var(--merd-mobile-gutter);
+    bottom: calc(var(--shell-mobile-nav-h) + env(safe-area-inset-bottom) + .9rem);
+    z-index: 62;
+    min-height: 3rem;
+    max-width: calc(100vw - (var(--merd-mobile-gutter) * 2));
+    padding-inline: 1rem;
+    border-radius: 999px;
+    box-shadow: var(--shadow-dialog);
+  }
+
+  .portal-panel > .controls-card,
+  .portal-panel > .directory-card,
+  .portal-panel > .mgmt-card,
+  .portal-panel .mgmt-card,
+  .portal-panel .report-launch-card,
+  .portal-panel .hero-panel,
+  .portal-panel .dashboard-tile,
+  .portal-panel .status-card:not(.merd-inline-loading) {
+    border-radius: 1.625rem;
+  }
+  .portal-panel .controls-card,
+  .portal-panel .directory-card,
+  .portal-panel .mgmt-card,
+  .portal-panel .report-launch-card {
+    box-shadow: 0 .3rem 1rem color-mix(in srgb, var(--color-shadow) 68%, transparent);
+  }
+  .portal-panel .report-launch-card { padding: 1rem; }
+
+  dialog.portal-dialog[open] {
+    width: 100%;
+    max-width: none;
+    max-height: min(88dvh, 50rem);
+    margin: auto 0 0;
+    border-radius: 1.625rem 1.625rem 0 0;
+  }
+  dialog.portal-dialog[open]::backdrop { background: rgba(3, 10, 28, .5); }
+  .admin-dialog-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding-bottom: calc(.75rem + env(safe-area-inset-bottom));
+    background: var(--color-surface-raised);
+  }
+
+  .status-card.merd-inline-loading {
+    min-height: 4.5rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    border-radius: 1.25rem;
+  }
+  .status-card.merd-inline-loading::before {
+    content: "";
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    border: .16rem solid color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
+    border-top-color: var(--color-brand-primary);
+    border-radius: 50%;
+    animation: merd-mobile-spin .8s linear infinite;
+  }
+}
+@keyframes merd-mobile-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .status-card.merd-inline-loading::before { animation: none; }
+  .merd-mobile-page-head { transition: none; }
+}

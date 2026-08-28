@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-28T18:26:41+05:00"
+updated_at: "2026-08-28T19:35:00+05:00"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
@@ -12,8 +12,8 @@ active:
     packet_state: DEPLOYED
     lifecycle: DEPLOYED
     next_action: "Open an authenticated MERDPOS session and visually verify Reports Overview and report navigation on desktop/mobile light/dark."
-  - id: MERD-20260828-sidebar-shell-about
-    path: .ai/work/active/MERD-20260828-sidebar-shell-about.yaml
-    packet_state: CHECKED
-    lifecycle: WIRED
-    next_action: "Commit and push the checked shell implementation, then wait for CI/Namecheap and visually verify the live shell."
+  - id: MERD-20260828-mobile-oneui-adaptation
+    path: .ai/work/active/MERD-20260828-mobile-oneui-adaptation.yaml
+    packet_state: RECONNED
+    lifecycle: DOCUMENTED
+    next_action: "Implement shared mobile shell/header/utility/list behavior on current HEAD and run targeted browser checks."

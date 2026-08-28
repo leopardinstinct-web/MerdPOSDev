@@ -486,3 +486,71 @@ body.merd-shell {
     animation: none;
   }
 }
+
+/* Mobile UX reference adaptation: safe gutters, four-destination bottom navigation. */
+@media (max-width: 51.25rem) {
+  :root {
+    --merd-mobile-gutter: 1.5rem;
+    --shell-mobile-nav-h: 4.75rem;
+  }
+  html { scroll-padding-bottom: calc(var(--shell-mobile-nav-h) + env(safe-area-inset-bottom) + 1rem); }
+  body.merd-shell {
+    padding-bottom: calc(var(--shell-mobile-nav-h) + env(safe-area-inset-bottom));
+  }
+  .app-workspace.merd-page-shell,
+  body.merd-mobile-subnav-open .app-workspace.merd-page-shell,
+  body.merd-keyboard-open .app-workspace.merd-page-shell {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 0 var(--merd-mobile-gutter) 2rem;
+  }
+  .app-rail {
+    min-height: calc(var(--shell-mobile-nav-h) + env(safe-area-inset-bottom));
+    height: auto;
+    padding: .375rem .5rem calc(.375rem + env(safe-area-inset-bottom));
+    gap: .25rem;
+  }
+  .app-rail > .rail-section[data-nav-section="system"],
+  .app-rail > .rail-mobile-tools-section { display: none !important; }
+  .app-rail > .rail-section {
+    flex: 1 1 0;
+    max-width: 7rem;
+  }
+  .app-rail > .rail-section .rail-group-btn {
+    position: relative;
+    min-height: 4rem;
+    padding: .45rem .25rem;
+    border-radius: 1rem;
+  }
+  .app-rail > .rail-section .rail-group-btn.active {
+    background: var(--color-nav-sub-active);
+    color: var(--color-nav-text);
+  }
+  .app-rail > .rail-section .rail-group-btn.active::before {
+    content: "";
+    position: absolute;
+    top: .18rem;
+    left: 50%;
+    width: 1.5rem;
+    height: .18rem;
+    border-radius: 999px;
+    background: var(--color-brand-primary);
+    transform: translateX(-50%);
+  }
+  .app-rail > .rail-section .rail-label {
+    max-width: 100%;
+    font-size: .75rem;
+    line-height: 1.15;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .sidebar-group,
+  .app-frame.nav-collapsed .sidebar-group,
+  .sidebar-group.active:not([hidden]) { display: none !important; }
+}
+
+@media (max-width: 24rem) {
+  :root { --merd-mobile-gutter: 1.25rem; }
+  .app-rail > .rail-section .rail-label { font-size: .6875rem; }
+}

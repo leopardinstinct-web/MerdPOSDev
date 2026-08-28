@@ -13,13 +13,14 @@
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   let context = null;
   let mounted = false;
+  let utilityTrigger = null;
+  let utilityBackdrop = null;
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[char]));
 
   const clientIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M8 19h4"/></svg>';
-  const toolsIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>';
 
   async function api(url, options = {}) {
     const response = await fetch(url, {cache:'no-store', ...options});
@@ -52,9 +53,21 @@
     if (window.matchMedia('(max-width: 51.25rem)').matches) return;
     window.MERDPOSNavigation?.expandRail?.();
   }
-  function closeMobileTools() {
+  function openMobileTools(trigger) {
+    if (!window.matchMedia('(max-width: 51.25rem)').matches) return;
+    utilityTrigger = trigger || document.activeElement;
+    document.body.classList.add('merd-mobile-tools-open');
+    if (utilityBackdrop) utilityBackdrop.hidden = false;
+    window.setTimeout(function () {
+      const first = document.querySelector('.rail-shell-utilities select:not([disabled]), .rail-shell-utilities button:not([disabled])');
+      first?.focus?.({preventScroll:true});
+    }, 40);
+  }
+  function closeMobileTools(options = {}) {
+    const wasOpen = document.body.classList.contains('merd-mobile-tools-open');
     document.body.classList.remove('merd-mobile-tools-open');
-    document.querySelector('.rail-mobile-tools-btn')?.setAttribute('aria-expanded', 'false');
+    if (utilityBackdrop) utilityBackdrop.hidden = true;
+    if (wasOpen && options.restoreFocus !== false) window.setTimeout(() => utilityTrigger?.focus?.({preventScroll:true}), 30);
   }
 
   async function switchClient(clientId, selects) {
@@ -124,12 +137,30 @@
     aboutBtn.setAttribute('aria-label', 'About MERDPOS');
     aboutSection.appendChild(aboutBtn);
     utilities.appendChild(aboutSection);
-    rail.appendChild(utilities);
 
-    const toolsSection = document.createElement('section');
-    toolsSection.className = 'rail-section rail-mobile-tools-section';
-    toolsSection.innerHTML = `<button type="button" class="rail-group-btn rail-mobile-tools-btn" aria-label="Account and app tools" aria-expanded="false">${toolsIcon}<span class="rail-label">More</span></button>`;
-    rail.appendChild(toolsSection);
+    const systemTabs = Array.from(rail.querySelectorAll('.rail-section[data-nav-section="system"] .portal-tab'));
+    if (systemTabs.length) {
+      const systemLinks = document.createElement('section');
+      systemLinks.className = 'rail-mobile-system-links';
+      systemLinks.setAttribute('aria-label', 'System navigation');
+      systemTabs.forEach(tab => {
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'rail-group-btn rail-system-action';
+        action.innerHTML = `${tab.querySelector('.ui-icon')?.outerHTML || ''}<span class="rail-label">${esc(tab.querySelector('span:not(.nav-badge)')?.textContent || 'System')}</span>`;
+        action.addEventListener('click', () => { tab.click(); closeMobileTools({restoreFocus:false}); });
+        systemLinks.appendChild(action);
+      });
+      utilities.insertBefore(systemLinks, accountSection);
+    }
+
+    rail.appendChild(utilities);
+    utilityBackdrop = document.createElement('div');
+    utilityBackdrop.className = 'rail-mobile-tools-backdrop';
+    utilityBackdrop.hidden = true;
+    utilityBackdrop.setAttribute('aria-hidden', 'true');
+    utilityBackdrop.addEventListener('click', () => closeMobileTools());
+    document.body.appendChild(utilityBackdrop);
 
     const desktopSelect = clientSection.querySelector('#accountClientSelect');
     const mobileSelect = utilities.querySelector('.rail-mobile-client-select');
@@ -145,6 +176,7 @@
       });
       const clientName = String(data?.client?.name || 'Working client').trim();
       clientSection.title = `Working client: ${clientName}`;
+      window.dispatchEvent(new CustomEvent('merdpos-clientcontext', {detail:data}));
     }
 
     selects.forEach(select => select.addEventListener('change', event => switchClient(event.target.value, selects)));
@@ -159,13 +191,6 @@
       if (event.target === aboutDialog) aboutDialog.close();
     });
 
-    const toolsButton = toolsSection.querySelector('.rail-mobile-tools-btn');
-    toolsButton?.addEventListener('click', event => {
-      event.stopPropagation();
-      const open = !document.body.classList.contains('merd-mobile-tools-open');
-      document.body.classList.toggle('merd-mobile-tools-open', open);
-      toolsButton.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
 
     [passwordBtn, logoutBtn].filter(Boolean).forEach(button => {
       button.addEventListener('click', () => window.setTimeout(closeMobileTools, 0));
@@ -173,7 +198,7 @@
 
     document.addEventListener('pointerdown', event => {
       if (!document.body.classList.contains('merd-mobile-tools-open')) return;
-      if (utilities.contains(event.target) || toolsSection.contains(event.target)) return;
+      if (utilities.contains(event.target)) return;
       closeMobileTools();
     });
     document.addEventListener('keydown', event => {
@@ -189,6 +214,7 @@
 
     source.remove();
     window.MERDPOSAccountContext = {refresh: loadContext, get: () => context};
+    window.MERDPOSShellUtilities = {open: openMobileTools, close: closeMobileTools};
     loadContext();
     return true;
   }

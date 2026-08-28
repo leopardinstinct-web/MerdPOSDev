@@ -19,7 +19,7 @@ Source/CI inspection does not equal Namecheap deployment verification.
 | Dynamic loader order | Roles-before-Navigation and `async=false` loader behavior guarded | Permanent |
 | Permission-hidden legacy runtime | Chrome smoke protects against hidden-DOM JS crashes | Permanent |
 | Timesheet runtime injection | Chrome smoke guards duplicate `timesheet-app.js` loading and request multiplication | Permanent |
-| Mobile contextual navigation | 390×844 Chrome smoke protects essential contextual-nav state behavior | Keep as lightweight runtime smoke, not a full UI-design contract |
+| Mobile UX contract | 390x844 Chrome smoke protects four-destination primary nav, utility bottom sheet, contextual page header/subtabs, labelled table cards and horizontal-overflow safety | Permanent usability/runtime contract; do not freeze exact cosmetic coordinates |
 | Shared Add/Search runtime | Chrome smoke protects duplicate mutation/click behavior | Keep while component remains canonical |
 | DEV Stores identity | Browser regression accepts backend `Developer` label for DEV store enrichment | Permanent incident guard |
 | Authenticated read-only live audit | Reusable external-storage-state runner | Available; run when meaningful, not after every cosmetic change |

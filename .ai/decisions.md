@@ -85,3 +85,11 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Outcome:** The visual system should reinforce the product promise `SMARTER ? FASTER ? TOGETHER` and the business outcome of better customer satisfaction through omnichannel integration without adding decorative friction to operational workflows.
 
 **Supersedes:** The earlier 2026-08-27 interim brand color values (`#111827`, `#2563EB`, `#4F46E5`, `#7C3AED`) in the first connected-brand standard.
+
+## 2026-08-28 - Mobile UX uses One UI interaction principles, MERDPOS visual identity
+
+**Decision:** MERDPOS phone layouts use the supplied Samsung One UI guidelines as an interaction reference, not as a visual clone. MERDPOS branding, semantic tokens and authorization remain canonical.
+
+**Mobile contract:** primary bottom navigation is role-aware and limited to four high-frequency destinations; secondary client/account/theme/About/system utilities belong in a thumb-reachable bottom sheet; phone pages use a consistent title/helper/client-context header with contextual subtabs; safe gutters target 24px and touch targets remain at least 48px; desktop data tables adapt to labelled card rows on phones unless a feature owns a stronger mobile renderer; important actions and loading states stay reachable and local to the affected content.
+
+**Verification rule:** cross-cutting mobile changes require a 390px runtime smoke plus authenticated light/dark rendered verification. The contract protects usability outcomes (overflow, reachability, readable hierarchy, utility access), not exact cosmetic coordinates.

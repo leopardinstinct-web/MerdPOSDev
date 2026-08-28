@@ -144,7 +144,7 @@ foreach ([
     'assets/design-system.css?v=20260827visual1',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
-    'assets/mobile-runtime.js?v=20260826ds1',
+    'assets/mobile-runtime.js?v=20260828mobile1',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }

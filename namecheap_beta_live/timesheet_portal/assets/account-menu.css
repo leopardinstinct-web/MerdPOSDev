@@ -359,3 +359,83 @@
 @media (prefers-reduced-motion: reduce) {
   .merd-about-dialog::backdrop { backdrop-filter: none; }
 }
+
+/* Mobile UX reference adaptation: thumb-reachable utility bottom sheet. */
+@media (max-width: 51.25rem) {
+  .rail-mobile-tools-section { display: none !important; }
+  .rail-mobile-tools-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 79;
+    background: rgba(3, 10, 28, .52);
+    backdrop-filter: blur(.2rem);
+  }
+  .rail-mobile-tools-backdrop[hidden] { display: none; }
+  .rail-shell-utilities {
+    display: grid;
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 120;
+    width: min(100%, 42rem);
+    box-sizing: border-box;
+    max-height: min(82dvh, 42rem);
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+    overflow: auto;
+    border: 1px solid var(--color-nav-border);
+    border-bottom: 0;
+    border-radius: 1.625rem 1.625rem 0 0;
+    background: var(--color-nav-bg);
+    box-shadow: 0 -1rem 3rem rgba(3, 10, 28, .28);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(105%);
+    transition: transform 220ms ease, opacity 180ms ease, visibility 0s linear 220ms;
+  }
+  body.merd-mobile-tools-open .rail-shell-utilities {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+  body.merd-mobile-tools-open { overflow: hidden; }
+  .rail-mobile-client-context {
+    padding: 0 0 1rem;
+    gap: .625rem;
+  }
+  .rail-mobile-client-context > span {
+    font-size: .8125rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .rail-user-summary {
+    margin: .25rem 0 .5rem;
+    padding: .875rem 0;
+    border-bottom: 1px solid var(--color-nav-border);
+  }
+  .rail-mobile-system-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: .5rem;
+    padding: .5rem 0 1rem;
+    border-bottom: 1px solid var(--color-nav-border);
+  }
+  .rail-mobile-system-links .rail-system-action {
+    min-height: 3rem;
+    border: 1px solid var(--color-nav-border);
+    background: color-mix(in srgb, var(--color-nav-sub-active) 45%, transparent);
+  }
+  .rail-account-section,
+  .rail-theme-section,
+  .rail-about-section { padding-block: .125rem; }
+  .rail-shell-utilities .rail-group-btn,
+  .rail-shell-utilities .rail-theme-toggle {
+    min-height: 3rem;
+    border-radius: .875rem;
+  }
+  .rail-shell-utilities .rail-group-btn:focus-visible,
+  .rail-shell-utilities .rail-theme-toggle:focus-visible {
+    outline: .1875rem solid var(--color-focus-soft);
+    outline-offset: .125rem;
+  }
+}

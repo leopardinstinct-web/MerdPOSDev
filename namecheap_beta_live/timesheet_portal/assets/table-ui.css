@@ -804,3 +804,66 @@
   }
 }
 
+
+/* Mobile UX reference adaptation: data tables become readable vertical cards on phones. */
+@media (max-width: 51.25rem) {
+  .table-scroll:has(.merd-mobile-card-table) {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .merd-mobile-card-table,
+  .merd-mobile-card-table tbody { display: block; width: 100%; }
+  .merd-mobile-card-table thead { display: none; }
+  .merd-mobile-card-table tbody tr {
+    display: block;
+    width: 100%;
+    margin: 0 0 .75rem;
+    overflow: hidden;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 1.25rem;
+    background: var(--color-surface-raised);
+    box-shadow: 0 .2rem .8rem color-mix(in srgb, var(--color-shadow) 55%, transparent);
+  }
+  .merd-mobile-card-table tbody td {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 40%) minmax(0, 1fr);
+    gap: .75rem;
+    align-items: center;
+    padding: .75rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: transparent !important;
+    color: var(--color-text-primary);
+    text-align: right !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  .merd-mobile-card-table tbody td:last-child { border-bottom: 0; }
+  .merd-mobile-card-table tbody td::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-align: left;
+  }
+  .merd-mobile-card-table tbody td.merd-mobile-span-cell {
+    display: block;
+    text-align: left !important;
+  }
+  .merd-mobile-card-table tbody td.merd-mobile-span-cell::before { content: none; }
+  .merd-mobile-card-table tbody td button,
+  .merd-mobile-card-table tbody td a,
+  .merd-mobile-card-table tbody td select,
+  .merd-mobile-card-table tbody td input {
+    max-width: 100%;
+    justify-self: end;
+  }
+  .merd-mobile-card-table tfoot {
+    display: block;
+    margin-top: .75rem;
+  }
+}

@@ -140,7 +140,7 @@ for required_asset in \
   'assets/design-system.css?v=20260827visual1' \
   'assets/design-audit.js?v=20260826ds1' \
   'assets/minimal-controls.js?v=20260826ds1' \
-  'assets/mobile-runtime.js?v=20260826ds1'; do
+  'assets/mobile-runtime.js?v=20260828mobile1'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1

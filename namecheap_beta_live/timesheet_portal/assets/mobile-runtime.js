@@ -7,6 +7,7 @@
   const body = document.body;
   let auditTimer = null;
   let dashboardEnhanceTimer = null;
+  let mobileEnhanceTimer = null;
 
   function isMobileLayout() {
     return !!layoutQuery.matches;
@@ -293,6 +294,131 @@
   }
 
   /* ----------------------------------------------------------------------
+     Mobile UX reference adaptation.
+     Keeps MERDPOS branding while applying phone-native hierarchy, reachable
+     utilities, responsive lists and accessible inline loading states.
+     ---------------------------------------------------------------------- */
+  const mobilePanelMeta = {
+    dashboardPanel: ['Dashboard', 'Live operational overview for your current client.'],
+    employeesPanel: ['Employees', 'People, access and store assignments.'],
+    storesPanel: ['Stores', 'Store identity, availability and operating timings.'],
+    reportsPanel: ['Reports', 'Operational reports and focused drill-down.'],
+    timesheetPanel: ['Timesheets', 'Weekly hours, wages and shift activity.'],
+    disputesPanel: ['Disputes', 'Attendance issues and correction workflow.'],
+    financialPanel: ['Financial', 'Daily cash position and financial workflow.'],
+    devPanel: ['DEV', 'Read-only system diagnostics and tools.'],
+    clientsPanel: ['Clients', 'Client accounts and tenant identity.']
+  };
+  const accountIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>';
+
+  function currentClientLabel() {
+    const context = window.MERDPOSAccountContext?.get?.();
+    const name = String(context?.client?.name || '').trim();
+    const code = String(context?.client?.client_code || '').trim();
+    return name ? `${name}${code ? ` - ${code}` : ''}` : 'MERDPOS';
+  }
+
+  function panelMeta(panel) {
+    const configured = mobilePanelMeta[panel.id];
+    if (configured) return configured;
+    const source = panel.querySelector(':scope > .app-panel-head h2, :scope > .directory-card .directory-toolbar h2, :scope > .controls-card h2');
+    const title = String(source?.textContent || panel.id.replace(/Panel$/, '') || 'MERDPOS').trim();
+    return [title, 'Review and manage this area for the current client.'];
+  }
+
+  function ensureMobileHeaders() {
+    if (!isMobileLayout()) return;
+    document.querySelectorAll('.portal-panel').forEach(function (panel) {
+      let header = panel.querySelector(':scope > .merd-mobile-page-head');
+      if (!header) {
+        const meta = panelMeta(panel);
+        header = document.createElement('header');
+        header.className = 'merd-mobile-page-head';
+        header.innerHTML = `<div class="merd-mobile-page-copy"><span class="merd-mobile-context"></span><h1>${meta[0]}</h1><p>${meta[1]}</p></div><button type="button" class="merd-mobile-account-trigger" aria-label="Account, client and app settings">${accountIcon}</button><nav class="merd-mobile-subtabs" aria-label="${meta[0]} sections"></nav>`;
+        header.querySelector('.merd-mobile-account-trigger')?.addEventListener('click', function (event) {
+          window.MERDPOSShellUtilities?.open?.(event.currentTarget);
+        });
+        panel.prepend(header);
+      }
+      const context = header.querySelector('.merd-mobile-context');
+      if (context) context.textContent = currentClientLabel();
+    });
+  }
+
+  function syncMobileHeader() {
+    if (!isMobileLayout()) return;
+    const panel = Array.from(document.querySelectorAll('.portal-panel')).find(candidate => !candidate.hidden);
+    if (!panel) return;
+    const header = panel.querySelector(':scope > .merd-mobile-page-head');
+    if (!header) return;
+    const nav = header.querySelector('.merd-mobile-subtabs');
+    if (!nav) return;
+    const original = Array.from(document.querySelectorAll('.portal-tab')).find(tab => tab.dataset.panel === panel.id);
+    const subgroup = original?.closest('.sidebar-group');
+    const tabs = subgroup ? Array.from(subgroup.querySelectorAll('.portal-tab')) : [];
+    nav.replaceChildren();
+    if (tabs.length <= 1) return;
+    tabs.forEach(function (tab) {
+      const button = document.createElement('button');
+      const label = String(tab.querySelector('span:not(.nav-badge)')?.textContent || tab.dataset.panel || 'Section').trim();
+      button.type = 'button';
+      button.className = 'merd-mobile-subtab' + (tab.dataset.panel === panel.id ? ' active' : '');
+      button.textContent = label;
+      if (tab.dataset.panel === panel.id) button.setAttribute('aria-current', 'page');
+      button.addEventListener('click', function () { tab.click(); scheduleMobileEnhance(); });
+      nav.appendChild(button);
+    });
+  }
+
+  function enhanceMobileTables(scope = document) {
+    scope.querySelectorAll('.table-scroll table').forEach(function (table) {
+      if (table.closest('#timesheetPanel') || table.classList.contains('merd-mobile-card-table')) return;
+      const headers = Array.from(table.querySelectorAll('thead tr:last-child th')).map(th => String(th.textContent || '').trim());
+      if (!headers.length) return;
+      table.classList.add('merd-mobile-card-table');
+      table.querySelectorAll('tbody tr').forEach(function (row) {
+        Array.from(row.children).forEach(function (cell, index) {
+          if (cell.tagName !== 'TD') return;
+          if (Number(cell.colSpan || 1) > 1) cell.classList.add('merd-mobile-span-cell');
+          else if (!cell.dataset.label) cell.dataset.label = headers[index] || `Column ${index + 1}`;
+        });
+      });
+    });
+  }
+
+  function markInlineLoading(scope = document) {
+    scope.querySelectorAll('.status-card').forEach(function (card) {
+      const loading = /^loading\b/i.test(String(card.textContent || '').trim());
+      card.classList.toggle('merd-inline-loading', loading);
+      if (loading) {
+        card.setAttribute('role', 'status');
+        card.setAttribute('aria-live', 'polite');
+      } else if (card.classList.contains('merd-inline-loading') === false && card.getAttribute('role') === 'status') {
+        card.removeAttribute('role');
+        card.removeAttribute('aria-live');
+      }
+    });
+  }
+
+  function syncMobileHeaderScroll() {
+    body.classList.toggle('merd-mobile-header-collapsed', isMobileLayout() && window.scrollY > 72);
+  }
+
+  function enhanceMobileUX() {
+    if (!isMobileLayout()) return;
+    ensureMobileHeaders();
+    enhanceMobileTables(document);
+    markInlineLoading(document);
+    syncMobileHeader();
+    syncMobileHeaderScroll();
+  }
+
+  function scheduleMobileEnhance() {
+    window.clearTimeout(mobileEnhanceTimer);
+    mobileEnhanceTimer = window.setTimeout(enhanceMobileUX, 50);
+  }
+
+  /* ----------------------------------------------------------------------
      Mobile runtime audit. This does not replace device testing; it catches the
      common regressions that previously escaped source-only validation.
      ---------------------------------------------------------------------- */
@@ -356,11 +482,13 @@
     if (records.some(function (record) { return record.addedNodes && record.addedNodes.length; })) {
       enhanceDialogs(document);
       scheduleDashboardEnhance();
+      scheduleMobileEnhance();
       scheduleAudit();
     }
     if (records.some(function (record) { return record.type === 'attributes' && record.target && record.target.id === 'dashboardWidgetDrawer'; })) {
       syncDashboardDrawerBackdrop();
     }
+    if (records.some(function (record) { return record.type === 'attributes' && record.target; })) scheduleMobileEnhance();
   });
   observer.observe(document.documentElement, {subtree:true, childList:true, attributes:true, attributeFilter:['class','open','hidden']});
 
@@ -372,16 +500,23 @@
     window.visualViewport.addEventListener('resize', function () { setViewportState(); scheduleAudit(); });
     window.visualViewport.addEventListener('scroll', setViewportState);
   }
-  window.addEventListener('resize', function () { setViewportState(); scheduleDashboardEnhance(); scheduleAudit(); });
-  window.addEventListener('orientationchange', function () { window.setTimeout(function () { setViewportState(); scheduleDashboardEnhance(); scheduleAudit(); }, 120); });
-  layoutQuery.addEventListener && layoutQuery.addEventListener('change', function () { setViewportState(); scheduleDashboardEnhance(); scheduleAudit(); });
+  window.addEventListener('resize', function () { setViewportState(); scheduleDashboardEnhance(); scheduleMobileEnhance(); scheduleAudit(); });
+  window.addEventListener('orientationchange', function () { window.setTimeout(function () { setViewportState(); scheduleDashboardEnhance(); scheduleMobileEnhance(); scheduleAudit(); }, 120); });
+  layoutQuery.addEventListener && layoutQuery.addEventListener('change', function () { setViewportState(); scheduleDashboardEnhance(); scheduleMobileEnhance(); scheduleAudit(); });
 
   setViewportState();
   enhanceDialogs(document);
   syncNavigationAccessibility();
   scheduleDashboardEnhance();
+  scheduleMobileEnhance();
   window.addEventListener('load', scheduleAudit, {once:true});
   window.setTimeout(scheduleAudit, 700);
+
+  window.addEventListener('scroll', syncMobileHeaderScroll, {passive:true});
+  window.addEventListener('merdpos-clientcontext', scheduleMobileEnhance);
+  document.addEventListener('click', function (event) {
+    if (event.target.closest && (event.target.closest('.portal-tab') || event.target.closest('.rail-group-btn'))) scheduleMobileEnhance();
+  });
 
   window.MERDPOSMobileRuntime = {
     audit: auditMobile,
@@ -389,6 +524,7 @@
       setViewportState();
       enhanceDialogs(document);
       enhanceDashboard();
+      enhanceMobileUX();
       syncNavigationAccessibility();
       return auditMobile();
     }
