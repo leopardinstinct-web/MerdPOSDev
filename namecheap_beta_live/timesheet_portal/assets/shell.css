@@ -5,7 +5,7 @@
  */
 
 :root {
-  --shell-topbar-h: 3.625rem;
+  --shell-topbar-h: 0rem;
   --shell-rail-collapsed: 3.75rem;
   --shell-rail-expanded: 14rem;
   --shell-rail-expanded-narrow: 12.25rem;

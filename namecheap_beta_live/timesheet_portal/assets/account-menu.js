@@ -1,118 +1,46 @@
 (function () {
   'use strict';
 
-  const actions = document.querySelector('.merd-topbar .topbar-actions');
-  const userLine = actions?.querySelector('.user-line');
-  const passwordBtn = document.getElementById('passwordBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (!actions || !userLine || !logoutBtn) return;
-  if (document.getElementById('accountMenu')) return;
+  const source = document.getElementById('shellAccountSources');
+  if (!source) return;
 
   const auth = window.MERDPOS_AUTH || {};
-  const name = String(userLine.querySelector('strong')?.textContent || '').trim() || 'Account';
-  const roleLabel = String(userLine.querySelector('.merd-role-pill')?.textContent || auth.role_label || 'USER').trim() || 'USER';
-  const roleKey = String(auth.role_key || roleLabel).trim().toUpperCase();
+  const passwordBtn = document.getElementById('passwordBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const name = String(source.dataset.userName || 'Account').trim() || 'Account';
+  const roleLabel = String(source.dataset.roleLabel || auth.role_label || 'USER').trim() || 'USER';
+  const roleKey = String(source.dataset.roleKey || auth.role_key || roleLabel).trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   let context = null;
+  let mounted = false;
 
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  }[char]));
 
-  const menu = document.createElement('details');
-  menu.id = 'accountMenu';
-  menu.className = 'account-menu';
-  menu.innerHTML = `
-    <summary class="account-trigger" aria-label="Open account menu">
-      <span class="account-name"></span>
-      <span class="account-role-badge account-role-${roleClass}"></span>
-      <span class="account-client-pill" id="accountClientPill" hidden></span>
-      <svg class="account-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </summary>
-    <div class="account-popover" role="menu" aria-label="Account options">
-      <div class="account-client-context" id="accountClientContext" hidden>
-        <div class="account-client-context-head"><strong>Working client</strong></div>
-        <select id="accountClientSelect" aria-label="Select working client"></select>
-      </div>
-      <div class="account-menu-divider account-client-divider" hidden></div>
-      <div class="account-menu-slot account-password-slot"></div>
-      <div class="account-menu-divider account-password-divider"></div>
-      <div class="account-menu-slot account-logout-slot"></div>
-    </div>`;
-
-  menu.querySelector('.account-name').textContent = name;
-  menu.querySelector('.account-role-badge').textContent = roleLabel;
-
-  if (passwordBtn) {
-    passwordBtn.className = 'account-menu-item';
-    passwordBtn.setAttribute('role', 'menuitem');
-    const passwordText = passwordBtn.querySelector('span');
-    if (passwordText) passwordText.textContent = 'Change password';
-    menu.querySelector('.account-password-slot').appendChild(passwordBtn);
-  } else {
-    menu.querySelector('.account-password-slot')?.remove();
-    menu.querySelector('.account-password-divider')?.remove();
-  }
-
-  logoutBtn.className = 'account-menu-item is-danger';
-  logoutBtn.setAttribute('role', 'menuitem');
-  const logoutText = logoutBtn.querySelector('span');
-  if (logoutText) logoutText.textContent = 'Log out';
-  menu.querySelector('.account-logout-slot').appendChild(logoutBtn);
-
-  userLine.remove();
-  actions.replaceChildren(menu);
-
-  const pill = document.getElementById('accountClientPill');
-  const clientBlock = document.getElementById('accountClientContext');
-  const clientSelect = document.getElementById('accountClientSelect');
-  const clientDivider = menu.querySelector('.account-client-divider');
+  const clientIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M8 19h4"/></svg>';
+  const toolsIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>';
 
   async function api(url, options = {}) {
     const response = await fetch(url, {cache:'no-store', ...options});
     const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; }
+    let data = null;    try { data = text ? JSON.parse(text) : null; }
     catch (_) { throw new Error(`Client context returned invalid data (${response.status}).`); }
     if (!data) throw new Error(`Client context returned an empty response (${response.status}).`);
     if (!data.success) throw new Error(data.error || 'Client context could not be loaded.');
     return data;
   }
 
-  function clientOptions(clients, selectedId) {
-    return (clients || []).slice().sort((a,b) => Number(a.id) - Number(b.id)).map(client => {
+  function clientOptions(data) {
+    const clients = data?.can_select_client && Array.isArray(data.clients) && data.clients.length
+      ? data.clients.slice().sort((a,b) => Number(a.id) - Number(b.id))
+      : [data?.client].filter(Boolean);
+    return clients.map(client => {
       const inactive = String(client.status || '').toLowerCase() === 'inactive' ? ' · inactive' : '';
-      return `<option value="${Number(client.id)}" ${Number(client.id) === Number(selectedId) ? 'selected' : ''}>${esc(client.name)} · ${esc(client.client_code)}${inactive}</option>`;
+      const code = String(client.client_code || '').trim();
+      const label = `${String(client.name || 'Client').trim()}${code ? ` · ${code}` : ''}${inactive}`;
+      return `<option value="${Number(client.id)}" ${Number(client.id) === Number(data.active_client_id) ? 'selected' : ''}>${esc(label)}</option>`;
     }).join('');
-  }
-
-  function applyContext(data) {
-    context = data;
-    const client = data?.client || {};
-    const clientName = String(client.name || '').trim();
-    const clientCode = String(client.client_code || '').trim();
-    if (pill && clientName) {
-      pill.textContent = clientName;
-      pill.title = `Working client: ${clientName}${clientCode ? ` (${clientCode})` : ''}`;
-      pill.hidden = false;
-    }
-
-    const selectable = !!data?.can_select_client && Array.isArray(data.clients) && data.clients.length > 0;
-    if (clientBlock) clientBlock.hidden = !selectable;
-    if (clientDivider) clientDivider.hidden = !selectable;
-    if (clientSelect) {
-      clientSelect.innerHTML = selectable ? clientOptions(data.clients, data.active_client_id) : '';
-      clientSelect.value = selectable ? String(data.active_client_id) : '';
-      clientSelect.disabled = false;
-    }
-  }
-
-  async function loadContext() {
-    try {
-      applyContext(await api('api/client_context.php?_=' + Date.now(), {headers:{'Accept':'application/json'}}));
-    } catch (error) {
-      console.error('MERDPOS account client context:', error);
-    }
   }
 
   function visiblePanelId() {
@@ -120,56 +48,155 @@
     return panel?.id || 'dashboardPanel';
   }
 
-  async function switchClient(clientId) {
+  function expandRail() {
+    if (window.matchMedia('(max-width: 51.25rem)').matches) return;
+    window.MERDPOSNavigation?.expandRail?.();
+  }
+  function closeMobileTools() {
+    document.body.classList.remove('merd-mobile-tools-open');
+    document.querySelector('.rail-mobile-tools-btn')?.setAttribute('aria-expanded', 'false');
+  }
+
+  async function switchClient(clientId, selects) {
     if (!context || !context.can_select_client || Number(clientId) === Number(context.active_client_id)) return;
-    if (!clientSelect) return;
     const selected = (context.clients || []).find(client => Number(client.id) === Number(clientId));
     const selectedName = selected?.name || `Client ${clientId}`;
-    clientSelect.disabled = true;
+    selects.forEach(select => { select.disabled = true; });
     try {
       const result = await api('api/client_context.php', {
         method:'POST',
         headers:{'Accept':'application/json','Content-Type':'application/json'},
-        body:JSON.stringify({
-          action:'select_client',
-          client_id:Number(clientId),
-          csrf:context.csrf,
-        }),
+        body:JSON.stringify({action:'select_client',client_id:Number(clientId),csrf:context.csrf}),
       });
-      applyContext(result);
+      context = result;
       sessionStorage.setItem('merdposReturnPanel', visiblePanelId());
       sessionStorage.setItem('merdposContextNotice', `Working client changed to ${selectedName}.`);
       window.location.reload();
     } catch (error) {
-      clientSelect.disabled = false;
-      clientSelect.value = String(context.active_client_id);
+      selects.forEach(select => {
+        select.disabled = !context.can_select_client;
+        select.value = String(context.active_client_id || '');
+      });
       window.alert(error.message);
     }
   }
 
-  clientSelect?.addEventListener('change', event => switchClient(event.target.value));
+  function mount() {
+    const rail = document.querySelector('.app-rail');
+    const themeSection = rail?.querySelector('.rail-utility-section');
+    if (!rail || !themeSection || mounted) return false;
+    mounted = true;
+    const clientSection = document.createElement('section');
+    clientSection.className = 'rail-client-section';
+    clientSection.setAttribute('aria-label', 'Working client');
+    clientSection.innerHTML = `${clientIcon}<div class="rail-client-copy"><span>Working client</span><select id="accountClientSelect" aria-label="Select working client" disabled></select></div>`;
+    clientSection.addEventListener('pointerdown', expandRail);
+    clientSection.addEventListener('focusin', expandRail);
+    rail.insertBefore(clientSection, rail.firstElementChild);
 
-  const close = () => { if (menu.open) menu.open = false; };
+    const utilities = document.createElement('div');
+    utilities.className = 'rail-shell-utilities';
+    utilities.innerHTML = `
+      <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
+      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>`;
 
-  document.addEventListener('pointerdown', event => {
-    if (menu.open && !menu.contains(event.target)) close();
-  });
+    const accountSection = document.createElement('section');
+    accountSection.className = 'rail-account-section';
+    [passwordBtn, logoutBtn].filter(Boolean).forEach(button => {
+      button.hidden = false;
+      button.className = `rail-group-btn rail-account-action${button === logoutBtn ? ' is-danger' : ''}`;
+      button.removeAttribute('role');
+      const label = button.querySelector('span');
+      if (label) label.className = 'rail-label';
+      accountSection.appendChild(button);
+    });
+    utilities.appendChild(accountSection);
 
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && menu.open) {
-      close();
-      menu.querySelector('summary')?.focus();
+    themeSection.classList.add('rail-theme-section');
+    utilities.appendChild(themeSection);
+    const aboutSection = document.createElement('section');
+    aboutSection.className = 'rail-about-section';
+    const aboutBtn = document.createElement('button');
+    aboutBtn.type = 'button';
+    aboutBtn.className = 'rail-group-btn rail-about-toggle';
+    aboutBtn.innerHTML = '<img class="rail-asset-icon" src="assets/brand/M_Icon.svg?v=20260828about1" alt=""><span class="rail-label">About MERDPOS</span>';
+    aboutBtn.title = 'About MERDPOS';
+    aboutBtn.setAttribute('aria-label', 'About MERDPOS');
+    aboutSection.appendChild(aboutBtn);
+    utilities.appendChild(aboutSection);
+    rail.appendChild(utilities);
+
+    const toolsSection = document.createElement('section');
+    toolsSection.className = 'rail-section rail-mobile-tools-section';
+    toolsSection.innerHTML = `<button type="button" class="rail-group-btn rail-mobile-tools-btn" aria-label="Account and app tools" aria-expanded="false">${toolsIcon}<span class="rail-label">More</span></button>`;
+    rail.appendChild(toolsSection);
+
+    const desktopSelect = clientSection.querySelector('#accountClientSelect');
+    const mobileSelect = utilities.querySelector('.rail-mobile-client-select');
+    const selects = [desktopSelect, mobileSelect].filter(Boolean);
+
+    function applyContext(data) {
+      context = data;
+      const options = clientOptions(data);
+      selects.forEach(select => {
+        select.innerHTML = options;
+        select.value = String(data.active_client_id || data?.client?.id || '');
+        select.disabled = !data.can_select_client;
+      });
+      const clientName = String(data?.client?.name || 'Working client').trim();
+      clientSection.title = `Working client: ${clientName}`;
     }
-  });
 
-  [passwordBtn, logoutBtn].filter(Boolean).forEach(button => {
-    button.addEventListener('click', () => window.setTimeout(close, 0));
-  });
+    selects.forEach(select => select.addEventListener('change', event => switchClient(event.target.value, selects)));
+    const aboutDialog = document.getElementById('merdposAboutDialog');
+    const aboutClose = document.getElementById('merdposAboutClose');
+    aboutBtn.addEventListener('click', () => {
+      closeMobileTools();
+      aboutDialog?.showModal?.();
+    });
+    aboutClose?.addEventListener('click', () => aboutDialog?.close?.());
+    aboutDialog?.addEventListener('click', event => {
+      if (event.target === aboutDialog) aboutDialog.close();
+    });
 
-  window.MERDPOSAccountContext = {
-    refresh: loadContext,
-    get: () => context,
-  };
+    const toolsButton = toolsSection.querySelector('.rail-mobile-tools-btn');
+    toolsButton?.addEventListener('click', event => {
+      event.stopPropagation();
+      const open = !document.body.classList.contains('merd-mobile-tools-open');
+      document.body.classList.toggle('merd-mobile-tools-open', open);
+      toolsButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
 
-  loadContext();
+    [passwordBtn, logoutBtn].filter(Boolean).forEach(button => {
+      button.addEventListener('click', () => window.setTimeout(closeMobileTools, 0));
+    });
+
+    document.addEventListener('pointerdown', event => {
+      if (!document.body.classList.contains('merd-mobile-tools-open')) return;
+      if (utilities.contains(event.target) || toolsSection.contains(event.target)) return;
+      closeMobileTools();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeMobileTools();
+    });
+    async function loadContext() {
+      try {
+        applyContext(await api('api/client_context.php?_=' + Date.now(), {headers:{'Accept':'application/json'}}));
+      } catch (error) {
+        console.error('MERDPOS rail client context:', error);
+      }
+    }
+
+    source.remove();
+    window.MERDPOSAccountContext = {refresh: loadContext, get: () => context};
+    loadContext();
+    return true;
+  }
+
+  if (mount()) return;
+  let attempts = 0;
+  const mountTimer = window.setInterval(() => {
+    attempts += 1;
+    if (mount() || attempts > 80) window.clearInterval(mountTimer);
+  }, 50);
 })();

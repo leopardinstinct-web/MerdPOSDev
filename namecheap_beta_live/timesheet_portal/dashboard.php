@@ -21,6 +21,9 @@ $roleLabel = (string)($user['role_label'] ?? $user['role_name'] ?? $role);
 $authorityLevel = (int)($user['authority_level'] ?? 0);
 $isManagement = !empty($user['is_management']);
 $isDev = !empty($user['is_dev']);
+$productVersion = '2026.08.28-beta';
+$productReleaseDate = '28 Aug 2026';
+$productChannel = 'Namecheap Beta';
 
 $canDashboard = $can('dashboard.view');
 $canWorkforce = $can('workforce.view');
@@ -98,16 +101,10 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260827visual1">
 </head>
 <body class="merd-shell">
-  <header class="topbar merd-topbar">
-    <div class="merd-logo-lockup merd-brand merd-brand--header merd-brand--approved-lockup" aria-label="MERDPOS">
-      <img class="merd-brand__lockup-image" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
-    </div>
-    <div class="topbar-actions">
-      <div class="user-line">Signed in as <strong><?= htmlspecialchars((string)$user['name']) ?></strong><span class="merd-role-pill"><?= htmlspecialchars($roleLabel) ?></span></div>
-      <?php if ($can('password.change_own')): ?><button id="passwordBtn" class="ghost-btn"><?= ui_icon('key') ?><span>Password</span></button><?php endif; ?>
-      <button id="logoutBtn" class="ghost-btn"><?= ui_icon('logout') ?><span>Log out</span></button>
-    </div>
-  </header>
+  <div id="shellAccountSources" hidden data-user-name="<?= htmlspecialchars((string)$user['name']) ?>" data-role-label="<?= htmlspecialchars($roleLabel) ?>" data-role-key="<?= htmlspecialchars($role) ?>">
+    <?php if ($can('password.change_own')): ?><button id="passwordBtn" type="button"><?= ui_icon('key') ?><span>Change password</span></button><?php endif; ?>
+    <button id="logoutBtn" type="button"><?= ui_icon('logout') ?><span>Log out</span></button>
+  </div>
 
   <main class="page-shell merd-page-shell">
     <nav class="portal-tabs merd-nav" aria-label="MERDPOS sections">
@@ -372,6 +369,29 @@ function ui_icon(string $name): string
     </section>
     <?php endif; ?>
   </main>
+
+  <dialog id="merdposAboutDialog" class="merd-about-dialog" aria-labelledby="merdposAboutTitle">
+    <div class="merd-about-card">
+      <section class="merd-about-copy">
+        <img class="merd-about-logo" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
+        <div class="merd-about-meta">
+          <p class="merd-about-product">MERDPOS</p>
+          <h2 id="merdposAboutTitle">Smarter retail operations.</h2>
+          <dl>
+            <div><dt>Version</dt><dd><?= htmlspecialchars($productVersion) ?></dd></div>
+            <div><dt>Release date</dt><dd><?= htmlspecialchars($productReleaseDate) ?></dd></div>
+            <div><dt>Channel</dt><dd><?= htmlspecialchars($productChannel) ?></dd></div>
+          </dl>
+        </div>
+        <p class="merd-about-foot">Smarter · Faster · Together</p>
+      </section>
+      <section class="merd-about-art" aria-hidden="true">
+        <span class="merd-about-shape shape-a"></span><span class="merd-about-shape shape-b"></span><span class="merd-about-shape shape-c"></span>
+        <img src="assets/brand/M_Icon.svg?v=20260828about1" alt="">
+      </section>
+      <button id="merdposAboutClose" class="merd-about-close" type="button" aria-label="Close About MERDPOS">×</button>
+    </div>
+  </dialog>
 
   <?php if ($can('password.change_own')): ?>
   <dialog id="passwordDialog" class="portal-dialog">

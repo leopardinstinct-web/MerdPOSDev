@@ -320,6 +320,7 @@
   const initialGroup = initiallyActive?.closest('[data-sidebar-group]')?.dataset.sidebarGroup || sections[0]?.key;
   if (initialGroup) setGroup(initialGroup);
   syncResponsiveMode();
+  window.MERDPOSNavigation = { expandRail, collapseRail };
 
   // Any feature can request a return panel before a context-changing reload.
   // This also covers tabs mounted asynchronously after the navigation shell.
