@@ -594,3 +594,91 @@
 .merd-shell .financial-day-not-opened h2 { margin: 0; font-size: var(--type-lg); }
 .merd-shell .financial-day-not-opened p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); }
 @media (max-width:51.25rem){.merd-shell .directory-toolbar .directory-actions.merd-action-cluster,.merd-shell .clients-admin-toolbar.merd-action-cluster{width:100%!important;margin-left:0}.merd-shell .role-row{grid-template-columns:1fr}}
+
+/* Reports centre: adapt TapTouch's data-first information architecture, not its chrome. */
+.reports-page-head,
+.disputes-page-head { margin-bottom: var(--space-4); }
+.reports-launch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.report-launch-card {
+  width: 100%;
+  min-height: 7.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4);
+  text-align: left;
+  color: var(--color-text-primary);
+  background: var(--color-surface-main);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+.report-launch-card:hover,
+.report-launch-card:focus-visible {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-border-default));
+  background: var(--color-surface-selected);
+}
+.report-launch-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+  color: var(--color-brand-primary);
+  background: var(--color-info-surface);
+}
+.report-launch-card strong { display: block; font-size: var(--type-md); }
+.report-launch-card small { display: block; margin-top: var(--space-1); color: var(--color-text-secondary); line-height: 1.45; }
+.report-launch-arrow { color: var(--color-brand-primary); font-size: 1.75rem; line-height: 1; }
+@media (max-width: 51.25rem) {
+  .reports-launch-grid,
+  .reports-sales-grid { grid-template-columns: 1fr; }
+  .report-launch-card { min-height: 0; padding: var(--space-3); }
+  .reports-section-head { flex-direction: column; }
+}
+.reports-sales-section { margin-top: var(--space-1); }
+.reports-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.reports-section-head h3 { margin: 0; }
+.reports-section-head p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); }
+.reports-period-pill {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+.reports-sales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3);
+}
+.reports-sales-card {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+}
+.reports-sales-card > span,
+.reports-sales-card small { color: var(--color-text-muted); font-size: var(--type-xs); }
+.reports-sales-card > strong { color: var(--color-text-primary); font-size: var(--type-md); overflow-wrap: anywhere; }
+.reports-sales-card .reports-sales-value { color: var(--color-brand-primary); font-size: var(--type-xl); font-weight: var(--weight-bold); }
+.reports-sales-total { background: var(--color-info-surface); border-color: color-mix(in srgb, var(--color-brand-primary) 22%, var(--color-border-subtle)); }

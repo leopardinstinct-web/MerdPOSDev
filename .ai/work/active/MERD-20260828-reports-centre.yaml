@@ -1,0 +1,37 @@
+version: 1
+id: MERD-20260828-reports-centre
+objective: "Adapt the highest-value TapTouch back-office patterns into MERDPOS using only capabilities and data that already exist: a first-class Reports overview, report launch/drill-down, authorized sales snapshot, and consistent report page hierarchy."
+acceptance:
+  - "Reports is an explicit navigation group with Overview as the first submenu when Timesheets or Disputes are available."
+  - "Reports Overview lists the report surfaces available to the current role and opens them through the canonical panel navigation path."
+  - "Users with finance.management_summary see a read-only current-business-date sales-by-store snapshot using existing beta_state data only."
+  - "Disputes receives the same title/helper hierarchy already used by Timesheets."
+  - "No new permissions, sales queries, payroll logic, financial mutation logic, or speculative TapTouch capabilities are introduced."
+  - "Desktop/mobile and light/dark rendering remain usable."
+packet_state: RECONNED
+lifecycle: WIRED
+base_head: "563d69950abb8b165d86192276fee186c090332a"
+last_seen_head: "563d69950abb8b165d86192276fee186c090332a"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/app-ui.css"
+  - "namecheap_beta_live/timesheet_portal/assets/reports-overview.js"
+  - "namecheap_beta_live/browser_tests/navigation-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/reports-overview-runtime.spec.js"
+constraints:
+  - "Preserve client role -> LOA -> named permission -> UI/API/data scope."
+  - "Use beta_state.php as the existing server-scoped source; do not broaden data access."
+  - "Keep Financial as an operational panel; Reports Overview may link to it when already permitted."
+  - "Do not change frozen Timesheet/payroll rules."
+completed:
+  - "Resolved authoritative namecheap-beta-live HEAD and read the lean bootstrap/invariants/task gates/active work index."
+  - "Inspected dashboard/navigation/report source, beta_state/dashboard_data authorization paths, and recent affected-path history."
+  - "Confirmed current report navigation is derived from Workforce and current backend already exposes permission-scoped sales_by_store for finance.management_summary."
+remaining:
+  - "Implement explicit Reports group/overview and read-only overview runtime."
+  - "Run targeted and full guardrails."
+  - "Deploy through the established Namecheap pull cycle and visually verify representative desktop/mobile light/dark views."
+next_action: "Implement the bounded Reports centre using existing scoped data and canonical panel navigation."
+blocked: false
+blocker: null
+updated_at: "2026-08-28T16:31:00+05:00"
