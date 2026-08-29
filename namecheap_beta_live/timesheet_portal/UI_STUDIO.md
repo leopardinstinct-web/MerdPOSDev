@@ -4,7 +4,7 @@ UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the 
 
 ## Sector radial interaction
 
-- One draggable **UI / DEV** hub is the persistent controller. Dragging preserves the original finger-to-hub-center offset, so touching near an edge never snaps the hub underneath the finger. Touch/pen taps activate directly on pointer-up and any later synthetic click is treated only as a duplicate, so a real tap after dragging still opens Studio normally.
+- One draggable **UI / DEV** hub is the persistent controller. Dragging preserves the original finger-to-hub-center offset, so touching near an edge never snaps the hub underneath the finger. Touch/pen taps activate directly on pointer-up and any later synthetic click is treated only as a duplicate, so a real tap after dragging still opens Studio normally. If opening the ring repositions the stage inward, that same gesture’s synthetic click is consumed at document capture so it cannot retarget a newly appeared wedge or underlying MERDPOS control.
 - The hub uses native browser Popover plus local HTML/CSS/JavaScript and locally vendored Google Material Symbols.
 - The root ring is four actions: **Select**, **Edit**, **Changes**, **Exit**.
 - Studio uses **single-ring drill-down**: selecting a parent replaces the current ring with its child ring instead of stacking or shrinking ancestor rings.

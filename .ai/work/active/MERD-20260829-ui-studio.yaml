@@ -59,9 +59,10 @@ completed:
   - "Studio13 runtime contract, JavaScript syntax, YAML and deploy-script syntax checks pass; full beta browser suite passes 26/26."
   - "Studio14 mirrors the approved prototype geometry (760 viewBox, 72 hub radius, 84→220 ring, zero gaps), removes colored icon backplates, aligns icon/label exactly, and vendors the matching Google Material Symbols."
   - "Focused Studio14 browser suite passes 12/12, including exact geometry/icon-label parity plus real-touch 394x512 interaction and drag recovery."
+  - "Live Studio14 verification exposed synthetic click retarget after the first touch repositions the stage; studio14b adds a document-capture guard and the real viewport-meta focused suite passes 12/12."
 remaining:
-  - "Studio14 visual parity is coded and focused 12/12 regression green; bump/cache-contract, run full beta gate, commit/push, confirm CI + Namecheap serving studio14, then verify live touch/desktop behavior."
-next_action: "Release Studio14 prototype visual parity and verify live on 394x512 plus 681x598."
+  - "Run full beta gate, commit/push studio14b, confirm CI + Namecheap serving studio14b, then rerun authenticated 394x512 and 681x598 live verification."
+next_action: "Release Studio14b touch-retarget guard and verify live on 394x512 plus 681x598."
 blocked: false
 blocker: null
 updated_at: "2026-08-29T14:20:00+05:00"

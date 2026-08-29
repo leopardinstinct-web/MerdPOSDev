@@ -169,3 +169,8 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - The center diameter stays in the prototype `144/760` proportion to the menu shell across viewport changes.
 - Transparent space outside the visible ring does not receive pointer input, and ring-shell resizing is not animated.
 - Existing real-touch 394×512 taps, no-snap drag, post-drag reopen, comments/Add/History, color, numeric stepper and Copy/Chat regressions remain mandatory.
+
+## UI Studio14 first-touch synthetic-click regression
+- The browser fixture includes the real portal viewport meta tag.
+- On 394×512 touch, the first hub pointer-up may reposition the stage inward; any synthetic click from that same touch sequence must be consumed globally before it can retarget a newly rendered wedge or underlying MERDPOS control.
+- If Chrome emits no synthetic click, the next new pointer-down clears suppression so the user’s next intentional tap is never swallowed.

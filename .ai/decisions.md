@@ -207,3 +207,7 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Use dark neutral sector surfaces (`#25253D`, active `#30304C`) with bright semantic color on the Material Symbol itself; do not use colored circular icon backplates.
 - Align each icon and label on one X axis: icon center is 16 units above the slice midpoint and the label is 38 units below the icon center.
 - Keep the transparent area outside the visible ring non-interactive and do not animate ring-shell resizing, preventing transient touch/geometry drift during viewport changes.
+
+## 2026-08-29 — UI Studio touch click retarget guard
+- Touch/pen hub activation remains pointer-up driven. When opening or dragging repositions the Studio under the same gesture, consume the synthetic click at document capture so it cannot retarget a newly appeared radial wedge or MERDPOS control.
+- A subsequent new pointer-down clears stale suppression before the next intentional gesture.
