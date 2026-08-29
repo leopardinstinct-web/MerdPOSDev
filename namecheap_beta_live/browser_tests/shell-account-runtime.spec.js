@@ -71,6 +71,7 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
   expect(source).toContain('assets/management.js?v=20260830roleviewstudio16');
+  expect(source).toContain("$previewUser['actual_employee_type'] = $viewRoleKey");
   expect(source).toContain('Smarter &middot; Faster &middot; Together');
   expect(source).toContain('&times;</button>');
 });

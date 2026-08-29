@@ -34,6 +34,8 @@ if ($isDev) {
         if ($viewRole) {
             $previewUser = $user;
             $previewUser['role'] = $viewRoleKey;
+            $previewUser['actual_employee_type'] = $viewRoleKey;
+            $previewUser['employee_type'] = $viewRoleKey;
             $previewUser['role_key'] = $viewRoleKey;
             $previewUser['role_label'] = (string)$viewRole['role_label'];
             $previewUser['authority_level'] = (int)$viewRole['authority_level'];

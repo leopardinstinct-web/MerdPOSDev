@@ -215,6 +215,7 @@ beta_contract_require_contains($dashboard, 'merdpos_dev_view_role', 'DEV present
 beta_contract_require_contains($dashboard, "['ADMIN','SUPER','USER']", 'DEV presentation role allow-list', $errors);
 beta_contract_require_contains($dashboard, '[$permissions] = beta_permission_snapshot', 'DEV presentation role permission snapshot', $errors);
 beta_contract_require_contains($dashboard, '$previewUser[\'is_dev\'] = false', 'DEV presentation role excludes DEV-only view permissions', $errors);
+beta_contract_require_contains($dashboard, '$previewUser[\'actual_employee_type\'] = $viewRoleKey', 'DEV presentation role clears actual DEV employee type before permission snapshot', $errors);
 beta_contract_require_contains($dashboard, '\'actual_role_key\'=>$actualRole', 'DEV presentation preserves actual role metadata', $errors);
 
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
