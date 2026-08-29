@@ -5,15 +5,16 @@ UI Studio is a DEV-only visual preview tool for fast Beta UI iteration. MERDPOS 
 ## Native circular interaction
 
 - Opening Studio shows one draggable circular **UI** hub on desktop and mobile.
-- The hub uses native browser Popover plus local HTML/CSS/JavaScript only; no circular-menu, React, icon-font, or CDN runtime dependency is required.
+- The hub uses native browser Popover plus local HTML/CSS/JavaScript only; controls use locally vendored Google Material Symbols, with no circular-menu, React, icon-font, or CDN runtime dependency.
 - Clicking **UI** opens an adaptive radial menu toward the visible space around the hub.
 - Dragging the hub moves it around the viewport and stores desktop/mobile positions separately in browser local storage.
 - **Select** closes the menu so DEV can click a rendered MERDPOS element without triggering its normal action.
+- **Text** enables inline preview editing for a selected text-only element; Enter saves and Esc cancels.
 - **Color** opens a nested palette ring for White, Canvas (`#F5F7FC`), Navy, Cyan and Violet plus a BG/Text target toggle.
 - **Layout** opens nested rings for padding, margin, gap, radius, width and font-size presets.
 - **Scope** exposes This element, This component type, All matching elements and All pages.
 - **Move** exposes Before, After and Inside; structural movement remains This element only.
-- **Hide/Show** changes visibility in the preview.
+- **Hide/Show** changes visibility in the preview. **Reveal** temporarily exposes preview-hidden items without deleting the draft patches.
 - **Changes** exposes Copy, Chat, Undo, Reset and Clear without displaying the JSON on screen.
 
 ## Copy and Chat handoff
@@ -32,7 +33,7 @@ A UI Studio change-set is design intent. It becomes MERDPOS only after canonical
 
 - **This element** targets only the clicked DOM node.
 - **This component type** targets the same element role inside the current component on the current page.
-- **All matching elements** targets matching elements in the current portal panel.
+- **All matching elements** targets the same matching selector across portal panels.
 - **All pages** removes panel-specific scope and targets the shared matching component across portal pages.
 
-The radial layout deliberately computes item coordinates in JavaScript rather than depending on experimental CSS `@function` or `sibling-index()` support. Inline SVG icons keep the controller self-contained.
+The radial layout computes item coordinates in JavaScript, clamps the open ring into visible viewport space, and avoids experimental CSS `@function` / `sibling-index()` support. Google Material Symbols are vendored locally from the pinned upstream source recorded in `assets/vendor/google-material-symbols/NOTICE.md`.

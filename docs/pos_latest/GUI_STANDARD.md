@@ -14,6 +14,19 @@ Every screen is reviewed in this order:
 
 The MERDPOS dark navigation rail and light working surfaces remain the product identity. Do not clone another product's branding or ornamental style.
 
+
+### Material Web / Material 3 reference — BINDING
+
+MERDPOS uses Google Material Web / Material 3 as the default **component and interaction reference** for web controls: accessible states, focus/keyboard behavior, control semantics, menus, dialogs, fields, buttons, selection controls and responsive interaction patterns.
+
+This is a reference standard, not a branding replacement. MERDPOS `design-tokens.css`, the five-color master palette, product typography and MERDPOS navigation identity remain authoritative. Material dynamic color or default Material palettes must not override MERDPOS tokens.
+
+`material-components/material-web` is in maintenance mode, so MERDPOS MUST NOT introduce a portal-wide runtime dependency on `@material/web` without a separate architecture decision. Prefer standards-based HTML/CSS/JS that reproduces the relevant Material 3 behavior.
+
+Iconography should prefer Google Material Symbols from the official `google/material-design-icons` repository when a matching symbol exists. Approved symbols may be vendored locally with pinned upstream provenance and Apache-2.0 attribution; no runtime font/CDN dependency is required.
+
+Samsung One UI remains the mobile reachability/layout reference where already adopted; Material 3 supplies component semantics and interaction conventions, while MERDPOS supplies identity.
+
 ## 2. Spacing
 
 Use only the shared spacing scale for layout:

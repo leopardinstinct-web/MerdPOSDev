@@ -12,14 +12,15 @@ acceptance:
   - "Movement remains element-only; preview drafts remain local and canonical source remains the production source of truth."
 packet_state: CHECKED
 lifecycle: WIRED
-base_head: "2248b331e300265e2fc33bbc8ba8d08e6e4ffec7"
-last_seen_head: "2248b331e300265e2fc33bbc8ba8d08e6e4ffec7"
+base_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
+last_seen_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
-  - "namecheap_beta_live/timesheet_portal/assets/vendor/circular-menu/"
+  - "namecheap_beta_live/timesheet_portal/assets/vendor/google-material-symbols/"
+  - "docs/pos_latest/GUI_STANDARD.md"
   - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
   - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
   - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
@@ -35,15 +36,16 @@ completed:
   - "Resolved authoritative HEAD 2248b331e300265e2fc33bbc8ba8d08e6e4ffec7 before replacing the prior Studio interaction."
   - "Removed the persistent inspector/change-set panel and replaced it with one draggable circular UI hub."
   - "Replaced yandongCoder/circular-menu with native Popover plus local HTML/CSS/JS; no React/circular-menu runtime dependency remains."
-  - "Added inline SVG icons, adaptive radial geometry, nested Color/Layout/Scope/Move/Changes layers, Copy and Chat handoff."
+  - "Replaced hand-drawn inline controller icons with locally vendored Google Material Symbols pinned to upstream commit 84ccef280841abfac506afc4ad4a2782f6d0a1d0 with Apache-2.0 attribution."
+  - "Added element-only inline Text editing, cross-panel Matching scope, temporary Reveal/Restore for preview-hidden elements, and viewport-clamped radial placement."
   - "Preserved local draft persistence, element/component/matching/pages scope semantics, move patches and preview-only safety boundary."
-  - "Targeted UI Studio Chrome regression passes 4/4, including desktop edit/move, all-pages palette scope, mobile drag/adaptive fit and Chat copy."
+  - "Targeted UI Studio Chrome regression passes 6/6, covering DEV gating, edit/move, text patches, cross-panel matching/reveal, all-pages palette scope, Material Symbol rendering and mobile drag/adaptive fit."
   - "JS syntax, dashboard PHP lint and beta runtime-contract validator pass."
-  - "Full browser suite passed 18/18; PHP lint passed 94 files; JS syntax passed 24 files; permission, loader-order and beta-state validators passed; deploy Bash syntax and git diff check passed."
+  - "Full browser suite passed 20/20; PHP lint passed 94 files; JS syntax passed 38 files; runtime, permission, loader-order and beta-state validators passed."
 remaining:
-  - "Commit/push the checked native circular-only implementation and confirm CI."
-  - "Confirm Namecheap serves studio5 assets and authenticated live desktop/mobile behavior, then archive the packet."
-next_action: "Run full checks, commit/push, confirm deployment and verify live native circular UI Studio."
+  - "Commit/push the checked studio6 Material Symbols enhancement and confirm CI."
+  - "Confirm Namecheap serves studio6 plus vendored Material Symbol assets and authenticated live desktop/mobile behavior, then archive the packet."
+next_action: "Commit/push checked studio6 Material Symbols enhancement, confirm CI/deployment, then verify authenticated live desktop/mobile."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T03:55:00+05:00"
+updated_at: "2026-08-29T05:24:34+05:00"

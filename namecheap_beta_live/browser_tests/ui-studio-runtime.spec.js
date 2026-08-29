@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 const path = require('path');
 
 test.use({ channel: 'chrome' });
@@ -7,6 +8,7 @@ const portalRoot = path.join(repoRoot, 'namecheap_beta_live', 'timesheet_portal'
 const tokensPath = path.join(portalRoot, 'assets', 'design-tokens.css');
 const studioCssPath = path.join(portalRoot, 'assets', 'ui-studio.css');
 const studioJsPath = path.join(portalRoot, 'assets', 'ui-studio.js');
+const iconRoot = path.join(portalRoot, 'assets', 'vendor', 'google-material-symbols');
 
 const fixture = `<!doctype html><html><head><style>:root{--shell-mobile-nav-h:4.75rem}</style></head><body>
   <button id="openUiStudioBtn" type="button">Open UI Studio</button>
@@ -18,6 +20,7 @@ const fixture = `<!doctype html><html><head><style>:root{--shell-mobile-nav-h:4.
     </section>
     <section id="secondPanel" class="portal-panel">
       <header class="merd-mobile-page-head"><div class="merd-mobile-page-copy"><span class="merd-mobile-context">Second client</span><p>Second helper</p></div></header>
+      <article id="cardC" class="controls-card"><strong>Card C</strong></article>
     </section>
   </main>
 </body></html>`;
@@ -31,6 +34,10 @@ async function mount(page, isDev = true, width = 1280) {
     catch (_) { try { navigator.clipboard.writeText = clipboard.writeText; } catch (_) {} }
   });
   await page.route('https://merdpos-smoke.invalid/ui-studio', route => route.fulfill({ status: 200, contentType: 'text/html', body: fixture }));
+  await page.route('https://merdpos-smoke.invalid/assets/vendor/google-material-symbols/*', route => {
+    const name = new URL(route.request().url()).pathname.split('/').pop();
+    return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: fs.readFileSync(path.join(iconRoot, name)) });
+  });
   await page.goto('https://merdpos-smoke.invalid/ui-studio');
   await page.addStyleTag({ path: tokensPath });
   await page.addStyleTag({ path: studioCssPath });
@@ -103,6 +110,46 @@ test('DEV edits and moves through native circular menus without an inspector pan
   expect(pageErrors).toEqual([]);
 });
 
+test('Text edits inline and restores from the local preview draft', async ({ page }) => {
+  await mount(page, true, 1280);
+  await page.locator('#openUiStudioBtn').click();
+  await hub(page).click();
+  await choose(page, 'Select');
+  await page.locator('#cardA strong').click();
+  await hub(page).click();
+  await choose(page, 'Text');
+  const label = page.locator('#cardA strong');
+  await expect(label).toHaveAttribute('contenteditable', 'plaintext-only');
+  await label.fill('Renamed card');
+  await label.press('Enter');
+  await expect(label).toHaveText('Renamed card');
+  const payload = await page.evaluate(() => window.MERDPOS_UI_STUDIO.getChangeSet());
+  expect(payload.patches).toEqual(expect.arrayContaining([expect.objectContaining({ kind:'text', scope:'element', value:'Renamed card' })]));
+  await reloadRuntime(page);
+  await expect(page.locator('#cardA strong')).toHaveText('Renamed card');
+});
+
+test('Matching scope previews across portal pages and Reveal is temporary', async ({ page }) => {
+  await mount(page, true, 1280);
+  await page.locator('#openUiStudioBtn').click();
+  await hub(page).click();
+  await choose(page, 'Select');
+  await page.locator('#cardA').click();
+  await hub(page).click();
+  await choose(page, 'Scope');
+  await choose(page, 'Matching');
+  await choose(page, 'Back');
+  await choose(page, 'Hide');
+  const cards = page.locator('article.controls-card');
+  expect(await cards.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).display))).toEqual(['none','none','none']);
+  await choose(page, 'Reveal');
+  expect(await cards.evaluateAll(nodes => nodes.every(node => getComputedStyle(node).display !== 'none'))).toBe(true);
+  const payload = await page.evaluate(() => window.MERDPOS_UI_STUDIO.getChangeSet());
+  expect(payload.patches).toEqual(expect.arrayContaining([expect.objectContaining({ kind:'style', scope:'matching', selector:'article.controls-card', property:'display', value:'none' })]));
+  await choose(page, 'Restore hidden');
+  expect(await cards.evaluateAll(nodes => nodes.every(node => getComputedStyle(node).display === 'none'))).toBe(true);
+});
+
 test('scope and palette layers apply one edit across all pages', async ({ page }) => {
   await mount(page, true, 1280);
   await page.locator('#openUiStudioBtn').click();
@@ -159,8 +206,12 @@ test('native circular Studio is draggable, adaptive, nested, and exposes chat ha
   await expect(hub(page)).toBeVisible();
   await expect(page.locator('.merd-ui-studio')).toHaveCount(0);
   await expect(page.locator('textarea')).toHaveCount(0);
+  await expect(page.locator('.merd-ui-studio-host')).toHaveAttribute('popover','manual');
 
   await hub(page).click();
+  await expect(item(page,'Select').locator('.merd-ui-menu-icon')).toBeVisible();
+  const iconMask = await item(page,'Select').locator('.merd-ui-menu-icon').evaluate(node => getComputedStyle(node).maskImage || getComputedStyle(node).webkitMaskImage);
+  expect(iconMask).toContain('ads_click_48px.svg');
   await choose(page,'Select');
   await page.locator('#cardA').click();
 

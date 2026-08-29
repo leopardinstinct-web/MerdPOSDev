@@ -134,3 +134,14 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Safety:** The controller remains actual-DEV-only, preview-only, local-browser state. Copy/Chat are clipboard handoffs; Studio still performs no source, API, or database writes.
 
 **Supersedes:** The earlier 2026-08-29 mobile contract that used `yandongCoder/circular-menu` plus an inspector/change sheet. The subsequently explored `react-circular-menu` approach was not promoted to source and is not part of the runtime.
+
+
+## 2026-08-29 - Material 3 is the component reference; Material Symbols are vendored locally
+
+**Decision:** MERDPOS uses Material 3 as the web component/interaction reference while retaining MERDPOS tokens, typography, navigation identity and the five-color master palette. A portal-wide `@material/web` runtime dependency is not introduced while Material Web is in maintenance mode.
+
+**UI Studio implementation:** Hand-drawn inline controller icons are replaced with locally vendored Google Material Symbols from `google/material-design-icons`, pinned in `assets/vendor/google-material-symbols/NOTICE.md` with Apache-2.0 attribution. No icon font or CDN request is required.
+
+**Interaction additions:** Studio supports element-only inline text preview editing, cross-panel `matching` scope, temporary Reveal/Restore for hidden preview patches, and adaptive radial geometry that keeps controls inside mobile viewport bounds.
+
+**Safety:** These remain DEV-only local preview capabilities and do not change source, APIs, database state, authorization, payroll or finance behavior.

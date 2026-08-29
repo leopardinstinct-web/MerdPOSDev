@@ -195,8 +195,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio5', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio5', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio6', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio6', 'UI Studio runtime wiring', $errors);
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
 beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
@@ -208,11 +208,16 @@ beta_contract_require_contains($uiStudioJs, "component:'This component type'", '
 beta_contract_require_contains($uiStudioJs, "matching:'All matching elements'", 'UI Studio matching scope', $errors);
 beta_contract_require_contains($uiStudioJs, "pages:'All pages'", 'UI Studio all-pages scope', $errors);
 beta_contract_require_contains($uiStudioJs, 'scopeSelectorFor', 'UI Studio scope selector engine', $errors);
-beta_contract_require_contains($uiStudioJs, "setAttribute('popover','auto')", 'UI Studio native Popover menu', $errors);
+beta_contract_require_contains($uiStudioJs, "if(scope==='matching')return target;", 'UI Studio matching scope crosses portal panels', $errors);
+beta_contract_require_contains($uiStudioJs, "kind:'text'", 'UI Studio inline text patch support', $errors);
+beta_contract_require_contains($uiStudioJs, 'toggleRevealHidden', 'UI Studio temporary reveal support', $errors);
+beta_contract_require_contains($uiStudioJs, 'assets/vendor/google-material-symbols/', 'UI Studio local Google Material Symbols source', $errors);
+beta_contract_require_absent($uiStudioJs, 'const ICONS={', 'retired hand-drawn inline icon registry', $errors);
+beta_contract_require_contains($uiStudioJs, "setAttribute('popover','manual')", 'UI Studio manual top-layer Popover host', $errors);
 beta_contract_require_contains($uiStudioJs, 'showPopover()', 'UI Studio native Popover open behavior', $errors);
 beta_contract_require_contains($uiStudioJs, 'setPointerCapture', 'UI Studio draggable hub behavior', $errors);
 beta_contract_require_contains($uiStudioCss, '.merd-ui-hub', 'UI Studio circular hub', $errors);
-beta_contract_require_contains($uiStudioCss, '.merd-ui-menu[popover]', 'UI Studio native Popover CSS', $errors);
+beta_contract_require_contains($uiStudioCss, '.merd-ui-studio-host[popover]', 'UI Studio manual Popover host CSS', $errors);
 beta_contract_require_absent($uiStudioJs, '<aside', 'retired UI Studio inspector panel', $errors);
 beta_contract_require_absent($uiStudioJs, 'data-studio-output', 'retired UI Studio change-set textarea', $errors);
 beta_contract_require_absent($uiStudioCss, '.merd-ui-studio {', 'retired UI Studio panel CSS', $errors);
@@ -220,6 +225,11 @@ beta_contract_require_absent($uiStudioJs, 'fetch(', 'UI Studio mutation/network 
 beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio mutation/network isolation', $errors);
 beta_contract_require_absent($uiStudioJs, '/api/', 'UI Studio mutation/network isolation', $errors);
 beta_contract_require_contains($uiStudioCss, 'var(--color-brand-violet)', 'UI Studio master palette use', $errors);
+foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48px.svg','visibility_48px.svg','edit_48px.svg'] as $materialIconFile) {
+    if (!is_file($repo . '/namecheap_beta_live/timesheet_portal/assets/vendor/google-material-symbols/' . $materialIconFile)) {
+        $errors[] = 'UI Studio Google Material Symbols asset is missing: ' . $materialIconFile;
+    }
+}
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260828palette1', 'brand identity runtime cache version', $errors);
