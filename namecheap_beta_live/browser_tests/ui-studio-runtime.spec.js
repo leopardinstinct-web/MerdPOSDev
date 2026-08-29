@@ -77,6 +77,13 @@ test('real touch taps activate sectors at 394x512 and share an explicit origin',
   const editBox=await item(page,'Edit').locator('.merd-ui-sector-label').boundingBox();await page.touchscreen.tap(editBox.x+editBox.width/2,editBox.y+editBox.height/2);await expect(item(page,'Color')).toBeVisible();await context.close();
 });
 
+test('touch drag preserves the finger-to-hub offset instead of snapping the hub',async({browser})=>{
+  const context=await browser.newContext({viewport:{width:394,height:512},hasTouch:true,isMobile:true});const page=await context.newPage();await mount(page,true,394);await page.setViewportSize({width:394,height:512});await page.locator('#openUiStudioBtn').click();
+  const before=await hub(page).boundingBox(),cx=before.x+before.width/2,cy=before.y+before.height/2,startX=cx+18,startY=cy+9,dx=34,dy=27;const cdp=await context.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:startX,y:startY,radiusX:4,radiusY:4}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:startX+dx,y:startY+dy,radiusX:4,radiusY:4}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(60);
+  const after=await hub(page).boundingBox(),afterCx=after.x+after.width/2,afterCy=after.y+after.height/2;expect(Math.abs((afterCx-cx)-dx)).toBeLessThan(2);expect(Math.abs((afterCy-cy)-dy)).toBeLessThan(2);await context.close();
+});
+
 test('Studio remains draggable and sector menu is viewport safe on mobile',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));await mount(page,true,390);await page.locator('#openUiStudioBtn').click();const before=await hub(page).boundingBox();await page.mouse.move(before.x+before.width/2,before.y+before.height/2);await page.mouse.down();await page.mouse.move(190,220,{steps:8});await page.mouse.up();const after=await hub(page).boundingBox();expect(Math.abs(after.x-before.x)+Math.abs(after.y-before.y)).toBeGreaterThan(20);
   await openRoot(page);await choose(page,'Edit');await choose(page,'Color');const m=await page.locator('.merd-ui-menu').boundingBox();expect(m.x).toBeGreaterThanOrEqual(-1);expect(m.y).toBeGreaterThanOrEqual(-1);expect(m.x+m.width).toBeLessThanOrEqual(391);expect(m.y+m.height).toBeLessThanOrEqual(845-70);expect(errors).toEqual([]);

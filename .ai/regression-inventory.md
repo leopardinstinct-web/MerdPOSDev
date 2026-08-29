@@ -139,3 +139,7 @@ Protected by `ui-studio-runtime.spec.js` Galaxy-sized geometry/readability cover
 ### UI Studio radial static-origin/touch regression
 
 Protected by `ui-studio-runtime.spec.js`: at 394x512 in a touch-enabled mobile context, hub/menu computed origins must both be `0px,0px`, the centers remain concentric, and a real touchscreen tap on the rendered Edit sector must open its child ring.
+
+### UI Studio touch-drag contact-offset regression
+
+Protected by `ui-studio-runtime.spec.js`: in a 394x512 touch-enabled Chromium context, a drag starting off-center on the hub must move the hub only by the gesture delta. The hub must not snap so the initial finger coordinate becomes its new origin.

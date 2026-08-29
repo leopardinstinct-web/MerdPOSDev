@@ -4,7 +4,7 @@ UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the 
 
 ## Sector radial interaction
 
-- One draggable **UI / DEV** hub is the persistent controller.
+- One draggable **UI / DEV** hub is the persistent controller. Dragging preserves the original finger-to-hub-center offset, so touching near an edge never snaps the hub underneath the finger.
 - The hub uses native browser Popover plus local HTML/CSS/JavaScript and locally vendored Google Material Symbols.
 - The root ring is four bright DEV-tool sectors: **Select**, **Edit**, **Changes**, **Exit**.
 - Selecting a parent keeps its sector layer visible and opens the child sector ring around it. Parent rings dim rather than disappearing.

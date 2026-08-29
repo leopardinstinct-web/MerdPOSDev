@@ -175,3 +175,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Touch contract:** Phone regression coverage must use a real touch-enabled browser context and touchscreen taps at the rendered sector coordinates, not mouse-only activation helpers.
 
 **Reason:** A 394x512 Chrome mobile screenshot showed the hub and ring diagonally offset even after the shared-stage refactor; the missing explicit child insets were the remaining geometry bug.
+
+## 2026-08-29 - UI Studio touch drag preserves contact offset
+
+**Decision:** A Studio drag must preserve the offset between the initial pointer contact and the visual hub center. Pointer movement updates the hub to `pointer + initialOffset`; it must never assign the raw pointer coordinate directly to the hub center.
+
+**Reason:** On a real phone, touching near the edge of the Studio hub caused the first move to snap the hub toward the finger, making the contact point feel like the menu origin/corner and breaking touch confidence.
