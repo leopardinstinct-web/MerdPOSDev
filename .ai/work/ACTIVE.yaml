@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-29T14:20:00+05:00"
+updated_at: "2026-08-30"
 active:
   - id: MERD-20260828-parent-submenu-default
     path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
@@ -19,6 +19,11 @@ active:
     next_action: "Push checked five-color master palette implementation, confirm CI/deployment, then visually verify light/dark desktop/mobile."
   - id: MERD-20260829-ui-studio
     path: .ai/work/active/MERD-20260829-ui-studio.yaml
+    packet_state: DEPLOYED
+    lifecycle: DEPLOYED
+    next_action: "Studio14b is deployed; Studio15 follow-up is tracked separately."
+  - id: MERD-20260830-bottom-shell-studio15
+    path: .ai/work/active/MERD-20260830-bottom-shell-studio15.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Release Studio14b touch-retarget guard and verify live on 394x512 plus 681x598."
+    next_action: "Commit/push checked Studio15 + desktop bottom dock, confirm CI/Namecheap deployment and run live verification."

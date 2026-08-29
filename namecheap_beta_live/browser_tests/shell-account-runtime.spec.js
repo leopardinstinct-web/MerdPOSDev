@@ -22,10 +22,14 @@ const fixtureHtml = `<!doctype html><html><head>
     <button id="logoutBtn" type="button"><span>Log out</span></button>
   </div>
   <main class="merd-page-shell">
-    <nav class="merd-nav"><div class="nav-group"><span class="nav-group-label">Overview</span>
-      <button class="portal-tab active" data-panel="dashboardPanel"><span>Dashboard</span></button>
-    </div></nav>
-    <section id="dashboardPanel" class="portal-panel">Dashboard</section>
+    <nav class="merd-nav">
+      <div class="nav-group"><span class="nav-group-label">Overview</span><button class="portal-tab active" data-panel="dashboardPanel"><span>Dashboard</span></button></div>
+      <div class="nav-group"><span class="nav-group-label">Operations</span><button class="portal-tab" data-panel="storesPanel"><span>Stores</span></button><button class="portal-tab" data-panel="employeesPanel"><span>Workforce</span></button></div>
+      <div class="nav-group"><span class="nav-group-label">Reports</span><button class="portal-tab" data-panel="reportsPanel"><span>Overview</span></button><button class="portal-tab" data-panel="timesheetPanel"><span>Timesheets</span></button><button class="portal-tab" data-panel="disputesPanel"><span>Disputes</span></button></div>
+      <div class="nav-group"><span class="nav-group-label">Finance</span><button class="portal-tab" data-panel="financialPanel"><span>Financial</span></button></div>
+      <div class="nav-group"><span class="nav-group-label">System</span><button class="portal-tab dev-tab" data-panel="devPanel"><span>DEV</span></button></div>
+    </nav>
+    <section id="dashboardPanel" class="portal-panel">Dashboard</section><section id="storesPanel" class="portal-panel" hidden>Stores</section><section id="employeesPanel" class="portal-panel" hidden>Workforce</section><section id="reportsPanel" class="portal-panel" hidden>Reports</section><section id="timesheetPanel" class="portal-panel" hidden>Timesheets</section><section id="disputesPanel" class="portal-panel" hidden>Disputes</section><section id="financialPanel" class="portal-panel" hidden>Financial</section><section id="devPanel" class="portal-panel" hidden>DEV</section>
   </main>
   <dialog id="merdposAboutDialog" aria-labelledby="merdposAboutTitle"><h2 id="merdposAboutTitle">About</h2><button id="merdposAboutClose">Close</button></dialog>
 </body></html>`;
@@ -64,29 +68,17 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
   expect(source).toContain('id="shellAccountSources"');
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
-  expect(source).toContain('assets/management.js?v=20260829studio6');
+  expect(source).toContain('assets/management.js?v=20260830bottomstudio15');
   expect(source).toContain('Smarter &middot; Faster &middot; Together');
   expect(source).toContain('&times;</button>');
 });
 
-test('desktop rail mounts client/account/theme/About in requested order', async ({ page }) => {
-  const pageErrors = await mountShell(page, 1280);
-  const rail = page.locator('.app-rail');
-  const children = await rail.locator(':scope > *').evaluateAll(nodes => nodes.map(node => node.className));
-  expect(children[0]).toContain('rail-client-section');
-  await expect(rail.locator('#accountClientSelect')).toHaveValue('1');
-  await expect(rail.locator('#passwordBtn')).toBeVisible();
-  await expect(rail.locator('#logoutBtn')).toBeVisible();
-  const utilityText = await rail.locator('.rail-shell-utilities').innerText();
-  expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));
-  expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));
-  expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));
-  await expect(rail.locator('.rail-about-toggle img')).toHaveAttribute('src', /assets\/brand\/M_Icon\.svg/);
-  await rail.locator('.rail-about-toggle').click();
-  await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open', true);
-  await page.locator('#merdposAboutClose').click();
-  await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open', false);
-  expect(pageErrors).toEqual([]);
+test('desktop uses the mobile-style bottom dock plus one account/client circle', async ({ page }) => {
+  const pageErrors = await mountShell(page, 1280);const rail=page.locator('.app-rail');await expect(page.locator('.app-frame')).toHaveClass(/nav-bottom/);const primary=rail.locator(':scope > .rail-section:not([data-nav-section="system"])');await expect(primary).toHaveCount(4);await expect(rail.locator(':scope > .rail-section[data-nav-section="system"]')).toBeHidden();await expect(rail.locator('.rail-client-section')).toBeHidden();await expect(rail.locator('.merd-shell-account-trigger')).toBeVisible();
+  const geom=await rail.evaluate(el=>{const r=el.getBoundingClientRect();return {bottom:innerHeight-r.bottom,height:r.height,position:getComputedStyle(el).position}});expect(Math.abs(geom.bottom)).toBeLessThan(2);expect(geom.position).toBe('fixed');expect(geom.height).toBeGreaterThan(60);
+  await expect(rail.locator('.rail-shell-utilities')).toBeHidden();await rail.locator('.merd-shell-account-trigger').click();await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);await expect(rail.locator('.rail-shell-utilities')).toBeVisible();await expect(rail.locator('.rail-mobile-client-select')).toHaveValue('1');await expect(rail.locator('.rail-user-summary')).toContainText('Imran');await expect(rail.locator('.rail-mobile-system-links')).toContainText('DEV');
+  const utilityText=await rail.locator('.rail-shell-utilities').innerText();expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));await rail.locator('.rail-about-toggle').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',true);await page.locator('#merdposAboutClose').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',false);
+  await page.locator('[data-nav-group="operations"]').click();await expect(page.locator('#storesPanel')).toBeVisible();await expect(page.locator('[data-sidebar-group="operations"]')).toBeVisible();expect(pageErrors).toEqual([]);
 });
 test('mobile utility sheet opens without a More navigation tab', async ({ page }) => {
   const pageErrors = await mountShell(page, 390);

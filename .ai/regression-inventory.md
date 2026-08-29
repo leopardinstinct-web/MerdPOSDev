@@ -174,3 +174,17 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - The browser fixture includes the real portal viewport meta tag.
 - On 394×512 touch, the first hub pointer-up may reposition the stage inward; any synthetic click from that same touch sequence must be consumed globally before it can retarget a newly rendered wedge or underlying MERDPOS control.
 - If Chrome emits no synthetic click, the next new pointer-down clears suppression so the user’s next intentional tap is never swallowed.
+
+
+## Desktop bottom-dock shell regression
+- At desktop width the app frame must not allocate a left rail column; .app-rail is fixed to the viewport bottom.
+- Only Home, Operations, Reports and Finance remain primary dock destinations; System/DEV is absent from primary navigation.
+- The circular account trigger opens the utility surface containing working-client and signed-in-user context plus system/app utilities.
+- Multi-item primary groups keep their secondary pages reachable through contextual sub-navigation above the bottom dock.
+
+## UI Studio15 center/Move/history regressions
+- Fine-pointer hover on the center hub opens the radial ring; wheel input over the hub skips disabled actions, highlights one candidate, displays its label in the hub and center-click executes it.
+- With no armed candidate, center-click is Back inside nested menus. Undo is rendered on every radial level.
+- Move from inner card content must promote source and destination to their MERDPOS component roots and visibly reorder the components while recording a move patch.
+- Hide changes to Show after the local hide patch, and Show restores the preview. History exposes a per-row delete control that removes only that history event.
+- Icon-only sectors use 48-unit Material Symbols; permanent sector-label nodes are absent from normal Studio menus.

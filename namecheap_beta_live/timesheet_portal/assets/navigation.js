@@ -148,19 +148,15 @@
   };
 
   const expandRail = () => {
-    if (!desktopQuery.matches) return;
     clearCollapseTimer();
-    frame.classList.add('nav-expanded');
-    frame.classList.remove('nav-collapsed');
+    frame.classList.remove('nav-expanded','nav-collapsed');
+    frame.classList.add('nav-bottom');
     syncExpandedAria(true);
   };
 
   const collapseRail = () => {
-    if (!desktopQuery.matches) return;
-    clearCollapseTimer();
-    frame.classList.remove('nav-expanded');
-    frame.classList.add('nav-collapsed');
-    syncExpandedAria(false);
+    // Bottom navigation is persistent on every viewport; keep API compatibility.
+    expandRail();
   };
 
   const animatePanel = tab => {
@@ -256,7 +252,7 @@
   };
 
   function setGroup(name) {
-    const drawerExpanded = !desktopQuery.matches || frame.classList.contains('nav-expanded');
+    const drawerExpanded = true;
     sections.forEach(section => {
       const active = section.key === name;
       section.button.classList.toggle('active', active);
@@ -298,20 +294,11 @@
     });
   });
 
-  document.addEventListener('pointerdown', event => {
-    if (desktopQuery.matches && !rail.contains(event.target) && !event.target.closest?.('[data-ui-studio]')) collapseRail();
-  });
-
   const syncResponsiveMode = () => {
     clearCollapseTimer();
-    if (desktopQuery.matches) {
-      frame.classList.remove('nav-expanded');
-      frame.classList.add('nav-collapsed');
-      syncExpandedAria(false);
-    } else {
-      frame.classList.remove('nav-collapsed', 'nav-expanded');
-      syncExpandedAria(true);
-    }
+    frame.classList.remove('nav-collapsed','nav-expanded');
+    frame.classList.add('nav-bottom');
+    syncExpandedAria(true);
     syncMobileSubnavState();
   };
   desktopQuery.addEventListener?.('change', syncResponsiveMode);

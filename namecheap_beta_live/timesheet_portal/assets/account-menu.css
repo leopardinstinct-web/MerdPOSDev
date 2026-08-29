@@ -439,3 +439,50 @@
     outline-offset: .125rem;
   }
 }
+
+/* Desktop account/client utility sheet launched from the bottom-dock avatar. */
+.rail-account-dock { display:none; }
+@media (min-width:51.3125rem) {
+  .rail-account-dock { display:flex; }
+  .rail-client-section { display:none !important; }
+  .rail-mobile-tools-backdrop {
+    position:fixed; inset:0; z-index:79;
+    background:color-mix(in srgb,var(--color-brand-navy) 42%,transparent);
+    backdrop-filter:blur(.16rem);
+  }
+  .rail-mobile-tools-backdrop[hidden] { display:none; }
+  .rail-shell-utilities {
+    display:grid; position:fixed; right:1rem; bottom:calc(var(--shell-desktop-nav-h) + 1rem); left:auto;
+    z-index:120; width:min(25rem,calc(100vw - 2rem)); max-height:min(76vh,40rem); margin:0;
+    padding:1.25rem; overflow:auto; border:1px solid var(--color-nav-border); border-radius:1.25rem;
+    background:var(--color-nav-bg); box-shadow:0 1.25rem 3rem rgba(0,0,0,.32);
+    opacity:0; visibility:hidden; pointer-events:none; transform:translateY(.75rem) scale(.985);
+    transition:transform 180ms ease,opacity 160ms ease,visibility 0s linear 180ms;
+  }
+  body.merd-mobile-tools-open .rail-shell-utilities {
+    opacity:1; visibility:visible; pointer-events:auto; transform:none; transition-delay:0s;
+  }
+  body.merd-mobile-tools-open { overflow:hidden; }
+  .rail-mobile-client-context { display:grid; gap:.625rem; padding:0 0 1rem; border-bottom:1px solid var(--color-nav-border); }
+  .rail-user-summary { grid-template-columns:var(--size-icon-lg) minmax(0,1fr); margin:.25rem 0 .5rem; padding:.875rem 0; border-bottom:1px solid var(--color-nav-border); }
+  .rail-user-copy { width:auto; opacity:1; overflow:visible; }
+  .rail-mobile-system-links {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(8rem,1fr)); gap:.5rem;
+    padding:.5rem 0 1rem; border-bottom:1px solid var(--color-nav-border);
+  }
+  .rail-mobile-system-links .rail-system-action {
+    min-height:3rem; border:1px solid var(--color-nav-border);
+    background:color-mix(in srgb,var(--color-nav-sub-active) 45%,transparent);
+  }
+  .rail-account-section,.rail-theme-section,.rail-about-section { width:100%; padding-block:.125rem; }
+  .rail-shell-utilities .rail-group-btn,.rail-shell-utilities .rail-theme-toggle {
+    min-height:3rem; display:grid; grid-template-columns:var(--size-icon-lg) minmax(0,1fr);
+    gap:var(--space-3); justify-content:stretch; padding-inline:var(--space-3); border-radius:.875rem; text-align:left;
+  }
+  .rail-shell-utilities .rail-group-btn .rail-label,.rail-shell-utilities .rail-theme-toggle .rail-label {
+    display:block !important; width:auto; max-width:none; opacity:1; text-align:left;
+  }
+  .rail-shell-utilities .rail-group-btn:focus-visible,.rail-shell-utilities .rail-theme-toggle:focus-visible {
+    outline:.1875rem solid var(--color-focus-soft); outline-offset:.125rem;
+  }
+}

@@ -1,0 +1,46 @@
+version: 1
+id: MERD-20260830-bottom-shell-studio15
+objective: "Unify desktop/mobile primary navigation in a bottom dock and ship Studio15 center-hub usability fixes."
+acceptance:
+  - "Desktop has no left navigation rail and uses the same four primary destinations as mobile."
+  - "Secondary pages remain reachable through contextual sub-navigation above the bottom dock."
+  - "Working client and signed-in-user/app utilities open from one circular account control."
+  - "Studio sectors are icon-only with larger Material Symbols and an alert-colored center hub."
+  - "Fine-pointer hover opens Studio; hub wheel cycles enabled actions; center click executes an armed action or Back when unarmed in a submenu."
+  - "Undo is present on every Studio menu level."
+  - "Move visibly reorders the intended MERDPOS component, including when the initial pointer lands on inner content."
+  - "Hide becomes Show after hiding, and History can delete one step without clearing the rest."
+  - "Studio remains actual-DEV-only and preview-only with no API/DB/source mutation path."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "9a49308274ac8d304692fab7da76d40b861a67f8"
+last_seen_head: "9a49308274ac8d304692fab7da76d40b861a67f8"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
+  - "namecheap_beta_live/timesheet_portal/assets/shell.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "scripts/deploy_namecheap_beta.sh"
+  - "docs/pos_latest/GUI_STANDARD.md"
+  - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
+constraints:
+  - "Preserve authorization, client switching, payroll, finance and business-data behavior."
+  - "Preserve Namecheap-side mirror/pull deployment architecture."
+  - "Do not commit local temp/test output or node_modules."
+completed:
+  - "Studio focused suite passes 17/17 with hub wheel/select/back, Move, Hide/Show, History delete and Undo-everywhere coverage."
+  - "Shell/navigation focused regression passes 4/4 for desktop bottom dock/account utilities plus existing mobile behavior."
+remaining:
+  - "Full beta browser suite passes 31/31; all four beta validators, YAML, deploy-script syntax, 94 PHP lints and 38 JS syntax checks pass."
+  - "Commit/push, confirm Beta guardrails, wait for Namecheap deployment, then verify authenticated live desktop and touch behavior."
+next_action: "Commit/push checked Studio15 + desktop bottom dock, confirm CI/Namecheap deployment and run authenticated live verification."
+blocked: false
+blocker: null
+updated_at: "2026-08-30"

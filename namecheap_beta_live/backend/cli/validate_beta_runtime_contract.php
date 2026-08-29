@@ -177,7 +177,10 @@ foreach ([
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260828mobile1',
-    'assets/account-menu.css?v=20260828palette1',
+    'assets/shell.css?v=20260830bottom1',
+    'assets/navigation.js?v=20260830bottom1',
+    'assets/account-menu.css?v=20260830bottom1',
+    'assets/account-menu.js?v=20260830bottom1',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -193,8 +196,12 @@ foreach ([
 
 // Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260829studio14b', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260829studio14b', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830bottom1', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830bottom1', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio15', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio15', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
@@ -202,8 +209,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio14b', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio14b', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio15', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio15', 'UI Studio runtime wiring', $errors);
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
 beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
@@ -238,8 +245,18 @@ beta_contract_require_contains($uiStudioCss, '#30304C', 'UI Studio active sector
 beta_contract_require_contains($uiStudioJs, "kind:'comment'", 'UI Studio element comment metadata', $errors);
 beta_contract_require_contains($uiStudioJs, "kind:'add'", 'UI Studio preview element insertion', $errors);
 beta_contract_require_contains($uiStudioJs, 'getHistory', 'UI Studio navigable local history', $errors);
+beta_contract_require_contains($uiStudioJs, 'function withUndo', 'UI Studio undo action on every radial level', $errors);
+beta_contract_require_contains($uiStudioJs, 'function deleteHistoryEntry', 'UI Studio individual history deletion', $errors);
+beta_contract_require_contains($uiStudioJs, 'function movableTarget', 'UI Studio component-aware move targeting', $errors);
+beta_contract_require_contains($uiStudioJs, "hub.addEventListener('wheel'", 'UI Studio hub wheel selection', $errors);
+beta_contract_require_contains($uiStudioJs, "hub.addEventListener('mouseenter'", 'UI Studio hover-to-open hub', $errors);
+beta_contract_require_contains($uiStudioCss, '.is-hub-candidate', 'UI Studio hub candidate highlight', $errors);
+beta_contract_require_contains($navigationJs, 'nav-bottom', 'Unified bottom navigation runtime', $errors);
+beta_contract_require_contains($shellCss, '--shell-desktop-nav-h', 'Desktop bottom navigation geometry', $errors);
+beta_contract_require_contains($shellCss, '.merd-shell-account-trigger', 'Desktop circular account/client trigger geometry', $errors);
+beta_contract_require_contains(beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.js', $errors), 'merd-shell-account-trigger', 'Desktop circular account/client trigger runtime', $errors);
+
 beta_contract_require_contains($uiStudioJs, 'selectionTarget', 'UI Studio navigation/transient-menu selection', $errors);
-beta_contract_require_contains($navigationJs, "closest?.('[data-ui-studio]')", 'desktop navigation ignores Studio interactions', $errors);
 beta_contract_require_contains($accountMenuCss . beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.js', $errors), "closest?.('[data-ui-studio]')", 'mobile tools ignore Studio interactions', $errors);
 beta_contract_require_contains($uiStudioCss, '.merd-ui-hub', 'UI Studio circular hub', $errors);
 beta_contract_require_contains($uiStudioCss, '.merd-ui-studio-host[popover]', 'UI Studio manual Popover host CSS', $errors);

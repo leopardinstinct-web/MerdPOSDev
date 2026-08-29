@@ -211,3 +211,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 ## 2026-08-29 â€” UI Studio touch click retarget guard
 - Touch/pen hub activation remains pointer-up driven. When opening or dragging repositions the Studio under the same gesture, consume the synthetic click at document capture so it cannot retarget a newly appeared radial wedge or MERDPOS control.
 - A subsequent new pointer-down clears stale suppression before the next intentional gesture.
+
+## 2026-08-30 — Unified desktop/mobile bottom navigation
+
+- Desktop no longer uses the left navigation rail. Authenticated desktop and mobile share the same four primary destinations in a persistent dark bottom dock: Home, Operations, Reports and Finance.
+- Secondary destinations remain reachable through contextual sub-navigation above the dock.
+- Working client, signed-in user/role, DEV/system links and account/app utilities are progressively disclosed from one circular account control rather than occupying primary navigation.
+
+## 2026-08-30 — UI Studio15 center-hub interaction
+
+- Studio sectors are icon-only with 48-unit Material Symbols; permanent wedge labels are removed.
+- The amber center hub is the primary action surface: fine-pointer hover opens the menu, wheel input cycles enabled actions, click executes the armed action, and an unarmed click is Back inside a submenu.
+- Undo is available at every radial level. Hide/Show is state-aware, individual history rows can be deleted, and Move promotes inner content to a recognized component root for source/destination targeting.

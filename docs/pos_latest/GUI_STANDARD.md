@@ -12,7 +12,7 @@ Every screen is reviewed in this order:
 2. **Usability** — the primary task must be obvious, efficient and accessible.
 3. **Restrained trendiness** — modern presentation is welcome only when it does not reduce operational clarity.
 
-The MERDPOS dark navigation rail and light working surfaces remain the product identity. Do not clone another product's branding or ornamental style.
+MERDPOS uses a dark bottom navigation dock with light working surfaces as the authenticated shell identity. Desktop and mobile share the same four primary destinations; working-client and signed-in-user utilities are progressively disclosed from one circular account control. Do not clone another product's branding or ornamental style.
 
 
 ### Material Web / Material 3 reference — BINDING
@@ -29,9 +29,9 @@ Samsung One UI remains the mobile reachability/layout reference where already ad
 
 ### DEV UI Studio radial-tool exception ? BINDING
 
-UI Studio is an actual-DEV-only design tool, not product chrome. Its controller uses compact nested radial **sectors**: parent rings stay visible while child rings open, child ownership is marked explicitly, and the hub becomes Back inside nested layers. Bright high-chroma Studio colors may be used for tool-layer differentiation; they are not MERDPOS brand tokens and MUST NOT leak into normal portal components.
+UI Studio is an actual-DEV-only design tool, not product chrome. Its controller uses one icon-only radial **sector ring** at a time. The amber center hub is the primary action display: hover opens the ring on fine-pointer devices, wheel input over the hub cycles available actions, clicking executes the armed action, and an unarmed click becomes Back inside nested layers. Undo is available on every menu level. Bright high-chroma Studio accents may be used for tool-layer differentiation; they are not MERDPOS brand tokens and MUST NOT leak into normal portal components.
 
-Studio must preserve the rendered application as the canvas. Selection mode may target navigation, sidebar and transient-menu controls, but must intercept the application action while selecting. Returning pointer focus to Studio must not collapse an expanded desktop rail or close an opened mobile utility menu. Comments, added preview elements and change history remain local preview/design metadata under the existing no-API/no-DB/no-source-write safety boundary.
+Studio must preserve the rendered application as the canvas. Selection mode may target navigation, bottom-dock/contextual navigation and transient utility controls, but must intercept the application action while selecting. Studio interactions must not close an opened shell utility menu. Comments, added preview elements and change history remain local preview/design metadata under the existing no-API/no-DB/no-source-write safety boundary.
 
 ## 2. Spacing
 

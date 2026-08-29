@@ -53,10 +53,13 @@
     if (window.matchMedia('(max-width: 51.25rem)').matches) return;
     window.MERDPOSNavigation?.expandRail?.();
   }
+  function syncUtilityTriggers(open) {
+    document.querySelectorAll('.merd-shell-account-trigger,.merd-mobile-account-trigger').forEach(button => button.setAttribute('aria-expanded', open ? 'true' : 'false'));
+  }
   function openMobileTools(trigger) {
-    if (!window.matchMedia('(max-width: 51.25rem)').matches) return;
     utilityTrigger = trigger || document.activeElement;
     document.body.classList.add('merd-mobile-tools-open');
+    syncUtilityTriggers(true);
     if (utilityBackdrop) utilityBackdrop.hidden = false;
     window.setTimeout(function () {
       const first = document.querySelector('.rail-shell-utilities select:not([disabled]), .rail-shell-utilities button:not([disabled])');
@@ -66,6 +69,7 @@
   function closeMobileTools(options = {}) {
     const wasOpen = document.body.classList.contains('merd-mobile-tools-open');
     document.body.classList.remove('merd-mobile-tools-open');
+    syncUtilityTriggers(false);
     if (utilityBackdrop) utilityBackdrop.hidden = true;
     if (wasOpen && options.restoreFocus !== false) window.setTimeout(() => utilityTrigger?.focus?.({preventScroll:true}), 30);
   }
@@ -109,6 +113,7 @@
 
     const utilities = document.createElement('div');
     utilities.className = 'rail-shell-utilities';
+    utilities.id = 'merdShellUtilities';
     utilities.innerHTML = `
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
       <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>`;
@@ -154,6 +159,19 @@
       utilities.insertBefore(systemLinks, accountSection);
     }
 
+    const accountDock = document.createElement('section');
+    accountDock.className = 'rail-account-dock';
+    const accountTrigger = document.createElement('button');
+    accountTrigger.type = 'button';
+    accountTrigger.className = 'merd-shell-account-trigger';
+    accountTrigger.title = `${name} · Account and working client`;
+    accountTrigger.setAttribute('aria-label', 'Account, working client and app settings');
+    accountTrigger.setAttribute('aria-controls', 'merdShellUtilities');
+    accountTrigger.setAttribute('aria-expanded', 'false');
+    accountTrigger.innerHTML = `<span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span>`;
+    accountTrigger.addEventListener('click', event => document.body.classList.contains('merd-mobile-tools-open') ? closeMobileTools() : openMobileTools(event.currentTarget));
+    accountDock.appendChild(accountTrigger);
+    rail.appendChild(accountDock);
     rail.appendChild(utilities);
     utilityBackdrop = document.createElement('div');
     utilityBackdrop.className = 'rail-mobile-tools-backdrop';
@@ -199,6 +217,7 @@
     document.addEventListener('pointerdown', event => {
       if (!document.body.classList.contains('merd-mobile-tools-open')) return;
       if (utilities.contains(event.target)) return;
+      if (event.target.closest?.('.merd-shell-account-trigger,.merd-mobile-account-trigger')) return;
       if (event.target.closest?.('[data-ui-studio]')) return;
       closeMobileTools();
     });
