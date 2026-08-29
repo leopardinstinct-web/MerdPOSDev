@@ -21,4 +21,4 @@ active:
     path: .ai/work/active/MERD-20260829-ui-studio.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Deploy Studio10 drag-anchor fix and verify live phone dragging without snap."
+    next_action: "Push/deploy Studio12 and verify live on 394x512 plus desktop."

@@ -181,3 +181,14 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Decision:** A Studio drag must preserve the offset between the initial pointer contact and the visual hub center. Pointer movement updates the hub to `pointer + initialOffset`; it must never assign the raw pointer coordinate directly to the hub center.
 
 **Reason:** On a real phone, touching near the edge of the Studio hub caused the first move to snap the hub toward the finger, making the contact point feel like the menu origin/corner and breaking touch confidence.
+
+## 2026-08-29 - UI Studio drag click suppression is event-cycle scoped
+
+**Decision:** The click-suppression flag used after a drag must expire on the next event-loop turn even if the browser emits no synthetic click for that drag.
+
+**Reason:** Real touch validation showed that Android/Chromium may omit the post-drag click. A persistent boolean would then swallow the user's next intentional tap on the Studio hub.
+
+## 2026-08-29 — UI Studio active-ring readability hierarchy
+- Active radial rings own the readable labels and large touch slices; ancestor rings collapse to compact icon-only breadcrumbs.
+- Active Material Symbol size is 44 SVG units and active labels are 24px desktop / 25px mobile in the 500-unit viewBox.
+- Touch/pen hub activation is handled on pointer-up so Android does not depend on a synthesized click after drag; duplicate clicks are suppressed.

@@ -143,3 +143,12 @@ Protected by `ui-studio-runtime.spec.js`: at 394x512 in a touch-enabled mobile c
 ### UI Studio touch-drag contact-offset regression
 
 Protected by `ui-studio-runtime.spec.js`: in a 394x512 touch-enabled Chromium context, a drag starting off-center on the hub must move the hub only by the gesture delta. The hub must not snap so the initial finger coordinate becomes its new origin.
+
+### UI Studio post-drag tap regression
+
+Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, the hub must preserve gesture delta and the next intentional touchscreen tap must open the root sector ring without being swallowed by stale click suppression.
+
+## UI Studio compact-parent / touch activation regression
+- 394x512 touch: off-center drag preserves finger-to-hub offset and one intentional tap immediately reopens the radial menu.
+- Active ring: labels/icons meet readability thresholds and the tested label bounding box stays inside its sector bounding box.
+- Submenu hierarchy: every ancestor ring has `.is-compact-parent`, contains icons, and contains no sector-label nodes.

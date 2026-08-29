@@ -48,9 +48,13 @@ completed:
   - "A follow-up real-phone report identified drag snapping: raw pointer coordinates were being assigned directly to the hub center."
   - "Studio10 preserves the initial finger-to-hub-center offset throughout touch drag and adds a true touch-drag regression at 394x512."
   - "Studio10 full beta browser suite passes 25/25, including true touch sector activation and off-center touch-drag offset preservation at 394x512."
+  - "Studio10 commit 4e73508 passed Beta guardrails and Namecheap began serving studio10. Live validation then exposed stale click suppression after a drag when Chromium emitted no synthetic click."
+  - "Studio12 uses pointer-up activation for touch/pen, preserves drag offset, enlarges active icons/labels/slices, and collapses ancestor rings to compact icon-only breadcrumbs."
+  - "Focused Studio12 tests pass for compact parent rings, label fit, real 394x512 touch sector activation, and drag followed by a single-tap reopen."
+  - "Studio12 runtime contract, JS/YAML/deploy-script syntax checks pass and the full beta browser suite passes 25/25."
 remaining:
-  - "Commit/push Studio10, confirm Beta guardrails and Namecheap serving studio10, then verify live touch drag."
-next_action: "Deploy Studio10 drag-anchor fix and verify live phone dragging without snap."
+  - "Commit/push Studio12, confirm Beta guardrails and Namecheap serving studio12, then verify the live touch and compact-ring behavior."
+next_action: "Push/deploy Studio12 and verify live on 394x512 plus desktop."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T08:24:00+05:00"
+updated_at: "2026-08-29T08:45:00+05:00"
