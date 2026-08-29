@@ -64,6 +64,7 @@ $accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_por
 $uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
 $uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
+$deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
 
 $orchestrator = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_migration_orchestrator.php', $errors);
 $knownFetch = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/legacy_known_fetch.php', $errors);
@@ -189,6 +190,12 @@ foreach ([
 ] as $retiredAsset) {
     beta_contract_require_absent($management, $retiredAsset, 'retired competing CSS layer', $errors);
 }
+
+// Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
+beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260829studio6', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260829studio6', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV identity flag', $errors);

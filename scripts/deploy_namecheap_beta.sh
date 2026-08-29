@@ -136,13 +136,22 @@ for live_file in \
 done
 
 for required_asset in \
-  'assets/design-tokens.css?v=20260827visual1' \
+  'assets/design-tokens.css?v=20260828palette1' \
   'assets/design-system.css?v=20260827visual1' \
   'assets/design-audit.js?v=20260826ds1' \
   'assets/minimal-controls.js?v=20260826ds1' \
-  'assets/mobile-runtime.js?v=20260828mobile1'; do
+  'assets/mobile-runtime.js?v=20260828mobile1' \
+  'assets/ui-studio.css?v=20260829studio6' \
+  'assets/ui-studio.js?v=20260829studio6'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
+    exit 1
+  fi
+done
+
+for material_symbol in LICENSE-Apache-2.0.txt NOTICE.md ads_click_48px.svg arrow_back_48px.svg arrow_forward_48px.svg chat_48px.svg close_48px.svg content_copy_48px.svg delete_48px.svg edit_48px.svg edit_note_48px.svg filter_center_focus_48px.svg format_color_fill_48px.svg format_color_text_48px.svg input_48px.svg open_with_48px.svg palette_48px.svg restart_alt_48px.svg tune_48px.svg undo_48px.svg visibility_48px.svg visibility_off_48px.svg; do
+  if [[ ! -r "$LIVE/timesheet_portal/assets/vendor/google-material-symbols/$material_symbol" ]]; then
+    echo "ERROR: live UI Studio Material Symbol asset missing: $material_symbol" >&2
     exit 1
   fi
 done

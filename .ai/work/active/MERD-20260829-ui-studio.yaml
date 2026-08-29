@@ -13,7 +13,7 @@ acceptance:
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
-last_seen_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
+last_seen_head: "cb8647d1eedffdf454ce101d5e938804e05495cc"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
@@ -23,6 +23,7 @@ affected_paths:
   - "docs/pos_latest/GUI_STANDARD.md"
   - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
   - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "scripts/deploy_namecheap_beta.sh"
   - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
   - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
   - ".ai/decisions.md"
@@ -42,10 +43,11 @@ completed:
   - "Targeted UI Studio Chrome regression passes 6/6, covering DEV gating, edit/move, text patches, cross-panel matching/reveal, all-pages palette scope, Material Symbol rendering and mobile drag/adaptive fit."
   - "JS syntax, dashboard PHP lint and beta runtime-contract validator pass."
   - "Full browser suite passed 20/20; PHP lint passed 94 files; JS syntax passed 38 files; runtime, permission, loader-order and beta-state validators passed."
+  - "Fixed stale Namecheap deploy recovery cache guard (20260827visual1 -> 20260828palette1), added studio6/Material Symbol live-asset checks, and protected them in the runtime source contract; deploy Bash syntax passes."
 remaining:
-  - "Commit/push the checked studio6 Material Symbols enhancement and confirm CI."
+  - "Commit/push the deploy recovery guard follow-up and confirm CI."
   - "Confirm Namecheap serves studio6 plus vendored Material Symbol assets and authenticated live desktop/mobile behavior, then archive the packet."
-next_action: "Commit/push checked studio6 Material Symbols enhancement, confirm CI/deployment, then verify authenticated live desktop/mobile."
+next_action: "Commit/push deploy recovery guard, confirm CI/deployment, then verify authenticated live studio6 desktop/mobile."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T05:24:34+05:00"
+updated_at: "2026-08-29T05:34:00+05:00"
