@@ -135,3 +135,7 @@ Do not add a permanent test merely because a screen currently exists.
 ### UI Studio hub/ring drift and undersized touch sectors
 
 Protected by `ui-studio-runtime.spec.js` Galaxy-sized geometry/readability coverage. The hub and radial SVG must share one stage center; Android visual-viewport changes must re-render/re-clamp the menu; visible sector labels/icons must remain readable and hit-testable.
+
+### UI Studio radial static-origin/touch regression
+
+Protected by `ui-studio-runtime.spec.js`: at 394x512 in a touch-enabled mobile context, hub/menu computed origins must both be `0px,0px`, the centers remain concentric, and a real touchscreen tap on the rendered Edit sector must open its child ring.

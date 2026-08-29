@@ -167,3 +167,11 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Readability/touch:** Sector bands are deliberately thicker and Studio Material Symbols/labels are larger than the earlier compact prototype. Phone touchability and label legibility take priority over maximizing the number of tiny sectors in a fixed diameter.
 
 **Regression evidence:** Galaxy-sized and 681x598 browser checks assert hub/menu concentricity, readable label/icon bounds, visible-sector hit targeting and viewport containment.
+
+## 2026-08-29 - UI Studio radial children require an explicit shared origin
+
+**Decision:** The hub and radial menu must be positioned from one fixed stage and both absolute children must declare `left:0; top:0`. Sharing a parent alone is insufficient because an absolutely positioned element with auto insets may use a browser-defined static-position origin.
+
+**Touch contract:** Phone regression coverage must use a real touch-enabled browser context and touchscreen taps at the rendered sector coordinates, not mouse-only activation helpers.
+
+**Reason:** A 394x512 Chrome mobile screenshot showed the hub and ring diagonally offset even after the shared-stage refactor; the missing explicit child insets were the remaining geometry bug.

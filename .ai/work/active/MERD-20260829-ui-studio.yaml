@@ -42,10 +42,12 @@ completed:
   - "Increased sector band thickness, menu size, icon dimensions, label type and expand markers for phone/laptop readability and touchability."
   - "Added Galaxy-sized and 681x598 regression assertions for concentric geometry, readable labels/icons and visible-sector hit targeting."
   - "Runtime contract passes and full beta browser suite passes 23/23 with the new geometry regression."
+  - "Studio8 deployed, but a real 394x512 Chrome mobile screenshot exposed a second origin bug: absolute hub/menu children had no explicit inset and Chromium assigned different static-position origins."
+  - "Studio9 anchors both hub and menu at left:0/top:0 inside the shared stage and adds a true hasTouch touchscreen-tap regression at 394x512."
+  - "Studio9 full beta browser suite passes 24/24, including real touchscreen activation at 394x512."
 remaining:
-  - "Commit/push Studio8 geometry/readability fix and confirm Beta guardrails."
-  - "Confirm Namecheap serves Studio8 and verify alignment/touch/readability on live phone-sized and 681x598 viewports."
-next_action: "Deploy Studio8 concentric-stage/readability fix, then verify live geometry and touch hit targets."
+  - "Commit/push Studio9, confirm Beta guardrails and Namecheap serving studio9, then verify live mobile alignment/touch."
+next_action: "Deploy Studio9 explicit-origin/touch fix and verify on the live 394x512 mobile viewport."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T08:01:22+05:00"
+updated_at: "2026-08-29T08:24:00+05:00"

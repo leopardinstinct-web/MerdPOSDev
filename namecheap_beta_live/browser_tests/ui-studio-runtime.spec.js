@@ -70,6 +70,13 @@ test('Galaxy-sized touch layout keeps hub concentric and sector content readable
   await page.setViewportSize({width:681,height:598});await page.waitForTimeout(80);const resized=await page.evaluate(()=>{const h=document.querySelector('.merd-ui-hub').getBoundingClientRect(),m=document.querySelector('.merd-ui-menu').getBoundingClientRect(),label=document.querySelector('[aria-label=\"Color\"] .merd-ui-sector-label')?.getBoundingClientRect();return {dx:Math.abs((h.left+h.width/2)-(m.left+m.width/2)),dy:Math.abs((h.top+h.height/2)-(m.top+m.height/2)),menu:m.width,labelH:label?.height||0}});expect(resized.dx).toBeLessThan(1);expect(resized.dy).toBeLessThan(1);expect(resized.menu).toBeGreaterThan(360);expect(resized.labelH).toBeGreaterThanOrEqual(14);
 });
 
+test('real touch taps activate sectors at 394x512 and share an explicit origin',async({browser})=>{
+  const context=await browser.newContext({viewport:{width:394,height:512},hasTouch:true,isMobile:true});const page=await context.newPage();await mount(page,true,394);await page.setViewportSize({width:394,height:512});await page.locator('#openUiStudioBtn').click();
+  const h=await hub(page).boundingBox();await page.touchscreen.tap(h.x+h.width/2,h.y+h.height/2);await expect(item(page,'Select')).toBeVisible();
+  const origin=await page.evaluate(()=>{const h=getComputedStyle(document.querySelector('.merd-ui-hub')),m=getComputedStyle(document.querySelector('.merd-ui-menu'));return {hl:h.left,ht:h.top,ml:m.left,mt:m.top}});expect(origin).toEqual({hl:'0px',ht:'0px',ml:'0px',mt:'0px'});
+  const editBox=await item(page,'Edit').locator('.merd-ui-sector-label').boundingBox();await page.touchscreen.tap(editBox.x+editBox.width/2,editBox.y+editBox.height/2);await expect(item(page,'Color')).toBeVisible();await context.close();
+});
+
 test('Studio remains draggable and sector menu is viewport safe on mobile',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));await mount(page,true,390);await page.locator('#openUiStudioBtn').click();const before=await hub(page).boundingBox();await page.mouse.move(before.x+before.width/2,before.y+before.height/2);await page.mouse.down();await page.mouse.move(190,220,{steps:8});await page.mouse.up();const after=await hub(page).boundingBox();expect(Math.abs(after.x-before.x)+Math.abs(after.y-before.y)).toBeGreaterThan(20);
   await openRoot(page);await choose(page,'Edit');await choose(page,'Color');const m=await page.locator('.merd-ui-menu').boundingBox();expect(m.x).toBeGreaterThanOrEqual(-1);expect(m.y).toBeGreaterThanOrEqual(-1);expect(m.x+m.width).toBeLessThanOrEqual(391);expect(m.y+m.height).toBeLessThanOrEqual(845-70);expect(errors).toEqual([]);

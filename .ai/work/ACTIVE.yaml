@@ -21,4 +21,4 @@ active:
     path: .ai/work/active/MERD-20260829-ui-studio.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Deploy Studio8 concentric-stage/readability fix, then verify live geometry and touch hit targets."
+    next_action: "Deploy Studio9 explicit-origin/touch fix and verify on the live 394x512 mobile viewport."
