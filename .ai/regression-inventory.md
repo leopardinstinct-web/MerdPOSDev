@@ -188,3 +188,7 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Move from inner card content must promote source and destination to their MERDPOS component roots and visibly reorder the components while recording a move patch.
 - Hide changes to Show after the local hide patch, and Show restores the preview. History exposes a per-row delete control that removes only that history event.
 - Icon-only sectors use 48-unit Material Symbols; permanent sector-label nodes are absent from normal Studio menus.
+
+## UI Studio15b touch-hover compatibility regression
+- Hover-to-open is fine-pointer-only. A touch/mobile context may emit compatibility mouse events, but mouseenter must not open or menu-clamp Studio before a touch drag.
+- The 394x512 drag regression dispatches mouseenter before measuring the hub and requires the radial menu to remain hidden, then preserves the exact touch drag delta.

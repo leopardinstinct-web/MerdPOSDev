@@ -35,12 +35,13 @@ constraints:
   - "Preserve Namecheap-side mirror/pull deployment architecture."
   - "Do not commit local temp/test output or node_modules."
 completed:
+  - "CI Chrome 151 exposed compatibility mouseenter during touch emulation; Studio15b gates hover-to-open to fine hover pointers and the 394x512 touch test now asserts mouseenter cannot open/reposition the ring."
   - "Studio focused suite passes 17/17 with hub wheel/select/back, Move, Hide/Show, History delete and Undo-everywhere coverage."
   - "Shell/navigation focused regression passes 4/4 for desktop bottom dock/account utilities plus existing mobile behavior."
 remaining:
   - "Full beta browser suite passes 31/31; all four beta validators, YAML, deploy-script syntax, 94 PHP lints and 38 JS syntax checks pass."
   - "Commit/push, confirm Beta guardrails, wait for Namecheap deployment, then verify authenticated live desktop and touch behavior."
-next_action: "Commit/push checked Studio15 + desktop bottom dock, confirm CI/Namecheap deployment and run authenticated live verification."
+next_action: "Push Studio15b hover guard, require green Beta guardrails, then confirm Namecheap deployment and authenticated live verification."
 blocked: false
 blocker: null
 updated_at: "2026-08-30"

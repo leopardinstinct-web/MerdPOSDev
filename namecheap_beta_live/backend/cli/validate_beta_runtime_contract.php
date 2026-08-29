@@ -200,8 +200,8 @@ beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830bottom1', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830bottom1', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio15', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio15', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio15b', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio15b', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
@@ -209,8 +209,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio15', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio15', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio15b', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio15b', 'UI Studio runtime wiring', $errors);
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
 beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
@@ -250,6 +250,7 @@ beta_contract_require_contains($uiStudioJs, 'function deleteHistoryEntry', 'UI S
 beta_contract_require_contains($uiStudioJs, 'function movableTarget', 'UI Studio component-aware move targeting', $errors);
 beta_contract_require_contains($uiStudioJs, "hub.addEventListener('wheel'", 'UI Studio hub wheel selection', $errors);
 beta_contract_require_contains($uiStudioJs, "hub.addEventListener('mouseenter'", 'UI Studio hover-to-open hub', $errors);
+beta_contract_require_contains($uiStudioJs, "const finePointerHover=()=>", 'fine-pointer-only Studio hover gate', $errors);
 beta_contract_require_contains($uiStudioCss, '.is-hub-candidate', 'UI Studio hub candidate highlight', $errors);
 beta_contract_require_contains($navigationJs, 'nav-bottom', 'Unified bottom navigation runtime', $errors);
 beta_contract_require_contains($shellCss, '--shell-desktop-nav-h', 'Desktop bottom navigation geometry', $errors);
