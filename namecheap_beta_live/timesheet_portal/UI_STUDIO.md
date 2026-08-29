@@ -14,7 +14,7 @@ UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the 
 - Wheel/trackpad input rotates the active ring. **Color → More** cycles through the extended preview color library while remaining a single ring.
 - Studio chrome is deliberately independent from MERDPOS product branding: background `#1A1A2E`, normal sectors `#25253D`, active sectors `#30304C`, white primary text and muted `#A8AEC1`. Bright action accents identify functions without recoloring the sector surfaces.
 - The hub and radial SVG share one fixed stage/center, and both are explicitly anchored at `left:0; top:0` inside that stage so browser static-position rules cannot give them different origins. Android visual-viewport resize/scroll events re-render and re-clamp the stage.
-- Active sectors use deep bands, 44-unit Material Symbol icons and 24–25-unit labels so the complete label stays inside the slice at phone and laptop sizes.
+- Studio14 mirrors the approved prototype proportions: a `760×760` SVG viewBox, center radius `72`, ring radii `84 → 220`, zero wedge gaps, and 30-unit Google Material Symbols. Icons sit 16 units above each slice midpoint; labels share the exact icon X coordinate and sit 38 units below the icon center. Normal sectors stay `#25253D`, active sectors `#30304C`, and only the icon carries the bright action accent.
 
 ## Selection and transient UI
 

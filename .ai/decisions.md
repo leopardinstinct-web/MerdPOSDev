@@ -201,3 +201,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Bright action accents identify functions but do not recolor entire sector surfaces.
 - Color shows Background/Text targeting and the five MERDPOS master colors first; More opens the extended rotating palette.
 - Numeric Padding/Margin/Gap/Radius/Font use two radial controls (increase/decrease) with the current value shown in the center hub. Width retains direct presets.
+
+## 2026-08-29 — UI Studio14 prototype visual parity
+- Match the approved uploaded HTML geometry exactly for the radial controller: `760×760` viewBox, hub radius `72`, ring radii `84 → 220`, and zero wedge gaps.
+- Use dark neutral sector surfaces (`#25253D`, active `#30304C`) with bright semantic color on the Material Symbol itself; do not use colored circular icon backplates.
+- Align each icon and label on one X axis: icon center is 16 units above the slice midpoint and the label is 38 units below the icon center.
+- Keep the transparent area outside the visible ring non-interactive and do not animate ring-shell resizing, preventing transient touch/geometry drift during viewport changes.

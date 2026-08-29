@@ -143,15 +143,15 @@ for required_asset in \
   'assets/mobile-runtime.js?v=20260828mobile1' \
   'assets/navigation.js?v=20260829studio7' \
   'assets/account-menu.js?v=20260829studio7' \
-  'assets/ui-studio.css?v=20260829studio13' \
-  'assets/ui-studio.js?v=20260829studio13'; do
+  'assets/ui-studio.css?v=20260829studio14' \
+  'assets/ui-studio.js?v=20260829studio14'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-for material_symbol in LICENSE-Apache-2.0.txt NOTICE.md ads_click_48px.svg arrow_back_48px.svg arrow_forward_48px.svg chat_48px.svg close_48px.svg content_copy_48px.svg delete_48px.svg edit_48px.svg edit_note_48px.svg filter_center_focus_48px.svg format_color_fill_48px.svg format_color_text_48px.svg input_48px.svg open_with_48px.svg palette_48px.svg restart_alt_48px.svg tune_48px.svg undo_48px.svg visibility_48px.svg visibility_off_48px.svg; do
+for material_symbol in LICENSE-Apache-2.0.txt NOTICE.md ads_click_48px.svg arrow_back_48px.svg arrow_forward_48px.svg chat_48px.svg close_48px.svg content_copy_48px.svg delete_48px.svg edit_48px.svg edit_note_48px.svg filter_center_focus_48px.svg format_color_fill_48px.svg format_color_text_48px.svg input_48px.svg open_with_48px.svg palette_48px.svg restart_alt_48px.svg tune_48px.svg undo_48px.svg visibility_48px.svg visibility_off_48px.svg gesture_select_48px.svg text_fields_48px.svg dashboard_48px.svg padding_48px.svg border_outer_48px.svg space_bar_48px.svg rounded_corner_48px.svg swap_horiz_48px.svg format_size_48px.svg my_location_48px.svg comment_48px.svg add_circle_48px.svg history_48px.svg arrow_upward_48px.svg arrow_downward_48px.svg; do
   if [[ ! -r "$LIVE/timesheet_portal/assets/vendor/google-material-symbols/$material_symbol" ]]; then
     echo "ERROR: live UI Studio Material Symbol asset missing: $material_symbol" >&2
     exit 1

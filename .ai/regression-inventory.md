@@ -161,3 +161,11 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Numeric Padding/Margin/Gap/Radius/Font render only Increase/Decrease and update the hub's current value plus the local preview patch.
 - Galaxy-size regression asserts shared hub/ring center, dark `#25253D` sector surface, label containment and practical rendered icon/label size.
 - Existing true-touch 394x512 tap, off-center drag/no-snap, post-drag single-tap reopen, sidebar/transient selection, comments/Add/History and Copy/Chat regressions remain mandatory.
+
+## UI Studio14 prototype-parity regressions
+- Galaxy-size radial regression asserts `0 0 760 760`, ring radii `84/220`, zero slice gap, and shared hub/ring center.
+- Select uses the locally vendored Google `gesture_select_48px.svg`; Layout uses `dashboard_48px.svg`; active icons are 30 SVG units with no colored backplate circles.
+- Icon and label share the same X coordinate; label Y remains exactly 38 SVG units below the icon center.
+- The center diameter stays in the prototype `144/760` proportion to the menu shell across viewport changes.
+- Transparent space outside the visible ring does not receive pointer input, and ring-shell resizing is not animated.
+- Existing real-touch 394×512 taps, no-snap drag, post-drag reopen, comments/Add/History, color, numeric stepper and Copy/Chat regressions remain mandatory.

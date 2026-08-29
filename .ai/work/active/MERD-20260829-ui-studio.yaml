@@ -16,7 +16,7 @@ acceptance:
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
-last_seen_head: "0c9f5acf4bdd6c671d4818570deee128de92c0b8"
+last_seen_head: "29b170d14e2c1054cac2440debd0d3156c699349"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
@@ -57,9 +57,11 @@ completed:
   - "Studio13 Color shows BG/Text targeting plus the five MERDPOS master colors before More, and numeric layout properties use two-sector increase/decrease controls with current value in the hub."
   - "Focused Studio13 browser suite passes 12/12, including single-ring Back navigation, palette drill-down, numeric stepper, Galaxy-size label containment, real touch taps, and drag/tap recovery."
   - "Studio13 runtime contract, JavaScript syntax, YAML and deploy-script syntax checks pass; full beta browser suite passes 26/26."
+  - "Studio14 mirrors the approved prototype geometry (760 viewBox, 72 hub radius, 84→220 ring, zero gaps), removes colored icon backplates, aligns icon/label exactly, and vendors the matching Google Material Symbols."
+  - "Focused Studio14 browser suite passes 12/12, including exact geometry/icon-label parity plus real-touch 394x512 interaction and drag recovery."
 remaining:
-  - "Commit/push Studio13, confirm Beta guardrails and Namecheap serving studio13, then verify live touch/desktop behavior."
-next_action: "Push/deploy Studio13 single-ring drill-down and verify live on 394x512 plus 681x598."
+  - "Studio14 visual parity is coded and focused 12/12 regression green; bump/cache-contract, run full beta gate, commit/push, confirm CI + Namecheap serving studio14, then verify live touch/desktop behavior."
+next_action: "Release Studio14 prototype visual parity and verify live on 394x512 plus 681x598."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T10:23:00+05:00"
+updated_at: "2026-08-29T14:20:00+05:00"
