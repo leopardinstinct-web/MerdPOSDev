@@ -13,6 +13,8 @@ UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the 
 - **Changes** opens History, Copy, Chat, Undo, Reset and Clear.
 - Wheel/trackpad input over the radial controller rotates the nearest active ring. In Color, the outer ring scrolls through the full preview color library.
 - Studio chrome uses a bright DEV-tool palette and is intentionally visually independent from MERDPOS product branding. Selection outlines on the MERDPOS canvas still use canonical semantic/product tokens.
+- The hub and radial SVG share one fixed stage/center. Android visual-viewport resize/scroll events re-render and re-clamp that stage so Samsung/browser-chrome changes cannot offset the hub from the rings.
+- Sector bands, Material Symbol icons and labels are sized for practical phone touch/readability rather than desktop-only density.
 
 ## Selection and transient UI
 

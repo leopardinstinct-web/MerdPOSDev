@@ -131,3 +131,7 @@ Add one when at least one is true:
 4. the cost of recurrence is materially higher than test-maintenance cost.
 
 Do not add a permanent test merely because a screen currently exists.
+
+### UI Studio hub/ring drift and undersized touch sectors
+
+Protected by `ui-studio-runtime.spec.js` Galaxy-sized geometry/readability coverage. The hub and radial SVG must share one stage center; Android visual-viewport changes must re-render/re-clamp the menu; visible sector labels/icons must remain readable and hit-testable.

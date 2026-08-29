@@ -157,3 +157,13 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Shell interaction:** Desktop navigation and mobile shell utilities must ignore pointer interactions originating from `[data-ui-studio]`, so switching attention back to Studio does not collapse an expanded rail or close an opened utility surface before DEV can select its contents.
 
 **Supersedes:** The prior 2026-08-29 floating circular-button geometry. Its safety, scope, Material Symbol and local-preview contracts remain binding.
+
+## 2026-08-29 - UI Studio radial geometry uses one fixed stage on touch devices
+
+**Decision:** The Studio hub and radial SVG must share a single fixed-position stage and therefore one center coordinate. They must not be independently fixed/positioned siblings.
+
+**Mobile viewport:** `visualViewport` resize/scroll changes re-render and re-clamp the open radial menu. This protects Samsung/Android browser-chrome changes, rotation and narrow visual viewports from hub/ring drift.
+
+**Readability/touch:** Sector bands are deliberately thicker and Studio Material Symbols/labels are larger than the earlier compact prototype. Phone touchability and label legibility take priority over maximizing the number of tiny sectors in a fixed diameter.
+
+**Regression evidence:** Galaxy-sized and 681x598 browser checks assert hub/menu concentricity, readable label/icon bounds, visible-sector hit targeting and viewport containment.
