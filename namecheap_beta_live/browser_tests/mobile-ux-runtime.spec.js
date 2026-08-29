@@ -53,7 +53,7 @@ async function mount(page) {
   }));
   await page.goto('https://merdpos-mobile.invalid/fixture');
   for (const css of ['design-tokens.css','shell.css','app-ui.css','table-ui.css','account-menu.css']) await page.addStyleTag({ path: asset(css) });
-  await page.addScriptTag({ content:'window.MERDPOSTheme={current:()=>"light",toggle:()=>{}};window.MERDPOS_AUTH={role_key:"DEV",role_label:"Developer"};' });
+  await page.addScriptTag({ content:'window.MERDPOSTheme={current:()=>"light",toggle:()=>{}};window.MERDPOS_AUTH={role_key:"ADMIN",role_label:"Admin",actual_role_key:"DEV",actual_role_label:"Developer",view_role_key:"ADMIN",is_dev:true};' });
   await page.addScriptTag({ path: asset('navigation.js') });
   await page.addScriptTag({ path: asset('account-menu.js') });
   await page.addScriptTag({ path: asset('mobile-runtime.js') });
@@ -76,7 +76,8 @@ test('phone shell uses four primary destinations and a bottom utility sheet', as
   await page.locator('#dashboardPanel .merd-mobile-account-trigger').click();
   await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);
   await expect(page.locator('.rail-shell-utilities')).toBeVisible();
-  await expect(page.locator('.rail-mobile-system-links')).toContainText('DEV');
+  await expect(page.locator('.rail-mobile-system-links')).toHaveCount(0);
+  await expect(page.locator('.rail-dev-role-select')).toHaveValue('ADMIN');
   await page.waitForTimeout(260);
   const sheetBox = await page.locator('.rail-shell-utilities').boundingBox();
   expect(sheetBox.y + sheetBox.height).toBeLessThanOrEqual(846);

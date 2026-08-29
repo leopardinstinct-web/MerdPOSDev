@@ -212,14 +212,21 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Touch/pen hub activation remains pointer-up driven. When opening or dragging repositions the Studio under the same gesture, consume the synthetic click at document capture so it cannot retarget a newly appeared radial wedge or MERDPOS control.
 - A subsequent new pointer-down clears stale suppression before the next intentional gesture.
 
-## 2026-08-30 — Unified desktop/mobile bottom navigation
+## 2026-08-30 ï¿½ Unified desktop/mobile bottom navigation
 
 - Desktop no longer uses the left navigation rail. Authenticated desktop and mobile share the same four primary destinations in a persistent dark bottom dock: Home, Operations, Reports and Finance.
 - Secondary destinations remain reachable through contextual sub-navigation above the dock.
 - Working client, signed-in user/role, DEV/system links and account/app utilities are progressively disclosed from one circular account control rather than occupying primary navigation.
 
-## 2026-08-30 — UI Studio15 center-hub interaction
+## 2026-08-30 ï¿½ UI Studio15 center-hub interaction
 
 - Studio sectors are icon-only with 48-unit Material Symbols; permanent wedge labels are removed.
 - The amber center hub is the primary action surface: fine-pointer hover opens the menu, wheel input cycles enabled actions, click executes the armed action, and an unarmed click is Back inside a submenu.
 - Undo is available at every radial level. Hide/Show is state-aware, individual history rows can be deleted, and Move promotes inner content to a recognized component root for source/destination targeting.
+
+## 2026-08-30 â€” Studio16 selection workflow and DEV role presentation
+- UI Studio is visible by default for actual DEV identities. The radial workflow is selection-first: no selection exposes Select; one selection exposes Select/Add/Edit/Move/Comment/Hide-Show, with Undo appended on every level and no Exit wedge.
+- Select is replacement-only: exactly one rendered element is selected at a time. Add chooses a preview element type then Above/Below/Left/Right; Move chooses a destination first then Top/Bottom/Left/Right; Edit is limited to Color â†’ Palette and Layout.
+- History remains local and is opened from the hub change-count badge; individual history entries remain deletable.
+- The account sheet orders actual signed-in identity first, Working client second, and a DEV-only Current role selector third. DEV and Clients shortcut buttons are not duplicated into the account sheet.
+- Current role is presentation-only. Admin/Super/User views are server-rendered from the current client role/LOA permission policy, but the authenticated session and every backend/API authorization check remain the actual DEV identity.

@@ -1,0 +1,44 @@
+version: 1
+id: MERD-20260830-studio16-dev-role-view
+objective: "Make UI Studio selection-first and always visible for DEV, and add a safe Admin/Super/User presentation preview in the account sheet."
+acceptance:
+  - "Actual DEV sees the yellow Studio hub immediately after the portal runtime loads; non-DEV never loads Studio."
+  - "With no selected target Studio offers Select plus shared Undo and has no Exit wedge."
+  - "Selecting a new target replaces the previous selection so exactly one target is selected at a time."
+  - "Selected root exposes Select, Add, Edit, Move, Comment and state-aware Hide/Show plus shared Undo."
+  - "Add chooses Text/Button/Card/Divider then Above/Below/Left/Right relative placement."
+  - "Edit exposes Color -> Palette and Layout with the existing layout property controls."
+  - "Move selects a destination first, then offers Top/Bottom/Left/Right."
+  - "History remains reachable from the hub change-count badge and individual history steps can be deleted."
+  - "Account utilities order actual user/role, Working client, then DEV Current role selector."
+  - "Current role offers Admin/Super/User presentation views without changing actual DEV session or backend authorization."
+  - "DEV and Clients shortcut buttons are not duplicated into the account sheet."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "1e58e2dd5e6e413928a45a9b25c2a44cb484fb34"
+last_seen_head: "1e58e2dd5e6e413928a45a9b25c2a44cb484fb34"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "scripts/deploy_namecheap_beta.sh"
+  - "docs/pos_latest/GUI_STANDARD.md"
+  - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
+constraints:
+  - "Role preview is presentation-only and must never mutate authentication/session/database role or backend authorization."
+  - "Studio remains actual-DEV-only and preview-only with no network/source/database mutation path."
+  - "Preserve Namecheap-side mirror/pull deployment architecture."
+completed:
+  - "Focused Studio/account regression suite passes 18/18 for the requested menu tree, selection replacement, Add/Move placement, role-sheet ordering and touch interaction."
+remaining:
+  - "Full beta browser suite passes 29/29; all four beta validators, YAML, deploy-script syntax, 94 PHP lints and portal asset JS syntax checks pass."
+  - "Commit/push, confirm Beta guardrails and Namecheap deployment, then live-verify all three role views plus Studio16."
+next_action: "Commit/push checked Studio16 + DEV role presentation, then verify CI and live beta."
+blocked: false
+blocker: null
+updated_at: "2026-08-30"

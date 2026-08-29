@@ -24,6 +24,11 @@ active:
     next_action: "Studio14b is deployed; Studio15 follow-up is tracked separately."
   - id: MERD-20260830-bottom-shell-studio15
     path: .ai/work/active/MERD-20260830-bottom-shell-studio15.yaml
+    packet_state: DEPLOYED
+    lifecycle: DEPLOYED
+    next_action: "Studio15b and desktop bottom dock are deployed and live-verified; Studio16 is tracked separately."
+  - id: MERD-20260830-studio16-dev-role-view
+    path: .ai/work/active/MERD-20260830-studio16-dev-role-view.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Commit/push checked Studio15 + desktop bottom dock, confirm CI/Namecheap deployment and run live verification."
+    next_action: "Commit/push checked Studio16 + DEV role presentation, then verify CI and live beta."

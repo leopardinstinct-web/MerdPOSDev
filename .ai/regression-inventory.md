@@ -192,3 +192,10 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 ## UI Studio15b touch-hover compatibility regression
 - Hover-to-open is fine-pointer-only. A touch/mobile context may emit compatibility mouse events, but mouseenter must not open or menu-clamp Studio before a touch drag.
 - The 394x512 drag regression dispatches mouseenter before measuring the hub and requires the radial menu to remain hidden, then preserves the exact touch drag delta.
+
+## Studio16 selection-flow / DEV role-view regressions
+- Actual DEV loads the yellow Studio hub automatically; non-DEV has no Studio runtime. The unselected root contains Select (+ shared Undo) and no Exit wedge.
+- Selecting a second element removes the prior selection so exactly one target remains selected. The selected root exposes Select, Add, Edit, Move, Comment and state-aware Hide/Show.
+- Edit drills Color → Palette and Layout. Add drills element type → Above/Below/Left/Right. Move drills Select Destination → target selection → Top/Bottom/Left/Right.
+- The hub change-count badge opens History and each History row can be deleted independently. Existing 48-unit icon-only geometry, fine-pointer hover/wheel and touch no-snap contracts remain mandatory.
+- The account sheet orders actual user/role → Working client → DEV Current role selector; DEV/Clients shortcut clones are absent. Current role offers only Admin/Super/User and is presentation-only: actual DEV identity and backend authorization are not changed.

@@ -11,8 +11,8 @@ acceptance:
   - "Move visibly reorders the intended MERDPOS component, including when the initial pointer lands on inner content."
   - "Hide becomes Show after hiding, and History can delete one step without clearing the rest."
   - "Studio remains actual-DEV-only and preview-only with no API/DB/source mutation path."
-packet_state: CHECKED
-lifecycle: WIRED
+packet_state: DEPLOYED
+lifecycle: DEPLOYED
 base_head: "9a49308274ac8d304692fab7da76d40b861a67f8"
 last_seen_head: "9a49308274ac8d304692fab7da76d40b861a67f8"
 affected_paths:
@@ -41,7 +41,7 @@ completed:
 remaining:
   - "Full beta browser suite passes 31/31; all four beta validators, YAML, deploy-script syntax, 94 PHP lints and 38 JS syntax checks pass."
   - "Commit/push, confirm Beta guardrails, wait for Namecheap deployment, then verify authenticated live desktop and touch behavior."
-next_action: "Push Studio15b hover guard, require green Beta guardrails, then confirm Namecheap deployment and authenticated live verification."
+next_action: "Studio15b and desktop bottom dock are deployed and live-verified; Studio16 is tracked separately."
 blocked: false
 blocker: null
 updated_at: "2026-08-30"

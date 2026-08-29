@@ -17,7 +17,7 @@ const fixtureHtml = `<!doctype html><html><head>
   <script data-id-order></script><script data-dashboard-builder></script>
   <link rel="stylesheet" data-dashboard-builder-css href="data:text/css,">
 </head><body>
-  <div id="shellAccountSources" hidden data-user-name="Imran" data-role-label="Developer" data-role-key="DEV">
+  <div id="shellAccountSources" hidden data-user-name="Imran" data-role-label="Developer" data-role-key="DEV" data-view-role-key="ADMIN">
     <button id="passwordBtn" type="button"><span>Change password</span></button>
     <button id="logoutBtn" type="button"><span>Log out</span></button>
   </div>
@@ -56,7 +56,7 @@ async function mountShell(page, width = 1280) {
   await page.addStyleTag({ path: tokensPath });
   await page.addStyleTag({ path: shellCssPath });
   await page.addStyleTag({ path: accountCssPath });
-  await page.addScriptTag({ content: 'window.MERDPOSTheme={current:()=>"light",toggle:()=>{}};window.MERDPOS_AUTH={role_key:"DEV",role_label:"Developer"};' });
+  await page.addScriptTag({ content: 'window.MERDPOSTheme={current:()=>"light",toggle:()=>{}};window.MERDPOS_AUTH={role_key:"ADMIN",role_label:"Admin",actual_role_key:"DEV",actual_role_label:"Developer",view_role_key:"ADMIN",is_dev:true};' });
   await page.addScriptTag({ path: navigationPath });
   await page.addScriptTag({ path: accountPath });
   await expect(page.locator('.rail-client-section')).toHaveCount(1);
@@ -66,9 +66,11 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
   const source = fs.readFileSync(dashboardPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
+  expect(source).toContain('merdpos_dev_view_role');
+  expect(source).toContain("['ADMIN','SUPER','USER']");
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
-  expect(source).toContain('assets/management.js?v=20260830bottomstudio15b');
+  expect(source).toContain('assets/management.js?v=20260830roleviewstudio16');
   expect(source).toContain('Smarter &middot; Faster &middot; Together');
   expect(source).toContain('&times;</button>');
 });
@@ -76,8 +78,8 @@ test('dashboard source removes topbar and exposes sidebar account/About sources'
 test('desktop uses the mobile-style bottom dock plus one account/client circle', async ({ page }) => {
   const pageErrors = await mountShell(page, 1280);const rail=page.locator('.app-rail');await expect(page.locator('.app-frame')).toHaveClass(/nav-bottom/);const primary=rail.locator(':scope > .rail-section:not([data-nav-section="system"])');await expect(primary).toHaveCount(4);await expect(rail.locator(':scope > .rail-section[data-nav-section="system"]')).toBeHidden();await expect(rail.locator('.rail-client-section')).toBeHidden();await expect(rail.locator('.merd-shell-account-trigger')).toBeVisible();
   const geom=await rail.evaluate(el=>{const r=el.getBoundingClientRect();return {bottom:innerHeight-r.bottom,height:r.height,position:getComputedStyle(el).position}});expect(Math.abs(geom.bottom)).toBeLessThan(2);expect(geom.position).toBe('fixed');expect(geom.height).toBeGreaterThan(60);
-  await expect(rail.locator('.rail-shell-utilities')).toBeHidden();await rail.locator('.merd-shell-account-trigger').click();await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);await expect(rail.locator('.rail-shell-utilities')).toBeVisible();await expect(rail.locator('.rail-mobile-client-select')).toHaveValue('1');await expect(rail.locator('.rail-user-summary')).toContainText('Imran');await expect(rail.locator('.rail-mobile-system-links')).toContainText('DEV');
-  const utilityText=await rail.locator('.rail-shell-utilities').innerText();expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));await rail.locator('.rail-about-toggle').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',true);await page.locator('#merdposAboutClose').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',false);
+  await expect(rail.locator('.rail-shell-utilities')).toBeHidden();await rail.locator('.merd-shell-account-trigger').click();await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);await expect(rail.locator('.rail-shell-utilities')).toBeVisible();await expect(rail.locator('.rail-mobile-client-select')).toHaveValue('1');await expect(rail.locator('.rail-user-summary')).toContainText('Imran');await expect(rail.locator('.rail-user-summary')).toContainText('Developer');await expect(rail.locator('.rail-mobile-system-links')).toHaveCount(0);await expect(rail.locator('.rail-dev-role-select')).toHaveValue('ADMIN');
+  const utilityText=await rail.locator('.rail-shell-utilities').innerText();expect(utilityText.indexOf('Imran')).toBeLessThan(utilityText.indexOf('Working client'));expect(utilityText.indexOf('Working client')).toBeLessThan(utilityText.indexOf('Current role'));expect(utilityText).not.toContain('Clients');expect(utilityText).not.toContain('DEV\n');expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));await rail.locator('.rail-about-toggle').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',true);await page.locator('#merdposAboutClose').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',false);
   await page.locator('[data-nav-group="operations"]').click();await expect(page.locator('#storesPanel')).toBeVisible();await expect(page.locator('[data-sidebar-group="operations"]')).toBeVisible();expect(pageErrors).toEqual([]);
 });
 test('mobile utility sheet opens without a More navigation tab', async ({ page }) => {

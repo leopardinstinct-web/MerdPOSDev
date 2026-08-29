@@ -8,8 +8,9 @@
   const passwordBtn = document.getElementById('passwordBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const name = String(source.dataset.userName || 'Account').trim() || 'Account';
-  const roleLabel = String(source.dataset.roleLabel || auth.role_label || 'USER').trim() || 'USER';
-  const roleKey = String(source.dataset.roleKey || auth.role_key || roleLabel).trim().toUpperCase();
+  const roleLabel = String(source.dataset.roleLabel || auth.actual_role_label || auth.role_label || 'USER').trim() || 'USER';
+  const roleKey = String(source.dataset.roleKey || auth.actual_role_key || auth.role_key || roleLabel).trim().toUpperCase();
+  const viewRoleKey = String(source.dataset.viewRoleKey || auth.view_role_key || 'ADMIN').trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   let context = null;
   let mounted = false;
@@ -115,8 +116,9 @@
     utilities.className = 'rail-shell-utilities';
     utilities.id = 'merdShellUtilities';
     utilities.innerHTML = `
+      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
-      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>`;
+      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV view only - backend access is unchanged.</small></div>` : ''}`;
 
     const accountSection = document.createElement('section');
     accountSection.className = 'rail-account-section';
@@ -143,22 +145,6 @@
     aboutSection.appendChild(aboutBtn);
     utilities.appendChild(aboutSection);
 
-    const systemTabs = Array.from(rail.querySelectorAll('.rail-section[data-nav-section="system"] .portal-tab'));
-    if (systemTabs.length) {
-      const systemLinks = document.createElement('section');
-      systemLinks.className = 'rail-mobile-system-links';
-      systemLinks.setAttribute('aria-label', 'System navigation');
-      systemTabs.forEach(tab => {
-        const action = document.createElement('button');
-        action.type = 'button';
-        action.className = 'rail-group-btn rail-system-action';
-        action.innerHTML = `${tab.querySelector('.ui-icon')?.outerHTML || ''}<span class="rail-label">${esc(tab.querySelector('span:not(.nav-badge)')?.textContent || 'System')}</span>`;
-        action.addEventListener('click', () => { tab.click(); closeMobileTools({restoreFocus:false}); });
-        systemLinks.appendChild(action);
-      });
-      utilities.insertBefore(systemLinks, accountSection);
-    }
-
     const accountDock = document.createElement('section');
     accountDock.className = 'rail-account-dock';
     const accountTrigger = document.createElement('button');
@@ -183,6 +169,15 @@
     const desktopSelect = clientSection.querySelector('#accountClientSelect');
     const mobileSelect = utilities.querySelector('.rail-mobile-client-select');
     const selects = [desktopSelect, mobileSelect].filter(Boolean);
+    const roleViewSelect = utilities.querySelector('.rail-dev-role-select');
+    if (roleViewSelect) {
+      roleViewSelect.value = ['ADMIN','SUPER','USER'].includes(viewRoleKey) ? viewRoleKey : 'ADMIN';
+      roleViewSelect.addEventListener('change', event => {
+        const next = ['ADMIN','SUPER','USER'].includes(event.target.value) ? event.target.value : 'ADMIN';
+        document.cookie = `merdpos_dev_view_role=${next}; Path=/beta/timesheet_portal/; SameSite=Lax`;
+        window.location.reload();
+      });
+    }
 
     function applyContext(data) {
       context = data;

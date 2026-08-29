@@ -143,10 +143,10 @@ for required_asset in \
   'assets/mobile-runtime.js?v=20260828mobile1' \
   'assets/shell.css?v=20260830bottom1' \
   'assets/navigation.js?v=20260830bottom1' \
-  'assets/account-menu.css?v=20260830bottom1' \
-  'assets/account-menu.js?v=20260830bottom1' \
-  'assets/ui-studio.css?v=20260830studio15b' \
-  'assets/ui-studio.js?v=20260830studio15b'; do
+  'assets/account-menu.css?v=20260830roleview1' \
+  'assets/account-menu.js?v=20260830roleview1' \
+  'assets/ui-studio.css?v=20260830studio16' \
+  'assets/ui-studio.js?v=20260830studio16'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
