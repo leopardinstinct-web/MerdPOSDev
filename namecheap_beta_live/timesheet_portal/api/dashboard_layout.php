@@ -4,15 +4,20 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/dashboard_access.php';
 
-function dashboard_can_configure(array $user, ?PDO $pdo = null): bool
+function dashboard_can_configure(array $user, ?PDO $pdo = null, bool $devStudio = false): bool
 {
-    return beta_has_permission($user, 'dashboard.configure', $pdo);
+    return ($devStudio && beta_user_is_dev($user)) || beta_has_permission($user, 'dashboard.configure', $pdo);
 }
 
-function dashboard_selected_role(PDO $pdo, array $user, mixed $requestedRoleId = null): array
+function dashboard_dev_studio_mode(array $user, mixed $flag): bool
+{
+    return beta_user_is_dev($user) && in_array(strtolower(trim((string)$flag)), ['1','true','yes','on'], true);
+}
+
+function dashboard_selected_role(PDO $pdo, array $user, mixed $requestedRoleId = null, bool $devStudio = false): array
 {
     $clientId = (int)$user['client_id'];
-    if (dashboard_can_configure($user, $pdo) && $requestedRoleId !== null && $requestedRoleId !== '') {
+    if (dashboard_can_configure($user, $pdo, $devStudio) && $requestedRoleId !== null && $requestedRoleId !== '') {
         $roleId = filter_var($requestedRoleId, FILTER_VALIDATE_INT);
         if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid dashboard role.');
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
@@ -22,7 +27,7 @@ function dashboard_selected_role(PDO $pdo, array $user, mixed $requestedRoleId =
     return merd_dashboard_user_role($pdo, $user);
 }
 
-function dashboard_state(PDO $pdo, array $user, array $role): array
+function dashboard_state(PDO $pdo, array $user, array $role, bool $devStudio = false): array
 {
     $clientId = (int)$user['client_id'];
     $allowed = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
@@ -34,8 +39,8 @@ function dashboard_state(PDO $pdo, array $user, array $role): array
     $stmt->execute([$clientId, (int)$role['id']]);
     $layout = array_values(array_filter($stmt->fetchAll(PDO::FETCH_ASSOC), fn(array $row): bool => isset($allowedMap[(string)$row['widget_key']])));
 
-    $canConfigure = dashboard_can_configure($user, $pdo);
-    $roles = $canConfigure ? merd_dashboard_roles($pdo, $clientId, true) : [$role];
+    $canConfigure = dashboard_can_configure($user, $pdo, $devStudio);
+    $roles = ($canConfigure && !$devStudio) ? merd_dashboard_roles($pdo, $clientId, true) : [$role];
     foreach ($roles as &$candidate) {
         $candidate['allowed_widget_count'] = count(merd_dashboard_allowed_widgets($pdo, $clientId, $candidate));
     }
@@ -46,7 +51,7 @@ function dashboard_state(PDO $pdo, array $user, array $role): array
         'csrf' => csrf_token(),
         'context_client_id' => $clientId,
         'can_edit' => $canConfigure,
-        'can_select_role' => $canConfigure,
+        'can_select_role' => $canConfigure && !$devStudio,
         'selected_role' => $role,
         'roles' => $roles,
         'allowed_widgets' => $allowed,
@@ -69,14 +74,16 @@ try {
     $pdo = portal_db();
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-        $role = dashboard_selected_role($pdo, $user, $_GET['role_id'] ?? null);
-        json_response(dashboard_state($pdo, $user, $role));
+        $devStudio = dashboard_dev_studio_mode($user, $_GET['dev_studio'] ?? null);
+        $role = dashboard_selected_role($pdo, $user, $_GET['role_id'] ?? null, $devStudio);
+        json_response(dashboard_state($pdo, $user, $role, $devStudio));
     }
 
-    beta_require_permission($user, 'dashboard.configure', $pdo);
     $input = request_input();
+    $devStudio = dashboard_dev_studio_mode($user, $input['dev_studio'] ?? null);
+    if (!dashboard_can_configure($user, $pdo, $devStudio)) beta_require_permission($user, 'dashboard.configure', $pdo);
     require_csrf($input);
-    $role = dashboard_selected_role($pdo, $user, $input['role_id'] ?? null);
+    $role = dashboard_selected_role($pdo, $user, $input['role_id'] ?? null, $devStudio);
     $clientId = (int)$user['client_id'];
     $roleId = (int)$role['id'];
     $action = (string)($input['action'] ?? 'save_layout');
@@ -84,7 +91,7 @@ try {
     if ($action === 'reset_layout') {
         $stmt = $pdo->prepare('DELETE FROM dashboard_role_layouts WHERE client_id=? AND role_id=?');
         $stmt->execute([$clientId, $roleId]);
-        json_response(dashboard_state($pdo, $user, $role));
+        json_response(dashboard_state($pdo, $user, $role, $devStudio));
     }
 
     if ($action !== 'save_layout') {
@@ -129,7 +136,7 @@ try {
         throw $e;
     }
 
-    json_response(dashboard_state($pdo, $user, $role));
+    json_response(dashboard_state($pdo, $user, $role, $devStudio));
 } catch (Throwable $e) {
     beta_api_error($e);
 }

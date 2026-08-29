@@ -10,9 +10,9 @@ const studioJsPath = path.join(portalRoot, 'assets', 'ui-studio.js');
 const iconRoot = path.join(portalRoot, 'assets', 'vendor', 'google-material-symbols');
 const fixture = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{--shell-mobile-nav-h:4.75rem}.app-frame{display:flex}.app-rail{width:220px}.portal-panel[hidden]{display:none}</style></head><body>
 <button id="openUiStudioBtn">Open UI Studio</button>
-<div class="app-frame nav-expanded"><aside class="app-rail"><section class="rail-section" data-nav-section="home"><button id="railHome" class="rail-group-btn" aria-label="Home"><span>Home</span></button><div class="sidebar-group" data-sidebar-group="home"><button class="portal-tab active" data-panel="demoPanel"><span>Dashboard</span></button><button class="portal-tab" data-panel="secondPanel"><span>Second</span></button></div></section><div class="rail-shell-utilities"><button id="utilityAction"><span>Utility action</span></button></div></aside>
+<div class="app-frame nav-expanded"><aside class="app-rail"><section class="rail-section" data-nav-section="home"><button id="railHome" class="rail-group-btn" aria-label="Home"><span>Home</span></button><div class="sidebar-group" data-sidebar-group="home"><button class="portal-tab active" data-panel="demoPanel"><span>Dashboard</span></button><button class="portal-tab" data-panel="secondPanel"><span>Second</span></button></div></section><div class="rail-shell-utilities"><button id="utilityAction"><span>Utility action</span></button></div><section class="rail-account-dock"><button class="merd-shell-account-trigger" aria-label="Account">I</button></section></aside>
 <main class="merd-page-shell"><section id="demoPanel" class="portal-panel"><header class="merd-mobile-page-head"><span class="merd-mobile-context">Demo client</span></header><article id="cardA" class="controls-card"><strong>Card A</strong></article><article id="cardB" class="controls-card"><strong>Card B</strong></article></section><section id="secondPanel" class="portal-panel" hidden><article id="cardC" class="controls-card"><strong>Card C</strong></article></section></main></div>
-<script>window.__railClicks=0;window.__utilityClicks=0;document.getElementById('railHome').addEventListener('click',()=>window.__railClicks++);document.getElementById('utilityAction').addEventListener('click',()=>window.__utilityClicks++);document.addEventListener('click',e=>{const tab=e.target.closest('.portal-tab');if(!tab)return;document.querySelectorAll('.portal-tab').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('.portal-panel').forEach(p=>p.hidden=p.id!==tab.dataset.panel);});</script>
+<script>window.__railClicks=0;window.__utilityClicks=0;window.__dashboardEditCalls=0;window.__dashboardEditing=false;window.MERDPOSDashboardBuilder={toggleStudioEdit:async()=>{window.__dashboardEditCalls++;window.__dashboardEditing=!window.__dashboardEditing;return window.__dashboardEditing;},isEditing:()=>window.__dashboardEditing};document.getElementById('railHome').addEventListener('click',()=>window.__railClicks++);document.getElementById('utilityAction').addEventListener('click',()=>window.__utilityClicks++);document.addEventListener('click',e=>{const tab=e.target.closest('.portal-tab');if(!tab)return;document.querySelectorAll('.portal-tab').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('.portal-panel').forEach(p=>p.hidden=p.id!==tab.dataset.panel);});</script>
 </body></html>`;
 async function mount(page,isDev=true,width=1280){
   await page.setViewportSize({width,height:width<=820?844:900});
@@ -33,7 +33,19 @@ test('UI Studio is unavailable without actual DEV identity',async({page})=>{
 });
 
 test('DEV hub is visible by default and root has Select without Exit',async({page})=>{
-  await mount(page,true);await expect(hub(page)).toBeVisible();await openRoot(page);await expect(item(page,'Select')).toBeVisible();await expect(item(page,'Exit')).toHaveCount(0);await expect(item(page,'Undo')).toBeVisible();
+  await mount(page,true);await expect(hub(page)).toBeVisible();await openRoot(page);await expect(item(page,'Minimize')).toBeVisible();await expect(item(page,'Select')).toBeVisible();await expect(item(page,'Edit Dashboard')).toBeVisible();await expect(item(page,'Settings')).toBeVisible();await expect(item(page,'Exit')).toHaveCount(0);await expect(item(page,'Undo')).toBeVisible();
+});
+
+test('root Edit Dashboard delegates to the shared dashboard builder',async({page})=>{
+  await mount(page,true,1280);await openRoot(page);await choose(page,'Edit Dashboard');await expect.poll(()=>page.evaluate(()=>window.__dashboardEditCalls)).toBe(1);await openRoot(page);await expect(item(page,'Done Dashboard')).toBeVisible();
+});
+
+test('Studio settings change accent plus icon and font size',async({page})=>{
+  await mount(page,true,1280);await openRoot(page);await choose(page,'Settings');await expect(item(page,'Color')).toBeVisible();await expect(item(page,'Size')).toBeVisible();await choose(page,'Color');await choose(page,'Cyan');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().accent)).toBe('#12BDF3');expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--merd-ui-accent').trim())).toBe('#12BDF3');await hub(page).click();await choose(page,'Size');await choose(page,'Icon');const iconBefore=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().iconScale);await choose(page,'Increase');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().iconScale)).toBeGreaterThan(iconBefore);await hub(page).click();await choose(page,'Font');const fontBefore=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().fontScale);await choose(page,'Increase');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().fontScale)).toBeGreaterThan(fontBefore);
+});
+
+test('Minimize docks a Studio restore control after the desktop account circle',async({page})=>{
+  await mount(page,true,1280);await openRoot(page);await choose(page,'Minimize');await expect(hub(page)).toBeHidden();const restore=page.locator('.rail-account-dock > .merd-shell-account-trigger + .merd-ui-restore-trigger');await expect(restore).toBeVisible();await restore.click();await expect(hub(page)).toBeVisible();
 });
 
 test('one selection can be replaced by another and selected root exposes the requested actions',async({page})=>{
@@ -68,7 +80,7 @@ test('numeric Layout values keep arrow-stepper behavior',async({page})=>{
 });
 
 test('hub hover opens, wheel arms an action, center click selects it on fine pointers',async({page})=>{
-  await mount(page,true,1280);const box=await hub(page).boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await expect(item(page,'Select')).toBeVisible();await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Select');await hub(page).click();await expect(page.locator('body')).toHaveClass(/merd-ui-studio-selecting/);
+  await mount(page,true,1280);const box=await hub(page).boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await expect(item(page,'Select')).toBeVisible();await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Minimize');await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Select');await hub(page).click();await expect(page.locator('body')).toHaveClass(/merd-ui-studio-selecting/);
 });
 
 test('Undo remains available on every visible drill-down level',async({page})=>{

@@ -10,7 +10,7 @@
   const name = String(source.dataset.userName || 'Account').trim() || 'Account';
   const roleLabel = String(source.dataset.roleLabel || auth.actual_role_label || auth.role_label || 'USER').trim() || 'USER';
   const roleKey = String(source.dataset.roleKey || auth.actual_role_key || auth.role_key || roleLabel).trim().toUpperCase();
-  const viewRoleKey = String(source.dataset.viewRoleKey || auth.view_role_key || 'ADMIN').trim().toUpperCase();
+  const viewRoleKey = String(source.dataset.viewRoleKey || auth.view_role_key || (roleKey==='DEV'?'DEV':'ADMIN')).trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   let context = null;
   let mounted = false;
@@ -118,7 +118,7 @@
     utilities.innerHTML = `
       <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
-      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
+      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
 
     const accountSection = document.createElement('section');
     accountSection.className = 'rail-account-section';
@@ -171,9 +171,9 @@
     const selects = [desktopSelect, mobileSelect].filter(Boolean);
     const roleViewSelect = utilities.querySelector('.rail-dev-role-select');
     if (roleViewSelect) {
-      roleViewSelect.value = ['ADMIN','SUPER','USER'].includes(viewRoleKey) ? viewRoleKey : 'ADMIN';
+      roleViewSelect.value = ['DEV','ADMIN','SUPER','USER'].includes(viewRoleKey) ? viewRoleKey : 'ADMIN';
       roleViewSelect.addEventListener('change', event => {
-        const next = ['ADMIN','SUPER','USER'].includes(event.target.value) ? event.target.value : 'ADMIN';
+        const next = ['DEV','ADMIN','SUPER','USER'].includes(event.target.value) ? event.target.value : 'ADMIN';
         document.cookie = `merdpos_dev_view_role=${next}; Path=/beta/timesheet_portal/; SameSite=Lax`;
         window.location.reload();
       });

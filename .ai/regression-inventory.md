@@ -199,3 +199,9 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Edit drills Color → Palette and Layout. Add drills element type → Above/Below/Left/Right. Move drills Select Destination → target selection → Top/Bottom/Left/Right.
 - The hub change-count badge opens History and each History row can be deleted independently. Existing 48-unit icon-only geometry, fine-pointer hover/wheel and touch no-snap contracts remain mandatory.
 - The account sheet orders actual user/role → Working client → DEV Current role selector; DEV/Clients shortcut clones are absent. Current role offers only Admin/Super/User and must be universal: page rendering, dashboard/data and normal API permission checks follow the selected effective role while actual DEV identity remains intact for Studio/client-context tooling.
+## Studio17 dashboard/settings/minimize regressions
+- Current role exact options are Developer, Admin, Super, User; Developer returns effective website role to actual DEV without losing Studio or Working client.
+- Studio root exposes Minimize first, Select, Edit Dashboard and Settings; desktop Minimize docks a restore button directly after the account circle and restore reopens the floating Studio.
+- Settings Color persists Studio accent only; Size Font/Icon Increase/Decrease persist independent Studio scaling.
+- Edit Dashboard invokes the shared Dashboard Builder through an explicit actual-DEV `dev_studio` mode for the current effective role; normal preview permission enforcement remains unchanged.
+- Every dashboard widget catalogue row exposes Describe, and accepted text is handed to `MERDPOS_UI_STUDIO.addContextComment` with a stable dashboard-widget context key.

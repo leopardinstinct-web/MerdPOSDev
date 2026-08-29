@@ -43,6 +43,7 @@ $management = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/
 $dashboard = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/dashboard.php', $errors);
 $betaApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/beta_api.php', $errors);
 $dashboardDataApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_data.php', $errors);
+$dashboardLayoutApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_layout.php', $errors);
 $clientContextApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/client_context.php', $errors);
 $login = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/index.php', $errors);
 $scan = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/scan.php', $errors);
@@ -182,8 +183,8 @@ foreach ([
     'assets/mobile-runtime.js?v=20260828mobile1',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260830bottom1',
-    'assets/account-menu.css?v=20260830roleview2',
-    'assets/account-menu.js?v=20260830roleview2',
+    'assets/account-menu.css?v=20260830roleview3',
+    'assets/account-menu.js?v=20260830roleview3',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -201,10 +202,12 @@ foreach ([
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview2', 'Namecheap deploy account sheet stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview2', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio16', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio16', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260830dashboardstudio1', 'Namecheap deploy dashboard Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio1', 'Namecheap deploy dashboard Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview3', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview3', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio17', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio17', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
@@ -212,11 +215,11 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio16', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio16', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio17', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio17', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
-beta_contract_require_contains($betaApi, "['ADMIN','SUPER','USER']", 'DEV presentation role allow-list', $errors);
+beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
 beta_contract_require_contains($betaApi, '$previewUser[\'actual_employee_type\'] = $viewRoleKey', 'DEV presentation permission snapshot clears actual DEV identity', $errors);
 beta_contract_require_contains($betaApi, '$user[\'permissions\'] = $permissions', 'universal effective permission snapshot', $errors);
 beta_contract_require_contains($betaApi, '!empty($user[\'is_role_preview\'])', 'preview permissions override actual DEV route checks', $errors);
@@ -226,6 +229,13 @@ beta_contract_require_contains($dashboardDataApi, '$effectiveRole = merd_dashboa
 beta_contract_require_contains($dashboardDataApi, 'beta_require_permission($user, \'dashboard.configure\', $pdo);', 'cross-role dashboard inspection requires effective configure permission', $errors);
 beta_contract_require_contains($clientContextApi, '$canSelect = beta_user_is_dev($user);', 'working-client selector remains actual DEV utility', $errors);
 beta_contract_require_contains($dashboard, '\'actual_role_key\'=>$actualRole', 'DEV presentation preserves actual role metadata', $errors);
+beta_contract_require_contains($betaApi, 'if ($viewRoleKey === \'DEV\')', 'Developer selector restores actual DEV website view', $errors);
+beta_contract_require_contains($dashboardLayoutApi, 'function dashboard_dev_studio_mode', 'actual-DEV dashboard Studio mode resolver', $errors);
+beta_contract_require_contains($dashboardLayoutApi, 'beta_user_is_dev($user)', 'dashboard Studio edit is actual-DEV gated', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'openStudioEdit', 'Studio-integrated dashboard editor', $errors);
+beta_contract_require_contains($dashboardBuilderJs, "params.set('dev_studio','1')", 'Studio dashboard explicit DEV request marker', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'data-describe-widget', 'dashboard widget Describe control', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'addContextComment', 'dashboard widget context handoff to Studio', $errors);
 
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
@@ -262,9 +272,18 @@ beta_contract_require_contains($uiStudioJs, "kind:'comment'", 'UI Studio element
 beta_contract_require_contains($uiStudioJs, "kind:'add'", 'UI Studio preview element insertion', $errors);
 beta_contract_require_contains($uiStudioJs, 'getHistory', 'UI Studio navigable local history', $errors);
 beta_contract_require_contains($uiStudioJs, 'function withUndo', 'UI Studio undo action on every radial level', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Minimize',action:'minimize'", 'Studio desktop minimize root action', $errors);
+beta_contract_require_contains($uiStudioJs, "'Edit Dashboard',action:'edit-dashboard'", 'Studio root dashboard editor action', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Settings',action:'settings'", 'Studio root Settings action', $errors);
+beta_contract_require_contains($uiStudioJs, "SETTINGS_KEY='merdpos-ui-studio-settings-v1'", 'Studio local settings persistence', $errors);
+beta_contract_require_contains($uiStudioJs, 'function settingsColorDefinitions', 'Studio accent palette settings', $errors);
+beta_contract_require_contains($uiStudioJs, 'function settingsSizeDefinitions', 'Studio Font/Icon size settings', $errors);
+beta_contract_require_contains($uiStudioJs, 'function ensureRestoreTrigger', 'Studio dock restore control', $errors);
+beta_contract_require_contains($uiStudioJs, 'function addContextComment', 'Studio external context-comment API', $errors);
+beta_contract_require_contains($uiStudioCss, '.merd-ui-restore-trigger', 'Studio desktop restore control styling', $errors);
 beta_contract_require_contains($uiStudioJs, 'window.setTimeout(openStudio,0)', 'UI Studio default-visible DEV hub', $errors);
 beta_contract_require_absent($uiStudioJs, "{label:'Exit',action:'exit'", 'retired Studio Exit root action', $errors);
-beta_contract_require_contains($uiStudioJs, "if(!state.selected)return [{label:'Select'", 'selection-first Studio root', $errors);
+beta_contract_require_contains($uiStudioJs, "if(!state.selected)return base;", 'selection-first Studio root', $errors);
 beta_contract_require_contains($uiStudioJs, "label:'Select Destination',action:'move-destination'", 'Studio destination-first Move', $errors);
 beta_contract_require_contains($uiStudioJs, "label:'Top',action:'move-place'", 'Studio Move position choices', $errors);
 beta_contract_require_contains($uiStudioJs, "label:'Above',action:'add-place'", 'Studio Add relative placement choices', $errors);
@@ -283,6 +302,7 @@ beta_contract_require_contains($shellCss, '.merd-shell-account-trigger', 'Deskto
 beta_contract_require_contains(beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.js', $errors), 'merd-shell-account-trigger', 'Desktop circular account/client trigger runtime', $errors);
 $accountMenuJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.js', $errors);
 beta_contract_require_contains($accountMenuJs, 'rail-dev-role-select', 'DEV presentation role selector', $errors);
+beta_contract_require_contains($accountMenuJs, '<option value="DEV">Developer</option>', 'Developer current-role option', $errors);
 beta_contract_require_contains($accountMenuJs, 'merdpos_dev_view_role=', 'DEV presentation role cookie writer', $errors);
 beta_contract_require_absent($accountMenuJs, "const systemTabs =", 'retired DEV/Clients account-sheet shortcuts', $errors);
 beta_contract_require_contains($accountMenuCss, '.rail-dev-role-context', 'DEV presentation role selector styling', $errors);

@@ -32,3 +32,8 @@ active:
     packet_state: CHECKED
     lifecycle: WIRED
     next_action: "Commit/push checked Studio16 + DEV role presentation, then verify CI and live beta."
+  - id: MERD-20260830-studio17-dashboard-controls
+    path: .ai/work/active/MERD-20260830-studio17-dashboard-controls.yaml
+    packet_state: CHECKED
+    lifecycle: WIRED
+    next_action: "Commit/push checked Studio17, then verify CI and live beta."

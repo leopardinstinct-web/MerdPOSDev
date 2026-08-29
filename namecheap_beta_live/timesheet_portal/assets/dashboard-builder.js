@@ -34,7 +34,7 @@
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-  let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null, editMode = false;
+  let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null, editMode = false, studioEditMode = false;
 
   panel.classList.add('dashboard-builder-active');
   const builder = document.createElement('section');
@@ -182,7 +182,7 @@
 
   function saveSoon(){if(!layoutApi?.can_edit)return;window.clearTimeout(saveTimer);saveTimer=window.setTimeout(saveLayout,280);}
   async function saveLayout(){
-    try{layout=compactLayout(layout);layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save_layout',role_id:currentRoleId,csrf:layoutApi.csrf,layout})});layout=compactLayout(layoutApi.layout||[]);renderCanvas();showSave('Saved');}
+    try{layout=compactLayout(layout);layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save_layout',role_id:currentRoleId,csrf:layoutApi.csrf,layout,dev_studio:studioEditMode?1:0})});layout=compactLayout(layoutApi.layout||[]);renderCanvas();showSave('Saved');}
     catch(error){showSave(error.message,true);}
   }
 
@@ -227,12 +227,19 @@
     templateList.querySelectorAll('[data-template]').forEach(button=>button.addEventListener('click',()=>applyTemplate(button.dataset.template)));
   }
 
+  function describeWidget(key){
+    const def=defs[key];if(!def)return;const studio=window.MERDPOS_UI_STUDIO;if(!studio?.addContextComment){showSave('DevStudio is not ready',true);return;}
+    const selector=`.dashboard-widget[data-widget="${key}"]`,existing=(studio.getChanges?.()||[]).slice().reverse().find(row=>row.kind==='comment'&&row.contextKey===`dashboard-widget:${key}`),comment=window.prompt(`Describe ${def.title} for DevStudio:`,existing?.comment||'');
+    if(comment===null)return;const value=String(comment).trim();if(!value){showSave('Widget description not changed');return;}
+    const element=canvas.querySelector(`.dashboard-widget[data-widget="${key}"]`);studio.addContextComment({selector,comment:value,label:`Dashboard widget: ${def.title}`,contextKey:`dashboard-widget:${key}`,contextType:'dashboard-widget',widgetKey:key,element});showSave('Widget context added to DevStudio');
+  }
+
   function renderCatalog(){
     if(!catalog||!layoutApi)return;const q=String(search?.value||'').trim().toLowerCase(),allowed=new Set(layoutApi.allowed_widgets||[]),added=new Set(layout.map(i=>i.widget_key));
     const rows=Object.entries(defs).filter(([key,def])=>allowed.has(key)&&(!q||`${def.title} ${def.desc}`.toLowerCase().includes(q)));
-    catalog.innerHTML=rows.length?rows.map(([key,def])=>`<div class="dashboard-catalog-item ${added.has(key)?'is-added':''}"><div class="dashboard-catalog-copy"><strong>${esc(def.title)}</strong><span>${esc(def.desc)}</span></div><button type="button" class="dashboard-catalog-add" data-add-widget="${esc(key)}" ${added.has(key)?'disabled':''}>${added.has(key)?'✓':'+'}</button></div>`).join(''):'<div class="dashboard-empty-widget">No widgets available for this role.</div>';
-    catalog.querySelectorAll('[data-add-widget]').forEach(button=>button.addEventListener('click',()=>addWidget(button.dataset.addWidget)));
-    renderTemplates();
+    catalog.innerHTML=rows.length?rows.map(([key,def])=>`<div class="dashboard-catalog-item ${added.has(key)?'is-added':''}"><div class="dashboard-catalog-copy"><strong>${esc(def.title)}</strong><span>${esc(def.desc)}</span></div><div class="dashboard-catalog-actions"><button type="button" class="dashboard-catalog-describe" data-describe-widget="${esc(key)}">Describe</button><button type="button" class="dashboard-catalog-add" data-add-widget="${esc(key)}" ${added.has(key)?'disabled':''}>${added.has(key)?'✓':'+'}</button></div></div>`).join(''):'<div class="dashboard-empty-widget">No widgets available for this role.</div>';
+    catalog.querySelectorAll('[data-describe-widget]').forEach(button=>button.addEventListener('click',()=>describeWidget(button.dataset.describeWidget)));
+    catalog.querySelectorAll('[data-add-widget]').forEach(button=>button.addEventListener('click',()=>addWidget(button.dataset.addWidget)));renderTemplates();
   }
 
   function addWidget(key){if(!layoutApi?.can_edit||!editMode||!defs[key]||!(layoutApi.allowed_widgets||[]).includes(key)||layout.some(i=>i.widget_key===key))return;const def=defs[key],pos=firstOpenPosition(def.w,def.h);layout.push({widget_key:key,grid_x:pos.x,grid_y:pos.y,grid_w:def.w,grid_h:def.h});layout=compactLayout(layout);renderCanvas();saveSoon();}
@@ -248,7 +255,7 @@
 
   function renderRolebar(){
     const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;
-    const canEdit=!!layoutApi?.can_edit;if(!canEdit)editMode=false;const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;editToggle.hidden=!canEdit;editToggle.setAttribute('aria-pressed',editMode?'true':'false');editToggle.textContent=editMode?'Done editing':'Edit dashboard';addButton.hidden=!(canEdit&&editMode);resetButton.hidden=!(canEdit&&editMode);builder.classList.toggle('is-edit-mode',canEdit&&editMode);
+    const canEdit=!!layoutApi?.can_edit;if(!canEdit)editMode=false;const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;editToggle.hidden=!canEdit||studioEditMode;editToggle.setAttribute('aria-pressed',editMode?'true':'false');editToggle.textContent=editMode?'Done editing':'Edit dashboard';addButton.hidden=!(canEdit&&editMode);resetButton.hidden=!(canEdit&&editMode);builder.classList.toggle('is-edit-mode',canEdit&&editMode);builder.classList.toggle('is-studio-edit-mode',studioEditMode&&editMode);
     if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)}</option>`).join('');roleSelect.value=String(currentRoleId);}
   }
 
@@ -257,8 +264,8 @@
     catch(error){showSave(error.message,true);data=null;renderCanvas();}
   }
 
-  async function loadRole(roleId=null,animate=true){
-    const previous=layoutApi?.selected_role||{},previousLoa=Number(previous.authority_level||0),url='api/dashboard_layout.php'+(roleId?`?role_id=${Number(roleId)}`:'');
+  async function loadRole(roleId=null,animate=true,studioMode=studioEditMode){
+    const previous=layoutApi?.selected_role||{},previousLoa=Number(previous.authority_level||0),params=new URLSearchParams();if(roleId)params.set('role_id',String(Number(roleId)));if(studioMode)params.set('dev_studio','1');const url='api/dashboard_layout.php'+(params.toString()?`?${params}`:'');
     try{
       if(animate&&layoutApi){const target=(layoutApi.roles||[]).find(r=>Number(r.id)===Number(roleId)),dir=Number(target?.authority_level||0)>=previousLoa?'left':'right';canvas.classList.add(`role-slide-out-${dir}`);await new Promise(r=>setTimeout(r,150));canvas.className='dashboard-canvas';}
       layoutApi=await json(url,{headers:{'Accept':'application/json'}});layout=compactLayout(layoutApi.layout||[]);renderRolebar();data=null;renderCanvas();await loadData(currentRoleId);
@@ -268,14 +275,20 @@
 
   function toggleDrawer(force=null){if(!layoutApi?.can_edit||(!editMode&&force!==false))return;const open=force===null?!drawer.classList.contains('open'):!!force;drawer.classList.toggle('open',open);drawer.setAttribute('aria-hidden',open?'false':'true');addButton.setAttribute('aria-expanded',open?'true':'false');if(open)renderCatalog();}
 
+  async function openStudioEdit(){
+    studioEditMode=true;await loadRole(null,false,true);if(!layoutApi?.can_edit){studioEditMode=false;showSave('Dashboard editing is unavailable',true);return false;}editMode=true;renderRolebar();renderCanvas();toggleDrawer(true);showSave('DevStudio dashboard editing');return true;
+  }
+  async function closeStudioEdit(){toggleDrawer(false);editMode=false;studioEditMode=false;await loadRole(null,false,false);renderRolebar();renderCanvas();showSave('Dashboard editing closed');return false;}
+  async function toggleStudioEdit(){return studioEditMode&&editMode?closeStudioEdit():openStudioEdit();}
+
   roleSelect.addEventListener('change',()=>loadRole(Number(roleSelect.value),true));
   editToggle.addEventListener('click',()=>{if(!layoutApi?.can_edit)return;const next=!editMode;if(!next)toggleDrawer(false);editMode=next;renderRolebar();renderCanvas();});
   addButton.addEventListener('click',()=>toggleDrawer());
   search.addEventListener('input',renderCatalog);
-  resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit||!editMode)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
+  resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit||!editMode)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf,dev_studio:studioEditMode?1:0})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
   document.addEventListener('pointerdown',event=>{if(drawer.classList.contains('open')&&!drawer.contains(event.target)&&!addButton.contains(event.target))toggleDrawer(false);});
 
-  window.MERDPOSDashboardBuilder={reloadRoles:async()=>{const selected=currentRoleId;await loadRole(selected,false);},refreshData:()=>loadData(currentRoleId)};
+  window.MERDPOSDashboardBuilder={reloadRoles:async()=>{const selected=currentRoleId;await loadRole(selected,false,studioEditMode);},refreshData:()=>loadData(currentRoleId),openStudioEdit,closeStudioEdit,toggleStudioEdit,isEditing:()=>!!(studioEditMode&&editMode),openWidgetDrawer:()=>{if(editMode)toggleDrawer(true);}};
 
   loadRole(null,false);
   window.setInterval(()=>loadData(currentRoleId),60000);

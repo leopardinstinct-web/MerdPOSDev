@@ -1,0 +1,33 @@
+id: MERD-20260830-studio17-dashboard-controls
+objective: "Add Developer role return, Dashboard Builder integration, widget context, Studio settings, and desktop minimize/restore."
+acceptance:
+  - "Current role exact options are Developer, Admin, Super, User; Developer restores the actual DEV website view."
+  - "Studio root begins with Minimize, Select, Edit Dashboard and Settings, with Undo retained."
+  - "Edit Dashboard uses the existing Dashboard Builder for the current effective role through an explicit actual-DEV tool mode."
+  - "Dashboard widget drawer exposes Describe and writes widget-keyed context into Studio comments/history/handoff."
+  - "Settings Color changes Studio accent chrome only; Settings Size independently changes Font or Icon scale with Increase/Decrease."
+  - "Desktop Minimize hides floating Studio and creates a restore circle immediately right of the account circle."
+  - "Ordinary Studio patches/comments/settings remain browser-local; Dashboard Builder persistence remains isolated to its existing layout API."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "dde2406024a958c06bf93472725e654cee63f131"
+last_seen_head: "dde2406024a958c06bf93472725e654cee63f131"
+affected_paths:
+  - "namecheap_beta_live/timesheet_portal/includes/beta_api.php"
+  - "namecheap_beta_live/timesheet_portal/api/dashboard_layout.php"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/dashboard-builder.js"
+  - "namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
+  - "namecheap_beta_live/browser_tests/dashboard-studio-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/ui-studio-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
+completed:
+  - "Full beta browser suite passes 34/34; all four beta validators, 94 PHP lints, 39 JS/test syntax checks, YAML and deploy-script syntax pass."
+remaining:
+  - "Commit/push, confirm guardrails/Namecheap pull, then authenticated live verification."
+next_action: "Commit/push checked Studio17, then verify CI and live beta."
+blocked: false
+blocker: null
+updated_at: "2026-08-30"

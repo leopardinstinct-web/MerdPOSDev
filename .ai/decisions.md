@@ -230,3 +230,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - History remains local and is opened from the hub change-count badge; individual history entries remain deletable.
 - The account sheet orders actual signed-in identity first, Working client second, and a DEV-only Current role selector third. DEV and Clients shortcut buttons are not duplicated into the account sheet.
 - Current role is a universal DEV preview. Admin/Super/User becomes the effective website role for server rendering, dashboard layout/data, normal API permission checks and feature actions. Authentication/audit identity remains the real DEV account; only explicit DEV tools such as UI Studio and Working client switching use the actual DEV identity.
+## 2026-08-30 — Studio17 dashboard integration and controls
+- Current role offers Developer/Admin/Super/User. Developer means the actual DEV website view; Admin/Super/User remain universal effective-role previews.
+- Studio root begins with Minimize, Select, Edit Dashboard and Settings. Desktop Minimize docks a restore control immediately to the right of the account circle.
+- Edit Dashboard delegates to the existing Dashboard Builder for the current effective role. Its persistent layout API is an explicit actual-DEV tool exception; ordinary Studio patches/comments/settings remain local preview state.
+- Dashboard widget Describe writes/replaces a widget-keyed Studio comment/context note and includes that context in History/Copy/Chat.
+- Studio Settings persist browser-locally: Color controls Studio accent chrome only; Size independently scales Studio Font and Icon controls.
