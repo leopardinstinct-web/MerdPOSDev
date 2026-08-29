@@ -193,8 +193,8 @@ foreach ([
 
 // Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260829studio12', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260829studio12', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260829studio13', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260829studio13', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
@@ -202,8 +202,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio12', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio12', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260829studio13', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260829studio13', 'UI Studio runtime wiring', $errors);
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
 beta_contract_require_contains($uiStudioJs, 'if(window.MERDPOS_AUTH?.is_dev!==true)return;', 'UI Studio self DEV guard', $errors);
@@ -223,7 +223,12 @@ beta_contract_require_absent($uiStudioJs, 'const ICONS={', 'retired hand-drawn i
 beta_contract_require_contains($uiStudioJs, "setAttribute('popover','manual')", 'UI Studio manual top-layer Popover host', $errors);
 beta_contract_require_contains($uiStudioJs, 'showPopover()', 'UI Studio native Popover open behavior', $errors);
 beta_contract_require_contains($uiStudioJs, 'setPointerCapture', 'UI Studio draggable hub behavior', $errors);
-beta_contract_require_contains($uiStudioJs, 'merd-ui-sector', 'UI Studio nested sector radial renderer', $errors);
+beta_contract_require_contains($uiStudioJs, 'merd-ui-sector', 'UI Studio sector radial renderer', $errors);
+beta_contract_require_contains($uiStudioJs, 'currentDefinitions()', 'UI Studio single-ring drill-down model', $errors);
+beta_contract_require_contains($uiStudioJs, "const STEPPER_PROPS=new Set", 'UI Studio numeric radial stepper model', $errors);
+beta_contract_require_contains($uiStudioJs, "state.layer==='color-more'", 'UI Studio extended color drill-down', $errors);
+beta_contract_require_contains($uiStudioCss, '#25253D', 'UI Studio dark sector surface', $errors);
+beta_contract_require_contains($uiStudioCss, '#30304C', 'UI Studio active sector surface', $errors);
 beta_contract_require_contains($uiStudioJs, "kind:'comment'", 'UI Studio element comment metadata', $errors);
 beta_contract_require_contains($uiStudioJs, "kind:'add'", 'UI Studio preview element insertion', $errors);
 beta_contract_require_contains($uiStudioJs, 'getHistory', 'UI Studio navigable local history', $errors);

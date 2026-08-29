@@ -5,17 +5,18 @@ acceptance:
   - "Only an actual DEV identity can load or open UI Studio."
   - "Selecting an element never writes server source, APIs, database state, or other users' UI."
   - "The rendered MERDPOS app remains visible; UI Studio has no persistent inspector/change-set panel on desktop or mobile."
-  - "One draggable UI hub opens bright sector-based nested radial menus on desktop and mobile; parent layers remain visible while child layers open."
-  - "Hub and sector rings share one physical stage/center on touch devices and during visual-viewport changes."
-  - "Sector labels/icons remain readable and sector bands provide practical phone touch targets."
-  - "Color opens a scrollable outer color-picker sector ring with BG/Text targeting."
-  - "Layout, Scope, Move and Changes are nested circular layers; Copy and Chat handoff are available from the circle."
+  - "One draggable UI hub opens a dark single-ring drill-down radial menu on desktop and mobile; entering a submenu replaces the current ring and the hub becomes contextual Back."
+  - "Hub and active sector ring share one physical stage/center on touch devices and during visual-viewport changes."
+  - "Sector labels/icons remain readable, labels stay within the slice, and sector bands provide practical phone touch targets."
+  - "Color exposes BG/Text targeting plus the five MERDPOS master colors first, with More opening the extended rotating palette."
+  - "Numeric Padding/Margin/Gap/Radius/Font use a two-sector increase/decrease stepper with the current value in the hub; Width retains direct presets."
+  - "Layout, Scope, Move and Changes use the same single-ring drill-down model; Copy and Chat handoff remain available from the circle."
   - "DEV can record element comments, add preview elements, select navigation/transient menu elements, and open navigable local history."
   - "Interacting with Studio must not collapse an already-expanded desktop MERDPOS navigation rail."
 packet_state: CHECKED
 lifecycle: WIRED
 base_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
-last_seen_head: "3f5d07c2bf9a52635cfbfbe5c999f7ad5767ff3b"
+last_seen_head: "0c9f5acf4bdd6c671d4818570deee128de92c0b8"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/assets/management.js"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
@@ -33,7 +34,7 @@ constraints:
   - "DEV-only means actual DEV identity, not LOA or a named permission alone."
   - "No preview edit may call mutation APIs or persist UI changes to the server."
   - "Do not alter payroll, finance, authorization, or business data behavior."
-  - "Studio bright chrome remains a DEV-only exception and must not leak into MERDPOS product styling."
+  - "Studio dark neutral chrome and bright action accents remain a DEV-only exception and must not leak into MERDPOS product styling."
 completed:
   - "Commit 3f5d07c deployed the nested sector Studio, comments/add/history, shell selection interception and sidebar non-collapse behavior; Beta guardrails succeeded and authenticated live audit passed 24/24 plus Studio smoke 14/14."
   - "Galaxy A13 screenshots exposed mobile hub/ring drift plus undersized sector text/icons and touch difficulty."
@@ -51,10 +52,14 @@ completed:
   - "Studio10 commit 4e73508 passed Beta guardrails and Namecheap began serving studio10. Live validation then exposed stale click suppression after a drag when Chromium emitted no synthetic click."
   - "Studio12 uses pointer-up activation for touch/pen, preserves drag offset, enlarges active icons/labels/slices, and collapses ancestor rings to compact icon-only breadcrumbs."
   - "Focused Studio12 tests pass for compact parent rings, label fit, real 394x512 touch sector activation, and drag followed by a single-tap reopen."
-  - "Studio12 runtime contract, JS/YAML/deploy-script syntax checks pass and the full beta browser suite passes 25/25."
+  - "Studio12 runtime contract, JS/YAML/deploy-script syntax checks pass and the full beta browser suite passes 25/25; commit 0c9f5ac deployed and live touch/desktop checks passed."
+  - "Studio13 replaces stacked/compact ancestor rings with one active drill-down ring, adopts dark #1A1A2E/#25253D/#30304C Studio surfaces, keeps bright semantic action accents, and preserves the draggable touch-safe hub."
+  - "Studio13 Color shows BG/Text targeting plus the five MERDPOS master colors before More, and numeric layout properties use two-sector increase/decrease controls with current value in the hub."
+  - "Focused Studio13 browser suite passes 12/12, including single-ring Back navigation, palette drill-down, numeric stepper, Galaxy-size label containment, real touch taps, and drag/tap recovery."
+  - "Studio13 runtime contract, JavaScript syntax, YAML and deploy-script syntax checks pass; full beta browser suite passes 26/26."
 remaining:
-  - "Commit/push Studio12, confirm Beta guardrails and Namecheap serving studio12, then verify the live touch and compact-ring behavior."
-next_action: "Push/deploy Studio12 and verify live on 394x512 plus desktop."
+  - "Commit/push Studio13, confirm Beta guardrails and Namecheap serving studio13, then verify live touch/desktop behavior."
+next_action: "Push/deploy Studio13 single-ring drill-down and verify live on 394x512 plus 681x598."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T08:45:00+05:00"
+updated_at: "2026-08-29T10:23:00+05:00"

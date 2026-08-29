@@ -152,3 +152,12 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - 394x512 touch: off-center drag preserves finger-to-hub offset and one intentional tap immediately reopens the radial menu.
 - Active ring: labels/icons meet readability thresholds and the tested label bounding box stays inside its sector bounding box.
 - Submenu hierarchy: every ancestor ring has `.is-compact-parent`, contains icons, and contains no sector-label nodes.
+
+## UI Studio Studio13 single-ring regressions
+
+- Root renders one ring with Select/Edit/Changes/Exit; entering Edit removes root items rather than stacking ancestor rings.
+- Hub shows the active layer and Back; Back walks Color → Edit → Root while keeping one sector ring.
+- Color exposes BG/Text targeting plus Navy/Cyan/Violet/Canvas/White before More; More rotates through the extended palette in the same ring.
+- Numeric Padding/Margin/Gap/Radius/Font render only Increase/Decrease and update the hub's current value plus the local preview patch.
+- Galaxy-size regression asserts shared hub/ring center, dark `#25253D` sector surface, label containment and practical rendered icon/label size.
+- Existing true-touch 394x512 tap, off-center drag/no-snap, post-drag single-tap reopen, sidebar/transient selection, comments/Add/History and Copy/Chat regressions remain mandatory.

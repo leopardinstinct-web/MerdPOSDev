@@ -6,15 +6,15 @@ UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the 
 
 - One draggable **UI / DEV** hub is the persistent controller. Dragging preserves the original finger-to-hub-center offset, so touching near an edge never snaps the hub underneath the finger. Touch/pen taps activate directly on pointer-up and any later synthetic click is treated only as a duplicate, so a real tap after dragging still opens Studio normally.
 - The hub uses native browser Popover plus local HTML/CSS/JavaScript and locally vendored Google Material Symbols.
-- The root ring is four bright DEV-tool sectors: **Select**, **Edit**, **Changes**, **Exit**.
-- Selecting a parent keeps its layer visible but collapses it into a smaller icon-only breadcrumb ring. The newly opened child ring receives the large sectors, labels and touch area.
-- Items that own another layer show an expand marker. While inside a submenu the hub becomes **Back**.
+- The root ring is four actions: **Select**, **Edit**, **Changes**, **Exit**.
+- Studio uses **single-ring drill-down**: selecting a parent replaces the current ring with its child ring instead of stacking or shrinking ancestor rings.
+- Items that own another level show an expand marker. While inside a submenu the center hub shows the current context and acts as **Back**.
 - **Edit** opens Color, Text, Layout, Hide/Show, Move, Scope, Comment and Add.
 - **Changes** opens History, Copy, Chat, Undo, Reset and Clear.
-- Wheel/trackpad input over the radial controller rotates the nearest active ring. In Color, the outer ring scrolls through the full preview color library.
-- Studio chrome uses a bright DEV-tool palette and is intentionally visually independent from MERDPOS product branding. Selection outlines on the MERDPOS canvas still use canonical semantic/product tokens.
+- Wheel/trackpad input rotates the active ring. **Color → More** cycles through the extended preview color library while remaining a single ring.
+- Studio chrome is deliberately independent from MERDPOS product branding: background `#1A1A2E`, normal sectors `#25253D`, active sectors `#30304C`, white primary text and muted `#A8AEC1`. Bright action accents identify functions without recoloring the sector surfaces.
 - The hub and radial SVG share one fixed stage/center, and both are explicitly anchored at `left:0; top:0` inside that stage so browser static-position rules cannot give them different origins. Android visual-viewport resize/scroll events re-render and re-clamp the stage.
-- Active sectors use larger bands, 44-unit Material Symbol icons and 24–25-unit labels so the complete label stays inside the slice at phone and laptop sizes; compact ancestor rings retain icons only.
+- Active sectors use deep bands, 44-unit Material Symbol icons and 24–25-unit labels so the complete label stays inside the slice at phone and laptop sizes.
 
 ## Selection and transient UI
 
@@ -25,8 +25,8 @@ Desktop navigation and mobile shell tools treat `[data-ui-studio]` as a non-clos
 ## Preview operations
 
 - **Text** edits a selected leaf text element inline; Enter saves and Esc cancels.
-- **Color** targets background/text color and provides a scrollable outer color-picker ring.
-- **Layout** exposes padding, margin, gap, radius, width and font-size presets.
+- **Color** exposes Background/Text targeting, then the five MERDPOS master colors (Navy, Cyan, Violet, App Background, White) before **More** opens the extended rotating palette.
+- **Layout** exposes padding, margin, gap, radius, width and font-size. Padding, Margin, Gap, Radius and Font use a two-sector **▲ / ▼** stepper with the current value displayed in the hub; Width keeps direct preset choices.
 - **Scope** supports This element, This component type, All matching elements and All pages.
 - **Move** exposes Before, After and Inside and remains This-element-only.
 - **Hide/Show** changes visibility in the local preview. Reveal/Restore support remains in the patch engine for hidden-preview recovery.

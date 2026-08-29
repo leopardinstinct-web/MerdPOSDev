@@ -192,3 +192,12 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Active radial rings own the readable labels and large touch slices; ancestor rings collapse to compact icon-only breadcrumbs.
 - Active Material Symbol size is 44 SVG units and active labels are 24px desktop / 25px mobile in the 500-unit viewBox.
 - Touch/pen hub activation is handled on pointer-up so Android does not depend on a synthesized click after drag; duplicate clicks are suppressed.
+
+## 2026-08-29 — UI Studio single-ring drill-down
+
+- Adopt the uploaded radial prototype's interaction architecture: one active operational ring at a time; selecting a parent replaces that ring and the center hub becomes contextual Back.
+- Keep MERDPOS as the canvas and preserve Studio's existing DEV-only preview engine, draggable hub, comments, Add, History, selection scopes, Copy/Chat handoff, and sidebar/transient-control selection interception.
+- Studio chrome uses dark neutral surfaces independent of product branding: `#1A1A2E` background/history/toast, `#25253D` normal sectors, `#30304C` active/hover sectors, white labels and `#A8AEC1` muted hub text.
+- Bright action accents identify functions but do not recolor entire sector surfaces.
+- Color shows Background/Text targeting and the five MERDPOS master colors first; More opens the extended rotating palette.
+- Numeric Padding/Margin/Gap/Radius/Font use two radial controls (increase/decrease) with the current value shown in the center hub. Width retains direct presets.
