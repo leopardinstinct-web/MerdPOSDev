@@ -5,6 +5,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/../../backend/api/includes/portal_permissions.php';
 require_once __DIR__ . '/../../backend/api/includes/workforce_beta.php';
+require_once __DIR__ . '/dashboard_access.php';
 
 function beta_api_error(Throwable $error): never
 {
@@ -45,6 +46,7 @@ function beta_has_permission(array $user, string $permission, ?PDO $pdo = null):
 {
     $catalog = merd_portal_permission_catalog();
     if (!isset($catalog[$permission])) return false;
+    if (!empty($user['is_role_preview']) && isset($user['permissions']) && is_array($user['permissions']) && array_key_exists($permission, $user['permissions'])) return (bool)$user['permissions'][$permission];
     if (!empty($catalog[$permission]['dev_only'])) return beta_user_is_dev($user);
     $authority = max(0, (int)($user['authority_level'] ?? 0));
     if ($pdo instanceof PDO && !empty($user['client_id'])) {
@@ -82,6 +84,48 @@ function beta_permission_snapshot(PDO $pdo, array $user): array
         $permissions[$key] = !empty($rule['dev_only']) ? $isDev : $authority >= (int)($levels[$key] ?? 1000);
     }
     return [$permissions, $levels];
+}
+
+function beta_apply_dev_role_preview(PDO $pdo, array $user): array
+{
+    if (!beta_user_is_dev($user)) { $user['is_role_preview'] = false; return $user; }
+    $viewRoleKey = strtoupper(trim((string)($_COOKIE['merdpos_dev_view_role'] ?? 'ADMIN')));
+    if (!in_array($viewRoleKey, ['ADMIN','SUPER','USER'], true)) $viewRoleKey = 'ADMIN';
+    $viewRole = merd_dashboard_system_role($pdo, (int)$user['client_id'], $viewRoleKey);
+    if (!$viewRole || strtolower((string)($viewRole['status'] ?? 'active')) !== 'active') { $user['is_role_preview'] = false; return $user; }
+
+    $user['actual_role_key'] = (string)($user['actual_role_key'] ?? $user['role_key'] ?? $user['role'] ?? 'DEV');
+    $user['actual_role_label'] = (string)($user['actual_role_label'] ?? $user['role_label'] ?? $user['role_name'] ?? 'Developer');
+    $user['actual_authority_level'] = (int)($user['actual_authority_level'] ?? $user['authority_level'] ?? 1000);
+    $user['actual_client_role_id'] = $user['actual_client_role_id'] ?? ($user['client_role_id'] ?? null);
+    $user['actual_permissions'] = (array)($user['actual_permissions'] ?? $user['permissions'] ?? []);
+
+    $previewUser = $user;
+    $previewUser['role'] = $viewRoleKey;
+    $previewUser['actual_employee_type'] = $viewRoleKey;
+    $previewUser['employee_type'] = $viewRoleKey;
+    $previewUser['role_key'] = $viewRoleKey;
+    $previewUser['role_label'] = (string)$viewRole['role_label'];
+    $previewUser['authority_level'] = (int)$viewRole['authority_level'];
+    $previewUser['is_dev'] = false;
+    [$permissions, $levels] = beta_permission_snapshot($pdo, $previewUser);
+
+    $user['role'] = $viewRoleKey;
+    $user['employee_type'] = $viewRoleKey;
+    $user['role_name'] = (string)$viewRole['role_label'];
+    $user['client_role_id'] = (int)$viewRole['id'];
+    $user['role_key'] = $viewRoleKey;
+    $user['role_label'] = (string)$viewRole['role_label'];
+    $user['authority_level'] = (int)$viewRole['authority_level'];
+    $user['permissions'] = $permissions;
+    $user['permission_levels'] = $levels;
+    $user['is_management'] = !empty($permissions['workforce.view']) || !empty($permissions['timesheets.view_all']) || !empty($permissions['disputes.review']) || !empty($permissions['finance.cross_store']);
+    $user['is_super'] = !empty($permissions['timesheets.view_all']);
+    $user['is_admin'] = $viewRoleKey === 'ADMIN';
+    $user['is_role_preview'] = true;
+    $user['view_role_key'] = $viewRoleKey;
+    $user['view_role_id'] = (int)$viewRole['id'];
+    return $user;
 }
 
 function beta_enforce_route_permission(array $user, PDO $pdo): void
@@ -136,7 +180,7 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'role_authority.php':
             beta_require_permission($user, $action === 'save_permissions' ? 'permissions.manage' : 'roles.manage', $pdo); return;
         case 'client_context.php':
-            if ($method === 'POST') beta_require_permission($user, 'client_context.switch', $pdo);
+            if ($method === 'POST' && !beta_user_is_dev($user)) beta_require_permission($user, 'client_context.switch', $pdo);
             return;
         case 'admin_directory.php':
             if ($method === 'GET') { beta_require_any_permission($user, ['stores.view','workforce.view'], $pdo); return; }
@@ -206,6 +250,7 @@ function beta_require_active_user(): array
     $user['is_management']=!empty($permissions['workforce.view'])||!empty($permissions['timesheets.view_all'])||!empty($permissions['disputes.review'])||!empty($permissions['finance.cross_store']);
     $user['is_super']=!empty($permissions['timesheets.view_all']);$user['is_admin']=$baseRole==='ADMIN';
     if(isset($_SESSION['user'])&&is_array($_SESSION['user']))foreach(['role','actual_employee_type','employee_type','role_name','client_role_id','role_key','role_label','authority_level','is_super','is_management','is_admin','is_dev'] as $field)$_SESSION['user'][$field]=$user[$field];
+    $user=beta_apply_dev_role_preview($pdo,$user);
     beta_enforce_route_permission($user,$pdo);return $user;
 }
 

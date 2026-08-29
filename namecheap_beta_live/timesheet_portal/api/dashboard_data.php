@@ -12,15 +12,15 @@ function dashboard_data_is_dev(array $user): bool
 function dashboard_data_role(PDO $pdo, array $user): array
 {
     $clientId = (int)$user['client_id'];
-    if (dashboard_data_is_dev($user) && isset($_GET['role_id']) && $_GET['role_id'] !== '') {
-        beta_require_permission($user, 'dashboard.configure', $pdo);
-        $roleId = filter_var($_GET['role_id'], FILTER_VALIDATE_INT);
-        if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid dashboard role.');
-        $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
-        if (!$role || strtolower((string)$role['status']) !== 'active') throw new MerdWorkforceException('role_not_found', 'Dashboard role not found.');
-        return $role;
-    }
-    return merd_dashboard_user_role($pdo, $user);
+    $effectiveRole = merd_dashboard_user_role($pdo, $user);
+    if (!isset($_GET['role_id']) || $_GET['role_id'] === '') return $effectiveRole;
+    $roleId = filter_var($_GET['role_id'], FILTER_VALIDATE_INT);
+    if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid dashboard role.');
+    if ((int)$effectiveRole['id'] === (int)$roleId) return $effectiveRole;
+    beta_require_permission($user, 'dashboard.configure', $pdo);
+    $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
+    if (!$role || strtolower((string)$role['status']) !== 'active') throw new MerdWorkforceException('role_not_found', 'Dashboard role not found.');
+    return $role;
 }
 
 function dashboard_data_last_seven_dates(string $businessDate, DateTimeZone $timezone): array

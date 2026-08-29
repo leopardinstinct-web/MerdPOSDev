@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/beta_api.php';
 
 function client_context_state(PDO $pdo, array $user): array
 {
-    $canSelect = beta_has_permission($user, 'client_context.switch', $pdo);
+    $canSelect = beta_user_is_dev($user);
     $activeClientId = (int)$user['client_id'];
     $homeClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
 
@@ -49,10 +49,10 @@ function client_context_persist(PDO $pdo, array $user, int $selectedClientId): v
 try {
     $user = beta_require_active_user();
     $pdo = portal_db();
-    $canSelect = beta_has_permission($user, 'client_context.switch', $pdo);
+    $canSelect = beta_user_is_dev($user);
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-        beta_require_permission($user, 'client_context.switch', $pdo);
+        if (!beta_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Only DEV can switch the working client.');
         $input = request_input();
         require_csrf($input);
         if ((string)($input['action'] ?? '') !== 'select_client') {
@@ -102,9 +102,7 @@ try {
         }
 
         // Refresh the permission snapshot against the newly selected client.
-        [$permissions, $levels] = beta_permission_snapshot($pdo, $user);
-        $user['permissions'] = $permissions;
-        $user['permission_levels'] = $levels;
+        $user = beta_apply_dev_role_preview($pdo, $user);
         json_response(client_context_state($pdo, $user));
     }
 

@@ -14,41 +14,17 @@ try {
     exit;
 }
 
-$actualPermissions = (array)($user['permissions'] ?? []);
-$actualRole = (string)($user['role_key'] ?? $user['role'] ?? 'USER');
-$actualRoleLabel = (string)($user['role_label'] ?? $user['role_name'] ?? $actualRole);
+$actualPermissions = (array)($user['actual_permissions'] ?? $user['permissions'] ?? []);
+$actualRole = (string)($user['actual_role_key'] ?? $user['role_key'] ?? $user['role'] ?? 'USER');
+$actualRoleLabel = (string)($user['actual_role_label'] ?? $user['role_label'] ?? $user['role_name'] ?? $actualRole);
 $isDev = !empty($user['is_dev']);
-$permissions = $actualPermissions;
-$role = $actualRole;
-$roleLabel = $actualRoleLabel;
+$permissions = (array)($user['permissions'] ?? []);
+$role = (string)($user['role_key'] ?? $user['role'] ?? 'USER');
+$roleLabel = (string)($user['role_label'] ?? $user['role_name'] ?? $role);
 $authorityLevel = (int)($user['authority_level'] ?? 0);
-$viewRoleKey = null;
-$viewRoleId = null;
-$isRolePreview = false;
-if ($isDev) {
-    require_once __DIR__ . '/includes/dashboard_access.php';
-    $viewRoleKey = strtoupper(trim((string)($_COOKIE['merdpos_dev_view_role'] ?? 'ADMIN')));
-    if (!in_array($viewRoleKey, ['ADMIN','SUPER','USER'], true)) $viewRoleKey = 'ADMIN';
-    try {
-        $viewRole = merd_dashboard_system_role(portal_db(), (int)$user['client_id'], $viewRoleKey);
-        if ($viewRole) {
-            $previewUser = $user;
-            $previewUser['role'] = $viewRoleKey;
-            $previewUser['actual_employee_type'] = $viewRoleKey;
-            $previewUser['employee_type'] = $viewRoleKey;
-            $previewUser['role_key'] = $viewRoleKey;
-            $previewUser['role_label'] = (string)$viewRole['role_label'];
-            $previewUser['authority_level'] = (int)$viewRole['authority_level'];
-            $previewUser['is_dev'] = false;
-            [$permissions] = beta_permission_snapshot(portal_db(), $previewUser);
-            $role = $viewRoleKey;
-            $roleLabel = (string)$viewRole['role_label'];
-            $authorityLevel = (int)$viewRole['authority_level'];
-            $viewRoleId = (int)$viewRole['id'];
-            $isRolePreview = true;
-        }
-    } catch (Throwable $e) { error_log('MERDPOS DEV role preview failed: ' . get_class($e)); }
-}
+$viewRoleKey = $user['view_role_key'] ?? null;
+$viewRoleId = $user['view_role_id'] ?? null;
+$isRolePreview = !empty($user['is_role_preview']);
 $can = static fn(string $key): bool => !empty($permissions[$key]);
 $isManagement = !empty($permissions['workforce.view']) || !empty($permissions['timesheets.view_all']) || !empty($permissions['disputes.review']) || !empty($permissions['finance.cross_store']);
 $productVersion = '2026.08.28-beta';
@@ -506,7 +482,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260830roleviewstudio16"></script>
+  <script src="assets/management.js?v=20260830universalrole1"></script>
   <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>

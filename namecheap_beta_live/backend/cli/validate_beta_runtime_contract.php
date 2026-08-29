@@ -41,6 +41,9 @@ $newChat = beta_contract_read($repo . '/docs/pos_latest/NEW_CHAT_STARTER_PROMPT.
 
 $management = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/management.js', $errors);
 $dashboard = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/dashboard.php', $errors);
+$betaApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/beta_api.php', $errors);
+$dashboardDataApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_data.php', $errors);
+$clientContextApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/client_context.php', $errors);
 $login = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/index.php', $errors);
 $scan = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/scan.php', $errors);
 $htaccess = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/.htaccess', $errors);
@@ -179,8 +182,8 @@ foreach ([
     'assets/mobile-runtime.js?v=20260828mobile1',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260830bottom1',
-    'assets/account-menu.css?v=20260830roleview1',
-    'assets/account-menu.js?v=20260830roleview1',
+    'assets/account-menu.css?v=20260830roleview2',
+    'assets/account-menu.js?v=20260830roleview2',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -198,8 +201,8 @@ foreach ([
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview1', 'Namecheap deploy account sheet stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview1', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview2', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview2', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio16', 'Namecheap deploy UI Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio16', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -211,11 +214,17 @@ beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio la
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
 beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio16', 'UI Studio stylesheet wiring', $errors);
 beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio16', 'UI Studio runtime wiring', $errors);
-beta_contract_require_contains($dashboard, 'merdpos_dev_view_role', 'DEV presentation role cookie', $errors);
-beta_contract_require_contains($dashboard, "['ADMIN','SUPER','USER']", 'DEV presentation role allow-list', $errors);
-beta_contract_require_contains($dashboard, '[$permissions] = beta_permission_snapshot', 'DEV presentation role permission snapshot', $errors);
-beta_contract_require_contains($dashboard, '$previewUser[\'is_dev\'] = false', 'DEV presentation role excludes DEV-only view permissions', $errors);
-beta_contract_require_contains($dashboard, '$previewUser[\'actual_employee_type\'] = $viewRoleKey', 'DEV presentation role clears actual DEV employee type before permission snapshot', $errors);
+beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
+beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
+beta_contract_require_contains($betaApi, "['ADMIN','SUPER','USER']", 'DEV presentation role allow-list', $errors);
+beta_contract_require_contains($betaApi, '$previewUser[\'actual_employee_type\'] = $viewRoleKey', 'DEV presentation permission snapshot clears actual DEV identity', $errors);
+beta_contract_require_contains($betaApi, '$user[\'permissions\'] = $permissions', 'universal effective permission snapshot', $errors);
+beta_contract_require_contains($betaApi, '!empty($user[\'is_role_preview\'])', 'preview permissions override actual DEV route checks', $errors);
+beta_contract_require_contains($betaApi, '$user=beta_apply_dev_role_preview($pdo,$user);', 'all beta APIs receive effective preview user', $errors);
+beta_contract_require_contains($dashboard, '$permissions = (array)($user[\'permissions\'] ?? []);', 'dashboard consumes universal effective permissions', $errors);
+beta_contract_require_contains($dashboardDataApi, '$effectiveRole = merd_dashboard_user_role($pdo, $user);', 'dashboard data follows effective preview role', $errors);
+beta_contract_require_contains($dashboardDataApi, 'beta_require_permission($user, \'dashboard.configure\', $pdo);', 'cross-role dashboard inspection requires effective configure permission', $errors);
+beta_contract_require_contains($clientContextApi, '$canSelect = beta_user_is_dev($user);', 'working-client selector remains actual DEV utility', $errors);
 beta_contract_require_contains($dashboard, '\'actual_role_key\'=>$actualRole', 'DEV presentation preserves actual role metadata', $errors);
 
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);

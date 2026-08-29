@@ -12,6 +12,9 @@ const accountPath = path.join(portalRoot, 'assets', 'account-menu.js');
 const tokensPath = path.join(portalRoot, 'assets', 'design-tokens.css');
 const shellCssPath = path.join(portalRoot, 'assets', 'shell.css');
 const accountCssPath = path.join(portalRoot, 'assets', 'account-menu.css');
+const betaApiPath = path.join(portalRoot, 'includes', 'beta_api.php');
+const dashboardDataPath = path.join(portalRoot, 'api', 'dashboard_data.php');
+const clientContextPath = path.join(portalRoot, 'api', 'client_context.php');
 
 const fixtureHtml = `<!doctype html><html><head>
   <script data-id-order></script><script data-dashboard-builder></script>
@@ -62,16 +65,27 @@ async function mountShell(page, width = 1280) {
   await expect(page.locator('.rail-client-section')).toHaveCount(1);
   return pageErrors;
 }
-test('dashboard source removes topbar and exposes sidebar account/About sources', async () => {
+test('DEV role preview is universal across shell and API permission context', async () => {
   const source = fs.readFileSync(dashboardPath, 'utf8');
+  const betaApi = fs.readFileSync(betaApiPath, 'utf8');
+  const dashboardData = fs.readFileSync(dashboardDataPath, 'utf8');
+  const clientContext = fs.readFileSync(clientContextPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
-  expect(source).toContain('merdpos_dev_view_role');
-  expect(source).toContain("['ADMIN','SUPER','USER']");
+  expect(source).toContain('assets/management.js?v=20260830universalrole1');
+  expect(source).toContain("$permissions = (array)($user['permissions'] ?? []);");
+  expect(source).not.toContain("$previewUser['actual_employee_type']");
+  expect(betaApi).toContain('function beta_apply_dev_role_preview');
+  expect(betaApi).toContain("$_COOKIE['merdpos_dev_view_role']");
+  expect(betaApi).toContain("$user['employee_type'] = $viewRoleKey");
+  expect(betaApi).toContain("$user['permissions'] = $permissions");
+  expect(betaApi).toContain("!empty($user['is_role_preview'])");
+  expect(betaApi).toContain('$user=beta_apply_dev_role_preview($pdo,$user);');
+  expect(dashboardData).toContain('$effectiveRole = merd_dashboard_user_role($pdo, $user);');
+  expect(dashboardData).toContain("beta_require_permission($user, 'dashboard.configure', $pdo);");
+  expect(clientContext).toContain('$canSelect = beta_user_is_dev($user);');
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
-  expect(source).toContain('assets/management.js?v=20260830roleviewstudio16');
-  expect(source).toContain("$previewUser['actual_employee_type'] = $viewRoleKey");
   expect(source).toContain('Smarter &middot; Faster &middot; Together');
   expect(source).toContain('&times;</button>');
 });

@@ -54,8 +54,8 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260830roleview1');
-    appendScript('account-menu','assets/account-menu.js?v=20260830roleview1');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260830roleview2');
+    appendScript('account-menu','assets/account-menu.js?v=20260830roleview2');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
 

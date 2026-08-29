@@ -118,7 +118,7 @@
     utilities.innerHTML = `
       <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
-      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV view only - backend access is unchanged.</small></div>` : ''}`;
+      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
 
     const accountSection = document.createElement('section');
     accountSection.className = 'rail-account-section';
