@@ -145,3 +145,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 **Interaction additions:** Studio supports element-only inline text preview editing, cross-panel `matching` scope, temporary Reveal/Restore for hidden preview patches, and adaptive radial geometry that keeps controls inside mobile viewport bounds.
 
 **Safety:** These remain DEV-only local preview capabilities and do not change source, APIs, database state, authorization, payroll or finance behavior.
+
+## 2026-08-29 - UI Studio uses nested sector radial navigation and local design history
+
+**Decision:** The DEV UI Studio controller uses connected nested radial **sectors** rather than detached circular buttons. Root sectors are Select, Edit, Changes and Exit. Parent sector rings remain visible and dimmed while child rings open; submenu ownership is signalled by an expand marker; the central hub becomes Back inside nested layers. The interaction follows the supplied radial-menu references while One UI remains the hierarchy/reachability reference.
+
+**DEV-tool visual exception:** Studio chrome may use a bright high-chroma tool palette distinct from the five-color MERDPOS product master palette. This exception is confined to actual-DEV Studio chrome and must not leak into product UI tokens/components. MERDPOS remains the branded canvas.
+
+**Review workflow:** Studio may record local element comments, add safe preview-only Text/Button/Card/Divider nodes, select navigation/transient-menu controls without activating them, and maintain navigable local history. History stores page/panel/selector context and can return DEV to the recorded panel/element. These are local design metadata/preview patches and remain subject to the existing no-API/no-DB/no-source-write safety boundary.
+
+**Shell interaction:** Desktop navigation and mobile shell utilities must ignore pointer interactions originating from `[data-ui-studio]`, so switching attention back to Studio does not collapse an expanded rail or close an opened utility surface before DEV can select its contents.
+
+**Supersedes:** The prior 2026-08-29 floating circular-button geometry. Its safety, scope, Material Symbol and local-preview contracts remain binding.

@@ -199,6 +199,7 @@
     document.addEventListener('pointerdown', event => {
       if (!document.body.classList.contains('merd-mobile-tools-open')) return;
       if (utilities.contains(event.target)) return;
+      if (event.target.closest?.('[data-ui-studio]')) return;
       closeMobileTools();
     });
     document.addEventListener('keydown', event => {

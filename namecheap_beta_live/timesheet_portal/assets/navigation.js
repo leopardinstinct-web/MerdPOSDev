@@ -299,7 +299,7 @@
   });
 
   document.addEventListener('pointerdown', event => {
-    if (desktopQuery.matches && !rail.contains(event.target)) collapseRail();
+    if (desktopQuery.matches && !rail.contains(event.target) && !event.target.closest?.('[data-ui-studio]')) collapseRail();
   });
 
   const syncResponsiveMode = () => {

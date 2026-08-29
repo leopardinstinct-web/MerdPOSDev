@@ -27,6 +27,12 @@ Iconography should prefer Google Material Symbols from the official `google/mate
 
 Samsung One UI remains the mobile reachability/layout reference where already adopted; Material 3 supplies component semantics and interaction conventions, while MERDPOS supplies identity.
 
+### DEV UI Studio radial-tool exception ? BINDING
+
+UI Studio is an actual-DEV-only design tool, not product chrome. Its controller uses compact nested radial **sectors**: parent rings stay visible while child rings open, child ownership is marked explicitly, and the hub becomes Back inside nested layers. Bright high-chroma Studio colors may be used for tool-layer differentiation; they are not MERDPOS brand tokens and MUST NOT leak into normal portal components.
+
+Studio must preserve the rendered application as the canvas. Selection mode may target navigation, sidebar and transient-menu controls, but must intercept the application action while selecting. Returning pointer focus to Studio must not collapse an expanded desktop rail or close an opened mobile utility menu. Comments, added preview elements and change history remain local preview/design metadata under the existing no-API/no-DB/no-source-write safety boundary.
+
 ## 2. Spacing
 
 Use only the shared spacing scale for layout:

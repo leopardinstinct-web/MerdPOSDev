@@ -50,12 +50,12 @@
     /* Roles mounts before navigation so Operations structure is deterministic. */
     if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
 
-    appendScript('merd-navigation','assets/navigation.js?v=20260828shell1',true);
+    appendScript('merd-navigation','assets/navigation.js?v=20260829studio7',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
     appendStyle('account-menu-css','assets/account-menu.css?v=20260828palette1');
-    appendScript('account-menu','assets/account-menu.js?v=20260828mobile1');
+    appendScript('account-menu','assets/account-menu.js?v=20260829studio7');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
 
@@ -72,8 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260829studio6');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260829studio6');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260829studio7');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260829studio7');
     }
   }
   ensureShellAssets();
