@@ -255,7 +255,7 @@
 
   function renderRolebar(){
     const role=layoutApi?.selected_role||{};currentRoleId=Number(role.id)||null;
-    const canEdit=!!layoutApi?.can_edit;if(!canEdit)editMode=false;const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;editToggle.hidden=!canEdit||studioEditMode;editToggle.setAttribute('aria-pressed',editMode?'true':'false');editToggle.textContent=editMode?'Done editing':'Edit dashboard';addButton.hidden=!(canEdit&&editMode);resetButton.hidden=!(canEdit&&editMode);builder.classList.toggle('is-edit-mode',canEdit&&editMode);builder.classList.toggle('is-studio-edit-mode',studioEditMode&&editMode);
+    const canEdit=!!layoutApi?.can_edit;if(!canEdit)editMode=false;const selectable=!!layoutApi?.can_select_role;roleSelect.hidden=!selectable;editToggle.hidden=!canEdit||studioEditMode;editToggle.setAttribute('aria-pressed',editMode?'true':'false');editToggle.textContent=editMode?'Done editing':'Edit dashboard';addButton.hidden=!(canEdit&&editMode&&!studioEditMode);resetButton.hidden=!(canEdit&&editMode);builder.classList.toggle('is-edit-mode',canEdit&&editMode);builder.classList.toggle('is-studio-edit-mode',studioEditMode&&editMode);
     if(selectable){const roles=(layoutApi.roles||[]).slice().sort((a,b)=>Number(a.authority_level)-Number(b.authority_level)||Number(a.id)-Number(b.id));roleSelect.innerHTML=roles.map(r=>`<option value="${Number(r.id)}" ${Number(r.id)===currentRoleId?'selected':''}>${esc(r.role_label)}</option>`).join('');roleSelect.value=String(currentRoleId);}
   }
 

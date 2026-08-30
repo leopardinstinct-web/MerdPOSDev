@@ -151,6 +151,46 @@ function prune_all_role_dashboards(PDO $pdo, int $clientId): void
     foreach (merd_dashboard_roles($pdo, $clientId, false) as $role) prune_role_dashboard($pdo, $clientId, $role);
 }
 
+function snapshot_role_dashboard_allowance(PDO $pdo, int $clientId): array
+{
+    $snapshot = [];
+    foreach (merd_dashboard_roles($pdo, $clientId, false) as $role) {
+        $snapshot[(int)$role['id']] = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
+    }
+    return $snapshot;
+}
+
+function materialize_newly_allowed_dashboard_widgets(PDO $pdo, int $clientId, array $before): void
+{
+    $sizes = [
+        'working_now_count'=>[3,2], 'pending_disputes'=>[3,2], 'active_employees'=>[3,2], 'sync_attention'=>[3,2],
+        'my_shift'=>[4,2], 'my_disputes'=>[4,3], 'working_now'=>[6,4], 'workforce_by_store'=>[6,4],
+        'store_cash_position'=>[6,4], 'cash_mix'=>[6,4], 'today_sales_by_store'=>[6,4], 'recent_attendance'=>[12,5],
+        'attendance_change'=>[3,2], 'attendance_trend_7d'=>[6,4], 'sales_change'=>[3,2], 'sales_trend_7d'=>[6,4],
+        'top_stores_sales'=>[6,4], 'sync_status_table'=>[8,4],
+    ];
+    $existingStmt = $pdo->prepare('SELECT widget_key,grid_y,grid_h FROM dashboard_role_layouts WHERE client_id=? AND role_id=? ORDER BY grid_y,grid_x,id');
+    $insert = $pdo->prepare('INSERT IGNORE INTO dashboard_role_layouts (client_id,role_id,widget_key,grid_x,grid_y,grid_w,grid_h) VALUES (?,?,?,?,?,?,?)');
+    foreach (merd_dashboard_roles($pdo, $clientId, false) as $role) {
+        $roleId = (int)$role['id'];
+        $prior = array_fill_keys((array)($before[$roleId] ?? []), true);
+        $after = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
+        $newlyAllowed = array_values(array_filter($after, fn(string $key): bool => !isset($prior[$key])));
+        if (!$newlyAllowed) continue;
+        $existingStmt->execute([$clientId, $roleId]);
+        $rows = $existingStmt->fetchAll(PDO::FETCH_ASSOC);
+        $present = array_fill_keys(array_map(fn(array $row): string => (string)$row['widget_key'], $rows), true);
+        $nextY = 0;
+        foreach ($rows as $row) $nextY = max($nextY, (int)$row['grid_y'] + (int)$row['grid_h']);
+        foreach ($newlyAllowed as $key) {
+            if (isset($present[$key])) continue;
+            [$w,$h] = $sizes[$key] ?? [4,3];
+            $insert->execute([$clientId,$roleId,$key,0,$nextY,$w,$h]);
+            if ($insert->rowCount() > 0) { $present[$key] = true; $nextY += $h; }
+        }
+    }
+}
+
 function clone_admin_dashboard(PDO $pdo, int $clientId, array $newRole): void
 {
     $admin = merd_dashboard_system_role($pdo, $clientId, 'ADMIN');
@@ -268,6 +308,7 @@ try {
             . 'ON DUPLICATE KEY UPDATE min_authority_level=VALUES(min_authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
         );
         $changed = [];
+        $allowedBefore = snapshot_role_dashboard_allowance($pdo, $clientId);
         $pdo->beginTransaction();
         try {
             foreach ($catalog as $key => $rule) {
@@ -280,10 +321,11 @@ try {
                 $upsert->execute([$clientId,$key,$level,(int)$actor['id']]);
                 $changed[$key] = $level;
             }
-            // Permission tightening must immediately remove widgets whose data is
-            // no longer authorised. Permission relaxation only makes widgets
-            // available in Add Widget; it does not overwrite the user's layout.
+            // Tightening removes widgets whose data is no longer authorised. Relaxation
+            // materializes only widgets that became newly allowed in this save; it does not
+            // re-add widgets that were already allowed and intentionally removed before.
             prune_all_role_dashboards($pdo, $clientId);
+            materialize_newly_allowed_dashboard_widgets($pdo, $clientId, $allowedBefore);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();

@@ -209,3 +209,4 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 
 ## Studio18 role/contrast/geometry regressions
 - UI Studio browser coverage asserts Admin patches export Admin/Super/User role targets, palette backgrounds add readable foreground ink, radial Size changes both hub diameter and sector geometry, and wheel navigation skips disabled actions.
+- Studio19: regression coverage checks independent Button Size/Icon Size geometry, hidden dashboard + control in DevStudio edit mode, and runtime-contract guards for newly-allowed widget materialization.

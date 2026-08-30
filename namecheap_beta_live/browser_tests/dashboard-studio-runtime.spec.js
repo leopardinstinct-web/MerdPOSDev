@@ -13,6 +13,7 @@ test('dashboard Studio edit mode is actual-DEV gated in source',async()=>{
   expect(builder).toContain('openStudioEdit');expect(builder).toContain("params.set('dev_studio','1')");
   expect(builder).toContain('data-describe-widget');expect(builder).toContain('addContextComment');
   expect(api).toContain('function dashboard_dev_studio_mode');expect(api).toContain('beta_user_is_dev($user)');
+  expect(builder).toContain('canEdit&&editMode&&!studioEditMode');
   expect(beta).toContain("$studioDashboard = beta_user_is_dev($user)");
 });
 
@@ -27,6 +28,7 @@ test('widget Describe writes DevStudio context while Studio edit opens the exist
   await expect.poll(()=>page.evaluate(()=>!!window.MERDPOSDashboardBuilder)).toBe(true);
   await page.evaluate(()=>window.MERDPOSDashboardBuilder.openStudioEdit());
   await expect(page.locator('#dashboardWidgetDrawer')).toHaveClass(/open/);
+  await expect(page.locator('#dashboardAddButton')).toBeHidden();
   await expect(page.locator('[data-describe-widget="my_shift"]')).toBeVisible();
   page.once('dialog',dialog=>dialog.accept('Show the employee current shift context.'));
   await page.locator('[data-describe-widget="my_shift"]').click();

@@ -61,6 +61,7 @@ $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/a
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
 $rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
+$roleAuthorityApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/role_authority.php', $errors);
 $brandAssetsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand-assets.js', $errors);
 $omnichannelJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/omnichannel-identity.js', $errors);
 $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand.css', $errors);
@@ -202,12 +203,12 @@ foreach ([
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260830dashboardstudio1', 'Namecheap deploy dashboard Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio1', 'Namecheap deploy dashboard Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260830dashboardstudio2', 'Namecheap deploy dashboard Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio2', 'Namecheap deploy dashboard Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview3', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview3', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio18', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio18', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio19', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio19', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -217,8 +218,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio18', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio18', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio19', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio19', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -238,6 +239,11 @@ beta_contract_require_contains($dashboardBuilderJs, 'openStudioEdit', 'Studio-in
 beta_contract_require_contains($dashboardBuilderJs, "params.set('dev_studio','1')", 'Studio dashboard explicit DEV request marker', $errors);
 beta_contract_require_contains($dashboardBuilderJs, 'data-describe-widget', 'dashboard widget Describe control', $errors);
 beta_contract_require_contains($dashboardBuilderJs, 'addContextComment', 'dashboard widget context handoff to Studio', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'canEdit&&editMode&&!studioEditMode', 'Studio dashboard hides redundant Add circle', $errors);
+beta_contract_require_contains($roleAuthorityApi, 'snapshot_role_dashboard_allowance', 'permission-save dashboard allowance snapshot', $errors);
+beta_contract_require_contains($roleAuthorityApi, 'materialize_newly_allowed_dashboard_widgets', 'newly allowed widgets materialize into affected role dashboards', $errors);
+beta_contract_require_contains($roleAuthorityApi, 'prune_all_role_dashboards', 'permission tightening prunes forbidden dashboard widgets', $errors);
+
 
 beta_contract_require_absent($management, 'assets/vendor/circular-menu/', 'retired circular-menu dependency', $errors);
 beta_contract_require_absent($management, 'react-circular-menu', 'retired React circular-menu dependency', $errors);
@@ -262,7 +268,7 @@ beta_contract_require_contains($uiStudioJs, "document.addEventListener('click',e
 beta_contract_require_contains($uiStudioJs, 'merd-ui-sector', 'UI Studio sector radial renderer', $errors);
 beta_contract_require_contains($uiStudioJs, 'currentDefinitions()', 'UI Studio single-ring drill-down model', $errors);
 beta_contract_require_contains($uiStudioJs, 'SVG_CENTER=380', 'UI Studio prototype 760-viewBox center', $errors);
-beta_contract_require_contains($uiStudioJs, 'function ringBounds(){const scale=studioSettings.radialScale||1,mid=152,half=68*scale;return [[mid-half,mid+half]];}', 'UI Studio adjustable ring proportions', $errors);
+beta_contract_require_contains($uiStudioJs, 'function ringBounds(){const scale=studioSettings.radialScale||1,mid=152*scale,half=68*scale;return [[mid-half,mid+half]];}', 'UI Studio adjustable ring proportions', $errors);
 beta_contract_require_contains($uiStudioJs, "menuSvg.setAttribute('viewBox','0 0 760 760')", 'UI Studio prototype SVG viewBox', $errors);
 beta_contract_require_contains($uiStudioJs, 'gesture_select_48px.svg', 'UI Studio Google gesture-select icon', $errors);
 beta_contract_require_absent($uiStudioJs, "'class':'merd-ui-icon-accent'", 'retired colored icon backplates', $errors);
@@ -279,7 +285,10 @@ beta_contract_require_contains($uiStudioJs, "'Edit Dashboard',action:'edit-dashb
 beta_contract_require_contains($uiStudioJs, "label:'Settings',action:'settings'", 'Studio root Settings action', $errors);
 beta_contract_require_contains($uiStudioJs, "SETTINGS_KEY='merdpos-ui-studio-settings-v1'", 'Studio local settings persistence', $errors);
 beta_contract_require_contains($uiStudioJs, 'function settingsColorDefinitions', 'Studio accent palette settings', $errors);
-beta_contract_require_contains($uiStudioJs, 'function settingsSizeDefinitions', 'Studio Font/Icon size settings', $errors);
+beta_contract_require_contains($uiStudioJs, 'function settingsSizeDefinitions', 'Studio button/icon size settings', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Button Size'", 'Studio button geometry size branch', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Icon Size'", 'Studio independent icon size branch', $errors);
+
 beta_contract_require_contains($uiStudioJs, 'function ensureRestoreTrigger', 'Studio dock restore control', $errors);
 beta_contract_require_contains($uiStudioJs, 'function addContextComment', 'Studio external context-comment API', $errors);
 beta_contract_require_contains($uiStudioCss, '.merd-ui-restore-trigger', 'Studio desktop restore control styling', $errors);

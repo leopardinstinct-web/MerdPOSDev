@@ -43,12 +43,12 @@
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260830dashboardstudio1');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260830dashboardstudio1');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260830dashboardstudio2');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260830dashboardstudio2');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */
-    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260826ds1');
+    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260830roles2');
 
     appendScript('merd-navigation','assets/navigation.js?v=20260830bottom1',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
@@ -72,8 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio18');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio18');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio19');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio19');
     }
   }
   ensureShellAssets();

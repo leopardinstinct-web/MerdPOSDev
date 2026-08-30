@@ -301,7 +301,7 @@
       renderAll();
       const unsaved = document.getElementById('permissionUnsaved');
       if (unsaved) unsaved.hidden = true;
-      setStatus('Permission policy saved. Restricted dashboard widgets were pruned and the backend policy is active immediately.');
+      setStatus('Permission policy saved. Dashboard widgets newly unlocked by the complete permission policy were added to affected role dashboards; restricted widgets were pruned. Backend policy is active immediately.');
       window.MERDPOSDashboardBuilder?.reloadRoles?.();
     } catch (error) { setStatus(error.message, true); }
     finally { if (button) button.disabled = false; }

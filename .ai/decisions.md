@@ -245,3 +245,4 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 
 ## 2026-08-30 ? Deploy script self-refresh
 - The Namecheap beta deploy script must restart itself under the inherited deploy lock when `git pull` changes `scripts/deploy_namecheap_beta.sh`. This prevents an older in-memory deploy process from validating a freshly pulled runtime against stale cache-version guards.
+- 2026-08-30: Studio19 keeps dashboard authorization dual-gated by widget visibility + underlying data permission, but policy relaxation now materializes only widgets that become newly allowed in that save. DevStudio hides the redundant dashboard + control, and radial Button Size is independent from Icon Size while scaling hub and ring distance/thickness together.

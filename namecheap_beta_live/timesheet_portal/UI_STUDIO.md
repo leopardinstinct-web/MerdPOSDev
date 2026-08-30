@@ -59,3 +59,11 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 - Background palette changes now pair the chosen background with computed readable light/dark text ink instead of relying on the old hand-maintained swatch brightness flags. Studio accent chrome uses the same computed contrast rule.
 - Settings ? Size is one Increase/Decrease control for radial geometry: it changes the center-button diameter and sector-ring thickness together. Existing font/icon scales remain readable from older local settings but are no longer separate menu branches.
 - Wheel/center candidate navigation skips disabled menu definitions; disabled slices remain visible as unavailable context but cannot become the armed scroll action.
+
+
+## Studio19 dashboard policy + size behavior
+
+- Dashboard policy saves compare each role's allowed widget set before and after the save. Widgets that become newly allowed after all visibility/data permissions are satisfied are appended to that role's dashboard; widgets that were already allowed but intentionally removed are not re-added.
+- Widget permissions do not bypass underlying data permissions. For example, `working_now` still requires both `dashboard.widget.working_now` and `workforce.view`.
+- DevStudio dashboard editing uses the widget drawer directly; the redundant circular `+` dashboard control stays hidden while Studio edit mode is active.
+- Settings → Size now separates `Button Size` from `Icon Size`. Button Size scales the center hub and the radial ring's inner/outer radii together, changing hub diameter, slice thickness, and slice distance from center. Icon Size changes icons only.
