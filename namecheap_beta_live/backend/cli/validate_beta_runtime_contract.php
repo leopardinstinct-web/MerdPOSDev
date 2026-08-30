@@ -206,8 +206,8 @@ beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio1', 'Namecheap deploy dashboard Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview3', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview3', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio17', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio17', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio18', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio18', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
@@ -215,8 +215,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, '<?php if ($isDev): ?>', 'UI Studio PHP DEV gate', $errors);
 beta_contract_require_contains($dashboard, 'id="openUiStudioBtn"', 'UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio17', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio17', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio18', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio18', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -260,7 +260,7 @@ beta_contract_require_contains($uiStudioJs, "document.addEventListener('click',e
 beta_contract_require_contains($uiStudioJs, 'merd-ui-sector', 'UI Studio sector radial renderer', $errors);
 beta_contract_require_contains($uiStudioJs, 'currentDefinitions()', 'UI Studio single-ring drill-down model', $errors);
 beta_contract_require_contains($uiStudioJs, 'SVG_CENTER=380', 'UI Studio prototype 760-viewBox center', $errors);
-beta_contract_require_contains($uiStudioJs, 'function ringBounds(){return [[84,220]];}', 'UI Studio prototype ring proportions', $errors);
+beta_contract_require_contains($uiStudioJs, 'function ringBounds(){const scale=studioSettings.radialScale||1,mid=152,half=68*scale;return [[mid-half,mid+half]];}', 'UI Studio adjustable ring proportions', $errors);
 beta_contract_require_contains($uiStudioJs, "menuSvg.setAttribute('viewBox','0 0 760 760')", 'UI Studio prototype SVG viewBox', $errors);
 beta_contract_require_contains($uiStudioJs, 'gesture_select_48px.svg', 'UI Studio Google gesture-select icon', $errors);
 beta_contract_require_absent($uiStudioJs, "'class':'merd-ui-icon-accent'", 'retired colored icon backplates', $errors);

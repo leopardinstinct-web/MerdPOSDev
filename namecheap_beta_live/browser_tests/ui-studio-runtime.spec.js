@@ -40,10 +40,22 @@ test('root Edit Dashboard delegates to the shared dashboard builder',async({page
   await mount(page,true,1280);await openRoot(page);await choose(page,'Edit Dashboard');await expect.poll(()=>page.evaluate(()=>window.__dashboardEditCalls)).toBe(1);await openRoot(page);await expect(item(page,'Done Dashboard')).toBeVisible();
 });
 
-test('Studio settings change accent plus icon and font size',async({page})=>{
-  await mount(page,true,1280);await openRoot(page);await choose(page,'Settings');await expect(item(page,'Color')).toBeVisible();await expect(item(page,'Size')).toBeVisible();await choose(page,'Color');await choose(page,'Cyan');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().accent)).toBe('#12BDF3');expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--merd-ui-accent').trim())).toBe('#12BDF3');await hub(page).click();await choose(page,'Size');await choose(page,'Icon');const iconBefore=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().iconScale);await choose(page,'Increase');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().iconScale)).toBeGreaterThan(iconBefore);await hub(page).click();await choose(page,'Font');const fontBefore=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().fontScale);await choose(page,'Increase');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().fontScale)).toBeGreaterThan(fontBefore);
+test('Studio settings change accent contrast and radial geometry with one size control',async({page})=>{
+  await mount(page,true,1280);await openRoot(page);await choose(page,'Settings');await expect(item(page,'Color')).toBeVisible();await expect(item(page,'Size')).toBeVisible();await choose(page,'Color');await choose(page,'Navy');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getSettings().accent)).toBe('#031B4B');expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--merd-ui-accent-ink').trim())).toBe('#FFFFFF');await hub(page).click();await choose(page,'Size');const before=await page.evaluate(()=>({scale:window.MERDPOS_UI_STUDIO.getSettings().radialScale,hub:document.querySelector('.merd-ui-hub').getBoundingClientRect().width,path:document.querySelector('.merd-ui-sector').getAttribute('d')}));await choose(page,'Increase');const after=await page.evaluate(()=>({scale:window.MERDPOS_UI_STUDIO.getSettings().radialScale,hub:document.querySelector('.merd-ui-hub').getBoundingClientRect().width,path:document.querySelector('.merd-ui-sector').getAttribute('d')}));expect(after.scale).toBeGreaterThan(before.scale);expect(after.hub).toBeGreaterThan(before.hub);expect(after.path).not.toBe(before.path);
 });
 
+
+test('Admin style patches carry explicit downward role inheritance',async({page})=>{
+  await mount(page,true);await page.evaluate(()=>{window.MERDPOS_AUTH.view_role_key='ADMIN'});await selectTarget(page,'#cardA');await choose(page,'Hide');const patch=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getChangeSet().patches.find(p=>p.property==='display'));expect(patch).toMatchObject({roleScope:'ADMIN',roleTargets:['ADMIN','SUPER','USER']});
+});
+
+test('background palette automatically chooses readable text ink',async({page})=>{
+  await mount(page,true);await selectTarget(page,'#cardA');await openEdit(page);await choose(page,'Color');await choose(page,'Palette');await choose(page,'Navy');let patches=await page.evaluate(()=>window.MERDPOS_UI_STUDIO.getChangeSet().patches);expect(patches).toEqual(expect.arrayContaining([expect.objectContaining({property:'background-color',value:'var(--color-brand-navy)'}),expect.objectContaining({property:'color',value:'#FFFFFF'})]));
+});
+
+test('hub wheel skips disabled radial actions',async({page})=>{
+  await mount(page,true,390);await openRoot(page);await hub(page).hover({force:true});await hub(page).dispatchEvent('wheel',{deltaY:1});await expect(hub(page).locator('strong')).not.toHaveText('Minimize');
+});
 test('Minimize docks a Studio restore control after the desktop account circle',async({page})=>{
   await mount(page,true,1280);await openRoot(page);await choose(page,'Minimize');await expect(hub(page)).toBeHidden();const restore=page.locator('.rail-account-dock > .merd-shell-account-trigger + .merd-ui-restore-trigger');await expect(restore).toBeVisible();await restore.click();await expect(hub(page)).toBeVisible();
 });

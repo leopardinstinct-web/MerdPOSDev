@@ -51,3 +51,11 @@ Comments and added-element patches are design intent only. They become MERDPOS o
 ## Safety boundary
 
 UI Studio requires the actual `is_dev` identity flag. Its draft/history remain local browser state and are labelled `DEV - PREVIEW ONLY`. Ordinary Studio preview patches, comments, history and settings contain no application API calls, fetch/XHR mutation path or source writer. Edit Dashboard is deliberately outside that preview engine and delegates to the existing authenticated Dashboard Builder, whose dashboard-layout save API remains separately permissioned and actual-DEV gated when launched from Studio.
+
+
+## Studio18 role inheritance, contrast and radial sizing
+
+- New style/Hide patches record the effective **Current role** plus explicit downward targets: Developer ? Developer only; Admin ? Admin + Super + User; Super ? Super + User; User ? User only. Legacy draft patches without role metadata remain readable for backward compatibility. This is Studio preview inheritance only and does not alter MERDPOS permissions.
+- Background palette changes now pair the chosen background with computed readable light/dark text ink instead of relying on the old hand-maintained swatch brightness flags. Studio accent chrome uses the same computed contrast rule.
+- Settings ? Size is one Increase/Decrease control for radial geometry: it changes the center-button diameter and sector-ring thickness together. Existing font/icon scales remain readable from older local settings but are no longer separate menu branches.
+- Wheel/center candidate navigation skips disabled menu definitions; disabled slices remain visible as unavailable context but cannot become the armed scroll action.

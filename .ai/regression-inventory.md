@@ -205,3 +205,7 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Settings Color persists Studio accent only; Size Font/Icon Increase/Decrease persist independent Studio scaling.
 - Edit Dashboard invokes the shared Dashboard Builder through an explicit actual-DEV `dev_studio` mode for the current effective role; normal preview permission enforcement remains unchanged.
 - Every dashboard widget catalogue row exposes Describe, and accepted text is handed to `MERDPOS_UI_STUDIO.addContextComment` with a stable dashboard-widget context key.
+
+
+## Studio18 role/contrast/geometry regressions
+- UI Studio browser coverage asserts Admin patches export Admin/Super/User role targets, palette backgrounds add readable foreground ink, radial Size changes both hub diameter and sector geometry, and wheel navigation skips disabled actions.

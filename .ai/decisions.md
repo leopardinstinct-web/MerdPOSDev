@@ -236,3 +236,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Edit Dashboard delegates to the existing Dashboard Builder for the current effective role. Its persistent layout API is an explicit actual-DEV tool exception; ordinary Studio patches/comments/settings remain local preview state.
 - Dashboard widget Describe writes/replaces a widget-keyed Studio comment/context note and includes that context in History/Copy/Chat.
 - Studio Settings persist browser-locally: Color controls Studio accent chrome only; Size independently scales Studio Font and Icon controls.
+
+
+## 2026-08-30 ? Studio18 downward role-scoped visual drafts
+- New Studio style patches carry explicit effective-role scope. Admin inherits downward to Admin/Super/User; Super to Super/User; User to User; Developer stays DEV-only. This is preview/design inheritance, not authorization.
+- Palette background selection owns readable foreground pairing through computed luminance contrast; manual per-swatch brightness flags are not authoritative for text visibility.
+- Studio radial Size is one geometry setting controlling center diameter and slice thickness together. Disabled radial actions are skipped by wheel candidate selection.
