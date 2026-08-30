@@ -12,6 +12,9 @@
   const roleKey = String(source.dataset.roleKey || auth.actual_role_key || auth.role_key || roleLabel).trim().toUpperCase();
   const viewRoleKey = String(source.dataset.viewRoleKey || auth.view_role_key || (roleKey==='DEV'?'DEV':'ADMIN')).trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
+  const STUDIO_SETTINGS_KEY='merdpos-ui-studio-settings-v1';
+  function readStudioSettings(){try{const saved=JSON.parse(localStorage.getItem(STUDIO_SETTINGS_KEY)||'null');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function writeStudioEnabled(enabled){const saved=readStudioSettings();saved.enabled=!!enabled;try{localStorage.setItem(STUDIO_SETTINGS_KEY,JSON.stringify(saved));}catch(_){}return saved;}
   let context = null;
   let mounted = false;
   let utilityTrigger = null;
@@ -116,7 +119,7 @@
     utilities.className = 'rail-shell-utilities';
     utilities.id = 'merdShellUtilities';
     utilities.innerHTML = `
-      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span></div>
+      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
       ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
 
@@ -177,6 +180,28 @@
         document.cookie = `merdpos_dev_view_role=${next}; Path=/beta/timesheet_portal/; SameSite=Lax`;
         window.location.reload();
       });
+    }
+
+    const studioToggle = utilities.querySelector('.rail-devstudio-toggle');
+    function syncStudioToggle(detail={}) {
+      if (!studioToggle) return;
+      const saved = readStudioSettings();
+      const enabled = typeof detail.enabled === 'boolean' ? detail.enabled : !!saved.enabled;
+      const accent = /^#[0-9a-f]{6}$/i.test(String(detail.accent||saved.accent||'')) ? String(detail.accent||saved.accent).toUpperCase() : '#F59E0B';
+      document.documentElement.style.setProperty('--merd-ui-accent', accent);
+      document.body.classList.toggle('merd-ui-studio-enabled', enabled);
+      studioToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      studioToggle.setAttribute('aria-label', enabled ? 'Disable DevStudio' : 'Enable DevStudio');
+      studioToggle.title = enabled ? 'DevStudio enabled' : 'DevStudio disabled';
+    }
+    if (studioToggle) {
+      syncStudioToggle();
+      studioToggle.addEventListener('click', () => {
+        const next = studioToggle.getAttribute('aria-pressed') !== 'true';
+        if (window.MERDPOS_UI_STUDIO?.setEnabled) window.MERDPOS_UI_STUDIO.setEnabled(next);
+        else { writeStudioEnabled(next); syncStudioToggle({enabled:next}); window.dispatchEvent(new CustomEvent('merdpos-uistudio-toggle',{detail:{enabled:next}})); }
+      });
+      window.addEventListener('merdpos-uistudio-state', event => syncStudioToggle(event.detail||{}));
     }
 
     function applyContext(data) {

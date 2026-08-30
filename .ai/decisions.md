@@ -246,3 +246,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 ## 2026-08-30 ? Deploy script self-refresh
 - The Namecheap beta deploy script must restart itself under the inherited deploy lock when `git pull` changes `scripts/deploy_namecheap_beta.sh`. This prevents an older in-memory deploy process from validating a freshly pulled runtime against stale cache-version guards.
 - 2026-08-30: Studio19 keeps dashboard authorization dual-gated by widget visibility + underlying data permission, but policy relaxation now materializes only widgets that become newly allowed in that save. DevStudio hides the redundant dashboard + control, and radial Button Size is independent from Icon Size while scaling hub and ring distance/thickness together.
+
+
+## 2026-08-30 - Studio20 scoped dashboard dependencies and account-owned enable state
+- Dashboard widget data dependencies are capability inputs to the dashboard endpoint, not whole-application grants. A role can receive an approved widget such as Who is working now without receiving the Workforce page/navigation/API surface.
+- Dashboard payloads must be least-data for the widgets actually allowed; count-only widgets must not receive roster payloads merely because they share a dependency family.
+- Actual DEV enables/disables DevStudio from the account sheet toggle. The account avatar uses the Studio accent while enabled; the separate restore/minimized icon and duplicate DEV launcher are retired.
+- Desktop selection is hover affordance then Select; the radial Select action is replaced by Unselect after selection. Touch selects directly.

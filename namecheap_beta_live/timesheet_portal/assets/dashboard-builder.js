@@ -104,7 +104,7 @@
     try{return date.toLocaleDateString(undefined,{weekday:'short',day:'numeric'});}catch(_){return String(value||'');}
   }
 
-  function pendingDisputes(){return (data?.disputes||[]).filter(row=>String(row.status)==='pending').length;}
+  function pendingDisputes(){return num(data?.pending_disputes_count);}
   function openMyDisputes(){return (data?.disputes||[]).filter(row=>['pending','awaiting_employee'].includes(String(row.status))).length;}
 
   function bars(rows,labelFn,valueFn,valueLabelFn){
@@ -147,7 +147,7 @@
   function renderBody(key){
     if(!data)return '<div class="dashboard-empty-widget">Loading…</div>';
     const management=data.management||{}, analytics=management.analytics||{}, timezone=management.timezone||data.client_defaults?.timezone||null;
-    if(key==='working_now_count')return `<div class="dashboard-kpi"><strong>${num(data.working?.length)}</strong><span>Working now</span><small>Live QR attendance</small></div>`;
+    if(key==='working_now_count')return `<div class="dashboard-kpi"><strong>${num(data.working_count)}</strong><span>Working now</span><small>Live QR attendance</small></div>`;
     if(key==='pending_disputes')return `<div class="dashboard-kpi"><strong>${pendingDisputes()}</strong><span>Pending disputes</span><small>Waiting for review</small></div>`;
     if(key==='active_employees')return `<div class="dashboard-kpi"><strong>${num(management.active_employees)}</strong><span>Active employees</span><small>Working client</small></div>`;
     if(key==='sync_attention')return `<div class="dashboard-kpi"><strong>${num(management.sync_attention)}</strong><span>Sync attention</span><small>Pending / failed outbox</small></div>`;
@@ -157,7 +157,7 @@
     if(key==='attendance_trend_7d')return trendChart(analytics.attendance_7d||[],value=>String(Math.round(num(value))),'Clock-ins over the last seven days','attendance');
     if(key==='top_stores_sales')return topStores(management.sales_by_store||[],management.currency_code);
     if(key==='sync_status_table')return syncStatusTable(analytics.sync_statuses||[]);
-    if(key==='my_shift'){const shift=(data.working||[])[0];return shift?`<div class="dashboard-kpi"><strong>Clocked in</strong><span>${esc(shift.store_name||'')}</span><small>Since ${esc(localTime(shift.clock_in_at,timezone))}</small></div>`:'<div class="dashboard-kpi"><strong>Off shift</strong><span>Not clocked in</span><small>Scan a store QR to start</small></div>';}
+    if(key==='my_shift'){const shift=(data.my_working||[])[0];return shift?`<div class="dashboard-kpi"><strong>Clocked in</strong><span>${esc(shift.store_name||'')}</span><small>Since ${esc(localTime(shift.clock_in_at,timezone))}</small></div>`:'<div class="dashboard-kpi"><strong>Off shift</strong><span>Not clocked in</span><small>Scan a store QR to start</small></div>';}
     if(key==='my_disputes')return `<div class="dashboard-kpi"><strong>${openMyDisputes()}</strong><span>Open disputes</span><small>Your attendance corrections</small></div>`;
     if(key==='working_now'){const rows=data.working||[];if(!rows.length)return '<div class="dashboard-empty-widget">Nobody is clocked in.</div>';return `<div class="dashboard-list">${rows.slice(0,30).map(row=>`<div class="dashboard-list-row"><div><strong>${esc(row.full_name)}</strong><span>${esc(row.store_name)}</span></div><small>${esc(localTime(row.clock_in_at,row.timezone||timezone))}</small></div>`).join('')}</div>`;}
     if(key==='workforce_by_store'){const stores=(data.stores||[]).slice().sort((a,b)=>num(a.id)-num(b.id));const counts=new Map(stores.map(s=>[String(s.store_name),0]));(data.working||[]).forEach(r=>counts.set(String(r.store_name),(counts.get(String(r.store_name))||0)+1));return bars(stores.map(s=>({store_name:s.store_name,count:counts.get(String(s.store_name))||0})),r=>r.store_name,r=>num(r.count),(r,v)=>String(v));}

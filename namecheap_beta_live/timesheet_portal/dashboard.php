@@ -372,13 +372,6 @@ function ui_icon(string $name): string
         <div id="devStatus" class="dev-console"><div class="status-card">Loading system statusâ€¦</div></div>
         <p class="dev-note">DEV access intentionally provides a read-only SQL/database inspector rather than arbitrary browser SQL execution. Database changes remain migration-controlled and auditable.</p>
       </section>
-      <?php if ($isDev): ?>
-      <section class="controls-card ui-studio-launch-card">
-        <div class="mgmt-card-head"><h2>UI Studio</h2><span>DEV &middot; Preview only</span></div>
-        <p>Visually adjust the rendered MERDPOS interface in this browser, collect several quick UI changes, then hand the change-set back for canonical source implementation.</p>
-        <div class="ui-studio-launch-actions"><button id="openUiStudioBtn" class="primary-btn compact-btn" type="button">Open UI Studio</button><small>No API, database or source writes happen from the editor.</small></div>
-      </section>
-      <?php endif; ?>
       </section>
     </section>
     <?php endif; ?>
@@ -482,7 +475,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260830studio19"></script>
+  <script src="assets/management.js?v=20260830studio20"></script>
   <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>

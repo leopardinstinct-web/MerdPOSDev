@@ -43,19 +43,19 @@
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260830dashboardstudio2');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260830dashboardstudio2');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260830dashboardstudio3');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260830dashboardstudio3');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */
-    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260830roles2');
+    if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260830roles3');
 
     appendScript('merd-navigation','assets/navigation.js?v=20260830bottom1',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260830roleview3');
-    appendScript('account-menu','assets/account-menu.js?v=20260830roleview3');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260830roleview4');
+    appendScript('account-menu','assets/account-menu.js?v=20260830roleview4');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
 
@@ -72,8 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio19');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio19');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio20');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio20');
     }
   }
   ensureShellAssets();

@@ -55,14 +55,18 @@ try {
     $allowed = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
     $allowedMap = array_fill_keys($allowed, true);
 
-    // Data permissions are evaluated for the selected dashboard role itself.
-    // DEV preview therefore receives only the data that the previewed role is
-    // entitled to, not the broader data available to the DEV actor.
+    // Whole-application permissions remain role/LOA based. Widget data dependencies
+    // are resolved only inside this endpoint, so a dashboard widget never grants
+    // its role the corresponding navigation area or general API permission.
     $roleCanWorkforce = merd_dashboard_role_has_permission($pdo, $clientId, $role, 'workforce.view');
     $roleCanReviewDisputes = merd_dashboard_role_has_permission($pdo, $clientId, $role, 'disputes.review');
     $roleCanViewAllTimesheets = merd_dashboard_role_has_permission($pdo, $clientId, $role, 'timesheets.view_all');
     $roleCanFinanceSummary = merd_dashboard_role_has_permission($pdo, $clientId, $role, 'finance.management_summary');
     $roleCanSync = merd_dashboard_role_has_permission($pdo, $clientId, $role, 'system.sync_status');
+    $dashboardCanWorkforce = $roleCanWorkforce || merd_dashboard_dependency_enabled($allowed, 'workforce.view');
+    $dashboardCanReviewDisputes = $roleCanReviewDisputes || merd_dashboard_dependency_enabled($allowed, 'disputes.review');
+    $dashboardCanFinanceSummary = $roleCanFinanceSummary || merd_dashboard_dependency_enabled($allowed, 'finance.management_summary');
+    $dashboardCanSync = $roleCanSync || merd_dashboard_dependency_enabled($allowed, 'system.sync_status');
 
     $clientDefaults = $pdo->prepare('SELECT default_currency,default_timezone FROM clients WHERE id=? LIMIT 1');
     $clientDefaults->execute([$clientId]);
@@ -71,43 +75,67 @@ try {
     $timezone = (string)($defaults['default_timezone'] ?: 'Australia/Sydney');
     try { $timezoneObject = new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; $timezoneObject = new DateTimeZone($timezone); }
 
-    $working = merd_working_now($pdo, $clientId);
-    if (!$roleCanWorkforce) {
-        $working = array_values(array_filter($working, fn(array $row): bool => (string)($row['user_id'] ?? '') === (string)$user['user_id']));
+    $needsWorkingRoster = isset($allowedMap['working_now']) || isset($allowedMap['workforce_by_store']);
+    $needsWorkingCount = isset($allowedMap['working_now_count']) || $needsWorkingRoster;
+    $needsMyShift = isset($allowedMap['my_shift']);
+    $allWorking = ($needsMyShift || ($dashboardCanWorkforce && $needsWorkingCount)) ? merd_working_now($pdo, $clientId) : [];
+    $workingCount = ($dashboardCanWorkforce && $needsWorkingCount) ? count($allWorking) : 0;
+    $working = ($dashboardCanWorkforce && $needsWorkingRoster) ? $allWorking : [];
+    $myWorking = $needsMyShift ? array_values(array_filter($allWorking, fn(array $row): bool => (string)($row['user_id'] ?? '') === (string)$user['user_id'])) : [];
+
+    $disputes = [];
+    if (isset($allowedMap['my_disputes'])) {
+        $ownUser = $user;
+        $ownUser['employee_type'] = 'USER';
+        $ownUser['role_name'] = 'USER';
+        $disputes = merd_list_disputes($pdo, $ownUser);
+    }
+    $pendingDisputesCount = 0;
+    if ($dashboardCanReviewDisputes && isset($allowedMap['pending_disputes'])) {
+        $reviewUser = $user;
+        $reviewUser['employee_type'] = 'SUPER';
+        $reviewUser['role_name'] = 'SUPER';
+        $pendingDisputesCount = count(array_filter(merd_list_disputes($pdo, $reviewUser), fn(array $row): bool => (string)($row['status'] ?? '') === 'pending'));
     }
 
-    $dataUser = $user;
-    $dataUser['employee_type'] = $roleCanReviewDisputes ? 'SUPER' : 'USER';
-    $dataUser['role_name'] = $roleCanReviewDisputes ? 'SUPER' : 'USER';
-    $disputes = merd_list_disputes($pdo, $dataUser);
-
-    $allRecent = $roleCanViewAllTimesheets || $roleCanWorkforce;
-    $shiftWhere = $allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
-    $shiftArgs = $allRecent ? [$clientId] : [$clientId, (int)$user['id']];
-    $shifts = $pdo->prepare(
-        'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
-        . 'COALESCE(st.timezone,?) AS timezone '
-        . 'FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id INNER JOIN stores st ON st.id=s.store_id '
-        . 'WHERE ' . $shiftWhere . ' ORDER BY s.clock_in_at DESC LIMIT 100'
-    );
-    $shifts->execute(array_merge([$timezone], $shiftArgs));
+    // A workforce-scoped widget must not broaden Recent attendance. That widget's
+    // own dependency is timesheets.view_own; broader history still requires the
+    // role's real timesheets.view_all permission.
+    $allRecent = $roleCanViewAllTimesheets;
+    $recentShifts = [];
+    if (isset($allowedMap['recent_attendance'])) {
+        $shiftWhere = $allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
+        $shiftArgs = $allRecent ? [$clientId] : [$clientId, (int)$user['id']];
+        $shifts = $pdo->prepare(
+            'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
+            . 'COALESCE(st.timezone,?) AS timezone '
+            . 'FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id INNER JOIN stores st ON st.id=s.store_id '
+            . 'WHERE ' . $shiftWhere . ' ORDER BY s.clock_in_at DESC LIMIT 100'
+        );
+        $shifts->execute(array_merge([$timezone], $shiftArgs));
+        $recentShifts = $shifts->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     $stores = [];
     $management = null;
-    if ($roleCanWorkforce || $roleCanFinanceSummary || $roleCanSync) {
-        $storeStmt = $pdo->prepare(
-            "SELECT id,store_name,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
-            . "FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC"
-        );
-        $storeStmt->execute([$currency,$timezone,$clientId]);
-        $stores = $storeStmt->fetchAll(PDO::FETCH_ASSOC);
+    $needsManagement = $dashboardCanWorkforce || $dashboardCanFinanceSummary || $dashboardCanSync;
+    if ($needsManagement) {
+        $needsStoreRows = isset($allowedMap['workforce_by_store']) || isset($allowedMap['store_cash_position']) || isset($allowedMap['cash_mix']) || isset($allowedMap['today_sales_by_store']) || isset($allowedMap['top_stores_sales']);
+        if ($needsStoreRows) {
+            $storeStmt = $pdo->prepare(
+                "SELECT id,store_name,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
+                . "FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC"
+            );
+            $storeStmt->execute([$currency,$timezone,$clientId]);
+            $stores = $storeStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         $businessDate = (new DateTimeImmutable('now', $timezoneObject))->format('Y-m-d');
         $trendDates = dashboard_data_last_seven_dates($businessDate, $timezoneObject);
         $trendStart = $trendDates[0];
 
         $financialRows = [];
-        if ($roleCanFinanceSummary && (isset($allowedMap['store_cash_position']) || isset($allowedMap['cash_mix']))) {
+        if ($dashboardCanFinanceSummary && (isset($allowedMap['store_cash_position']) || isset($allowedMap['cash_mix']))) {
             $financial = $pdo->prepare(
                 "SELECT st.id AS store_id,st.store_name,COALESCE(st.currency_code,?) AS currency_code,COALESCE(st.timezone,?) AS timezone,"
                 . "COALESCE(SUM(CASE WHEN f.account='Register' THEN COALESCE(f.closing_amount,f.opening_amount+f.in_total-f.out_total) ELSE 0 END),0) AS register_balance,"
@@ -120,7 +148,7 @@ try {
         }
 
         $salesRows = [];
-        if ($roleCanFinanceSummary && (isset($allowedMap['today_sales_by_store']) || isset($allowedMap['top_stores_sales']))) {
+        if ($dashboardCanFinanceSummary && (isset($allowedMap['today_sales_by_store']) || isset($allowedMap['top_stores_sales']))) {
             $sales = $pdo->prepare(
                 "SELECT st.id AS store_id,st.store_name,COALESCE(st.currency_code,?) AS currency_code,COALESCE(SUM(rs.total),0) AS today_sales "
                 . "FROM stores st LEFT JOIN retail_sales rs ON rs.store_id=st.id AND rs.client_id=st.client_id AND DATE(rs.sold_at)=? AND rs.status='completed' "
@@ -131,7 +159,7 @@ try {
         }
 
         $salesTrend = [];
-        if ($roleCanFinanceSummary && (isset($allowedMap['sales_change']) || isset($allowedMap['sales_trend_7d']))) {
+        if ($dashboardCanFinanceSummary && (isset($allowedMap['sales_change']) || isset($allowedMap['sales_trend_7d']))) {
             $stmt = $pdo->prepare(
                 "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value "
                 . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? "
@@ -142,7 +170,7 @@ try {
         }
 
         $attendanceTrend = [];
-        if ($roleCanWorkforce && (isset($allowedMap['attendance_change']) || isset($allowedMap['attendance_trend_7d']))) {
+        if ($dashboardCanWorkforce && (isset($allowedMap['attendance_change']) || isset($allowedMap['attendance_trend_7d']))) {
             $stmt = $pdo->prepare(
                 "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value "
                 . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? "
@@ -153,21 +181,21 @@ try {
         }
 
         $activeEmployees = null;
-        if ($roleCanWorkforce && isset($allowedMap['active_employees'])) {
+        if ($dashboardCanWorkforce && isset($allowedMap['active_employees'])) {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM employees WHERE client_id=? AND status='active'");
             $stmt->execute([$clientId]);
             $activeEmployees = (int)$stmt->fetchColumn();
         }
 
         $syncAttention = null;
-        if ($roleCanSync && isset($allowedMap['sync_attention'])) {
+        if ($dashboardCanSync && isset($allowedMap['sync_attention'])) {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM google_sheet_outbox WHERE client_id=? AND status IN ('pending','processing','failed')");
             $stmt->execute([$clientId]);
             $syncAttention = (int)$stmt->fetchColumn();
         }
 
         $syncStatuses = [];
-        if ($roleCanSync && isset($allowedMap['sync_status_table'])) {
+        if ($dashboardCanSync && isset($allowedMap['sync_status_table'])) {
             $stmt = $pdo->prepare(
                 "SELECT status,COUNT(*) AS item_count FROM google_sheet_outbox "
                 . "WHERE client_id=? AND status IN ('pending','processing','failed') GROUP BY status"
@@ -210,9 +238,12 @@ try {
         ],
         'allowed_widgets'=>$allowed,
         'client_defaults'=>['currency_code'=>$currency,'timezone'=>$timezone],
+        'working_count'=>$workingCount,
         'working'=>$working,
+        'my_working'=>$myWorking,
         'disputes'=>$disputes,
-        'recent_shifts'=>$shifts->fetchAll(PDO::FETCH_ASSOC),
+        'pending_disputes_count'=>$pendingDisputesCount,
+        'recent_shifts'=>$recentShifts,
         'stores'=>$stores,
         'management'=>$management,
     ]);

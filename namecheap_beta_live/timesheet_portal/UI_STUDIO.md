@@ -64,6 +64,14 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 ## Studio19 dashboard policy + size behavior
 
 - Dashboard policy saves compare each role's allowed widget set before and after the save. Widgets that become newly allowed after all visibility/data permissions are satisfied are appended to that role's dashboard; widgets that were already allowed but intentionally removed are not re-added.
-- Widget permissions do not bypass underlying data permissions. For example, `working_now` still requires both `dashboard.widget.working_now` and `workforce.view`.
+- Superseded by Studio20: widget visibility permissions no longer require granting the matching whole-application page/API permission. Standard data dependencies are resolved only inside the dashboard endpoint and do not expose the corresponding navigation or general API surface.
 - DevStudio dashboard editing uses the widget drawer directly; the redundant circular `+` dashboard control stays hidden while Studio edit mode is active.
 - Settings → Size now separates `Button Size` from `Icon Size`. Button Size scales the center hub and the radial ring's inner/outer radii together, changing hub diameter, slice thickness, and slice distance from center. Icon Size changes icons only.
+
+
+## Studio20 scoped widget dependencies + account toggle
+
+- A dashboard widget may declare a standard data dependency such as `workforce.view`, while its visibility remains controlled by its dedicated `dashboard.widget.*` permission. The dashboard endpoint resolves that dependency only for the allowed widget; it does not grant the role the corresponding page, navigation item or general API permission.
+- Dashboard responses are narrowed to the widgets actually present. Count widgets receive counts; roster/list widgets receive the rows they need; unrelated dashboard payloads are not broadened by another widget's dependency.
+- Actual DEV controls DevStudio from a toggle in the account sheet. The account avatar follows the Studio accent while enabled. The old separate restore/minimized icon and duplicate DEV-panel launcher are retired.
+- Fine-pointer hover on a selectable element exposes a small Select affordance. The radial Select action is retired; once selected, the root exposes Unselect. Touch devices select directly because hover is unavailable.

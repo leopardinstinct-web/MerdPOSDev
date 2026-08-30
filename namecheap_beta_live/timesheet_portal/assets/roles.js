@@ -38,10 +38,10 @@
         </section>
         <section class="controls-card permission-card">
           <div class="permission-head">
-            <div><h2>Permission policy</h2><p>Configure the minimum LOA for every delegable MERDPOS capability. This policy controls the sidebar, panels, action buttons, API endpoints and dashboard widgets together.</p></div>
+            <div><h2>Permission policy</h2><p>Configure the minimum LOA for every delegable MERDPOS capability. Page/API permissions control application areas; dedicated Widget permissions control dashboard placement. Standard widget data dependencies are resolved automatically inside the dashboard and do not expose the matching page or menu.</p></div>
             <div class="permission-actions"><span id="permissionUnsaved" class="permission-unsaved" hidden>Unsaved changes</span><button id="savePermissionPolicy" class="primary-btn compact-btn" type="button">Save policy</button></div>
           </div>
-          <div class="permission-danger-note"><strong>Backend enforced.</strong> Lowering a threshold grants that capability to more roles. Raising it removes access immediately; dashboard widgets whose underlying data permission is lost are pruned automatically. DEV-only capabilities remain locked at 1000.</div>
+          <div class="permission-danger-note"><strong>Backend enforced.</strong> Lowering a page/API threshold grants that application capability to more roles. Widget thresholds grant only that dashboard widget; its declared data dependency stays dashboard-scoped. Raising a widget threshold removes it immediately. DEV-only capabilities remain locked at 1000.</div>
           <div id="permissionSummary" class="permission-summary"></div>
           <div id="permissionGroups" class="permission-groups"><div class="entity-empty">Loading permission policy…</div></div>
           <p class="permission-footnote">A role name does not grant access by itself. The numeric LOA and this client permission policy are authoritative. DEV-only items additionally require an actual DEV identity and cannot be delegated by setting another role to LOA 1000.</p>
@@ -301,7 +301,7 @@
       renderAll();
       const unsaved = document.getElementById('permissionUnsaved');
       if (unsaved) unsaved.hidden = true;
-      setStatus('Permission policy saved. Dashboard widgets newly unlocked by the complete permission policy were added to affected role dashboards; restricted widgets were pruned. Backend policy is active immediately.');
+      setStatus('Permission policy saved. Newly unlocked widgets were added to affected role dashboards with their standard data dependencies scoped to the dashboard only; restricted widgets were pruned. Backend policy is active immediately.');
       window.MERDPOSDashboardBuilder?.reloadRoles?.();
     } catch (error) { setStatus(error.message, true); }
     finally { if (button) button.disabled = false; }

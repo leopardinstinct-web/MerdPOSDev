@@ -100,9 +100,26 @@ function merd_dashboard_allowed_widgets(PDO $pdo, int $clientId, array $role): a
 {
     $allowed = [];
     foreach (merd_dashboard_widget_catalog($pdo, $clientId) as $key => $rule) {
+        // Widget placement is controlled by its dedicated dashboard permission.
+        // The data permission is a dashboard-scoped dependency resolved only by
+        // dashboard_data.php; it must not grant the role a whole application area.
         if (!merd_dashboard_role_has_permission($pdo, $clientId, $role, (string)$rule['visibility_permission'])) continue;
-        if (!merd_dashboard_role_has_permission($pdo, $clientId, $role, (string)$rule['data_permission'])) continue;
         $allowed[] = $key;
     }
     return $allowed;
+}
+
+function merd_dashboard_widget_dependency_enabled(array $allowedWidgets, string $widgetKey, string $permission): bool
+{
+    if (!in_array($widgetKey, $allowedWidgets, true)) return false;
+    $rules = merd_portal_dashboard_widget_permissions();
+    return isset($rules[$widgetKey]) && (string)($rules[$widgetKey][1] ?? '') === $permission;
+}
+
+function merd_dashboard_dependency_enabled(array $allowedWidgets, string $permission): bool
+{
+    foreach ($allowedWidgets as $widgetKey) {
+        if (merd_dashboard_widget_dependency_enabled($allowedWidgets, (string)$widgetKey, $permission)) return true;
+    }
+    return false;
 }

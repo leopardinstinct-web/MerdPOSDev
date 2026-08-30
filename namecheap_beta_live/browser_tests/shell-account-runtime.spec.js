@@ -14,6 +14,7 @@ const shellCssPath = path.join(portalRoot, 'assets', 'shell.css');
 const accountCssPath = path.join(portalRoot, 'assets', 'account-menu.css');
 const betaApiPath = path.join(portalRoot, 'includes', 'beta_api.php');
 const dashboardDataPath = path.join(portalRoot, 'api', 'dashboard_data.php');
+const dashboardAccessPath = path.join(portalRoot, 'includes', 'dashboard_access.php');
 const clientContextPath = path.join(portalRoot, 'api', 'client_context.php');
 
 const fixtureHtml = `<!doctype html><html><head>
@@ -69,10 +70,11 @@ test('DEV role preview is universal across shell and API permission context', as
   const source = fs.readFileSync(dashboardPath, 'utf8');
   const betaApi = fs.readFileSync(betaApiPath, 'utf8');
   const dashboardData = fs.readFileSync(dashboardDataPath, 'utf8');
+  const dashboardAccess = fs.readFileSync(dashboardAccessPath, 'utf8');
   const clientContext = fs.readFileSync(clientContextPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
-  expect(source).toContain('assets/management.js?v=20260830studio19');
+  expect(source).toContain('assets/management.js?v=20260830studio20');
   expect(source).toContain("$permissions = (array)($user['permissions'] ?? []);");
   expect(source).not.toContain("$previewUser['actual_employee_type']");
   expect(betaApi).toContain('function beta_apply_dev_role_preview');
@@ -85,6 +87,11 @@ test('DEV role preview is universal across shell and API permission context', as
   expect(betaApi).toContain('$user=beta_apply_dev_role_preview($pdo,$user);');
   expect(dashboardData).toContain('$effectiveRole = merd_dashboard_user_role($pdo, $user);');
   expect(dashboardData).toContain("beta_require_permission($user, 'dashboard.configure', $pdo);");
+  expect(dashboardAccess).toContain('function merd_dashboard_dependency_enabled');
+  expect(dashboardAccess).toContain("visibility_permission" );
+  expect(dashboardData).toContain("merd_dashboard_dependency_enabled($allowed, 'workforce.view')");
+  expect(dashboardData).toContain("'working_count'=>$workingCount");
+  expect(dashboardData).toContain("'pending_disputes_count'=>$pendingDisputesCount");
   expect(clientContext).toContain('$canSelect = beta_user_is_dev($user);');
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
@@ -95,7 +102,7 @@ test('DEV role preview is universal across shell and API permission context', as
 test('desktop uses the mobile-style bottom dock plus one account/client circle', async ({ page }) => {
   const pageErrors = await mountShell(page, 1280);const rail=page.locator('.app-rail');await expect(page.locator('.app-frame')).toHaveClass(/nav-bottom/);const primary=rail.locator(':scope > .rail-section:not([data-nav-section="system"])');await expect(primary).toHaveCount(4);await expect(rail.locator(':scope > .rail-section[data-nav-section="system"]')).toBeHidden();await expect(rail.locator('.rail-client-section')).toBeHidden();await expect(rail.locator('.merd-shell-account-trigger')).toBeVisible();
   const geom=await rail.evaluate(el=>{const r=el.getBoundingClientRect();return {bottom:innerHeight-r.bottom,height:r.height,position:getComputedStyle(el).position}});expect(Math.abs(geom.bottom)).toBeLessThan(2);expect(geom.position).toBe('fixed');expect(geom.height).toBeGreaterThan(60);
-  await expect(rail.locator('.rail-shell-utilities')).toBeHidden();await rail.locator('.merd-shell-account-trigger').click();await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);await expect(rail.locator('.rail-shell-utilities')).toBeVisible();await expect(rail.locator('.rail-mobile-client-select')).toHaveValue('1');await expect(rail.locator('.rail-user-summary')).toContainText('Imran');await expect(rail.locator('.rail-user-summary')).toContainText('Developer');await expect(rail.locator('.rail-mobile-system-links')).toHaveCount(0);await expect(rail.locator('.rail-dev-role-select')).toHaveValue('ADMIN');await expect(rail.locator('.rail-dev-role-select option')).toHaveText(['Developer','Admin','Super','User']);
+  await expect(rail.locator('.rail-shell-utilities')).toBeHidden();await rail.locator('.merd-shell-account-trigger').click();await expect(page.locator('body')).toHaveClass(/merd-mobile-tools-open/);await expect(rail.locator('.rail-shell-utilities')).toBeVisible();await expect(rail.locator('.rail-mobile-client-select')).toHaveValue('1');await expect(rail.locator('.rail-user-summary')).toContainText('Imran');await expect(rail.locator('.rail-user-summary')).toContainText('Developer');await expect(rail.locator('.rail-mobile-system-links')).toHaveCount(0);await expect(rail.locator('.rail-dev-role-select')).toHaveValue('ADMIN');await expect(rail.locator('.rail-dev-role-select option')).toHaveText(['Developer','Admin','Super','User']);await expect(rail.locator('.rail-devstudio-toggle')).toBeVisible();await expect(rail.locator('.rail-devstudio-toggle')).toHaveAttribute('aria-pressed','false');await rail.locator('.rail-devstudio-toggle').click();await expect(rail.locator('.rail-devstudio-toggle')).toHaveAttribute('aria-pressed','true');await expect(page.locator('body')).toHaveClass(/merd-ui-studio-enabled/);await page.evaluate(()=>window.dispatchEvent(new CustomEvent('merdpos-uistudio-state',{detail:{enabled:true,accent:'#8B2EFF',ink:'#FFFFFF'}})));await expect.poll(()=>rail.locator('.merd-shell-account-trigger .rail-user-avatar').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(139, 46, 255)');
   const utilityText=await rail.locator('.rail-shell-utilities').innerText();expect(utilityText.indexOf('Imran')).toBeLessThan(utilityText.indexOf('Working client'));expect(utilityText.indexOf('Working client')).toBeLessThan(utilityText.indexOf('Current role'));expect(utilityText).not.toContain('Clients');expect(utilityText).not.toContain('DEV\n');expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));await rail.locator('.rail-about-toggle').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',true);await page.locator('#merdposAboutClose').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',false);
   await page.locator('[data-nav-group="operations"]').click();await expect(page.locator('#storesPanel')).toBeVisible();await expect(page.locator('[data-sidebar-group="operations"]')).toBeVisible();expect(pageErrors).toEqual([]);
 });

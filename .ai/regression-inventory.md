@@ -210,3 +210,10 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 ## Studio18 role/contrast/geometry regressions
 - UI Studio browser coverage asserts Admin patches export Admin/Super/User role targets, palette backgrounds add readable foreground ink, radial Size changes both hub diameter and sector geometry, and wheel navigation skips disabled actions.
 - Studio19: regression coverage checks independent Button Size/Icon Size geometry, hidden dashboard + control in DevStudio edit mode, and runtime-contract guards for newly-allowed widget materialization.
+
+
+## Studio20 dependency/toggle/hover-selection regressions
+- Dashboard allowance is based on the dedicated widget visibility permission; standard data dependencies are resolved inside dashboard_data.php without granting the matching page/API permission.
+- Workforce count/list, dispute count and other scoped payloads stay least-data for the allowed widgets.
+- DEV account sheet exposes the Studio enable toggle and accent-linked avatar; no separate Studio restore control is created.
+- Fine-pointer hover exposes Select without firing the underlying control; selected root exposes Unselect and no Select wedge. Touch selection remains direct and synthetic hover stays inactive.
