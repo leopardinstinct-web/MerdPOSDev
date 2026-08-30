@@ -65,6 +65,26 @@
 .merd-ui-cursor-pill { position:fixed; z-index:2147483022; display:flex; align-items:center; gap:.42rem; width:max-content; max-width:min(18rem,calc(100vw - 1rem)); min-height:2rem; padding:.38rem .68rem; border:1px solid color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 62%,#fff); border-radius:999px; background:#1A1A2E; color:#fff; box-shadow:0 .55rem 1.6rem rgba(3,27,75,.32); font:760 .68rem/1.15 var(--font-ui); pointer-events:none; white-space:nowrap; }
 .merd-ui-cursor-pill[hidden] { display:none !important; }
 .merd-ui-cursor-pill-icon { width:1rem; height:1rem; flex:0 0 1rem; border-radius:.22rem; background:var(--merd-ui-cursor-accent,var(--merd-ui-accent,#F59E0B)); -webkit-mask:var(--merd-ui-cursor-icon) center/contain no-repeat; mask:var(--merd-ui-cursor-icon) center/contain no-repeat; }
+.merd-ui-comment-overlay { position:fixed; inset:0; z-index:2147483024; display:grid; place-items:center; padding:1rem; background:rgba(3,27,75,.34); backdrop-filter:blur(2px); pointer-events:auto; }
+.merd-ui-comment-overlay[hidden] { display:none !important; }
+.merd-ui-comment-composer { width:min(36rem,calc(100vw - 1rem)); max-height:min(42rem,calc(100vh - 2rem)); display:grid; gap:.8rem; overflow:auto; padding:1rem; border:1px solid color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 60%,#fff); border-radius:1rem; background:#1A1A2E; color:#fff; box-shadow:0 1.4rem 3.5rem rgba(3,27,75,.5); }
+.merd-ui-comment-composer header { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; }
+.merd-ui-comment-composer header div { display:grid; gap:.2rem; }
+.merd-ui-comment-composer header strong { font:900 .92rem/1.15 var(--font-ui); }
+.merd-ui-comment-composer header small { max-width:29rem; color:#aeb7c7; font:650 .7rem/1.35 var(--font-ui); }
+.merd-ui-comment-textarea { width:100%; min-height:10rem; resize:vertical; padding:.8rem; border:1px solid rgba(255,255,255,.15); border-radius:.8rem; background:#25253D; color:#fff; font:650 .78rem/1.45 var(--font-ui); outline:none; }
+.merd-ui-comment-textarea:focus { border-color:var(--merd-ui-accent,#F59E0B); box-shadow:0 0 0 .18rem color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 20%,transparent); }
+.merd-ui-comment-upload { min-height:2.75rem; display:grid; gap:.35rem; align-content:center; padding:.62rem .75rem; border:1px dashed color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 58%,#fff); border-radius:.8rem; color:#fff; font:800 .72rem/1.2 var(--font-ui); cursor:pointer; }
+.merd-ui-comment-upload input { width:100%; color:#cbd5e1; font:650 .68rem/1.2 var(--font-ui); cursor:pointer; }
+.merd-ui-comment-files { display:grid; gap:.35rem; }
+.merd-ui-comment-file { display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.5rem .65rem; border-radius:.65rem; background:#25253D; }
+.merd-ui-comment-file strong { min-width:0; overflow:hidden; font:750 .68rem/1.25 var(--font-ui); text-overflow:ellipsis; white-space:nowrap; }
+.merd-ui-comment-file small { flex:0 0 auto; color:#aeb7c7; font:650 .62rem/1.2 var(--font-ui); }
+.merd-ui-comment-actions { display:flex; justify-content:flex-end; gap:.55rem; }
+.merd-ui-comment-actions button { min-width:6.5rem; min-height:2.75rem; padding:.58rem .8rem; border-radius:999px; font:850 .72rem/1 var(--font-ui); cursor:pointer; }
+.merd-ui-comment-cancel { border:1px solid rgba(255,255,255,.16); background:#25253D; color:#fff; }
+.merd-ui-comment-save { border:1px solid color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 62%,#fff); background:var(--merd-ui-accent,#F59E0B); color:var(--merd-ui-accent-ink,#111827); }
+.merd-ui-comment-save:disabled { opacity:.55; cursor:wait; }
 
 .merd-ui-studio-request-preview { position:relative; display:grid; gap:.18rem; min-width:9rem; min-height:3.5rem; padding:.65rem .8rem; border:.12rem dashed var(--merd-ui-accent,#F59E0B); border-radius:.8rem; background:color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 10%,var(--color-surface,#fff)); color:var(--color-text,#111827); box-shadow:0 .45rem 1.35rem color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 14%,transparent); pointer-events:none; }
 .merd-ui-studio-request-preview strong { font:800 .78rem/1.2 var(--font-ui); }

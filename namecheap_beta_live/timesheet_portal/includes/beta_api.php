@@ -151,6 +151,9 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'ui_studio_history.php':
             if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Developer access is required.');
             return;
+        case 'ui_studio_asset.php':
+            if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Developer access is required.');
+            return;
         case 'dashboard_layout.php':
             $studioDashboard = beta_user_is_dev($user) && (($method === 'GET' && (string)($_GET['dev_studio'] ?? '') === '1') || ($method === 'POST' && !empty($input['dev_studio'])));
             if ($studioDashboard) return;

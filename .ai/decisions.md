@@ -296,3 +296,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Lower-role previews may specialize existing inherited elements, but new element placement cannot originate below DEV. Add in ADMIN/SUPER/USER records a proposal request with its preview/placement context; Comment/Describe in those previews records a request note. Both declare `implementationOrigin: DEV` and remain non-production Studio artifacts until implemented from the master.
 - Role-layer Undo/Reset/Clear cannot delete upstream template work. Downstream overrides are applied after upstream patches independent of journal insertion order. This is a presentation/design rule only; authorization remains actual identity → preview role → LOA/permission policy.
 - Studio JSON handoff advances to v4 for request metadata; global revision/history synchronization and history-step deletion remain unchanged.
+
+
+### 2026-08-31 - Studio27 symmetric inheritance reversal and image context
+- DEV master mutations and reversals are one inheritance decision: an inherited DEV Hide must disappear from Admin/Super/User when that DEV patch is undone. Exact legacy child duplicates without explicit override metadata are redundant and collapse into the upstream master value.
+- New lower-role implemented patches carry `explicitOverride:true`, so an intentional Admin/Super/User override remains independent when the parent master later changes or is undone.
+- Studio comments use a multiline composer and may attach image context. Upload is actual-DEV-only/CSRF-protected; PNG/JPEG/WebP/GIF are validated and SVG is sanitized. Files live in private backend runtime storage and are exposed only through 256-bit token read URLs for ChatGPT/context handoff.
+- Studio JSON/Chat handoff is version 5 and includes attachment metadata/URLs. Same-browser-profile windows synchronize Studio appearance settings through localStorage `storage` events; settings remain local to that browser profile rather than server-global.

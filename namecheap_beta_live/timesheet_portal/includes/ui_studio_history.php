@@ -20,6 +20,14 @@ function merd_ui_studio_request_targets(string $role): array
     $role = merd_ui_studio_role_key($role);
     return $role === 'DEV' ? ['DEV'] : ['DEV', $role];
 }
+function merd_ui_studio_role_rank(string $role): int
+{
+    return match (merd_ui_studio_role_key($role)) { 'DEV'=>0, 'ADMIN'=>1, 'SUPER'=>2, 'USER'=>3 };
+}
+function merd_ui_studio_style_identity(array $patch): string
+{
+    return implode('|', [(string)($patch['scope'] ?? 'element'), (string)($patch['selector'] ?? ''), (string)($patch['property'] ?? '')]);
+}
 
 function merd_ui_studio_patch_key(array $patch): string
 {
@@ -82,6 +90,19 @@ function merd_ui_studio_normalize_patches(mixed $value): array
         }
         $patches[] = $patch;
     }
+    $allPatches = $patches;
+    $patches = array_values(array_filter($patches, static function(array $patch) use ($allPatches): bool {
+        if (($patch['kind'] ?? '') !== 'style' || !empty($patch['explicitOverride']) || merd_ui_studio_role_key($patch['roleScope'] ?? 'DEV') === 'DEV') return true;
+        $rank = merd_ui_studio_role_rank((string)($patch['roleScope'] ?? 'DEV'));
+        $identity = merd_ui_studio_style_identity($patch);
+        foreach ($allPatches as $other) {
+            if (($other['kind'] ?? '') !== 'style') continue;
+            if (merd_ui_studio_role_rank((string)($other['roleScope'] ?? 'DEV')) >= $rank) continue;
+            if (merd_ui_studio_style_identity($other) !== $identity) continue;
+            if ((string)($other['value'] ?? '') === (string)($patch['value'] ?? '')) return false;
+        }
+        return true;
+    }));
     $json = json_encode($patches, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     if (strlen($json) > 524288) {
         throw new MerdWorkforceException('studio_patch_size', 'Studio preview state is too large to synchronize.');
@@ -136,8 +157,9 @@ function merd_ui_studio_replay_mutations(array $mutations): array
     foreach ($mutations as $mutation) {
         if (!is_array($mutation)) continue;
         $patches = merd_ui_studio_apply_mutation($patches, $mutation);
+        $patches = merd_ui_studio_normalize_patches($patches);
     }
-    return merd_ui_studio_normalize_patches($patches);
+    return $patches;
 }
 
 function merd_ui_studio_public_id(): string

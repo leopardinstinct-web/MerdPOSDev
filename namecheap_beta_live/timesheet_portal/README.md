@@ -229,3 +229,10 @@ The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh`
 - Actual DEV may still design in an Admin/Super/User preview. Add or Comment/Describe there is stored as a globally synchronized proposal request anchored to that preview and explicitly marked to begin implementation from Developer.
 - Studio proposal placeholders are editing artifacts only. They do not grant permissions, create lower-role production DOM, or bypass the existing role/LOA/permission model.
 - Studio JSON v4 carries canonical role targets plus proposal metadata; migration 035 global history remains the persistence mechanism.
+
+
+### DevStudio27 context capture and inheritance reversal (2026-08-31)
+- Developer remains the visual master. Undoing a Developer master patch removes the inherited effect from Admin/Super/User as well; an intentional lower-role override survives only when it is explicitly owned by that lower role.
+- Studio comments/requests use a multiline composer and can attach up to six PNG/JPEG/WebP/GIF/SVG images. Context upload is actual-DEV-only and CSRF-protected; SVG is sanitized.
+- Uploaded Studio context is stored under private backend runtime storage. A random-token, read-only `studio_context_asset.php` URL is copied into Studio JSON/Chat handoff so ChatGPT can fetch the image without MERDPOS authentication material.
+- Studio JSON is version 5. Same browser-profile windows synchronize Studio accent/font/icon/radial appearance through localStorage events; this does not make device-local settings server-global.

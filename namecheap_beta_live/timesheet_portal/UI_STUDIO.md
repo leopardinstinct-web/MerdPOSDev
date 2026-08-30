@@ -109,7 +109,7 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Every persisted history step stores actor, preview-role scope, page/panel/selector context and a normalized patch mutation. Deleting a step with the trash icon is global and recomputes active patches by replaying surviving mutations.
 - Elements with active Studio patches receive a small green change dot while Studio is enabled and the radial is closed. Hover/focus/click on the dot opens a viewport-safe branded floating history card for that element, including per-step trash actions.
 - The floating marker layer is Studio-owned and ignored by the application MutationObserver, preventing marker recreation loops while the pointer enters the dot/history card.
-- JSON/Chat handoff is version 4 and includes `global:true`, the synchronized server revision, canonical role inheritance, and proposal/request metadata.
+- JSON/Chat handoff is version 5 and includes `global:true`, the synchronized server revision, canonical role inheritance, proposal/request metadata, and optional image-context attachments.
 
 
 ## Studio25 cursor action guidance and accent artifacts
@@ -128,3 +128,14 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Comment/Describe while previewing ADMIN/SUPER/USER is likewise a proposal request rather than an implemented comment. It remains anchored to the selected element/widget and is included in global history, change markers, JSON and Chat handoff.
 - Lower-role proposals mean "design/request observed in this preview; implementation must begin in Developer master." They do not alter product authorization and do not create production DOM outside the Developer master inheritance chain.
 - Undo, Reset and Clear operate on the current role's own Studio layer. An inherited master element can be hidden downstream but cannot be physically removed or restored against an upstream hide from a lower preview.
+
+
+## Studio27 symmetric master Undo, rich comments and shared appearance
+
+- DEV master Hide/Style and its Undo are symmetric across the inheritance chain. Legacy lower-role style patches that exactly duplicate an active upstream value and were never marked as explicit overrides are collapsed as redundant, so a plain DEV Hide → DEV Undo restores DEV/Admin/Super/User together.
+- New Admin/Super/User implemented changes are stamped `explicitOverride:true`. Those real downstream decisions survive a later DEV master Undo; only inherited/redundant effects disappear with the master action.
+- Comment / Request Note now opens a branded multiline composer rather than a browser prompt. The note may contain line breaks and may be saved with text, images, or both.
+- Up to six PNG, JPEG, WebP, GIF or SVG context files may be attached per comment. Upload is actual-DEV-only and CSRF-protected. SVG is sanitized before storage; uploads are kept under private Namecheap backend runtime storage rather than the public portal directory.
+- Each stored image receives a 256-bit random read token. `studio_context_asset.php?t=<token>` is intentionally read-only and sessionless so a copied ChatGPT handoff can fetch the referenced image without receiving MERDPOS credentials or directory access. SVG reads are sandboxed and all reads are MIME/nosniff guarded.
+- Attachment name, MIME, size, SHA-256 and token URL are stored in the Studio patch. Copy JSON and Copy for ChatGPT include those URLs directly.
+- Studio accent, font/icon scale and radial size use the browser profile's localStorage and listen for `storage` changes, so already-open MERDPOS windows repaint when another window changes Studio appearance. Studio state remains device/browser-profile local; it is not made global across machines.

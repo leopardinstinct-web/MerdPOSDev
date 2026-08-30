@@ -269,3 +269,12 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Add in USER/ADMIN/SUPER must create a `requestType:add` proposal with `implementationOrigin:DEV`, never an implemented `add`; its visual placeholder is Studio-owned and appears in DEV plus the requested preview context only.
 - Comment/Describe in a lower preview must create a `requestType:comment` proposal, not a lower-role implemented comment.
 - Server patch normalization must accept `request`, canonicalize role targets, and convert any lower-role persisted add/comment into proposals on read/write/replay.
+
+
+### Studio27 master-Undo / rich-comment / window-sync regressions
+- A legacy USER/ADMIN/SUPER style patch that merely duplicates an active upstream master value and lacks explicit-override metadata must collapse as redundant; DEV Undo must then restore the element/value in every inherited preview.
+- A newly created lower-role style override must carry `explicitOverride:true` and must survive a later DEV master Hide → Undo cycle.
+- Comment and Request Note use the Studio multiline composer; text preserves line breaks and a note may contain only attachments.
+- Context upload accepts at most six image files per comment. Upload route is actual-DEV-only; public read requires a 64-hex random token; SVG upload is sanitized and SVG read is sandboxed.
+- Copy for ChatGPT must include every attached token URL plus JSON attachment metadata.
+- Changing Studio accent in one same-origin browser window must update an already-open second window and its existing change markers without requiring reload.

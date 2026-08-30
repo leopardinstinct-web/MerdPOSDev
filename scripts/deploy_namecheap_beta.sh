@@ -68,6 +68,9 @@ echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] PHP lint passed"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating beta runtime/README/design-system contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
 
+echo "[$(date -u '%Y-%m-%dT%H:%M:%SZ')] validating UI Studio inheritance/Undo semantics"
+php "$REPO/namecheap_beta_live/backend/cli/validate_ui_studio_inheritance.php"
+
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal LOA permission coverage"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_permission_policy.php"
 
@@ -149,6 +152,8 @@ for live_file in \
   "$LIVE/timesheet_portal/assets/brand/merdpos-tagline.png" \
   "$LIVE/timesheet_portal/assets/account-menu.css" \
   "$LIVE/timesheet_portal/assets/modal-lock.js" \
+  "$LIVE/timesheet_portal/api/ui_studio_asset.php" \
+  "$LIVE/timesheet_portal/studio_context_asset.php" \
   "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
   "$LIVE/timesheet_portal/README.md" \
   "$LIVE/backend/README.md"; do
@@ -171,15 +176,15 @@ for required_asset in \
   'assets/dashboard-builder.js?v=20260830dashboardstudio3' \
   'assets/account-menu.css?v=20260830about2' \
   'assets/account-menu.js?v=20260830roleview4' \
-  'assets/ui-studio.css?v=20260831studio26' \
-  'assets/ui-studio.js?v=20260831studio26'; do
+  'assets/ui-studio.css?v=20260831studio27' \
+  'assets/ui-studio.js?v=20260831studio27'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260831studio26' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260831studio27' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi
