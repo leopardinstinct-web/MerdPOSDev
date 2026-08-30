@@ -54,7 +54,7 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260830roleview4');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260830about2');
     appendScript('account-menu','assets/account-menu.js?v=20260830roleview4');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
@@ -72,8 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio24');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio24');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio25');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio25');
     }
   }
   ensureShellAssets();

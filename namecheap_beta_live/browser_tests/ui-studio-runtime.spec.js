@@ -78,6 +78,14 @@ test('enabled Studio shows dashed hover target while radial stays hidden',async(
   await mount(page,true);await page.locator('#cardA').dispatchEvent('mouseover');await expect(page.locator('#cardA')).toHaveClass(/merd-ui-studio-hover/);await expect(hub(page)).toBeHidden();await expect(page.locator('.merd-ui-hover-select')).toHaveCount(0);
 });
 
+test('selected item shows a cursor-follow action pill and wheel focus supplies icon and label',async({page})=>{
+  await mount(page,true,1280);await page.mouse.move(420,260);await selectTarget(page,'#cardA');const pill=page.locator('.merd-ui-cursor-pill');await expect(pill).toBeVisible();await expect(pill).toContainText('Select action…');const before=await pill.boundingBox();await page.mouse.move(690,410);await expect.poll(async()=>{const box=await pill.boundingBox();return Math.round(box.x)}).not.toBe(Math.round(before.x));await page.mouse.wheel(0,120);await expect(pill).toContainText('Minimize');await expect(pill.locator('.merd-ui-cursor-pill-icon')).toBeVisible();const iconMask=await pill.locator('.merd-ui-cursor-pill-icon').evaluate(el=>getComputedStyle(el).webkitMaskImage||getComputedStyle(el).maskImage);expect(iconMask).toContain('arrow_downward_48px.svg');
+});
+
+test('existing change dots follow the newly selected Studio accent',async({page})=>{
+  await mount(page,true,1280);await selectTarget(page,'#cardA');page.once('dialog',d=>d.accept('Accent marker'));await choose(page,'Comment');await expect.poll(()=>page.evaluate(()=>window.MERDPOS_UI_STUDIO.getHistory().some(entry=>!entry.pending))).toBe(true);await page.mouse.click(5,5);const dot=page.locator('.merd-ui-change-dot');await expect(dot).toBeVisible();await expect.poll(()=>dot.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(245, 158, 11)');await page.locator('#cardA').click({button:'right'});await choose(page,'Settings');await choose(page,'Color');await choose(page,'Navy');await page.mouse.click(5,5);await expect(dot).toBeVisible();await expect.poll(()=>dot.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(3, 27, 75)');
+});
+
 test('right click docks radial away from selected control and page clicks are consumed until dismissed',async({page})=>{
   await mount(page,true,1280);const target=page.locator('#railHome');const box=await target.boundingBox();await target.click({button:'right'});const h=await hub(page).boundingBox(),hc={x:h.x+h.width/2,y:h.y+h.height/2},tc={x:box.x+box.width/2,y:box.y+box.height/2};expect(Math.hypot(hc.x-tc.x,hc.y-tc.y)).toBeGreaterThan(300);await page.locator('#utilityAction').click();await expect(hub(page)).toBeHidden();expect(await page.evaluate(()=>window.__utilityClicks)).toBe(0);await page.locator('#utilityAction').click();expect(await page.evaluate(()=>window.__utilityClicks)).toBe(1);
 });

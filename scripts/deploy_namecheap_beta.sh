@@ -169,17 +169,17 @@ for required_asset in \
   'assets/navigation.js?v=20260830bottom1' \
   'assets/dashboard-builder.css?v=20260830dashboardstudio3' \
   'assets/dashboard-builder.js?v=20260830dashboardstudio3' \
-  'assets/account-menu.css?v=20260830roleview4' \
+  'assets/account-menu.css?v=20260830about2' \
   'assets/account-menu.js?v=20260830roleview4' \
-  'assets/ui-studio.css?v=20260830studio24' \
-  'assets/ui-studio.js?v=20260830studio24'; do
+  'assets/ui-studio.css?v=20260830studio25' \
+  'assets/ui-studio.js?v=20260830studio25'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260830studio24' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260830studio25' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi
@@ -311,6 +311,16 @@ if [[ -n "$backend_config_path" && -r "$backend_config_path" ]]; then
 else
   echo "WARNING: private backend config could not be inspected for response-header side effects." >&2
 fi
+
+release_commit_full="$(git rev-parse HEAD)"
+release_commit_short="$(git rev-parse --short=7 HEAD)"
+release_commit_date="$(git show -s --format=%cI HEAD)"
+studio_commit_full="$(git log -1 --format=%H -- namecheap_beta_live/timesheet_portal/assets/ui-studio.js namecheap_beta_live/timesheet_portal/assets/ui-studio.css)"
+studio_commit_short="$(git log -1 --format=%h -- namecheap_beta_live/timesheet_portal/assets/ui-studio.js namecheap_beta_live/timesheet_portal/assets/ui-studio.css)"
+studio_commit_date="$(git log -1 --format=%cI -- namecheap_beta_live/timesheet_portal/assets/ui-studio.js namecheap_beta_live/timesheet_portal/assets/ui-studio.css)"
+mapfile -t release_highlights < <(git log -3 --pretty=format:%s)
+php -r '$data=["merdpos"=>["commit"=>$argv[2],"short"=>$argv[3],"date"=>$argv[4]],"devstudio"=>["commit"=>$argv[5],"short"=>$argv[6],"date"=>$argv[7]],"highlights"=>array_values(array_filter([$argv[8]??"",$argv[9]??"",$argv[10]??""]))];file_put_contents($argv[1],json_encode($data,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT).PHP_EOL);'   "$LIVE/.beta_release.json" "$release_commit_full" "$release_commit_short" "$release_commit_date"   "$studio_commit_full" "$studio_commit_short" "$studio_commit_date"   "${release_highlights[0]:-}" "${release_highlights[1]:-}" "${release_highlights[2]:-}"
+php -r '$p=$argv[1];$d=json_decode((string)file_get_contents($p),true);if(!is_array($d)||empty($d["merdpos"]["commit"])||empty($d["devstudio"]["commit"])||count($d["highlights"]??[])<3){fwrite(STDERR,"Invalid beta release metadata.\n");exit(1);}echo "Git release metadata verified.\n";' "$LIVE/.beta_release.json"
 
 printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(git rev-parse --short HEAD)" > "$LIVE/.beta_deployed_commit"
 echo "MERDPOS beta deployed: $(git rev-parse --short HEAD)"

@@ -191,7 +191,7 @@ foreach ([
     'assets/mobile-runtime.js?v=20260828mobile1',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260830bottom1',
-    'assets/account-menu.css?v=20260830roleview4',
+    'assets/account-menu.css?v=20260830about2',
     'assets/account-menu.js?v=20260830roleview4',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
@@ -212,10 +212,10 @@ beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview4', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830about2', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview4', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio24', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio24', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio25', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio25', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -225,8 +225,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV runtime flag', $errors);
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio24', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio24', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio25', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio25', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -343,6 +343,13 @@ beta_contract_require_contains($uiStudioJs, "if(!state.active||isMenuOpen()||sta
 beta_contract_require_contains($uiStudioJs, 'hideRadial();suppressClick=true;return;', 'Studio consumes outside dismissal click', $errors);
 beta_contract_require_contains($uiStudioJs, "event.ctrlKey&&!event.altKey&&!event.metaKey&&!event.shiftKey&&event.key.toLowerCase()==='d'", 'DEV Ctrl+D Studio toggle shortcut', $errors);
 beta_contract_require_contains($uiStudioJs, 'new URL(`assets/vendor/google-material-symbols/${file}`,document.baseURI).href', 'Studio icon URLs resolve from the document base', $errors);
+
+beta_contract_require_contains($uiStudioJs, "cursorPillLabel.textContent=item?.label||'Select action…'", 'Studio cursor pill default/action label', $errors);
+beta_contract_require_contains($uiStudioJs, "document.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')positionCursorPill", 'Studio cursor-follow action pill', $errors);
+beta_contract_require_contains($uiStudioJs, 'updateCursorPill(item)', 'Studio wheel-focused action reflected in cursor pill', $errors);
+beta_contract_require_contains($uiStudioCss, 'background:var(--merd-ui-accent,#F59E0B)', 'Studio change dots follow current accent', $errors);
+beta_contract_require_contains($uiStudioCss, '.merd-ui-cursor-pill', 'Studio cursor pill branded styling', $errors);
+
 beta_contract_require_absent($uiStudioJs, "hub.addEventListener('mouseenter'", 'retired hover-to-open radial behavior', $errors);
 beta_contract_require_contains($uiStudioCss, '.is-hub-candidate', 'UI Studio hub candidate highlight', $errors);
 beta_contract_require_contains($navigationJs, 'nav-bottom', 'Unified bottom navigation runtime', $errors);
@@ -387,8 +394,17 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260830studio24', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260830studio24', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260830studio25', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260830studio25', 'Namecheap live dashboard status-pill cache guard', $errors);
+
+beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
+beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);
+beta_contract_require_contains($dashboard, 'Release Highlights', 'About splash three-highlight region', $errors);
+beta_contract_require_contains($accountMenuCss, '.merd-about-release-grid', 'About splash release metadata layout', $errors);
+beta_contract_require_contains($deployScript, 'studio_commit_short=', 'deploy derives latest DevStudio commit', $errors);
+beta_contract_require_contains($deployScript, 'release_highlights', 'deploy derives three recent release highlights', $errors);
+beta_contract_require_contains($deployScript, '$LIVE/.beta_release.json', 'deploy publishes Git release metadata', $errors);
+
 beta_contract_require_contains($omnichannelJs, 'assets/brand/brand.css?v=20260828palette1', 'brand stylesheet cache version', $errors);
 beta_contract_require_contains($authPhp, "login_at_utc'] = gmdate", 'portal session login timestamp', $errors);
 beta_contract_require_contains($authPhp, 'function portal_login_at_utc', 'portal login timestamp accessor', $errors);

@@ -27,9 +27,23 @@ $viewRoleId = $user['view_role_id'] ?? null;
 $isRolePreview = !empty($user['is_role_preview']);
 $can = static fn(string $key): bool => !empty($permissions[$key]);
 $isManagement = !empty($permissions['workforce.view']) || !empty($permissions['timesheets.view_all']) || !empty($permissions['disputes.review']) || !empty($permissions['finance.cross_store']);
-$productVersion = '2026.08.28-beta';
-$productReleaseDate = '28 Aug 2026';
-$productChannel = 'Namecheap Beta';
+$releaseInfo = [];
+$releaseInfoPath = dirname(__DIR__) . '/.beta_release.json';
+if (is_readable($releaseInfoPath)) {
+    $decodedRelease = json_decode((string)file_get_contents($releaseInfoPath), true);
+    if (is_array($decodedRelease)) $releaseInfo = $decodedRelease;
+}
+$releaseDateLabel = static function(mixed $value): string {
+    try { return $value ? (new DateTimeImmutable((string)$value))->format('d M Y') : 'Pending deploy'; }
+    catch (Throwable) { return 'Pending deploy'; }
+};
+$productVersion = (string)($releaseInfo['merdpos']['short'] ?? 'Pending deploy');
+$productReleaseDate = $releaseDateLabel($releaseInfo['merdpos']['date'] ?? null);
+$devStudioVersion = (string)($releaseInfo['devstudio']['short'] ?? 'Pending deploy');
+$devStudioReleaseDate = $releaseDateLabel($releaseInfo['devstudio']['date'] ?? null);
+$releaseHighlights = array_values(array_filter(array_map('strval', (array)($releaseInfo['highlights'] ?? []))));
+$releaseHighlights = array_slice($releaseHighlights, 0, 3);
+while (count($releaseHighlights) < 3) $releaseHighlights[] = 'Release metadata will populate after the next beta deployment.';
 
 $canDashboard = $can('dashboard.view');
 $canWorkforce = $can('workforce.view');
@@ -381,16 +395,13 @@ function ui_icon(string $name): string
     <div class="merd-about-card">
       <section class="merd-about-copy">
         <img class="merd-about-logo" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
-        <div class="merd-about-meta">
-          <p class="merd-about-product">MERDPOS</p>
-          <h2 id="merdposAboutTitle">Smarter retail operations.</h2>
-          <dl>
-            <div><dt>Version</dt><dd><?= htmlspecialchars($productVersion) ?></dd></div>
-            <div><dt>Release date</dt><dd><?= htmlspecialchars($productReleaseDate) ?></dd></div>
-            <div><dt>Channel</dt><dd><?= htmlspecialchars($productChannel) ?></dd></div>
-          </dl>
+        <h2 id="merdposAboutTitle" class="merd-about-title">Release information</h2>
+        <div class="merd-about-release-grid">
+          <div class="merd-about-release-row"><span>MERDPOS</span><strong><?= htmlspecialchars($productVersion) ?></strong><small><?= htmlspecialchars($productReleaseDate) ?></small></div>
+          <div class="merd-about-release-row"><span>DevStudio</span><strong><?= htmlspecialchars($devStudioVersion) ?></strong><small><?= htmlspecialchars($devStudioReleaseDate) ?></small></div>
         </div>
-        <p class="merd-about-foot">Smarter &middot; Faster &middot; Together</p>
+        <section class="merd-about-highlights" aria-label="Release highlights"><h3>Release Highlights</h3><ul><?php foreach ($releaseHighlights as $highlight): ?><li><?= htmlspecialchars($highlight) ?></li><?php endforeach; ?></ul></section>
+        <footer class="merd-about-foot"><strong>SMARTER <i>•</i> FASTER <i>•</i> TOGETHER</strong><span>Copyright © <?= date('Y') ?> All rights reserved</span></footer>
       </section>
       <section class="merd-about-art" aria-hidden="true">
         <span class="merd-about-shape shape-a"></span><span class="merd-about-shape shape-b"></span><span class="merd-about-shape shape-c"></span>
@@ -475,7 +486,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260830studio24"></script>
+  <script src="assets/management.js?v=20260830studio25"></script>
   <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>

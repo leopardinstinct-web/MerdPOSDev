@@ -253,3 +253,11 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Two independent Developer browser contexts must observe one shared revision/history stream and global trash deletion.
 - Changed visible elements must render a stable green change dot; hovering it must show element-scoped history without MutationObserver detach/recreate churn.
 - Local Studio cache must carry Working-client identity so a newer client-tagged cache is never applied to another Working client.
+
+
+### Studio25 cursor/action + About release regressions
+- Selected item must show the cursor-follow pill and move with the mouse.
+- Mouse-wheel radial focus must update pill icon and label; unarmed state must read `Select action…`.
+- Existing change dots must repaint to the current DevStudio accent without requiring a page reload.
+- About splash must preserve the supplied white-left / gradient-right brand composition, show MERDPOS + DevStudio Git refs/dates, and render exactly three release highlights.
+- Namecheap deploy must generate and validate `.beta_release.json` before writing the deployed marker.

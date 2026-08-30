@@ -59,9 +59,13 @@
 .merd-ui-studio-has-comment { position:relative; }
 .merd-ui-change-marker-layer { position:fixed; inset:0; z-index:2147483013; pointer-events:none; }
 .merd-ui-change-marker-layer[hidden] { display:none !important; }
-.merd-ui-change-dot { position:fixed; z-index:2147483014; width:.8rem; height:.8rem; min-width:0; min-height:0; padding:0; border:.12rem solid #fff; border-radius:50%; background:#18B87A; box-shadow:0 0 .65rem rgba(24,184,122,.55); pointer-events:auto; cursor:help; transform:translate(-50%,-50%); }
+.merd-ui-change-dot { position:fixed; z-index:2147483014; width:.8rem; height:.8rem; min-width:0; min-height:0; padding:0; border:.12rem solid #fff; border-radius:50%; background:var(--merd-ui-accent,#F59E0B); box-shadow:0 0 .65rem color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 58%,transparent); pointer-events:auto; cursor:help; transform:translate(-50%,-50%); }
 .merd-ui-change-dot:is(:hover,:focus-visible) { width:1rem; height:1rem; outline:.15rem solid color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 52%,transparent); outline-offset:.08rem; }
 .merd-ui-element-history { z-index:2147483018; width:min(24rem,calc(100vw - 1rem)); max-height:min(25rem,66vh); }
+.merd-ui-cursor-pill { position:fixed; z-index:2147483022; display:flex; align-items:center; gap:.42rem; width:max-content; max-width:min(18rem,calc(100vw - 1rem)); min-height:2rem; padding:.38rem .68rem; border:1px solid color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 62%,#fff); border-radius:999px; background:#1A1A2E; color:#fff; box-shadow:0 .55rem 1.6rem rgba(3,27,75,.32); font:760 .68rem/1.15 var(--font-ui); pointer-events:none; white-space:nowrap; }
+.merd-ui-cursor-pill[hidden] { display:none !important; }
+.merd-ui-cursor-pill-icon { width:1rem; height:1rem; flex:0 0 1rem; border-radius:.22rem; background:var(--merd-ui-cursor-accent,var(--merd-ui-accent,#F59E0B)); -webkit-mask:var(--merd-ui-cursor-icon) center/contain no-repeat; mask:var(--merd-ui-cursor-icon) center/contain no-repeat; }
+
 .merd-ui-studio-added-preview { position:relative; outline:.12rem dashed rgba(181,111,255,.65); outline-offset:.12rem; }
 .merd-ui-studio-added-button { min-height:2.5rem; padding:.55rem .85rem; border:1px solid rgba(181,111,255,.5); border-radius:.65rem; background:#A148F5; color:#fff; }
 .merd-ui-studio-added-card { min-height:5rem; margin-block:.5rem; }

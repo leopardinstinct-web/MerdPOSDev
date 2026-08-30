@@ -110,3 +110,11 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Elements with active Studio patches receive a small green change dot while Studio is enabled and the radial is closed. Hover/focus/click on the dot opens a viewport-safe branded floating history card for that element, including per-step trash actions.
 - The floating marker layer is Studio-owned and ignored by the application MutationObserver, preventing marker recreation loops while the pointer enters the dot/history card.
 - JSON/Chat handoff is version 3 and includes `global:true` plus the synchronized server revision.
+
+
+## Studio25 cursor action guidance and accent artifacts
+
+- Once an element is selected, a pointer-transparent branded pill follows the mouse cursor and reads `Select action…` until a radial action is armed.
+- Global wheel navigation updates that pill with the currently armed DevStudio action label and its local Material Symbol. Middle-click continues to execute the armed radial action; the radial may remain docked away from the selected target.
+- Clearing/unselecting the element hides the cursor pill. Closing the radial while keeping the selection restores the pill to `Select action…`.
+- Change dots use `--merd-ui-accent` for fill, glow and focus chrome, so previously rendered change markers repaint immediately when the Developer changes the Studio accent.

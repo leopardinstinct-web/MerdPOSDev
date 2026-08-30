@@ -283,3 +283,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Shared writes use optimistic revisions and CSRF. Cross-machine conflicts refresh to the latest global revision rather than silently overwriting.
 - Each history event stores a patch mutation. Trash deletion is global and recomputes active preview patches by replaying surviving events.
 - Active changed elements expose a Studio-owned green change dot; hover/focus opens a branded viewport-safe per-element history card with trash actions. Studio-owned marker mutations are ignored by the application MutationObserver.
+
+
+### 2026-08-30 - Studio25 cursor guidance and release metadata
+- Selected DevStudio elements expose a cursor-follow action pill. It begins with `Select action…` and mirrors the wheel-armed radial slice with icon + label.
+- DevStudio change dots are accent-token driven; no change marker may retain a stale hard-coded color after an accent switch.
+- About MERDPOS reads deployment-generated Git metadata from `.beta_release.json`. The overall MERDPOS ref is deployed HEAD; DevStudio ref is the newest commit touching `ui-studio.js`/`ui-studio.css`; dates come from Git commit dates; highlights are the three newest commit subjects.

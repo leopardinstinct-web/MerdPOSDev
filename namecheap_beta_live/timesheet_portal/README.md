@@ -218,3 +218,7 @@ The product identity is stored as exact supplied artwork under `assets/brand/`. 
 - Current User is self-only: actual authenticated employee, portal-session status, and only that employee's own open shop shift.
 - DEV Current Preview Role is presentation context only; changing Current role records a local switch timestamp and never changes actual DEV identity.
 - Client freshness, Current User, and Current Preview Role share the same status-pill primitive and remain visible on mobile without horizontal overflow.
+
+
+### About release metadata
+The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh` writes `.beta_release.json` beside the beta live tree after runtime validation. `dashboard.php` reads that server-side file to show the deployed MERDPOS Git reference/date, the latest DevStudio Git reference/date, and the three most recent release commit subjects. Do not replace these values with hand-maintained version strings.
