@@ -7650,6 +7650,15 @@
                     "nullable": true,
                     "default": "NULL",
                     "extra": ""
+                },
+                {
+                    "name": "week_start_day",
+                    "position": 12,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(3) unsigned",
+                    "nullable": false,
+                    "default": "1",
+                    "extra": ""
                 }
             ],
             "indexes": [
