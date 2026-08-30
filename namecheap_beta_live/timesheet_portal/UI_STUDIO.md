@@ -75,3 +75,13 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 - Dashboard responses are narrowed to the widgets actually present. Count widgets receive counts; roster/list widgets receive the rows they need; unrelated dashboard payloads are not broadened by another widget's dependency.
 - Actual DEV controls DevStudio from a toggle in the account sheet. The account avatar follows the Studio accent while enabled. The old separate restore/minimized icon and duplicate DEV-panel launcher are retired.
 - Fine-pointer hover on a selectable element exposes a small Select affordance. The radial Select action is retired; once selected, the root exposes Unselect. Touch devices select directly because hover is unavailable.
+
+## Studio21 mouse interaction model
+
+- Enabling DevStudio keeps the radial controller hidden until it is needed.
+- Right-click a selectable MERDPOS element to select it and open the radial menu at that pointer location. There is no hover Select affordance.
+- While the radial is open, mouse-wheel input anywhere cycles enabled slices as if the pointer were over the center hub.
+- Middle-click activates the currently armed slice. If no slice is armed, no action is executed.
+- Right-click while the radial is open acts as Back. At the root level, Back closes the radial.
+- Left-click outside Studio hides the radial but leaves DevStudio enabled and keeps the current selection.
+- Touch keeps direct selection behavior; the radial opens after a touch selection.

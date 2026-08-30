@@ -74,7 +74,7 @@ test('DEV role preview is universal across shell and API permission context', as
   const clientContext = fs.readFileSync(clientContextPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
-  expect(source).toContain('assets/management.js?v=20260830studio20');
+  expect(source).toContain('assets/management.js?v=20260830studio21');
   expect(source).toContain("$permissions = (array)($user['permissions'] ?? []);");
   expect(source).not.toContain("$previewUser['actual_employee_type']");
   expect(betaApi).toContain('function beta_apply_dev_role_preview');

@@ -253,3 +253,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Dashboard payloads must be least-data for the widgets actually allowed; count-only widgets must not receive roster payloads merely because they share a dependency family.
 - Actual DEV enables/disables DevStudio from the account sheet toggle. The account avatar uses the Studio accent while enabled; the separate restore/minimized icon and duplicate DEV launcher are retired.
 - Desktop selection is hover affordance then Select; the radial Select action is replaced by Unselect after selection. Touch selects directly.
+
+## 2026-08-30 - Studio21 context-click radial controls
+- DevStudio enable state is independent from radial visibility. Enabling Studio does not display the radial until a target is selected.
+- Desktop selection is context-click driven: right-click selects a MERDPOS target and opens the radial at the pointer. Hover Select and hover-to-open are retired.
+- While open, wheel input anywhere cycles enabled radial actions, middle-click activates the armed action, right-click is Back (root Back closes), and left-click outside hides the radial without disabling Studio.
+- Touch direct-selection behavior remains available.

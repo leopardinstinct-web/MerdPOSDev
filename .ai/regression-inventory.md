@@ -217,3 +217,12 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Workforce count/list, dispute count and other scoped payloads stay least-data for the allowed widgets.
 - DEV account sheet exposes the Studio enable toggle and accent-linked avatar; no separate Studio restore control is created.
 - Fine-pointer hover exposes Select without firing the underlying control; selected root exposes Unselect and no Select wedge. Touch selection remains direct and synthetic hover stays inactive.
+
+## Studio21 context-click interaction regressions
+- Enabled Studio starts with its radial hidden; right-click selection opens it and exposes Unselect.
+- Hover Select UI and hover-to-open behavior remain absent.
+- Wheel input anywhere while open cycles enabled slices and still skips disabled items.
+- Middle-click activates the armed radial action.
+- Right-click while open navigates Back; right-click at root closes the radial.
+- Left-click outside hides the radial without disabling Studio.
+- Existing touch direct-selection and hub drag regressions remain mandatory.
