@@ -303,3 +303,5 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - New lower-role implemented patches carry `explicitOverride:true`, so an intentional Admin/Super/User override remains independent when the parent master later changes or is undone.
 - Studio comments use a multiline composer and may attach image context. Upload is actual-DEV-only/CSRF-protected; PNG/JPEG/WebP/GIF are validated and SVG is sanitized. Files live in private backend runtime storage and are exposed only through 256-bit token read URLs for ChatGPT/context handoff.
 - Studio JSON/Chat handoff is version 5 and includes attachment metadata/URLs. Same-browser-profile windows synchronize Studio appearance settings through localStorage `storage` events; settings remain local to that browser profile rather than server-global.
+
+- 2026-08-31: DevStudio implementation patches follow `patch -> canonical source -> tests -> deploy -> live verification -> programmatic active-patch removal`. Patch cleanup is part of completion; global history remains intact as audit. Never clear unrelated or unverified Studio patches.

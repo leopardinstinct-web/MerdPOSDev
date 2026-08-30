@@ -24,7 +24,7 @@ function timings_normalize_time(mixed $value): ?string
 function timings_load(PDO $pdo, int $clientId): array
 {
     $storesStmt = $pdo->prepare(
-        "SELECT id,store_name,status FROM stores WHERE client_id=? ORDER BY id ASC"
+        "SELECT id,store_name,status,COALESCE(week_start_day,1) AS week_start_day FROM stores WHERE client_id=? ORDER BY id ASC"
     );
     $storesStmt->execute([$clientId]);
     $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -39,7 +39,7 @@ function timings_load(PDO $pdo, int $clientId): array
     return ['stores' => $stores, 'timings' => $rows];
 }
 
-function timings_audit(PDO $pdo, array $actor, array $storeIds, array $days): void
+function timings_audit(PDO $pdo, array $actor, array $storeIds, array $days, int $weekStartDay): void
 {
     try {
         $stmt = $pdo->prepare(
@@ -52,7 +52,7 @@ function timings_audit(PDO $pdo, array $actor, array $storeIds, array $days): vo
             'store_timings.update',
             'store_schedule',
             count($storeIds) === 1 ? (string)$storeIds[0] : 'all',
-            json_encode(['store_ids' => $storeIds, 'days' => $days], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            json_encode(['store_ids' => $storeIds, 'days' => $days, 'week_start_day' => $weekStartDay], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
         ]);
     } catch (Throwable $e) {
@@ -87,6 +87,8 @@ try {
     }
 
     $scope = strtolower(trim((string)($input['scope'] ?? 'store')));
+    $weekStartDay = (int)($input['week_start_day'] ?? 1);
+    if ($weekStartDay < 1 || $weekStartDay > 7) throw new MerdWorkforceException('invalid_week_start', 'Choose a valid week start day.');
     if (!in_array($scope, ['store', 'all'], true)) {
         throw new MerdWorkforceException('invalid_scope', 'Choose one store or all active stores.');
     }
@@ -151,10 +153,12 @@ try {
         . 'ON DUPLICATE KEY UPDATE store_name=VALUES(store_name),shift_start_time=VALUES(shift_start_time),updated_at=CURRENT_TIMESTAMP'
     );
     $legacyDelete = $pdo->prepare('DELETE FROM store_shift_start_times WHERE client_id=? AND store_id=?');
+    $weekStartUpdate = $pdo->prepare('UPDATE stores SET week_start_day=? WHERE client_id=? AND id=?');
 
     $pdo->beginTransaction();
     try {
         foreach ($storeIds as $storeId) {
+            $weekStartUpdate->execute([$weekStartDay, $clientId, $storeId]);
             foreach ($days as $day) {
                 $upsert->execute([
                     $clientId,
@@ -189,7 +193,7 @@ try {
         throw $e;
     }
 
-    timings_audit($pdo, $actor, $storeIds, array_values($days));
+    timings_audit($pdo, $actor, $storeIds, array_values($days), $weekStartDay);
     $state = timings_load($pdo, $clientId);
     json_response([
         'success' => true,

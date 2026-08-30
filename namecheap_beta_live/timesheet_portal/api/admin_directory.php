@@ -118,7 +118,7 @@ function directory_load_state(PDO $pdo, array $actor): array
     $stores = [];
     if ($canStores) {
         $storesStmt = $pdo->prepare(
-            "SELECT s.id,s.store_name,s.status,COALESCE(t.shift_start_time,'') AS shift_start_time "
+            "SELECT s.id,s.store_name,s.status,COALESCE(s.week_start_day,1) AS week_start_day,COALESCE(t.shift_start_time,'') AS shift_start_time "
             . "FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id "
             . "WHERE s.client_id=? ORDER BY s.id ASC"
         );
@@ -360,8 +360,10 @@ try {
         $id = isset($input['id']) && $input['id'] !== '' ? (int)$input['id'] : null;
         $name = trim((string)($input['store_name'] ?? ''));
         $status = strtolower(trim((string)($input['status'] ?? 'active')));
+        $weekStartDay = (int)($input['week_start_day'] ?? 1);
         if ($name === '' || mb_strlen($name) > 150) throw new MerdWorkforceException('invalid_store_name', 'Enter a store name.');
         if (!in_array($status, ['active','inactive'], true)) throw new MerdWorkforceException('invalid_status', 'Choose active or inactive.');
+        if ($weekStartDay < 1 || $weekStartDay > 7) throw new MerdWorkforceException('invalid_week_start', 'Choose a valid week start day.');
 
         $dup = $pdo->prepare('SELECT id FROM stores WHERE client_id=? AND LOWER(TRIM(store_name))=LOWER(TRIM(?)) AND (? IS NULL OR id<>?) LIMIT 1');
         $dup->execute([(int)$actor['client_id'],$name,$id,$id]);
@@ -371,7 +373,7 @@ try {
         try {
             if ($id === null) {
                 $columns = directory_store_columns($pdo);
-                $values = ['client_id'=>(int)$actor['client_id'],'store_name'=>$name,'status'=>$status];
+                $values = ['client_id'=>(int)$actor['client_id'],'store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay];
                 if (isset($columns['name'])) $values['name'] = $name;
                 if (isset($columns['store_code'])) $values['store_code'] = directory_generated_code($name);
                 if (isset($columns['code'])) $values['code'] = directory_generated_code($name);
@@ -392,7 +394,7 @@ try {
                 $check->execute([$id,(int)$actor['client_id']]);
                 if (!$check->fetchColumn()) throw new MerdWorkforceException('store_not_found','Store not found.');
                 $columns = directory_store_columns($pdo);
-                $assign = ['store_name=?','status=?']; $args = [$name,$status];
+                $assign = ['store_name=?','status=?','week_start_day=?']; $args = [$name,$status,$weekStartDay];
                 if (isset($columns['name'])) { $assign[]='`name`=?'; $args[]=$name; }
                 $args[]=$id; $args[]=(int)$actor['client_id'];
                 $pdo->prepare('UPDATE stores SET '.implode(',',$assign).' WHERE id=? AND client_id=?')->execute($args);
@@ -404,7 +406,7 @@ try {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
-        directory_audit($pdo,$actor,$auditAction,'store',(string)$id,['store_name'=>$name,'status'=>$status]);
+        directory_audit($pdo,$actor,$auditAction,'store',(string)$id,['store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay]);
         json_response(directory_load_state($pdo,$actor));
     }
 

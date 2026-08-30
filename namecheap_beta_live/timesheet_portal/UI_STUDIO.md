@@ -139,3 +139,11 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Each stored image receives a 256-bit random read token. `studio_context_asset.php?t=<token>` is intentionally read-only and sessionless so a copied ChatGPT handoff can fetch the referenced image without receiving MERDPOS credentials or directory access. SVG reads are sandboxed and all reads are MIME/nosniff guarded.
 - Attachment name, MIME, size, SHA-256 and token URL are stored in the Studio patch. Copy JSON and Copy for ChatGPT include those URLs directly.
 - Studio accent, font/icon scale and radial size use the browser profile's localStorage and listen for `storage` changes, so already-open MERDPOS windows repaint when another window changes Studio appearance. Studio state remains device/browser-profile local; it is not made global across machines.
+
+## Canonical implementation-patch execution rule
+
+- DevStudio comments/style/request patches are implementation instructions, not permanent product source.
+- Execute the requested change in canonical MERDPOS source, run regressions, deploy the exact commit, and live-verify the resulting runtime first.
+- Only after successful live verification, programmatically remove the matching active patches from the global DevStudio state through the revisioned Studio API.
+- Do not delete the corresponding Studio history/audit entries; history remains the implementation trail.
+- Remove only patches whose requested behavior is demonstrably implemented and verified. Unfinished or failed requests remain active.

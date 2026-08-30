@@ -57,7 +57,7 @@
     appendStyle('account-menu-css','assets/account-menu.css?v=20260830about2');
     appendScript('account-menu','assets/account-menu.js?v=20260830roleview4');
 
-    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260826ds1');
+    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260831stores1');
 
     /* Functional identity patch remains; its old standalone styling layer is
        retired because design-system.css now owns the visual grammar. */

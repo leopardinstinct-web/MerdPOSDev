@@ -236,3 +236,7 @@ The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh`
 - Studio comments/requests use a multiline composer and can attach up to six PNG/JPEG/WebP/GIF/SVG images. Context upload is actual-DEV-only and CSRF-protected; SVG is sanitized.
 - Uploaded Studio context is stored under private backend runtime storage. A random-token, read-only `studio_context_asset.php` URL is copied into Studio JSON/Chat handoff so ChatGPT can fetch the image without MERDPOS authentication material.
 - Studio JSON is version 5. Same browser-profile windows synchronize Studio accent/font/icon/radial appearance through localStorage events; this does not make device-local settings server-global.
+
+
+### DevStudio implementation patches
+Implementation requests authored in DevStudio are translated into canonical source. Completion requires regression tests, deployment, live verification, and then programmatic removal of only the matching active Studio patches. Studio history is retained as the audit trail.

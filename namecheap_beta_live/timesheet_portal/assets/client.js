@@ -4,7 +4,7 @@
   const root = document.getElementById('clientsOverview');
   if (!root) return;
 
-  if (!document.querySelector('script[data-dev-stores-ui]')) { const s=document.createElement('script');s.src='assets/dev-stores-ui.js?v=20260825h';s.dataset.devStoresUi='1';document.body.appendChild(s); }
+  if (!document.querySelector('script[data-dev-stores-ui]')) { const s=document.createElement('script');s.src='assets/dev-stores-ui.js?v=20260831stores1';s.dataset.devStoresUi='1';document.body.appendChild(s); }
   if (!document.querySelector('script[data-defaults-module]')) { const s=document.createElement('script');s.src='assets/defaults.js?v=20260827visual1';s.dataset.defaultsModule='1';document.body.appendChild(s); }
   if (!document.querySelector('script[data-roles-module]')) { const s=document.createElement('script');s.src='assets/roles.js?v=20260826ux1';s.dataset.rolesModule='1';document.body.appendChild(s); }
 

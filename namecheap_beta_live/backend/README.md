@@ -100,3 +100,6 @@ Update this file by default when backend architecture, migrations, deployment in
 ## UI Studio global history
 
 Migration 035 introduces `ui_studio_state` and `ui_studio_history` for client-scoped Developer preview history. The dedicated portal API is actual-DEV-only, CSRF-protected for writes, revision-checked for concurrent sessions, and never grants operational business permissions. History deletion soft-deletes the selected event and rebuilds preview patches by replaying the surviving journal. The deploy must run migration 035 and verify both tables before publishing the portal runtime.
+
+
+- Migration 036 adds `stores.week_start_day` (1=Monday ... 7=Sunday) as store configuration. It controls Store Edit schedule ordering only and does not modify frozen timesheet/payroll pairing, rounding, payable-hours, cross-midnight, or wage-by-clock-in-date rules.

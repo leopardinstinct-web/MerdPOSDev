@@ -278,3 +278,6 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Context upload accepts at most six image files per comment. Upload route is actual-DEV-only; public read requires a 64-hex random token; SVG upload is sanitized and SVG read is sandboxed.
 - Copy for ChatGPT must include every attached token URL plus JSON attachment metadata.
 - Changing Studio accent in one same-origin browser window must update an already-open second window and its existing change markers without requiring reload.
+
+- DevStudio implementation cleanup: after a patch-backed feature is live-verified, the exact matching active patch must be removed through the global revisioned Studio API; unrelated patches and history must remain.
+- Implemented patch batch regression: attached Home/Password/Finance icons, canonical Stores Search geometry, circular icon-only Store Edit action, embedded Store Edit timings + persisted week-start day, Reports direct-to-first-report navigation, and DEV-only Disputes nav.

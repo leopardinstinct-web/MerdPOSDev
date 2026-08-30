@@ -62,6 +62,10 @@ $navigationJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_porta
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
+$directoryJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/directory.js', $errors);
+$devStoresJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dev-stores-ui.js', $errors);
+$timingsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/timings.js', $errors);
+$storeTimingsApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/store_timings.php', $errors);
 $rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
 $roleAuthorityApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/role_authority.php', $errors);
 $dashboardAccess = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/dashboard_access.php', $errors);
@@ -77,6 +81,8 @@ $uiStudioAssetRead = beta_contract_read($repo . '/namecheap_beta_live/timesheet_
 $uiStudioHistoryLib = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/ui_studio_history.php', $errors);
 $uiStudioMigration = beta_contract_read($repo . '/namecheap_beta_live/backend/sql/035_ui_studio_global_history.sql', $errors);
 $uiStudioMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/apply_035_ui_studio_global_history.php', $errors);
+$storeWeekStartMigration = beta_contract_read($repo . '/namecheap_beta_live/backend/sql/036_store_week_start_day.sql', $errors);
+$storeWeekStartMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/apply_036_store_week_start_day.php', $errors);
 $uiStudioInheritanceValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_ui_studio_inheritance.php', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 $deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
@@ -543,6 +549,26 @@ foreach (['timesheet','payrate','start_time','employee_setup','general_ledger','
     beta_contract_require_contains($knownFetch, "'{$schema}' =>", 'legacy known header contract', $errors);
 }
 beta_contract_require_contains($knownFetch, 'Preview stopped without importing anything.', 'legacy fail-closed header handling', $errors);
+
+
+// Implemented DevStudio patch requests are canonical source, not permanent Studio overlays.
+beta_contract_require_contains($dashboard, "'home' => 'M600-160v-280h280v280H600", 'attached Dashboard navigation icon', $errors);
+beta_contract_require_contains($dashboard, "'key' => 'M420-360h120l-23-129", 'attached password shield icon', $errors);
+beta_contract_require_contains($dashboard, "'wallet' => 'M441-120v-86", 'attached Finance navigation icon', $errors);
+beta_contract_require_absent($dashboard, 'id="reportsPanel"', 'retired Reports overview panel', $errors);
+beta_contract_require_absent($dashboard, 'report-center.js', 'retired Reports overview runtime', $errors);
+beta_contract_require_contains($dashboard, '$showDisputesNav = $canDisputes && strtoupper($role) === \'DEV\';', 'Disputes navigation Developer-master visibility', $errors);
+beta_contract_require_contains($dashboard, 'id="storeWeekStartDay"', 'Store Edit week-start selector', $errors);
+beta_contract_require_contains($directoryJs, 'store-edit-icon-btn', 'Store Edit icon-only action', $errors);
+beta_contract_require_contains($directoryJs, 'window.MERDPOSStoreTimings?.openStore?.', 'Store Edit opens embedded timings', $errors);
+beta_contract_require_absent($devStoresJs, 'width:min(460px,38vw)', 'DEV Stores no longer overrides canonical Search width', $errors);
+beta_contract_require_contains($timingsJs, "const storeDialog=document.getElementById('storeDialog')", 'Store timings live inside Store Edit', $errors);
+beta_contract_require_contains($timingsJs, "scope:'store'", 'Store timings save is store-scoped', $errors);
+beta_contract_require_contains($timingsJs, 'week_start_day:weekStartDay()', 'Store timings persists week-start day', $errors);
+beta_contract_require_contains($storeTimingsApi, 'UPDATE stores SET week_start_day=?', 'Store timings week-start persistence', $errors);
+beta_contract_require_contains($storeWeekStartMigration, 'week_start_day TINYINT UNSIGNED NOT NULL DEFAULT 1', 'Store week-start migration', $errors);
+beta_contract_require_contains($storeWeekStartMigrationCli, '036 store week start day applied', 'Store week-start migration verification', $errors);
+beta_contract_require_contains($deployScript, 'apply_036_store_week_start_day.php', 'Namecheap store week-start migration wiring', $errors);
 
 if (preg_match('/^\s*[-*]?\s*Never inspect or modify `?timesheet_portal\/?`?\.?\s*$/mi', $projectContext)
     || preg_match('/^\s*\d+\.\s*Never inspect or modify timesheet_portal\/?\.?\s*$/mi', $newChat)) {

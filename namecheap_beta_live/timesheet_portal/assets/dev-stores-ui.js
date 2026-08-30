@@ -34,16 +34,14 @@
       #storesPanel .directory-toolbar.dev-store-toolbar{align-items:center}
       #storesPanel .dev-store-heading{display:flex;align-items:center;min-width:0}
       #storesPanel .dev-store-heading>p{display:none!important}
-      #storesPanel .dev-store-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;flex:0 1 auto;min-width:0}
-      #storesPanel .dev-store-search{flex:0 1 460px;width:min(460px,38vw);min-width:220px;margin:0}
-      #storesPanel .dev-store-search input{width:100%}
+      #storesPanel .dev-store-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;min-width:0}
+      #storesPanel .dev-store-search{margin:0}
       #storesPanel .dev-store-actions #addStoreBtn{flex:0 0 auto;white-space:nowrap}
       #storesPanel .dev-store-identity{margin-top:3px}
       @media(max-width:720px){
         #storesPanel .directory-toolbar.dev-store-toolbar{display:grid;gap:12px;align-items:stretch}
         #storesPanel .dev-store-heading{width:100%;min-width:0}
         #storesPanel .dev-store-actions{width:100%;margin-left:0;flex-wrap:wrap;justify-content:flex-start}
-        #storesPanel .dev-store-search{flex:1 1 14rem;width:auto;min-width:0}
       }
     `;
     document.head.appendChild(style);

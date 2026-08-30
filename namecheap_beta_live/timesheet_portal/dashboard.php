@@ -55,25 +55,23 @@ $canStoresManage = $can('stores.manage');
 $canStoreTimings = $can('stores.timings.manage');
 $canTimesheets = $can('timesheets.view_own') || $can('timesheets.view_all');
 $canDisputes = $can('disputes.view_own') || $can('disputes.review');
-$canReports = $canTimesheets || $canDisputes;
+$showDisputesNav = $canDisputes && strtoupper($role) === 'DEV';
 $canSubmitDisputes = $can('disputes.submit_own');
 $canReviewDisputes = $can('disputes.review');
 $canResolveFlags = $can('attendance_flags.resolve');
 $canFinance = $can('finance.view');
-$canFinanceSummary = $can('finance.management_summary');
 $canFinanceSubmit = $can('finance.submit');
 $canOpenDay = $can('finance.open_day');
 $canDevStatus = $can('dev.status');
 $canDirectory = $canWorkforce || $canStores;
 $hasOperations = $canWorkforce || $canStores;
 $hasWorkforceRaw = $canWorkforce;
-$hasReports = $canReports;
+$hasReports = $canTimesheets || $showDisputesNav;
 
 $panelOrder = [
     'dashboardPanel' => $canDashboard,
     'employeesPanel' => $canWorkforce,
     'storesPanel' => $canStores,
-    'reportsPanel' => $canReports,
     'timesheetPanel' => $canTimesheets,
     'disputesPanel' => $canDisputes,
     'financialPanel' => $canFinance,
@@ -86,6 +84,12 @@ foreach ($panelOrder as $panelId => $allowed) {
 
 function ui_icon(string $name): string
 {
+    $material = [
+        'home' => 'M600-160v-280h280v280H600ZM440-520v-280h440v280H440ZM80-160v-280h440v280H80Zm0-360v-280h280v280H80Zm440-80h280v-120H520v120ZM160-240h280v-120H160v120Zm520 0h120v-120H680v120ZM160-600h120v-120H160v120Zm360 0Zm-80 240Zm240 0ZM280-600Z',
+        'key' => 'M420-360h120l-23-129q20-10 31.5-29t11.5-42q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 23 11.5 42t31.5 29l-23 129Zm60 280q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z',
+        'wallet' => 'M441-120v-86q-53-12-91.5-46T293-348l74-30q15 48 44.5 73t77.5 25q41 0 69.5-18.5T587-356q0-35-22-55.5T463-458q-86-27-118-64.5T313-614q0-65 42-101t86-41v-84h80v84q50 8 82.5 36.5T651-650l-74 32q-12-32-34-48t-60-16q-44 0-67 19.5T393-614q0 33 30 52t104 40q69 20 104.5 63.5T667-358q0 71-42 108t-104 46v84h-80Z',
+    ];
+    if (isset($material[$name])) return '<svg class="ui-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" stroke="none" d="' . $material[$name] . '"/></svg>';
     $icons = [
         'home' => '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>',
         'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
@@ -145,9 +149,8 @@ function ui_icon(string $name): string
       <?php if ($hasReports): ?>
       <div class="nav-group">
         <span class="nav-group-label">Reports</span>
-        <button class="portal-tab<?= $initialPanel === 'reportsPanel' ? ' active' : '' ?>" data-panel="reportsPanel"><?= ui_icon('chart') ?><span>Overview</span></button>
         <?php if ($canTimesheets): ?><button class="portal-tab<?= $initialPanel === 'timesheetPanel' ? ' active' : '' ?>" data-panel="timesheetPanel"><?= ui_icon('clock') ?><span>Timesheets</span><span id="timesheetBell" class="nav-badge" data-dispute-shortcut hidden>0</span></button><?php endif; ?>
-        <?php if ($canDisputes): ?><button class="portal-tab<?= $initialPanel === 'disputesPanel' ? ' active' : '' ?>" data-panel="disputesPanel"><?= ui_icon('message') ?><span>Disputes</span></button><?php endif; ?>
+        <?php if ($showDisputesNav): ?><button class="portal-tab<?= $initialPanel === 'disputesPanel' ? ' active' : '' ?>" data-panel="disputesPanel"><?= ui_icon('message') ?><span>Disputes</span></button><?php endif; ?>
       </div>
       <?php endif; ?>
 
@@ -227,46 +230,6 @@ function ui_icon(string $name): string
         </div>
         <div id="employeeDirectory" class="entity-list"><div class="entity-empty">Loading employeesâ€¦</div></div>
       </section>
-    </section>
-    <?php endif; ?>
-
-    <?php if ($canReports): ?>
-    <section id="reportsPanel" class="portal-panel"<?= $initialPanel === 'reportsPanel' ? '' : ' hidden' ?>>
-      <header class="app-panel-head reports-page-head">
-        <div><h2>Reports</h2><p>Review operational activity using focused reports with consistent context and drill-down.</p></div>
-      </header>
-      <section class="reports-launch-grid" aria-label="Available reports">
-        <?php if ($canTimesheets): ?>
-        <button class="report-launch-card" type="button" data-report-target="timesheetPanel">
-          <span class="report-launch-icon"><?= ui_icon('clock') ?></span>
-          <span><strong>Timesheets</strong><small>Weekly hours, wages and employee shift activity.</small></span>
-          <span class="report-launch-arrow" aria-hidden="true">›</span>
-        </button>
-        <?php endif; ?>
-        <?php if ($canDisputes): ?>
-        <button class="report-launch-card" type="button" data-report-target="disputesPanel">
-          <span class="report-launch-icon"><?= ui_icon('message') ?></span>
-          <span><strong>Disputes</strong><small>Attendance corrections, review workflow and security flags.</small></span>
-          <span class="report-launch-arrow" aria-hidden="true">›</span>
-        </button>
-        <?php endif; ?>
-        <?php if ($canFinance): ?>
-        <button class="report-launch-card" type="button" data-report-target="financialPanel">
-          <span class="report-launch-icon"><?= ui_icon('wallet') ?></span>
-          <span><strong>Financial</strong><small>Daily cash position, movements and closing workflow.</small></span>
-          <span class="report-launch-arrow" aria-hidden="true">›</span>
-        </button>
-        <?php endif; ?>
-      </section>
-      <?php if ($canFinanceSummary): ?>
-      <section class="controls-card reports-sales-section">
-        <div class="reports-section-head">
-          <div><h3>Sales snapshot</h3><p>Completed retail sales for the current business date, by store.</p></div>
-          <span id="reportsBusinessDate" class="reports-period-pill">Today</span>
-        </div>
-        <div id="reportsSalesSummary" class="reports-sales-grid" aria-live="polite"><div class="status-card">Loading sales snapshot...</div></div>
-      </section>
-      <?php endif; ?>
     </section>
     <?php endif; ?>
 
@@ -455,7 +418,7 @@ function ui_icon(string $name): string
         <div class="admin-form-grid">
           <input type="hidden" name="id">
           <label class="full-field">Store name<input name="store_name" maxlength="150" required></label>
-          <label>Expected shift start<input name="shift_start_time" type="time"></label>
+          <label>Week start day<select name="week_start_day" id="storeWeekStartDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="7">Sunday</option></select></label>
           <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
         </div>
         <p class="form-hint">Stores are inactivated rather than deleted so historical attendance, payroll and financial records stay intact.</p>
@@ -487,8 +450,7 @@ function ui_icon(string $name): string
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
   <script src="assets/management.js?v=20260831studio27"></script>
-  <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
-  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
+  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260831stores1"></script><?php endif; ?>
 </body>
 </html>
 

@@ -105,6 +105,7 @@ php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
 php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
 php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
 php "$LIVE/backend/cli/apply_035_ui_studio_global_history.php"
+php "$LIVE/backend/cli/apply_036_store_week_start_day.php"
 
 php -r '
 require $argv[1];
@@ -120,6 +121,13 @@ $tables=["ui_studio_state","ui_studio_history"];
 $q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
 foreach($tables as $table){$q->execute([$table]);if((int)$q->fetchColumn()!==1){fwrite(STDERR,"Missing UI Studio table: {$table}\n");exit(1);}}
 echo "UI Studio global history schema verified (2 tables).\n";
+' "$LIVE/backend/api/config.php"
+
+php -r '
+require $argv[1];
+$q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
+$q->execute(["stores","week_start_day"]);if((int)$q->fetchColumn()!==1){fwrite(STDERR,"Missing stores.week_start_day.\n");exit(1);}
+echo "Store week-start schema verified.\n";
 ' "$LIVE/backend/api/config.php"
 
 rsync -az \

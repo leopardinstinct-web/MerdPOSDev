@@ -32,7 +32,7 @@
   function ensureTimingsModule() {
     if (!can('stores.timings.manage') || document.querySelector('script[data-store-timings-module]')) return;
     const script = document.createElement('script');
-    script.src = 'assets/timings.js?v=20260826loa1';
+    script.src = 'assets/timings.js?v=20260831storeedit1';
     script.dataset.storeTimingsModule = '1';
     document.body.appendChild(script);
   }
@@ -215,7 +215,7 @@
     const rows = (directory.stores || []).filter(s => !query || [s.store_name,s.status,s.id].some(v => String(v || '').toLowerCase().includes(query)));
     if (!rows.length) { storeRoot.innerHTML = '<div class="entity-empty">No stores match this search.</div>'; return; }
     storeRoot.innerHTML = rows.map(store => {
-      const edit = can('stores.manage') ? `<button type="button" class="icon-text-btn" data-edit-store="${Number(store.id)}">${icon('edit')}<span>Edit</span></button>` : '';
+      const edit = can('stores.manage') ? `<button type="button" class="merd-icon-action store-edit-icon-btn" data-edit-store="${Number(store.id)}" aria-label="Edit ${esc(store.store_name)}" title="Edit ${esc(store.store_name)}">${icon('edit')}</button>` : '';
       return `<article class="entity-row ${store.status==='inactive'?'is-muted':''}"><div class="entity-avatar store-avatar">${icon('store')}</div><div class="entity-copy"><div class="entity-title-line"><strong>${esc(store.store_name)}</strong></div></div><div class="entity-meta">${statusPill(store.status)}</div>${edit}</article>`;
     }).join('');
     storeRoot.querySelectorAll('[data-edit-store]').forEach(button => button.addEventListener('click', () => openStore(Number(button.dataset.editStore))));
@@ -301,14 +301,17 @@
     form.elements.id.value = store ? store.id : '';
     form.elements.store_name.value = store?.store_name || '';
     form.elements.status.value = store?.status || 'active';
+    if (form.elements.week_start_day) form.elements.week_start_day.value = String(store?.week_start_day || 1);
     document.getElementById('storeDialogTitle').textContent = store ? `Edit ${store.store_name}` : 'Add store';
     dialog.showModal();
+    window.MERDPOSStoreTimings?.openStore?.(store?.id || null);
   }
 
   async function saveForm(form, action) {
     if (action === 'save_employee' && !can('workforce.manage')) return;
     if (action === 'save_store' && !can('stores.manage')) return;
     const values = Object.fromEntries(new FormData(form));
+    if (action === 'save_store') values.week_start_day = form.elements.week_start_day?.value || '1';
     if (action === 'save_employee') {
       const roleSelect = document.getElementById('employeeRole');
       const selectedOption = roleSelect?.selectedOptions?.[0];
