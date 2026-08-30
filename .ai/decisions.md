@@ -242,3 +242,6 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - New Studio style patches carry explicit effective-role scope. Admin inherits downward to Admin/Super/User; Super to Super/User; User to User; Developer stays DEV-only. This is preview/design inheritance, not authorization.
 - Palette background selection owns readable foreground pairing through computed luminance contrast; manual per-swatch brightness flags are not authoritative for text visibility.
 - Studio radial Size is one geometry setting controlling center diameter and slice thickness together. Disabled radial actions are skipped by wheel candidate selection.
+
+## 2026-08-30 ? Deploy script self-refresh
+- The Namecheap beta deploy script must restart itself under the inherited deploy lock when `git pull` changes `scripts/deploy_namecheap_beta.sh`. This prevents an older in-memory deploy process from validating a freshly pulled runtime against stale cache-version guards.

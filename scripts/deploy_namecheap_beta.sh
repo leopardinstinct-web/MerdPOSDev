@@ -13,10 +13,18 @@ LOCK="$HOME/.merdpos-beta-deploy.lock"
 
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] MERDPOS beta deploy started (pid $$)"
 
-exec 9>"$LOCK"
-if ! flock -n 9; then
-  echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] deploy skipped: another run holds $LOCK"
-  exit 0
+if [[ "${MERDPOS_BETA_DEPLOY_REEXEC:-0}" == "1" ]]; then
+  if ! { true >&9; } 2>/dev/null; then
+    echo "ERROR: refreshed deploy script lost the inherited deployment lock." >&2
+    exit 1
+  fi
+  echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] resumed refreshed deploy script under inherited lock"
+else
+  exec 9>"$LOCK"
+  if ! flock -n 9; then
+    echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] deploy skipped: another run holds $LOCK"
+    exit 0
+  fi
 fi
 
 for command_name in git ssh rsync php flock mktemp find grep; do
@@ -32,10 +40,16 @@ if [[ ! -r "$HOME/.ssh/merdpos_github" ]]; then
 fi
 
 cd "$REPO"
+DEPLOY_SCRIPT_BLOB_BEFORE="$(git rev-parse HEAD:scripts/deploy_namecheap_beta.sh 2>/dev/null || true)"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] fetching $BRANCH from GitHub"
 git fetch origin "$BRANCH"
 git switch "$BRANCH" >/dev/null 2>&1 || git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
+DEPLOY_SCRIPT_BLOB_AFTER="$(git rev-parse HEAD:scripts/deploy_namecheap_beta.sh 2>/dev/null || true)"
+if [[ "${MERDPOS_BETA_DEPLOY_REEXEC:-0}" != "1" && -n "$DEPLOY_SCRIPT_BLOB_BEFORE" && "$DEPLOY_SCRIPT_BLOB_BEFORE" != "$DEPLOY_SCRIPT_BLOB_AFTER" ]]; then
+  echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] deploy script changed during pull; restarting from refreshed source"
+  exec env MERDPOS_BETA_DEPLOY_REEXEC=1 bash "$REPO/scripts/deploy_namecheap_beta.sh"
+fi
 
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] linting MERDPOS PHP source"
 php_lint_failed=0

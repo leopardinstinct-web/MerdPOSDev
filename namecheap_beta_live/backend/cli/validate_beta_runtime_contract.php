@@ -208,6 +208,8 @@ beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=2026083
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview3', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio18', 'Namecheap deploy UI Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio18', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
+beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
 // DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
