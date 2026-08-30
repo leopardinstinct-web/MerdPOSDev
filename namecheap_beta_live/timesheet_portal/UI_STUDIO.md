@@ -91,3 +91,10 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 - Studio icon URLs are now resolved from `document.baseURI` before use.
 - This keeps radial SVG images and center-hub CSS masks on the same canonical `assets/vendor/google-material-symbols/` path.
 - The change prevents stylesheet-relative `assets/assets/vendor/...` requests in the live beta runtime.
+
+## Studio23 hover, docked radial, and keyboard toggle
+- When DevStudio is enabled and its radial is closed, hovering a selectable MERDPOS element shows the dashed Studio target outline. No hover Select button is rendered.
+- Right-click selects the element but docks the radial at the viewport-safe corner farthest from the selected target, keeping the target visible.
+- While the radial is open, wheel and middle-click remain global Studio controls. Right-click remains Back/root-close.
+- A left-click outside the radial dismisses the radial and is consumed; it does not activate the underlying MERDPOS control. Normal page interaction resumes after dismissal.
+- Ctrl+D toggles DevStudio enabled/disabled for actual DEV identity and uses the same persisted state/event path as the account-menu toggle.

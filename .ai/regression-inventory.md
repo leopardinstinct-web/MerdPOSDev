@@ -231,3 +231,9 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - When the radial is open and wheel selection previews an action in the center hub, the hub icon URL must resolve to the document-root `assets/vendor/google-material-symbols/` path.
 - Browser coverage rejects `/assets/assets/` in the generated hub icon URL.
 - Live verification must include failed-response monitoring for Studio asset 404s before the interaction model is marked VERIFIED.
+
+### Studio23 hover/docked-radial regressions
+- Enabled Studio must show `.merd-ui-studio-hover` on selectable elements while the radial is closed, with no hover Select control.
+- Right-click selection must position the radial away from the target, not at the click coordinate.
+- While the radial is open, wheel/middle/right controls belong to Studio and an outside left-click must dismiss without activating the page control beneath it.
+- Ctrl+D must toggle Studio enabled state and emit the same state synchronization used by the account-menu toggle.

@@ -59,6 +59,18 @@ test('Minimize disables Studio without creating a restore icon',async({page})=>{
   await mount(page,true,1280);await openRoot(page);await choose(page,'Minimize');await expect(hub(page)).toBeHidden();await expect(page.locator('.merd-ui-restore-trigger')).toHaveCount(0);expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.isEnabled())).toBe(false);
 });
 
+test('enabled Studio shows dashed hover target while radial stays hidden',async({page})=>{
+  await mount(page,true);await page.locator('#cardA').dispatchEvent('mouseover');await expect(page.locator('#cardA')).toHaveClass(/merd-ui-studio-hover/);await expect(hub(page)).toBeHidden();await expect(page.locator('.merd-ui-hover-select')).toHaveCount(0);
+});
+
+test('right click docks radial away from selected control and page clicks are consumed until dismissed',async({page})=>{
+  await mount(page,true,1280);const target=page.locator('#railHome');const box=await target.boundingBox();await target.click({button:'right'});const h=await hub(page).boundingBox(),hc={x:h.x+h.width/2,y:h.y+h.height/2},tc={x:box.x+box.width/2,y:box.y+box.height/2};expect(Math.hypot(hc.x-tc.x,hc.y-tc.y)).toBeGreaterThan(300);await page.locator('#utilityAction').click();await expect(hub(page)).toBeHidden();expect(await page.evaluate(()=>window.__utilityClicks)).toBe(0);await page.locator('#utilityAction').click();expect(await page.evaluate(()=>window.__utilityClicks)).toBe(1);
+});
+
+test('Ctrl+D toggles Studio state without opening the radial',async({page})=>{
+  await mount(page,true,1280,false);await page.evaluate(()=>{window.__studioStates=[];window.addEventListener('merdpos-uistudio-state',event=>window.__studioStates.push(!!event.detail?.enabled));});await page.keyboard.press('Control+d');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.isEnabled())).toBe(true);await expect(page.locator('body')).toHaveClass(/merd-ui-studio-enabled/);await expect(hub(page)).toBeHidden();await page.keyboard.press('Control+d');expect(await page.evaluate(()=>window.MERDPOS_UI_STUDIO.isEnabled())).toBe(false);await expect(page.locator('body')).not.toHaveClass(/merd-ui-studio-enabled/);expect(await page.evaluate(()=>window.__studioStates.slice(-2))).toEqual([true,false]);
+});
+
 test('right click selects an item and selected root exposes Unselect',async({page})=>{
   await mount(page,true);await selectTarget(page,'#cardA');await expect(item(page,'Unselect')).toBeVisible();await expect(item(page,'Add')).toBeVisible();await expect(item(page,'Edit')).toBeVisible();await expect(item(page,'Move')).toBeVisible();await expect(item(page,'Comment')).toBeVisible();await expect(item(page,'Hide')).toBeVisible();
   await selectTarget(page,'#cardB');await expect(page.locator('#cardA')).not.toHaveClass(/merd-ui-studio-selected/);await expect(page.locator('#cardB')).toHaveClass(/merd-ui-studio-selected/);await choose(page,'Unselect');await expect(page.locator('.merd-ui-studio-selected')).toHaveCount(0);await expect(item(page,'Select')).toHaveCount(0);

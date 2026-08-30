@@ -263,3 +263,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 ## 2026-08-30 - Studio22 icon URL resolution
 - Studio icon asset URLs are resolved against `document.baseURI` before being used by SVG images or CSS masks.
 - Do not use stylesheet-relative `assets/vendor/...` custom-property URLs for the Studio center icon, because external CSS resolves them as `assets/assets/vendor/...` in live beta.
+
+### 2026-08-30 - Studio23 interaction ownership
+- DevStudio enabled state is independent from radial visibility; Ctrl+D and the account toggle share the same persisted state/event path.
+- Dashed hover targeting is available whenever Studio is enabled and the radial is closed.
+- Right-click selection docks the radial away from the selected target using the farthest viewport-safe corner.
+- While the radial is open, Studio owns mouse navigation; outside left-click dismisses and is consumed rather than activating MERDPOS.
