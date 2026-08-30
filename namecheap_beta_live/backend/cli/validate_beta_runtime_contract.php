@@ -71,6 +71,10 @@ $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.css', $errors);
 $uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
 $uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
+$uiStudioHistoryApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/ui_studio_history.php', $errors);
+$uiStudioHistoryLib = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/ui_studio_history.php', $errors);
+$uiStudioMigration = beta_contract_read($repo . '/namecheap_beta_live/backend/sql/035_ui_studio_global_history.sql', $errors);
+$uiStudioMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/apply_035_ui_studio_global_history.php', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 $deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
 
@@ -210,19 +214,19 @@ beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview4', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview4', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio23', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio23', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio24', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio24', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 
-// DEV UI Studio is local preview tooling only. It must never become a browser-side source/data writer.
+// DEV UI Studio preview state is client-global, server-backed and actual-DEV-only; it never writes operational business data.
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV identity flag', $errors);
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV runtime flag', $errors);
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio23', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio23', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio24', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio24', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -316,6 +320,19 @@ beta_contract_require_contains($uiStudioJs, 'function paletteDefinitions', 'Stud
 beta_contract_require_contains($uiStudioJs, "countBadge.addEventListener('pointerup'", 'Studio History count-badge access', $errors);
 
 beta_contract_require_contains($uiStudioJs, 'function deleteHistoryEntry', 'UI Studio individual history deletion', $errors);
+beta_contract_require_contains($betaApi, "case 'ui_studio_history.php':", 'global Studio API route registration', $errors);
+beta_contract_require_contains($uiStudioHistoryApi, 'studio_history_require_dev', 'global Studio actual-DEV API gate', $errors);
+beta_contract_require_contains($betaApi, 'function beta_actual_user_is_dev', 'preserved actual-DEV identity helper', $errors);
+beta_contract_require_contains($uiStudioHistoryApi, 'beta_actual_user_is_dev($user)', 'Studio API ignores preview-role downgrades for actual DEV identity', $errors);
+beta_contract_require_contains($uiStudioJs, 'clientId:Number(window.MERDPOS_AUTH?.client_id||0)', 'Studio local cache is tagged to its working client', $errors);
+beta_contract_require_contains($uiStudioHistoryApi, 'base_revision', 'global Studio optimistic revision input', $errors);
+beta_contract_require_contains($uiStudioHistoryApi, 'revision_conflict', 'global Studio stale-write conflict response', $errors);
+beta_contract_require_contains($uiStudioHistoryApi, "\$action === 'delete'", 'global Studio history deletion endpoint', $errors);
+beta_contract_require_contains($uiStudioHistoryLib, 'function merd_ui_studio_replay_mutations', 'global Studio surviving-step replay', $errors);
+beta_contract_require_contains($uiStudioMigration, 'CREATE TABLE IF NOT EXISTS ui_studio_state', 'Studio global state migration', $errors);
+beta_contract_require_contains($uiStudioMigration, 'CREATE TABLE IF NOT EXISTS ui_studio_history', 'Studio global history migration', $errors);
+beta_contract_require_contains($uiStudioMigrationCli, '035 UI Studio global history applied', 'Studio migration CLI verification', $errors);
+beta_contract_require_contains($deployScript, 'apply_035_ui_studio_global_history.php', 'Namecheap Studio migration deploy wiring', $errors);
 beta_contract_require_contains($uiStudioJs, 'function movableTarget', 'UI Studio component-aware move targeting', $errors);
 beta_contract_require_contains($uiStudioJs, "document.addEventListener('contextmenu'", 'UI Studio right-click select/back control', $errors);
 beta_contract_require_contains($uiStudioJs, "document.addEventListener('wheel'", 'UI Studio global wheel slice selection', $errors);
@@ -350,9 +367,17 @@ beta_contract_require_contains($uiStudioCss, '.merd-ui-studio-host[popover]', 'U
 beta_contract_require_absent($uiStudioJs, '<aside', 'retired UI Studio inspector panel', $errors);
 beta_contract_require_absent($uiStudioJs, 'data-studio-output', 'retired UI Studio change-set textarea', $errors);
 beta_contract_require_absent($uiStudioCss, '.merd-ui-studio {', 'retired UI Studio panel CSS', $errors);
-beta_contract_require_absent($uiStudioJs, 'fetch(', 'UI Studio mutation/network isolation', $errors);
-beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio mutation/network isolation', $errors);
-beta_contract_require_absent($uiStudioJs, '/api/', 'UI Studio mutation/network isolation', $errors);
+beta_contract_require_contains($uiStudioJs, "STUDIO_API='api/ui_studio_history.php'", 'UI Studio global history API', $errors);
+beta_contract_require_contains($uiStudioJs, 'function scheduleGlobalSync', 'UI Studio cross-machine polling', $errors);
+beta_contract_require_contains($uiStudioJs, 'setInterval(syncGlobalState,4000)', 'UI Studio four-second sync cadence', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Changes',action:'changes'", 'restored Studio Changes root branch', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'History',action:'history'", 'restored Studio History control', $errors);
+beta_contract_require_contains($uiStudioJs, "label:'Copy',action:'copy'", 'restored Studio JSON copy control', $errors);
+beta_contract_require_contains($uiStudioJs, 'function renderChangeMarkers', 'Studio changed-element marker renderer', $errors);
+beta_contract_require_contains($uiStudioJs, 'function showElementHistory', 'Studio element history floating card', $errors);
+beta_contract_require_contains($uiStudioCss, '.merd-ui-change-dot', 'Studio change LED styling', $errors);
+beta_contract_require_contains($uiStudioJs, "del.className='merd-ui-history-delete'", 'Studio trash-can history deletion', $errors);
+beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio fetch-only synchronization transport', $errors);
 beta_contract_require_contains($uiStudioCss, 'var(--color-brand-violet)', 'UI Studio master palette use', $errors);
 foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48px.svg','visibility_48px.svg','edit_48px.svg'] as $materialIconFile) {
     if (!is_file($repo . '/namecheap_beta_live/timesheet_portal/assets/vendor/google-material-symbols/' . $materialIconFile)) {
@@ -362,8 +387,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260830pills1', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260830pills1', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260830studio24', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260830studio24', 'Namecheap live dashboard status-pill cache guard', $errors);
 beta_contract_require_contains($omnichannelJs, 'assets/brand/brand.css?v=20260828palette1', 'brand stylesheet cache version', $errors);
 beta_contract_require_contains($authPhp, "login_at_utc'] = gmdate", 'portal session login timestamp', $errors);
 beta_contract_require_contains($authPhp, 'function portal_login_at_utc', 'portal login timestamp accessor', $errors);

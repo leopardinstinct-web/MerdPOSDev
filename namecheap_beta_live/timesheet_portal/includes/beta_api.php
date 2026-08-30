@@ -42,6 +42,11 @@ function beta_user_is_dev(array $user): bool
     return strtoupper(trim((string)($user['actual_employee_type'] ?? $user['role'] ?? ''))) === 'DEV';
 }
 
+function beta_actual_user_is_dev(array $user): bool
+{
+    return strtoupper(trim((string)($user['actual_role_key'] ?? $user['actual_employee_type'] ?? $user['role'] ?? ''))) === 'DEV';
+}
+
 function beta_has_permission(array $user, string $permission, ?PDO $pdo = null): bool
 {
     $catalog = merd_portal_permission_catalog();
@@ -143,6 +148,9 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             ], $pdo); return;
         case 'dashboard_data.php':
             beta_require_permission($user, 'dashboard.view', $pdo); return;
+        case 'ui_studio_history.php':
+            if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Developer access is required.');
+            return;
         case 'dashboard_layout.php':
             $studioDashboard = beta_user_is_dev($user) && (($method === 'GET' && (string)($_GET['dev_studio'] ?? '') === '1') || ($method === 'POST' && !empty($input['dev_studio'])));
             if ($studioDashboard) return;

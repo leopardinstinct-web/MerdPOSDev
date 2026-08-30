@@ -1,6 +1,6 @@
 # MERDPOS UI Studio
 
-UI Studio is an actual-DEV-only local preview/handoff tool. MERDPOS remains the canvas; Studio never writes source, APIs or database state.
+UI Studio is an actual-DEV-only preview/handoff tool. MERDPOS remains the canvas. Studio preview state and history are synchronized through a dedicated client-scoped DEV API, but Studio never writes canonical source or operational business data.
 
 ## Sector radial interaction
 
@@ -33,24 +33,24 @@ Desktop navigation and mobile shell tools treat `[data-ui-studio]` as a non-clos
 - **Layout** exposes padding, margin, gap, radius, width and font-size. Padding, Margin, Gap, Radius and Font use a two-sector **▲ / ▼** stepper with the current value displayed in the hub; Width keeps direct preset choices.
 - **Move** is destination-first and remains single-element preview behavior. When a selected/destination node is inside a recognized MERDPOS component, Move promotes it to that component root so moving a card/feature does not accidentally move only its inner text/icon. Top/Left insert before the destination; Bottom/Right insert after it in DOM order.
 - **Hide/Show** is state-aware: a visible selection shows **Hide**; after hiding, the same action becomes **Show** and restores the preview. Reveal/Restore support remains in the patch engine for hidden-preview recovery.
-- **Comment** records local design-review metadata against the selected element and includes it in Copy/Chat handoff.
+- **Comment** records Developer design-review metadata against the selected element, synchronizes it with global Studio history, and includes it in Copy/Chat handoff.
 - **Add** can create safe preview-only Text, Button, Card or Divider elements, then place the new element Above, Below, Left or Right of the selected target. Added nodes use DOM creation/textContent only; arbitrary HTML is not accepted.
 
 ## History
 
-Studio maintains chronological local history separately from the current active patch set. Every edit/comment/add/move/reset/undo/clear event records page/panel/selector context.
+Studio maintains chronological client-global Developer history separately from the current active patch set. Every edit/comment/add/move/reset/undo/clear event records page/panel/selector context, actor, preview role and server revision.
 
-**The change-count badge on the hub** opens a temporary history card. Clicking an entry returns to its recorded portal panel/page where possible, reopens relevant navigation/dialog/tool context, selects the recorded element and scrolls it into view. Each row also has a delete control that removes only that history step. Cross-page jumps use session storage only for the one navigation handoff.
+**The change-count badge on the hub** opens a temporary history card. Clicking an entry returns to its recorded portal panel/page where possible, reopens relevant navigation/dialog/tool context, selects the recorded element and scrolls it into view. Each row also has a trash-can delete control. Deletion is persisted globally and the server replays surviving mutation steps to recompute the active preview. Cross-page jumps use session storage only for the one navigation handoff.
 
 ## Copy and Chat handoff
 
-`window.MERDPOS_UI_STUDIO.getChangeSet()` returns active preview patches plus history metadata. `getHistory()` exposes a defensive copy of local history. Copy writes structured JSON; Chat writes an apply-to-canonical-source instruction, readable summary and the same JSON to the clipboard.
+`window.MERDPOS_UI_STUDIO.getChangeSet()` returns active preview patches plus history metadata. `getHistory()` exposes a defensive copy of synchronized Developer history. Copy writes structured JSON; Chat writes an apply-to-canonical-source instruction, readable summary and the same JSON to the clipboard.
 
 Comments and added-element patches are design intent only. They become MERDPOS only after canonical owner files are edited, committed to `namecheap-beta-live`, deployed through the normal Namecheap process and runtime-verified.
 
 ## Safety boundary
 
-UI Studio requires the actual `is_dev` identity flag. Its draft/history remain local browser state and are labelled `DEV - PREVIEW ONLY`. Ordinary Studio preview patches, comments, history and settings contain no application API calls, fetch/XHR mutation path or source writer. Edit Dashboard is deliberately outside that preview engine and delegates to the existing authenticated Dashboard Builder, whose dashboard-layout save API remains separately permissioned and actual-DEV gated when launched from Studio.
+UI Studio requires preserved actual DEV identity even while Current role previews Admin/Super/User. Preview patches/comments/history synchronize only through the dedicated `ui_studio_history.php` DEV API and migration 035 tables; ordinary operational APIs remain governed by the effective preview role. Device-only Studio settings and hub position stay browser-local. Edit Dashboard remains a separate authenticated Dashboard Builder path.
 
 
 ## Studio18 role inheritance, contrast and radial sizing
@@ -98,3 +98,15 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 - While the radial is open, wheel and middle-click remain global Studio controls. Right-click remains Back/root-close.
 - A left-click outside the radial dismisses the radial and is consumed; it does not activate the underlying MERDPOS control. Normal page interaction resumes after dismissal.
 - Ctrl+D toggles DevStudio enabled/disabled for actual DEV identity and uses the same persisted state/event path as the account-menu toggle.
+
+
+## Studio24 global history and element change markers
+
+- **Changes** is restored to the radial root and exposes History, Copy JSON, Chat, Undo, Reset and Clear.
+- Migration 035 adds client-scoped `ui_studio_state` and `ui_studio_history`. Actual Developer sessions share one revisioned preview/history stream for the active Working client.
+- Writes are CSRF-protected and use optimistic `base_revision` checks. A stale Developer session is rejected and refreshed instead of silently overwriting another machine.
+- Local draft cache records its Working-client ID. A legacy unscoped draft may bootstrap an empty server journal once; afterward server state is authoritative.
+- Every persisted history step stores actor, preview-role scope, page/panel/selector context and a normalized patch mutation. Deleting a step with the trash icon is global and recomputes active patches by replaying surviving mutations.
+- Elements with active Studio patches receive a small green change dot while Studio is enabled and the radial is closed. Hover/focus/click on the dot opens a viewport-safe branded floating history card for that element, including per-step trash actions.
+- The floating marker layer is Studio-owned and ignored by the application MutationObserver, preventing marker recreation loops while the pointer enters the dot/history card.
+- JSON/Chat handoff is version 3 and includes `global:true` plus the synchronized server revision.

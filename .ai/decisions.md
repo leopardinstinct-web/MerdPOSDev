@@ -275,3 +275,11 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Current User presence is actual-identity/self-only and does not inherit DEV preview permissions or expose workforce data.
 - Preview-role status is presentation-only; account role changes persist a local switch timestamp before reload.
 - Pill cache generation is `20260830pills1`; live deployment must wire the matching management, design-system, and omnichannel identity assets.
+
+
+## 2026-08-30 - Studio24 global Developer history
+- Restore the DevStudio Changes branch (History / Copy JSON / Chat / Undo / Reset / Clear) after the Studio21-23 interaction refactor made it unreachable.
+- DevStudio preview/history is client-scoped server state via migration 035, not browser-only history. Actual DEV identity is preserved for this dedicated API even while Current role previews ADMIN/SUPER/USER; ordinary product authorization still follows the preview role.
+- Shared writes use optimistic revisions and CSRF. Cross-machine conflicts refresh to the latest global revision rather than silently overwriting.
+- Each history event stores a patch mutation. Trash deletion is global and recomputes active preview patches by replaying surviving events.
+- Active changed elements expose a Studio-owned green change dot; hover/focus opens a branded viewport-safe per-element history card with trash actions. Studio-owned marker mutations are ignored by the application MutationObserver.

@@ -244,3 +244,12 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Regression: preview-role switch timestamp must survive reload and render as a relative `Switched ... ago` action.
 - Regression: non-DEV users must never receive the preview-role pill.
 - Regression: user/client pills remain visible on phone layouts without horizontal overflow.
+
+
+## Studio24 global history regressions
+- Root radial must expose Changes and Changes must expose History, Copy, Chat, Undo, Reset and Clear.
+- `ui_studio_history.php` must be actual-DEV-only through preserved actual identity, including while Current role is USER/ADMIN/SUPER.
+- Migration 035 and deploy wiring must create/verify `ui_studio_state` and `ui_studio_history` before portal publish.
+- Two independent Developer browser contexts must observe one shared revision/history stream and global trash deletion.
+- Changed visible elements must render a stable green change dot; hovering it must show element-scoped history without MutationObserver detach/recreate churn.
+- Local Studio cache must carry Working-client identity so a newer client-tagged cache is never applied to another Working client.

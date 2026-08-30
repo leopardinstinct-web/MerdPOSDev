@@ -101,6 +101,7 @@ php "$LIVE/backend/cli/apply_031_client_roles_dashboard_templates.php"
 php "$LIVE/backend/cli/apply_032_seed_role_dashboards.php"
 php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
 php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
+php "$LIVE/backend/cli/apply_035_ui_studio_global_history.php"
 
 php -r '
 require $argv[1];
@@ -108,6 +109,14 @@ $tables=["client_legacy_sources","client_migration_state","legacy_migration_batc
 $q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
 foreach($tables as $table){$q->execute([$table]);if((int)$q->fetchColumn()!==1){fwrite(STDERR,"Missing legacy migration table: {$table}\n");exit(1);}}
 echo "Legacy migration schema verified (6 tables).\n";
+' "$LIVE/backend/api/config.php"
+
+php -r '
+require $argv[1];
+$tables=["ui_studio_state","ui_studio_history"];
+$q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
+foreach($tables as $table){$q->execute([$table]);if((int)$q->fetchColumn()!==1){fwrite(STDERR,"Missing UI Studio table: {$table}\n");exit(1);}}
+echo "UI Studio global history schema verified (2 tables).\n";
 ' "$LIVE/backend/api/config.php"
 
 rsync -az \
@@ -162,15 +171,15 @@ for required_asset in \
   'assets/dashboard-builder.js?v=20260830dashboardstudio3' \
   'assets/account-menu.css?v=20260830roleview4' \
   'assets/account-menu.js?v=20260830roleview4' \
-  'assets/ui-studio.css?v=20260830studio23' \
-  'assets/ui-studio.js?v=20260830studio23'; do
+  'assets/ui-studio.css?v=20260830studio24' \
+  'assets/ui-studio.js?v=20260830studio24'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260830pills1' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260830studio24' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi
