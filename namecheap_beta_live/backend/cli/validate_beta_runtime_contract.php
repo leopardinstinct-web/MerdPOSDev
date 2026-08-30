@@ -208,8 +208,8 @@ beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830roleview4', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview4', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio21', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio21', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260830studio22', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260830studio22', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -219,8 +219,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV runtime flag', $errors);
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio21', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio21', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260830studio22', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260830studio22', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -319,6 +319,7 @@ beta_contract_require_contains($uiStudioJs, "document.addEventListener('contextm
 beta_contract_require_contains($uiStudioJs, "document.addEventListener('wheel'", 'UI Studio global wheel slice selection', $errors);
 beta_contract_require_contains($uiStudioJs, "document.addEventListener('auxclick'", 'UI Studio middle-click action activation', $errors);
 beta_contract_require_contains($uiStudioJs, 'function hideRadial', 'UI Studio hidden-by-default radial state', $errors);
+beta_contract_require_contains($uiStudioJs, 'new URL(`assets/vendor/google-material-symbols/${file}`,document.baseURI).href', 'Studio icon URLs resolve from the document base', $errors);
 beta_contract_require_absent($uiStudioJs, "hub.addEventListener('mouseenter'", 'retired hover-to-open radial behavior', $errors);
 beta_contract_require_contains($uiStudioCss, '.is-hub-candidate', 'UI Studio hub candidate highlight', $errors);
 beta_contract_require_contains($navigationJs, 'nav-bottom', 'Unified bottom navigation runtime', $errors);

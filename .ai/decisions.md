@@ -259,3 +259,7 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Desktop selection is context-click driven: right-click selects a MERDPOS target and opens the radial at the pointer. Hover Select and hover-to-open are retired.
 - While open, wheel input anywhere cycles enabled radial actions, middle-click activates the armed action, right-click is Back (root Back closes), and left-click outside hides the radial without disabling Studio.
 - Touch direct-selection behavior remains available.
+
+## 2026-08-30 - Studio22 icon URL resolution
+- Studio icon asset URLs are resolved against `document.baseURI` before being used by SVG images or CSS masks.
+- Do not use stylesheet-relative `assets/vendor/...` custom-property URLs for the Studio center icon, because external CSS resolves them as `assets/assets/vendor/...` in live beta.

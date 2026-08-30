@@ -226,3 +226,8 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Right-click while open navigates Back; right-click at root closes the radial.
 - Left-click outside hides the radial without disabling Studio.
 - Existing touch direct-selection and hub drag regressions remain mandatory.
+
+## Studio22 live icon-path regression
+- When the radial is open and wheel selection previews an action in the center hub, the hub icon URL must resolve to the document-root `assets/vendor/google-material-symbols/` path.
+- Browser coverage rejects `/assets/assets/` in the generated hub icon URL.
+- Live verification must include failed-response monitoring for Studio asset 404s before the interaction model is marked VERIFIED.

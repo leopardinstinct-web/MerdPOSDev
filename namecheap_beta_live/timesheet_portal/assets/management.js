@@ -72,8 +72,8 @@
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
-      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio21');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio21');
+      appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260830studio22');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260830studio22');
     }
   }
   ensureShellAssets();

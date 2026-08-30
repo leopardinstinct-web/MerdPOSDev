@@ -91,7 +91,7 @@ test('numeric Layout values keep arrow-stepper behavior',async({page})=>{
 });
 
 test('wheel anywhere arms slices and middle click activates the armed action',async({page})=>{
-  await mount(page,true,1280);await openRoot(page);await page.mouse.move(8,8);await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Minimize');await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Edit Dashboard');await page.mouse.down({button:'middle'});await page.mouse.up({button:'middle'});await expect.poll(()=>page.evaluate(()=>window.__dashboardEditCalls)).toBe(1);
+  await mount(page,true,1280);await openRoot(page);await page.mouse.move(8,8);await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Minimize');const iconUrl=await hub(page).locator('.merd-ui-hub-context-icon').evaluate(el=>el.style.getPropertyValue('--merd-ui-hub-icon'));expect(iconUrl).toContain('https://merdpos-smoke.invalid/assets/vendor/google-material-symbols/');expect(iconUrl).not.toContain('/assets/assets/');await page.mouse.wheel(0,120);await expect(hub(page).locator('strong')).toHaveText('Edit Dashboard');await page.mouse.down({button:'middle'});await page.mouse.up({button:'middle'});await expect.poll(()=>page.evaluate(()=>window.__dashboardEditCalls)).toBe(1);
 });
 
 test('right click is Back while open and left click outside hides the radial',async({page})=>{

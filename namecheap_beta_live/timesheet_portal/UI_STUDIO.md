@@ -85,3 +85,9 @@ UI Studio requires the actual `is_dev` identity flag. Its draft/history remain l
 - Right-click while the radial is open acts as Back. At the root level, Back closes the radial.
 - Left-click outside Studio hides the radial but leaves DevStudio enabled and keeps the current selection.
 - Touch keeps direct selection behavior; the radial opens after a touch selection.
+
+## Studio22 icon URL resolution
+
+- Studio icon URLs are now resolved from `document.baseURI` before use.
+- This keeps radial SVG images and center-hub CSS masks on the same canonical `assets/vendor/google-material-symbols/` path.
+- The change prevents stylesheet-relative `assets/assets/vendor/...` requests in the live beta runtime.
