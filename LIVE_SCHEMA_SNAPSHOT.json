@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 47,
+    "table_count": 49,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -7959,6 +7959,448 @@
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "ui_studio_history",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "public_id",
+                    "position": 2,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "revision",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "actor_employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "actor_label",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(120)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_scope",
+                    "position": 7,
+                    "data_type": "varchar",
+                    "column_type": "varchar(32)",
+                    "nullable": false,
+                    "default": "'DEV'",
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 8,
+                    "data_type": "varchar",
+                    "column_type": "varchar(48)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "summary",
+                    "position": 9,
+                    "data_type": "varchar",
+                    "column_type": "varchar(500)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "selector",
+                    "position": 10,
+                    "data_type": "varchar",
+                    "column_type": "varchar(1024)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "runtime_key",
+                    "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(128)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "page_path",
+                    "position": 12,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "panel_id",
+                    "position": 13,
+                    "data_type": "varchar",
+                    "column_type": "varchar(96)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "nav_group",
+                    "position": 14,
+                    "data_type": "varchar",
+                    "column_type": "varchar(96)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "dialog_id",
+                    "position": 15,
+                    "data_type": "varchar",
+                    "column_type": "varchar(96)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "popover_id",
+                    "position": 16,
+                    "data_type": "varchar",
+                    "column_type": "varchar(96)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "mobile_tools",
+                    "position": 17,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "mutation_json",
+                    "position": 18,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "legacy_only",
+                    "position": 19,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "is_system",
+                    "position": 20,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "deleted_at",
+                    "position": 21,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "deleted_by_employee_id",
+                    "position": 22,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 23,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp(6)",
+                    "nullable": false,
+                    "default": "current_timestamp(6)",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_ui_studio_history_actor",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "actor_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_ui_studio_history_deleted_by",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "deleted_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_ui_studio_history_client_revision",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "revision",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_ui_studio_history_client_selector",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "selector",
+                            "prefix_length": 191
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_ui_studio_history_deleted",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "deleted_at",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_ui_studio_history_public",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "public_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_ui_studio_history_actor",
+                    "column": "actor_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                },
+                {
+                    "constraint": "fk_ui_studio_history_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_ui_studio_history_deleted_by",
+                    "column": "deleted_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "ui_studio_state",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "client_id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "revision",
+                    "position": 2,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "patches_json",
+                    "position": 3,
+                    "data_type": "longtext",
+                    "column_type": "longtext",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_employee_id",
+                    "position": 4,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 5,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 6,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_ui_studio_state_actor",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "updated_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_ui_studio_state_actor",
+                    "column": "updated_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                },
+                {
+                    "constraint": "fk_ui_studio_state_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
                 }
             ]
         }
