@@ -867,7 +867,16 @@ body.merd-shell {
 /* -------------------------------------------------------------------------
    Omnichannel identity / freshness
    ------------------------------------------------------------------------- */
-.omni-freshness,
+.omni-status-pills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.omni-status-pill,
 .omni-state-note,
 .omni-context-status {
   display: inline-flex;
@@ -877,9 +886,8 @@ body.merd-shell {
   font-size: var(--type-xs);
 }
 
-.omni-freshness {
+.omni-status-pill {
   min-height: 1.75rem;
-  margin-left: auto;
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-pill);
@@ -887,7 +895,10 @@ body.merd-shell {
   white-space: nowrap;
 }
 
-.omni-freshness-dot,
+.omni-status-pill strong { color: var(--color-text-secondary); }
+.omni-status-pill-action { overflow: hidden; text-overflow: ellipsis; }
+
+.omni-status-pill-dot,
 .omni-state-note::before,
 .omni-context-status::before {
   content: "";
@@ -898,19 +909,11 @@ body.merd-shell {
   background: var(--color-success);
 }
 
-.omni-freshness.is-stale,
-.omni-state-note.is-warning {
-  color: var(--color-warning);
-}
-
-.omni-freshness.is-stale .omni-freshness-dot,
-.omni-state-note.is-warning::before {
-  background: var(--color-warning);
-}
-
-.omni-state-note.is-error::before {
-  background: var(--color-danger);
-}
+.omni-status-pill.is-stale,
+.omni-state-note.is-warning { color: var(--color-warning); }
+.omni-status-pill.is-stale .omni-status-pill-dot,
+.omni-state-note.is-warning::before { background: var(--color-warning); }
+.omni-state-note.is-error::before { background: var(--color-danger); }
 
 .account-context-meta {
   display: grid;
@@ -1100,9 +1103,8 @@ body.merd-shell {
     -webkit-tap-highlight-color: transparent;
   }
 
-  .omni-freshness {
-    display: none;
-  }
+  .omni-status-pills { width:100%; margin-left:0; justify-content:flex-start; }
+  .omni-status-pill { min-width:0; max-width:100%; }
 }
 
 @media (max-width: 35rem) {

@@ -42,6 +42,8 @@ $newChat = beta_contract_read($repo . '/docs/pos_latest/NEW_CHAT_STARTER_PROMPT.
 $management = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/management.js', $errors);
 $dashboard = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/dashboard.php', $errors);
 $betaApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/beta_api.php', $errors);
+$authPhp = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/includes/auth.php', $errors);
+$betaStateApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/beta_state.php', $errors);
 $dashboardDataApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_data.php', $errors);
 $dashboardLayoutApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_layout.php', $errors);
 $clientContextApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/client_context.php', $errors);
@@ -179,7 +181,7 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
     'assets/design-tokens.css?v=20260828palette1',
-    'assets/design-system.css?v=20260827visual1',
+    'assets/design-system.css?v=20260830pills1',
     'assets/design-audit.js?v=20260826ds1',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260828mobile1',
@@ -359,8 +361,22 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 }
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
-beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260828palette1', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260830pills1', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260830pills1', 'Namecheap live dashboard status-pill cache guard', $errors);
 beta_contract_require_contains($omnichannelJs, 'assets/brand/brand.css?v=20260828palette1', 'brand stylesheet cache version', $errors);
+beta_contract_require_contains($authPhp, "login_at_utc'] = gmdate", 'portal session login timestamp', $errors);
+beta_contract_require_contains($authPhp, 'function portal_login_at_utc', 'portal login timestamp accessor', $errors);
+beta_contract_require_contains($betaStateApi, "'current_user' => [", 'self-only current user status payload', $errors);
+beta_contract_require_contains($betaStateApi, "s.employee_id=? AND s.status='open'", 'self-only current shop presence query', $errors);
+beta_contract_require_contains($omnichannelJs, "PREVIEW_ACTION_KEY='merdpos-preview-role-action-v1'", 'preview-role action timestamp persistence', $errors);
+beta_contract_require_contains($omnichannelJs, "ensureStatusPill(root,'omniCurrentUser')", 'current user status pill', $errors);
+beta_contract_require_contains($omnichannelJs, "ensureStatusPill(root,'omniPreviewRole')", 'DEV preview-role status pill', $errors);
+beta_contract_require_contains($omnichannelJs, "ensureStatusPill(root,'omniFreshness')", 'client freshness status pill', $errors);
+beta_contract_require_contains($designSystem, '.omni-status-pill', 'shared omnichannel status pill primitive', $errors);
+beta_contract_require_contains($designSystem, '.omni-status-pills', 'status pill cluster layout', $errors);
+beta_contract_require_contains($accountMenuJs, "localStorage.setItem('merdpos-preview-role-action-v1'", 'preview role switch action capture', $errors);
+
 beta_contract_require_contains($dashboard, 'assets/brand/brand.css?v=20260828palette1', 'authenticated brand stylesheet cache version', $errors);
 foreach (['merdpos-logo-approved.png','merdpos-mark.png','merdpos-wordmark.png','merdpos-tagline.png'] as $assetName) {
     beta_contract_require_contains($brandAssetsJs, $assetName, 'canonical brand registry', $errors);

@@ -51,6 +51,21 @@ try {
     $stores->execute([$clientCurrency, $clientTimezone, (int)$user['client_id']]);
     $storeRows = $stores->fetchAll(PDO::FETCH_ASSOC);
 
+    // Current-user presence is self-only and follows the authenticated identity,
+    // not a DEV presentation-role preview or cross-client management context.
+    $authClientId = (int)($user['auth_client_id'] ?? $user['client_id']);
+    $ownShiftStmt = $pdo->prepare(
+        "SELECT s.public_id AS shift_id,st.store_name,s.clock_in_at "
+        . "FROM attendance_shifts s INNER JOIN stores st ON st.id=s.store_id "
+        . "WHERE s.client_id=? AND s.employee_id=? AND s.status='open' ORDER BY s.clock_in_at DESC LIMIT 1"
+    );
+    $ownShiftStmt->execute([$authClientId, (int)$user['id']]);
+    $ownShift = $ownShiftStmt->fetch(PDO::FETCH_ASSOC);
+    $ownClockInAt = null;
+    if (is_array($ownShift) && !empty($ownShift['clock_in_at'])) {
+        try { $ownClockInAt = (new DateTimeImmutable((string)$ownShift['clock_in_at'], new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM); } catch (Throwable) {}
+    }
+
     $recentShifts = [];
     $canReadRecentShifts = $canViewOwnTimesheets || $canViewAllTimesheets || $canViewOwnDisputes;
     if ($canReadRecentShifts) {
@@ -172,6 +187,15 @@ try {
         'is_dev' => beta_user_is_dev($user),
         'is_admin' => $actualRole === 'ADMIN',
         'current_user_id' => (string)$user['user_id'],
+        'current_user' => [
+            'name' => (string)($user['name'] ?? $user['full_name'] ?? $user['user_id']),
+            'user_id' => (string)$user['user_id'],
+            'portal_active' => true,
+            'portal_login_at' => portal_login_at_utc(),
+            'shop_active' => is_array($ownShift),
+            'shop_name' => is_array($ownShift) ? (string)($ownShift['store_name'] ?? '') : null,
+            'shop_clock_in_at' => $ownClockInAt,
+        ],
         'client' => [
             'id' => (int)$clientDefaultsRow['id'],
             'name' => (string)$clientDefaultsRow['name'],

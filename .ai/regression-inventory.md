@@ -237,3 +237,10 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Right-click selection must position the radial away from the target, not at the click coordinate.
 - While the radial is open, wheel/middle/right controls belong to Studio and an outside left-click must dismiss without activating the page control beneath it.
 - Ctrl+D must toggle Studio enabled state and emit the same state synchronization used by the account-menu toggle.
+
+## 2026-08-30 - Dashboard status pills
+- Regression: Current User pill must always describe only the authenticated employee and their own shop shift.
+- Regression: DEV preview-role pill must never imply impersonation; actual DEV identity remains unchanged.
+- Regression: preview-role switch timestamp must survive reload and render as a relative `Switched ... ago` action.
+- Regression: non-DEV users must never receive the preview-role pill.
+- Regression: user/client pills remain visible on phone layouts without horizontal overflow.

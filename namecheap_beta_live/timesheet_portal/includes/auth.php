@@ -87,8 +87,16 @@ function login_user(array $user): void
     start_app_session();
     session_regenerate_id(true);
     $_SESSION['user'] = $user;
+    $_SESSION['login_at_utc'] = gmdate(DateTimeInterface::ATOM);
     unset($_SESSION['dev_active_client_id']);
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+function portal_login_at_utc(): ?string
+{
+    start_app_session();
+    $value = $_SESSION['login_at_utc'] ?? null;
+    return is_string($value) && $value !== '' ? $value : null;
 }
 
 function set_dev_active_client_id(int $clientId): void

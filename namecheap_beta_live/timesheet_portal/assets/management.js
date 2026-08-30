@@ -61,14 +61,14 @@
 
     /* Functional identity patch remains; its old standalone styling layer is
        retired because design-system.css now owns the visual grammar. */
-    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260828palette1');
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260830pills1');
 
     /* Behaviour only. Geometry comes from the canonical design system. */
     appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');
     appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260828mobile1');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260827visual1');
+    appendStyle('merd-design-system','assets/design-system.css?v=20260830pills1');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){

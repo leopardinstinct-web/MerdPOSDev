@@ -9,6 +9,8 @@
   let state=null;
   let fetchedAt=0;
   let staleTimer=null;
+  const auth=window.MERDPOS_AUTH||{};
+  const PREVIEW_ACTION_KEY='merdpos-preview-role-action-v1';
 
   function ensureBrandAssets(){
     if(!document.querySelector('link[data-merd-brand-css]')){
@@ -122,44 +124,68 @@
     });
   }
 
-  function relativeFreshness(){
-    if(!fetchedAt)return 'Updated now';
-    const seconds=Math.max(0,Math.round((Date.now()-fetchedAt)/1000));
-    if(seconds<45)return 'Updated now';
+  function relativeAction(label,at,fallback=`${label} now`){
+    const stamp=typeof at==='number'?at:Date.parse(String(at||''));
+    if(!Number.isFinite(stamp))return fallback;
+    const seconds=Math.max(0,Math.round((Date.now()-stamp)/1000));
+    if(seconds<45)return `${label} now`;
     const minutes=Math.floor(seconds/60);
-    if(minutes<60)return `Updated ${minutes}m ago`;
+    if(minutes<60)return `${label} ${minutes}m ago`;
     const hours=Math.floor(minutes/60);
-    return `Updated ${hours}h ago`;
+    return `${label} ${hours}h ago`;
+  }
+
+  function relativeFreshness(){return relativeAction('Updated',fetchedAt,'Updated now');}
+
+  function ensureStatusPills(rolebar){
+    let root=document.getElementById('dashboardStatusPills');
+    if(!root){root=document.createElement('div');root.id='dashboardStatusPills';root.className='omni-status-pills';root.setAttribute('role','group');root.setAttribute('aria-label','Current MERDPOS status');rolebar.appendChild(root);}
+    return root;
+  }
+
+  function ensureStatusPill(root,id){
+    let pill=document.getElementById(id);
+    if(!pill){pill=document.createElement('span');pill.id=id;pill.className='omni-status-pill';pill.innerHTML='<span class="omni-status-pill-dot"></span><strong></strong><span class="omni-status-pill-action"></span>';root.appendChild(pill);}
+    return pill;
+  }
+
+  function renderStatusPill(pill,{name,action,title='',stale=false}){
+    pill.querySelector('strong').textContent=name;
+    pill.querySelector('.omni-status-pill-action').textContent=action;
+    pill.classList.toggle('is-stale',!!stale);
+    pill.title=title;
+  }
+
+  function currentUserStatus(){
+    const user=state?.current_user||{},shopActive=!!user.shop_active,loginAt=Date.parse(String(user.portal_login_at||'')),shopAt=Date.parse(String(user.shop_clock_in_at||''));
+    let action='Active now';
+    if(Number.isFinite(shopAt)&&(!Number.isFinite(loginAt)||shopAt>=loginAt))action=relativeAction('Clocked in',shopAt);
+    else if(Number.isFinite(loginAt))action=relativeAction('Logged in',loginAt);
+    const channel=shopActive?'Portal + Shop':'Portal';
+    return {name:String(user.name||state?.current_user_id||'User'),action:`${channel} · ${action}`,title:`Current authenticated user. Portal session active.${shopActive?` Shop: ${user.shop_name||'active'}.`:''} ${action}.`};
+  }
+
+  function previewRoleStatus(){
+    const key=String(auth.view_role_key||auth.role_key||'DEV').trim().toUpperCase(),name=String(auth.role_label||key||'Developer').trim(),prefix=auth.is_role_preview?'Preview':'Actual role';
+    let record=null;try{record=JSON.parse(localStorage.getItem(PREVIEW_ACTION_KEY)||'null');}catch(_){}
+    const switched=record&&String(record.key||'').toUpperCase()===key?relativeAction('Switched',Number(record.at),''):'';
+    const action=`${prefix} · ${switched||'Active now'}`;
+    return {name,action,title:`Current DEV presentation role: ${name}. Actual authenticated identity remains ${auth.actual_role_label||'Developer'}.`};
   }
 
   function patchFreshness(){
     const rolebar=document.getElementById('dashboardRolebar');
     if(rolebar&&state){
-      let badge=document.getElementById('omniFreshness');
-      if(!badge){
-        badge=document.createElement('span');
-        badge.id='omniFreshness';
-        badge.className='omni-freshness';
-        badge.innerHTML='<span class="omni-freshness-dot"></span><strong></strong><span></span>';
-        rolebar.appendChild(badge);
-      }
-      const clientCode=String(state.client?.client_code||'').trim();
-      badge.querySelector('strong').textContent=clientCode||'Live';
-      badge.querySelector('span:last-child').textContent=relativeFreshness();
-      badge.classList.toggle('is-stale',Date.now()-fetchedAt>5*60*1000);
-      badge.title=`Data context: ${state.client?.name||'MERDPOS'}${clientCode?` (${clientCode})`:''}. ${relativeFreshness()}.`;
+      const root=ensureStatusPills(rolebar),userPill=ensureStatusPill(root,'omniCurrentUser');
+      renderStatusPill(userPill,currentUserStatus());
+      if(auth.is_dev===true){const rolePill=ensureStatusPill(root,'omniPreviewRole');renderStatusPill(rolePill,previewRoleStatus());}
+      const badge=ensureStatusPill(root,'omniFreshness');badge.classList.add('omni-freshness');badge.querySelector('.omni-status-pill-dot').classList.add('omni-freshness-dot');
+      const clientCode=String(state.client?.client_code||'').trim(),fresh=relativeFreshness();
+      renderStatusPill(badge,{name:clientCode||'Live',action:fresh,stale:Date.now()-fetchedAt>5*60*1000,title:`Data context: ${state.client?.name||'MERDPOS'}${clientCode?` (${clientCode})`:''}. ${fresh}.`});
     }
 
     const meta=document.getElementById('accountContextMeta');
-    if(meta&&state){
-      let status=meta.querySelector('.omni-context-status');
-      if(!status){
-        status=document.createElement('span');
-        status.className='omni-context-status';
-        meta.appendChild(status);
-      }
-      status.textContent=`Live context · ${relativeFreshness()}`;
-    }
+    if(meta&&state){let status=meta.querySelector('.omni-context-status');if(!status){status=document.createElement('span');status.className='omni-context-status';meta.appendChild(status);}status.textContent=`Live context · ${relativeFreshness()}`;}
   }
 
   function patchDocumentIdentity(){

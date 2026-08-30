@@ -151,8 +151,9 @@ done
 
 for required_asset in \
   'assets/design-tokens.css?v=20260828palette1' \
-  'assets/design-system.css?v=20260827visual1' \
+  'assets/design-system.css?v=20260830pills1' \
   'assets/design-audit.js?v=20260826ds1' \
+  'assets/omnichannel-identity.js?v=20260830pills1' \
   'assets/minimal-controls.js?v=20260826ds1' \
   'assets/mobile-runtime.js?v=20260828mobile1' \
   'assets/shell.css?v=20260830bottom1' \
@@ -168,6 +169,11 @@ for required_asset in \
     exit 1
   fi
 done
+
+if ! grep -q 'assets/management.js?v=20260830pills1' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
+  exit 1
+fi
 
 for material_symbol in LICENSE-Apache-2.0.txt NOTICE.md ads_click_48px.svg arrow_back_48px.svg arrow_forward_48px.svg chat_48px.svg close_48px.svg content_copy_48px.svg delete_48px.svg edit_48px.svg edit_note_48px.svg filter_center_focus_48px.svg format_color_fill_48px.svg format_color_text_48px.svg input_48px.svg open_with_48px.svg palette_48px.svg restart_alt_48px.svg tune_48px.svg undo_48px.svg visibility_48px.svg visibility_off_48px.svg gesture_select_48px.svg text_fields_48px.svg dashboard_48px.svg padding_48px.svg border_outer_48px.svg space_bar_48px.svg rounded_corner_48px.svg swap_horiz_48px.svg format_size_48px.svg my_location_48px.svg comment_48px.svg add_circle_48px.svg history_48px.svg arrow_upward_48px.svg arrow_downward_48px.svg; do
   if [[ ! -r "$LIVE/timesheet_portal/assets/vendor/google-material-symbols/$material_symbol" ]]; then

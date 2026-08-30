@@ -269,3 +269,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Dashed hover targeting is available whenever Studio is enabled and the radial is closed.
 - Right-click selection docks the radial away from the selected target using the farthest viewport-safe corner.
 - While the radial is open, Studio owns mouse navigation; outside left-click dismisses and is consumed rather than activating MERDPOS.
+
+## 2026-08-30 - Shared dashboard status pills
+- Reuse the existing client freshness pill grammar for Current User and DEV Current Preview Role.
+- Current User presence is actual-identity/self-only and does not inherit DEV preview permissions or expose workforce data.
+- Preview-role status is presentation-only; account role changes persist a local switch timestamp before reload.
+- Pill cache generation is `20260830pills1`; live deployment must wire the matching management, design-system, and omnichannel identity assets.

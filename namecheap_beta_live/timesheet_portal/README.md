@@ -212,3 +212,9 @@ Update this README by default whenever portal behavior, authorization, UI conven
 ## Product brand asset library
 
 The product identity is stored as exact supplied artwork under `assets/brand/`. Runtime code uses `assets/brand/brand-assets.js` as the canonical registry for the complete lockup, standalone M mark, MERDPOS wordmark and SMARTER • FASTER • TOGETHER tagline. Use the complete lockup file whenever the complete logo is required; individual elements exist for context-specific use and must not be recomposed into a substitute full logo.
+
+### Omnichannel status pills (2026-08-30)
+- Dashboard rolebar status uses one reusable pill grammar: LED, identity/context name, and latest meaningful action.
+- Current User is self-only: actual authenticated employee, portal-session status, and only that employee's own open shop shift.
+- DEV Current Preview Role is presentation context only; changing Current role records a local switch timestamp and never changes actual DEV identity.
+- Client freshness, Current User, and Current Preview Role share the same status-pill primitive and remain visible on mobile without horizontal overflow.

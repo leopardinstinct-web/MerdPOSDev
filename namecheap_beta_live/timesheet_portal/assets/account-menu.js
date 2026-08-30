@@ -177,6 +177,8 @@
       roleViewSelect.value = ['DEV','ADMIN','SUPER','USER'].includes(viewRoleKey) ? viewRoleKey : 'ADMIN';
       roleViewSelect.addEventListener('change', event => {
         const next = ['DEV','ADMIN','SUPER','USER'].includes(event.target.value) ? event.target.value : 'ADMIN';
+        const nextLabel=String(event.target.selectedOptions?.[0]?.textContent||next).trim();
+        try{localStorage.setItem('merdpos-preview-role-action-v1',JSON.stringify({key:next,label:nextLabel,at:Date.now()}));}catch(_){}
         document.cookie = `merdpos_dev_view_role=${next}; Path=/beta/timesheet_portal/; SameSite=Lax`;
         window.location.reload();
       });
