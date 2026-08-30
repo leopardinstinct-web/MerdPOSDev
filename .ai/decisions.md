@@ -289,3 +289,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Selected DevStudio elements expose a cursor-follow action pill. It begins with `Select action…` and mirrors the wheel-armed radial slice with icon + label.
 - DevStudio change dots are accent-token driven; no change marker may retain a stale hard-coded color after an accent switch.
 - About MERDPOS reads deployment-generated Git metadata from `.beta_release.json`. The overall MERDPOS ref is deployed HEAD; DevStudio ref is the newest commit touching `ui-studio.js`/`ui-studio.css`; dates come from Git commit dates; highlights are the three newest commit subjects.
+
+
+## 2026-08-31 - Studio26 Developer-master inheritance and preview requests
+- Developer is the authoritative visual master: DEV implemented patches target DEV/ADMIN/SUPER/USER; Admin targets Admin/Super/User; Super targets Super/User; User targets User. Stored `roleTargets` are normalized from `roleScope` so old DEV-only stamps do not remain isolated.
+- Lower-role previews may specialize existing inherited elements, but new element placement cannot originate below DEV. Add in ADMIN/SUPER/USER records a proposal request with its preview/placement context; Comment/Describe in those previews records a request note. Both declare `implementationOrigin: DEV` and remain non-production Studio artifacts until implemented from the master.
+- Role-layer Undo/Reset/Clear cannot delete upstream template work. Downstream overrides are applied after upstream patches independent of journal insertion order. This is a presentation/design rule only; authorization remains actual identity → preview role → LOA/permission policy.
+- Studio JSON handoff advances to v4 for request metadata; global revision/history synchronization and history-step deletion remain unchanged.

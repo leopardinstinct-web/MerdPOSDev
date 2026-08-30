@@ -171,15 +171,15 @@ for required_asset in \
   'assets/dashboard-builder.js?v=20260830dashboardstudio3' \
   'assets/account-menu.css?v=20260830about2' \
   'assets/account-menu.js?v=20260830roleview4' \
-  'assets/ui-studio.css?v=20260830studio25' \
-  'assets/ui-studio.js?v=20260830studio25'; do
+  'assets/ui-studio.css?v=20260831studio26' \
+  'assets/ui-studio.js?v=20260831studio26'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260830studio25' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260831studio26' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi

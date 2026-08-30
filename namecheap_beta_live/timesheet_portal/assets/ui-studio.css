@@ -56,7 +56,7 @@
 .merd-ui-studio-history-target { animation:merd-ui-history-target 1.6s ease; }
 @keyframes merd-ui-history-target { 0%,35% { box-shadow:0 0 0 .35rem rgba(69,243,255,.45) !important; } 100% { box-shadow:none; } }
 .merd-ui-studio-text-editing { outline:.2rem solid #45F3FF !important; outline-offset:.16rem !important; cursor:text !important; caret-color:#45F3FF; }
-.merd-ui-studio-has-comment { position:relative; }
+.merd-ui-studio-has-comment,.merd-ui-studio-has-request { position:relative; }
 .merd-ui-change-marker-layer { position:fixed; inset:0; z-index:2147483013; pointer-events:none; }
 .merd-ui-change-marker-layer[hidden] { display:none !important; }
 .merd-ui-change-dot { position:fixed; z-index:2147483014; width:.8rem; height:.8rem; min-width:0; min-height:0; padding:0; border:.12rem solid #fff; border-radius:50%; background:var(--merd-ui-accent,#F59E0B); box-shadow:0 0 .65rem color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 58%,transparent); pointer-events:auto; cursor:help; transform:translate(-50%,-50%); }
@@ -66,6 +66,10 @@
 .merd-ui-cursor-pill[hidden] { display:none !important; }
 .merd-ui-cursor-pill-icon { width:1rem; height:1rem; flex:0 0 1rem; border-radius:.22rem; background:var(--merd-ui-cursor-accent,var(--merd-ui-accent,#F59E0B)); -webkit-mask:var(--merd-ui-cursor-icon) center/contain no-repeat; mask:var(--merd-ui-cursor-icon) center/contain no-repeat; }
 
+.merd-ui-studio-request-preview { position:relative; display:grid; gap:.18rem; min-width:9rem; min-height:3.5rem; padding:.65rem .8rem; border:.12rem dashed var(--merd-ui-accent,#F59E0B); border-radius:.8rem; background:color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 10%,var(--color-surface,#fff)); color:var(--color-text,#111827); box-shadow:0 .45rem 1.35rem color-mix(in srgb,var(--merd-ui-accent,#F59E0B) 14%,transparent); pointer-events:none; }
+.merd-ui-studio-request-preview strong { font:800 .78rem/1.2 var(--font-ui); }
+.merd-ui-studio-request-preview small { color:var(--color-text-muted,#64748b); font:650 .62rem/1.25 var(--font-ui); }
+.merd-ui-studio-request-kicker { color:var(--merd-ui-accent,#F59E0B); font:850 .58rem/1 var(--font-ui); letter-spacing:.08em; text-transform:uppercase; }
 .merd-ui-studio-added-preview { position:relative; outline:.12rem dashed rgba(181,111,255,.65); outline-offset:.12rem; }
 .merd-ui-studio-added-button { min-height:2.5rem; padding:.55rem .85rem; border:1px solid rgba(181,111,255,.5); border-radius:.65rem; background:#A148F5; color:#fff; }
 .merd-ui-studio-added-card { min-height:5rem; margin-block:.5rem; }

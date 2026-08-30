@@ -1,6 +1,26 @@
 <?php
 declare(strict_types=1);
 
+function merd_ui_studio_role_key(mixed $value): string
+{
+    $role = strtoupper(trim((string)$value));
+    return in_array($role, ['DEV','ADMIN','SUPER','USER'], true) ? $role : 'DEV';
+}
+function merd_ui_studio_role_targets(string $role): array
+{
+    return match (merd_ui_studio_role_key($role)) {
+        'DEV' => ['DEV','ADMIN','SUPER','USER'],
+        'ADMIN' => ['ADMIN','SUPER','USER'],
+        'SUPER' => ['SUPER','USER'],
+        'USER' => ['USER'],
+    };
+}
+function merd_ui_studio_request_targets(string $role): array
+{
+    $role = merd_ui_studio_role_key($role);
+    return $role === 'DEV' ? ['DEV'] : ['DEV', $role];
+}
+
 function merd_ui_studio_patch_key(array $patch): string
 {
     $kind = strtolower(trim((string)($patch['kind'] ?? '')));
@@ -17,6 +37,10 @@ function merd_ui_studio_patch_key(array $patch): string
             'comment', $role, (string)($patch['contextKey'] ?? ''), $selector,
             (string)($patch['createdAt'] ?? ''), (string)($patch['comment'] ?? ''),
         ]),
+        'request' => implode('|', [
+            'request', (string)($patch['requestedFromPreview'] ?? $role),
+            (string)($patch['requestType'] ?? ''), (string)($patch['requestKey'] ?? ''), $selector,
+        ]),
         default => 'patch|' . hash('sha256', json_encode($patch, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
     };
 }
@@ -32,8 +56,30 @@ function merd_ui_studio_normalize_patches(mixed $value): array
     foreach ($value as $patch) {
         if (!is_array($patch)) continue;
         $kind = strtolower(trim((string)($patch['kind'] ?? '')));
-        if (!in_array($kind, ['style','text','move','add','comment'], true)) continue;
-        $patch['kind'] = $kind;
+        if (!in_array($kind, ['style','text','move','add','comment','request'], true)) continue;
+        $role = merd_ui_studio_role_key($patch['roleScope'] ?? 'DEV');
+        if (($kind === 'add' || $kind === 'comment') && $role !== 'DEV') {
+            $patch['kind'] = 'request';
+            $patch['requestType'] = $kind;
+            $patch['requestedFromPreview'] = $role;
+            $patch['implementationOrigin'] = 'DEV';
+            $patch['status'] = 'proposed';
+            $patch['requestKey'] = (string)($patch['requestKey'] ?? $patch['addedKey'] ?? $patch['contextKey'] ?? $patch['createdAt'] ?? $patch['selector'] ?? 'legacy-request');
+            $patch['roleScope'] = $role;
+            $patch['roleTargets'] = merd_ui_studio_request_targets($role);
+        } elseif ($kind === 'request') {
+            $preview = merd_ui_studio_role_key($patch['requestedFromPreview'] ?? $role);
+            $patch['kind'] = 'request';
+            $patch['requestedFromPreview'] = $preview;
+            $patch['implementationOrigin'] = 'DEV';
+            $patch['status'] = (string)($patch['status'] ?? 'proposed');
+            $patch['roleScope'] = $preview;
+            $patch['roleTargets'] = merd_ui_studio_request_targets($preview);
+        } else {
+            $patch['kind'] = $kind;
+            $patch['roleScope'] = $role;
+            $patch['roleTargets'] = merd_ui_studio_role_targets($role);
+        }
         $patches[] = $patch;
     }
     $json = json_encode($patches, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);

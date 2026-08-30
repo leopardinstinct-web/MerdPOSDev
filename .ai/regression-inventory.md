@@ -261,3 +261,11 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Existing change dots must repaint to the current DevStudio accent without requiring a page reload.
 - About splash must preserve the supplied white-left / gradient-right brand composition, show MERDPOS + DevStudio Git refs/dates, and render exactly three release highlights.
 - Namecheap deploy must generate and validate `.beta_release.json` before writing the deployed marker.
+
+
+### Studio26 master-inheritance / proposal regressions
+- Legacy stored DEV patches stamped with `roleTargets:[DEV]` must normalize to DEV/ADMIN/SUPER/USER and apply in every lower preview.
+- Fresh DEV and Admin patches must export canonical downward targets; lower-role Undo must remove only that preview layer and preserve upstream master patches.
+- Add in USER/ADMIN/SUPER must create a `requestType:add` proposal with `implementationOrigin:DEV`, never an implemented `add`; its visual placeholder is Studio-owned and appears in DEV plus the requested preview context only.
+- Comment/Describe in a lower preview must create a `requestType:comment` proposal, not a lower-role implemented comment.
+- Server patch normalization must accept `request`, canonicalize role targets, and convert any lower-role persisted add/comment into proposals on read/write/replay.

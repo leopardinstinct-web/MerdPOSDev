@@ -109,7 +109,7 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Every persisted history step stores actor, preview-role scope, page/panel/selector context and a normalized patch mutation. Deleting a step with the trash icon is global and recomputes active patches by replaying surviving mutations.
 - Elements with active Studio patches receive a small green change dot while Studio is enabled and the radial is closed. Hover/focus/click on the dot opens a viewport-safe branded floating history card for that element, including per-step trash actions.
 - The floating marker layer is Studio-owned and ignored by the application MutationObserver, preventing marker recreation loops while the pointer enters the dot/history card.
-- JSON/Chat handoff is version 3 and includes `global:true` plus the synchronized server revision.
+- JSON/Chat handoff is version 4 and includes `global:true`, the synchronized server revision, canonical role inheritance, and proposal/request metadata.
 
 
 ## Studio25 cursor action guidance and accent artifacts
@@ -118,3 +118,13 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Global wheel navigation updates that pill with the currently armed DevStudio action label and its local Material Symbol. Middle-click continues to execute the armed radial action; the radial may remain docked away from the selected target.
 - Clearing/unselecting the element hides the cursor pill. Closing the radial while keeping the selection restores the pill to `Select action…`.
 - Change dots use `--merd-ui-accent` for fill, glow and focus chrome, so previously rendered change markers repaint immediately when the Developer changes the Studio accent.
+
+
+## Studio26 Developer master and lower-role proposals
+
+- **Developer is the visual master template.** Implemented DEV patches inherit to DEV + ADMIN + SUPER + USER; Admin inherits to Admin + Super + User; Super to Super + User; User to User. Runtime and server normalization derive targets from `roleScope`, so older saved DEV patches that explicitly carried `roleTargets:[DEV]` are interpreted as master-wide without recreating them.
+- Implemented style, text, move, hide and DEV Add patches are layered in hierarchy order so a downstream override applies after its upstream template regardless of edit timestamp. Lower previews may specialize existing inherited elements but cannot delete an upstream element with Reset/Undo/Clear.
+- Add while previewing ADMIN/SUPER/USER is **not** an implemented lower-role element. It records a `kind:request`, `requestType:add` proposal with `requestedFromPreview`, `implementationOrigin:DEV`, `status:proposed`, placement/type/content context, and a Studio-owned dashed visual placeholder. The proposal is visible in the requested preview and DEV master context only while Studio is active.
+- Comment/Describe while previewing ADMIN/SUPER/USER is likewise a proposal request rather than an implemented comment. It remains anchored to the selected element/widget and is included in global history, change markers, JSON and Chat handoff.
+- Lower-role proposals mean "design/request observed in this preview; implementation must begin in Developer master." They do not alter product authorization and do not create production DOM outside the Developer master inheritance chain.
+- Undo, Reset and Clear operate on the current role's own Studio layer. An inherited master element can be hidden downstream but cannot be physically removed or restored against an upstream hide from a lower preview.

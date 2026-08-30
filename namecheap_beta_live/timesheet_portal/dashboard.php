@@ -397,8 +397,8 @@ function ui_icon(string $name): string
         <img class="merd-about-logo" src="assets/brand/merdpos-logo-approved.png?v=20260827brand4" alt="MERDPOS - Smarter Faster Together">
         <h2 id="merdposAboutTitle" class="merd-about-title">Release information</h2>
         <div class="merd-about-release-grid">
-          <div class="merd-about-release-row"><span>MERDPOS</span><strong><?= htmlspecialchars($productVersion) ?></strong><small><?= htmlspecialchars($productReleaseDate) ?></small></div>
-          <div class="merd-about-release-row"><span>DevStudio</span><strong><?= htmlspecialchars($devStudioVersion) ?></strong><small><?= htmlspecialchars($devStudioReleaseDate) ?></small></div>
+          <div class="merd-about-release-row"><span>MERDPOS</span><strong>Git <?= htmlspecialchars($productVersion) ?></strong><small>Release date · <?= htmlspecialchars($productReleaseDate) ?></small></div>
+          <div class="merd-about-release-row"><span>DevStudio</span><strong>Git <?= htmlspecialchars($devStudioVersion) ?></strong><small>Release date · <?= htmlspecialchars($devStudioReleaseDate) ?></small></div>
         </div>
         <section class="merd-about-highlights" aria-label="Release highlights"><h3>Release Highlights</h3><ul><?php foreach ($releaseHighlights as $highlight): ?><li><?= htmlspecialchars($highlight) ?></li><?php endforeach; ?></ul></section>
         <footer class="merd-about-foot"><strong>SMARTER <i>•</i> FASTER <i>•</i> TOGETHER</strong><span>Copyright © <?= date('Y') ?> All rights reserved</span></footer>
@@ -486,7 +486,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260830studio25"></script>
+  <script src="assets/management.js?v=20260831studio26"></script>
   <?php if ($canReports): ?><script src="assets/report-center.js?v=20260828reports1"></script><?php endif; ?>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260826minimal1"></script><?php endif; ?>
 </body>

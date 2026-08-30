@@ -222,3 +222,10 @@ The product identity is stored as exact supplied artwork under `assets/brand/`. 
 
 ### About release metadata
 The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh` writes `.beta_release.json` beside the beta live tree after runtime validation. `dashboard.php` reads that server-side file to show the deployed MERDPOS Git reference/date, the latest DevStudio Git reference/date, and the three most recent release commit subjects. Do not replace these values with hand-maintained version strings.
+
+
+### DevStudio Developer master + preview requests (2026-08-31)
+- The visual-template chain is Developer → Admin → Super → User. Developer patches are the master and are inherited by every lower preview; lower roles can further specialize inherited elements but cannot introduce production elements absent from the Developer master.
+- Actual DEV may still design in an Admin/Super/User preview. Add or Comment/Describe there is stored as a globally synchronized proposal request anchored to that preview and explicitly marked to begin implementation from Developer.
+- Studio proposal placeholders are editing artifacts only. They do not grant permissions, create lower-role production DOM, or bypass the existing role/LOA/permission model.
+- Studio JSON v4 carries canonical role targets plus proposal metadata; migration 035 global history remains the persistence mechanism.
