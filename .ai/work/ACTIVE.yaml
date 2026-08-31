@@ -1,9 +1,4 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-01T00:45:00+05:00"
-active:
-  - id: MERD-20260901-continuity-truth
-    path: .ai/work/active/MERD-20260901-continuity-truth.yaml
-    packet_state: CHECKED
-    lifecycle: WIRED
-    next_action: "Commit and push the exact checked continuity-hardening tree."
+updated_at: "2026-09-01T01:14:18+05:00"
+active: []
