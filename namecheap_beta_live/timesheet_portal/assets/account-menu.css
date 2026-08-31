@@ -450,6 +450,28 @@
 body.merd-ui-studio-enabled .rail-user-avatar { background:var(--merd-ui-accent,#F59E0B); color:var(--merd-ui-accent-ink,#111827); }
 
 
+
+.rail-timesheet-sync-row {
+  min-height:2.75rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+  padding:.1rem 0; color:var(--color-nav-text-muted); font:700 .8125rem/1.2 var(--font-ui); letter-spacing:.02em;
+}
+.rail-timesheet-sync-btn {
+  width:2.75rem; height:2.75rem; display:grid; place-items:center; padding:.55rem;
+  border:1px solid var(--color-nav-border); border-radius:var(--radius-control);
+  color:var(--color-nav-text); background:var(--color-nav-bg-hover); cursor:pointer;
+}
+.rail-timesheet-sync-btn:hover:not(:disabled),
+.rail-timesheet-sync-btn:focus-visible:not(:disabled) {
+  border-color:color-mix(in srgb,var(--color-brand-cyan) 58%,var(--color-nav-border));
+  background:color-mix(in srgb,var(--color-brand-cyan) 12%,var(--color-nav-bg-hover));
+  outline:none;
+}
+.rail-timesheet-sync-btn:focus-visible { outline:.1875rem solid var(--color-focus-soft); outline-offset:.125rem; }
+.rail-timesheet-sync-btn:disabled { opacity:.48; cursor:not-allowed; }
+.rail-timesheet-sync-btn img { width:1.4rem; height:1.4rem; display:block; filter:brightness(0) invert(1); }
+.rail-timesheet-sync-btn[aria-busy="true"] img { animation:merd-timesheet-sync-spin .8s linear infinite; }
+@keyframes merd-timesheet-sync-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rail-timesheet-sync-btn[aria-busy="true"] img { animation:none; } }
 .rail-context-toggle { width:100%; min-height:2.75rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:0; border:0; color:var(--color-nav-text-muted); background:transparent; font:700 .8125rem/1.2 var(--font-ui); letter-spacing:.02em; text-align:left; cursor:pointer; }
 .rail-context-toggle:focus-visible { outline:.1875rem solid var(--color-focus-soft); outline-offset:.125rem; border-radius:var(--radius-control); }
 .rail-context-chevron { width:.55rem; height:.55rem; flex:0 0 .55rem; border-right:.125rem solid currentColor; border-bottom:.125rem solid currentColor; transform:rotate(45deg); transition:transform .16s ease; }

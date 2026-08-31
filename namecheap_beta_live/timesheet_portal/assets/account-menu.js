@@ -34,9 +34,9 @@
     const response = await fetch(url, {cache:'no-store', ...options});
     const text = await response.text();
     let data = null;    try { data = text ? JSON.parse(text) : null; }
-    catch (_) { throw new Error(`Client context returned invalid data (${response.status}).`); }
-    if (!data) throw new Error(`Client context returned an empty response (${response.status}).`);
-    if (!data.success) throw new Error(data.error || 'Client context could not be loaded.');
+    catch (_) { throw new Error(`MERDPOS API returned invalid data (${response.status}).`); }
+    if (!data) throw new Error(`MERDPOS API returned an empty response (${response.status}).`);
+    if (!data.success) throw new Error(data.error || 'MERDPOS request could not be completed.');
     return data;
   }
 
@@ -82,11 +82,12 @@
     if (wasOpen && options.restoreFocus !== false) window.setTimeout(() => utilityTrigger?.focus?.({preventScroll:true}), 30);
   }
 
-  async function switchClient(clientId, selects) {
+  async function switchClient(clientId, selects, syncButton = null) {
     if (!context || !context.can_select_client || Number(clientId) === Number(context.active_client_id)) return;
     const selected = (context.clients || []).find(client => Number(client.id) === Number(clientId));
     const selectedName = selected?.name || `Client ${clientId}`;
     selects.forEach(select => { select.disabled = true; });
+    if (syncButton) syncButton.disabled = true;
     try {
       const result = await api('api/client_context.php', {
         method:'POST',
@@ -102,6 +103,7 @@
         select.disabled = !context.can_select_client;
         select.value = String(context.active_client_id || '');
       });
+      if (syncButton) syncButton.disabled = auth.is_dev !== true || !Number(context.active_client_id);
       window.alert(error.message);
     }
   }
@@ -125,7 +127,7 @@
     const studioMetrics = auth.is_dev===true ? `<div class="rail-studio-metrics" aria-label="DevStudio unresolved patch inbox"><button type="button" class="rail-studio-metric" data-studio-metric="requests" title="Implementation requests"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/google-material-symbols/comment_48px.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="patches" title="Global unresolved patches"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/create_new_folder_24dp.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="copy" title="Copy unresolved patches for ChatGPT"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/folder_match_24dp.svg" alt=""></button></div>` : '';
     utilities.innerHTML = `
       <div class="rail-user-summary">${studioMetrics}<span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
-      <div class="rail-mobile-client-context rail-collapsible-context" data-context-key="working-client"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Working client</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div></div>
+      <div class="rail-mobile-client-context rail-collapsible-context" data-context-key="working-client"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Working client</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select>${auth.is_dev===true ? `<div class="rail-timesheet-sync-row"><span>Sync</span><button type="button" class="rail-timesheet-sync-btn" aria-label="Sync Time Sheet from Google" title="Replace SQL Time Sheet from Google" disabled><img src="assets/vendor/google-material-symbols/restart_alt_48px.svg" alt=""></button></div>` : ''}</div></div>
       ${auth.is_dev===true ? `<div class="rail-dev-role-context rail-collapsible-context" data-context-key="current-role"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Current role</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select></div></div>` : ''}`;
 
     const accountSection = document.createElement('section');
@@ -180,6 +182,7 @@
     const mobileSelect = utilities.querySelector('.rail-mobile-client-select');
     const selects = [desktopSelect, mobileSelect].filter(Boolean);
     const roleViewSelect = utilities.querySelector('.rail-dev-role-select');
+    const timesheetSyncButton = utilities.querySelector('.rail-timesheet-sync-btn');
     if (roleViewSelect) {
       roleViewSelect.value = ['DEV','ADMIN','SUPER','USER'].includes(viewRoleKey) ? viewRoleKey : 'ADMIN';
       roleViewSelect.addEventListener('change', event => {
@@ -190,6 +193,33 @@
         window.location.reload();
       });
     }
+
+    async function syncGoogleTimeSheet() {
+      if (!timesheetSyncButton || auth.is_dev !== true || !context || !Number(context.active_client_id)) return;
+      const clientName = String(context?.client?.name || `Client ${context.active_client_id}`).trim();
+      const approved = window.confirm(`Replace all ${clientName} SQL Time Sheet data with the latest Google "Time Sheet" worksheet?\n\nThe Google worksheet is fully validated first. Only this Working client's attendance events are replaced.`);
+      if (!approved) return;
+      timesheetSyncButton.disabled = true;
+      timesheetSyncButton.setAttribute('aria-busy', 'true');
+      selects.forEach(select => { select.disabled = true; });
+      try {
+        const result = await api('api/timesheet_google_refresh.php', {
+          method:'POST',
+          headers:{'Accept':'application/json','Content-Type':'application/json'},
+          body:JSON.stringify({action:'refresh_timesheet',client_id:Number(context.active_client_id),csrf:context.csrf}),
+        });
+        const imported = Math.max(0, Number(result.inserted_rows || result.source_rows || 0));
+        sessionStorage.setItem('merdposReturnPanel', visiblePanelId());
+        sessionStorage.setItem('merdposContextNotice', `Time Sheet synced - ${imported.toLocaleString()} rows imported from Google.`);
+        window.location.reload();
+      } catch (error) {
+        timesheetSyncButton.disabled = false;
+        timesheetSyncButton.removeAttribute('aria-busy');
+        selects.forEach(select => { select.disabled = !context.can_select_client; });
+        window.alert(error.message);
+      }
+    }
+    timesheetSyncButton?.addEventListener('click', syncGoogleTimeSheet);
 
     const studioToggle = utilities.querySelector('.rail-devstudio-toggle');
     function syncStudioToggle(detail={}) {
@@ -244,10 +274,15 @@
       });
       const clientName = String(data?.client?.name || 'Working client').trim();
       clientSection.title = `Working client: ${clientName}`;
+      if (timesheetSyncButton) {
+        timesheetSyncButton.disabled = auth.is_dev !== true || !Number(data.active_client_id);
+        timesheetSyncButton.removeAttribute('aria-busy');
+        timesheetSyncButton.title = `Replace ${clientName} SQL Time Sheet from Google`;
+      }
       window.dispatchEvent(new CustomEvent('merdpos-clientcontext', {detail:data}));
     }
 
-    selects.forEach(select => select.addEventListener('change', event => switchClient(event.target.value, selects)));
+    selects.forEach(select => select.addEventListener('change', event => switchClient(event.target.value, selects, timesheetSyncButton)));
     const aboutDialog = document.getElementById('merdposAboutDialog');
     const aboutClose = document.getElementById('merdposAboutClose');
     aboutBtn.addEventListener('click', () => {

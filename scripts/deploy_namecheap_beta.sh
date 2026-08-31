@@ -174,6 +174,7 @@ for live_file in \
   "$LIVE/timesheet_portal/api/ui_studio_history.php" \
   "$LIVE/timesheet_portal/includes/ui_studio_history.php" \
   "$LIVE/timesheet_portal/api/ui_studio_asset.php" \
+  "$LIVE/timesheet_portal/api/timesheet_google_refresh.php" \
   "$LIVE/timesheet_portal/studio_context_asset.php" \
   "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
   "$LIVE/timesheet_portal/README.md" \
@@ -197,8 +198,8 @@ for required_asset in \
   'assets/analytics-runtime.js?v=20260831analytics2' \
   'assets/dashboard-builder.css?v=20260831analytics2' \
   'assets/dashboard-builder.js?v=20260831analytics2' \
-  'assets/account-menu.css?v=20260831studio29' \
-  'assets/account-menu.js?v=20260831studio29' \
+  'assets/account-menu.css?v=20260901timesheetsync1' \
+  'assets/account-menu.js?v=20260901timesheetsync1' \
   'assets/ui-studio.css?v=20260831studio29' \
   'assets/ui-studio.js?v=20260831studio29'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
@@ -207,7 +208,7 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260831studio29' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260901timesheetsync1' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi
@@ -230,6 +231,14 @@ if ! grep -q 'function merd_ui_studio_normalize_palette' "$LIVE/timesheet_portal
 fi
 if ! grep -q 'rail-collapsible-context' "$LIVE/timesheet_portal/assets/account-menu.js"; then
   echo "ERROR: live account runtime is missing minimizable context sections." >&2
+  exit 1
+fi
+if ! grep -q 'rail-timesheet-sync-btn' "$LIVE/timesheet_portal/assets/account-menu.js"; then
+  echo "ERROR: live account runtime is missing the Working client Time Sheet sync control." >&2
+  exit 1
+fi
+if ! grep -q 'beta_actual_user_is_dev' "$LIVE/timesheet_portal/api/timesheet_google_refresh.php" || ! grep -Fq 'DELETE FROM employee_logs WHERE client_id=?' "$LIVE/timesheet_portal/api/timesheet_google_refresh.php"; then
+  echo "ERROR: live Time Sheet refresh endpoint is missing actual-DEV or client-scoped replacement guards." >&2
   exit 1
 fi
 

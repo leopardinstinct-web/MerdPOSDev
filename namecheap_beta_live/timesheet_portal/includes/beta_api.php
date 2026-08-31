@@ -183,6 +183,9 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'client_context.php':
             if ($method === 'POST' && !beta_user_is_dev($user)) beta_require_permission($user, 'client_context.switch', $pdo);
             return;
+        case 'timesheet_google_refresh.php':
+            if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Only the actual DEV identity can refresh Google Time Sheet data.');
+            return;
         case 'admin_directory.php':
             if ($method === 'GET') { beta_require_any_permission($user, ['stores.view','workforce.view'], $pdo); return; }
             if ($action === 'save_store') { beta_require_permission($user, 'stores.manage', $pdo); return; }

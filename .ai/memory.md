@@ -61,6 +61,10 @@ A commit on GitHub is not deployment evidence. DEPLOYED requires the intended co
 
 The latest known runtime feature generation before this continuity-maintenance task is Studio29 (`20260831studio29`) with analytics generation `20260831analytics2`. A fresh session must still resolve current branch HEAD and deployment evidence rather than assuming these strings remain latest forever.
 
+## Pre-live Google Time Sheet refresh
+
+Actual DEV has a Working client account-sheet utility for a full Google `Time Sheet` ? SQL attendance refresh. It is client-scoped, validates the complete source before one transactional `employee_logs` replacement, and intentionally does not change Google/SQL migration authority. This is a temporary pre-live workflow and should be reassessed at attendance cutover.
+
 ## Current regression/release posture
 
 Beta Guardrails run PHP lint, runtime-contract validation, portal permission policy, loader-order validation, shared-state scope validation, deploy recovery guards, JavaScript syntax checks, Chromium browser regressions and secret scanning.

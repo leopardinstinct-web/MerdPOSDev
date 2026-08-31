@@ -16,6 +16,7 @@ const betaApiPath = path.join(portalRoot, 'includes', 'beta_api.php');
 const dashboardDataPath = path.join(portalRoot, 'api', 'dashboard_data.php');
 const dashboardAccessPath = path.join(portalRoot, 'includes', 'dashboard_access.php');
 const clientContextPath = path.join(portalRoot, 'api', 'client_context.php');
+const timesheetRefreshPath = path.join(portalRoot, 'api', 'timesheet_google_refresh.php');
 
 const fixtureHtml = `<!doctype html><html><head>
   <script data-id-order></script><script data-dashboard-builder></script>
@@ -56,6 +57,11 @@ async function mountShell(page, width = 1280) {
       ],
     }),
   }));
+  await page.route('**/api/timesheet_google_refresh.php', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({success:true,client_id:1,sheet_name:'Time Sheet',source_rows:4080,deleted_rows:3972,inserted_rows:4080}),
+  }));
   await page.goto('https://merdpos-smoke.invalid/shell-fixture');
   await page.addStyleTag({ path: tokensPath });
   await page.addStyleTag({ path: shellCssPath });
@@ -72,9 +78,10 @@ test('DEV role preview is universal across shell and API permission context', as
   const dashboardData = fs.readFileSync(dashboardDataPath, 'utf8');
   const dashboardAccess = fs.readFileSync(dashboardAccessPath, 'utf8');
   const clientContext = fs.readFileSync(clientContextPath, 'utf8');
+  const timesheetRefresh = fs.readFileSync(timesheetRefreshPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
-  expect(source).toContain('assets/management.js?v=20260831studio29');
+  expect(source).toContain('assets/management.js?v=20260901timesheetsync1');
   expect(source).toContain("$permissions = (array)($user['permissions'] ?? []);");
   expect(source).not.toContain("$previewUser['actual_employee_type']");
   expect(betaApi).toContain('function beta_apply_dev_role_preview');
@@ -93,6 +100,14 @@ test('DEV role preview is universal across shell and API permission context', as
   expect(dashboardData).toContain("'working_count'=>$workingCount");
   expect(dashboardData).toContain("'pending_disputes_count'=>$pendingDisputesCount");
   expect(clientContext).toContain('$canSelect = beta_user_is_dev($user);');
+  expect(betaApi).toContain("case 'timesheet_google_refresh.php':");
+  expect(timesheetRefresh).toContain('beta_actual_user_is_dev($user)');
+  expect(timesheetRefresh).toContain("legacy_parse_known_csv_rows($csv, 'timesheet', $sheetName)");
+  expect(timesheetRefresh).toContain('DELETE FROM employee_logs WHERE client_id=?');
+  expect(timesheetRefresh).toContain('beginTransaction()');
+  expect(timesheetRefresh).toContain('attendance_authority FROM client_migration_state');
+  expect(timesheetRefresh).toContain("source_type='attendance_log'");
+  expect(timesheetRefresh).not.toContain('UPDATE client_migration_state');
   expect(source).toContain('id="merdposAboutDialog"');
   expect(source).toContain('assets/brand/M_Icon.svg');
   expect(source).toContain("dirname(__DIR__) . '/.beta_release.json'");
@@ -110,6 +125,21 @@ test('desktop uses the mobile-style bottom dock plus one account/client circle',
   const utilityText=await rail.locator('.rail-shell-utilities').innerText();expect(utilityText.indexOf('Imran')).toBeLessThan(utilityText.indexOf('Working client'));expect(utilityText.indexOf('Working client')).toBeLessThan(utilityText.indexOf('Current role'));expect(utilityText).not.toContain('Clients');expect(utilityText).not.toContain('DEV\n');expect(utilityText.indexOf('Change password')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Log out')).toBeLessThan(utilityText.indexOf('Dark mode'));expect(utilityText.indexOf('Dark mode')).toBeLessThan(utilityText.indexOf('About MERDPOS'));await rail.locator('.rail-about-toggle').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',true);const aboutGeom=await page.locator('.merd-about-card').evaluate(el=>{const card=el.getBoundingClientRect(),copy=el.querySelector('.merd-about-copy'),art=el.querySelector('.merd-about-art');return {width:card.width,columns:getComputedStyle(el).gridTemplateColumns,copyBg:getComputedStyle(copy).backgroundColor,artBg:getComputedStyle(art).backgroundImage}});expect(aboutGeom.width).toBeGreaterThan(700);expect(aboutGeom.columns.split(' ').length).toBe(2);expect(aboutGeom.copyBg).toBe('rgb(255, 255, 255)');expect(aboutGeom.artBg).toContain('gradient');await expect(page.locator('.merd-about-release-row')).toHaveCount(2);await expect(page.locator('.merd-about-highlights li')).toHaveCount(3);await page.locator('#merdposAboutClose').click();await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open',false);
   await page.locator('[data-nav-group="operations"]').click();await expect(page.locator('#storesPanel')).toBeVisible();await expect(page.locator('[data-sidebar-group="operations"]')).toBeVisible();expect(pageErrors).toEqual([]);
 });
+test('Working client Time Sheet sync posts the selected client from an actual DEV account', async ({ page }) => {
+  const pageErrors = await mountShell(page, 1280);
+  await page.locator('.merd-shell-account-trigger').click();
+  const context = page.locator('.rail-mobile-client-context');
+  await expect(context.locator('.rail-timesheet-sync-row')).toContainText('Sync');
+  const button = context.locator('.rail-timesheet-sync-btn');
+  await expect(button).toBeEnabled();
+  page.once('dialog', dialog => dialog.accept());
+  const requestPromise = page.waitForRequest(request => request.url().includes('/api/timesheet_google_refresh.php') && request.method() === 'POST');
+  await button.click();
+  const request = await requestPromise;
+  expect(request.postDataJSON()).toEqual({action:'refresh_timesheet',client_id:1,csrf:'test-csrf'});
+  expect(pageErrors).toEqual([]);
+});
+
 test('mobile utility sheet opens without a More navigation tab', async ({ page }) => {
   const pageErrors = await mountShell(page, 390);
   await expect(page.locator('.rail-client-section')).toBeHidden();

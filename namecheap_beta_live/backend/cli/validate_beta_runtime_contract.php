@@ -47,6 +47,7 @@ $betaStateApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_porta
 $dashboardDataApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_data.php', $errors);
 $dashboardLayoutApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/dashboard_layout.php', $errors);
 $clientContextApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/client_context.php', $errors);
+$timesheetRefreshApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/timesheet_google_refresh.php', $errors);
 $login = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/index.php', $errors);
 $scan = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/scan.php', $errors);
 $htaccess = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/.htaccess', $errors);
@@ -204,8 +205,8 @@ foreach ([
     'assets/mobile-runtime.js?v=20260828mobile1',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260830bottom1',
-    'assets/account-menu.css?v=20260831studio29',
-    'assets/account-menu.js?v=20260831studio29',
+    'assets/account-menu.css?v=20260901timesheetsync1',
+    'assets/account-menu.js?v=20260901timesheetsync1',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
     'assets/dashboard-builder.css?v=20260831analytics2',
@@ -231,8 +232,8 @@ beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics2', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics2', 'Namecheap deploy dashboard analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260831studio29', 'Namecheap deploy account sheet stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260831studio29', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260901timesheetsync1', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260901timesheetsync1', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio29', 'Namecheap deploy UI Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260831studio29', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
@@ -425,6 +426,9 @@ beta_contract_require_contains($accountMenuJs, 'merdpos-uistudio-state', 'Studio
 beta_contract_require_contains($accountMenuJs, 'rail-studio-metrics', 'DevStudio unresolved inbox account counters', $errors);
 beta_contract_require_contains($accountMenuJs, 'wireContextSections', 'account context minimization runtime', $errors);
 beta_contract_require_contains($accountMenuJs, 'rail-collapsible-context', 'account collapsible Working client/Current role markup', $errors);
+beta_contract_require_contains($accountMenuJs, 'rail-timesheet-sync-btn', 'Working client Time Sheet sync control', $errors);
+beta_contract_require_contains($accountMenuJs, 'api/timesheet_google_refresh.php', 'Working client Time Sheet sync API wiring', $errors);
+beta_contract_require_contains($accountMenuCss, '.rail-timesheet-sync-row', 'Working client Time Sheet sync styling', $errors);
 beta_contract_require_absent($accountMenuJs, 'DEV preview - the whole website follows this role', 'retired verbose DEV role helper', $errors);
 beta_contract_require_contains($accountMenuCss, '.rail-context-toggle', 'account context minimization styling', $errors);
 beta_contract_require_contains($accountMenuJs, 'merdpos-uistudio-patches', 'DevStudio account counter event bridge', $errors);
@@ -478,8 +482,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831studio29', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831studio29', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260901timesheetsync1', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260901timesheetsync1', 'Namecheap live dashboard status-pill cache guard', $errors);
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);
@@ -598,6 +602,15 @@ foreach (['timesheet','payrate','start_time','employee_setup','general_ledger','
     beta_contract_require_contains($knownFetch, "'{$schema}' =>", 'legacy known header contract', $errors);
 }
 beta_contract_require_contains($knownFetch, 'Preview stopped without importing anything.', 'legacy fail-closed header handling', $errors);
+beta_contract_require_contains($betaApi, "case 'timesheet_google_refresh.php':", 'Time Sheet refresh permission registration', $errors);
+beta_contract_require_contains($timesheetRefreshApi, 'beta_actual_user_is_dev($user)', 'Time Sheet refresh actual-DEV gate', $errors);
+beta_contract_require_contains($timesheetRefreshApi, "legacy_parse_known_csv_rows(\$csv, 'timesheet', \$sheetName)", 'Time Sheet refresh deterministic parser', $errors);
+beta_contract_require_contains($timesheetRefreshApi, "legacy_norm(\$sheetName) !== 'timesheet'", 'Time Sheet refresh worksheet-only guard', $errors);
+beta_contract_require_contains($timesheetRefreshApi, 'DELETE FROM employee_logs WHERE client_id=?', 'Time Sheet refresh client-scoped delete', $errors);
+beta_contract_require_contains($timesheetRefreshApi, 'beginTransaction()', 'Time Sheet refresh atomic replacement', $errors);
+beta_contract_require_contains($timesheetRefreshApi, "attendance_authority FROM client_migration_state", 'Time Sheet refresh post-cutover guard', $errors);
+beta_contract_require_contains($timesheetRefreshApi, "source_type='attendance_log'", 'Time Sheet refresh lineage-preservation guard', $errors);
+beta_contract_require_absent($timesheetRefreshApi, 'UPDATE client_migration_state', 'Time Sheet refresh authority-state mutation', $errors);
 
 
 // Implemented DevStudio patch requests are canonical source, not permanent Studio overlays.

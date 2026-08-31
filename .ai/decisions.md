@@ -332,3 +332,9 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Component docs that evolve rapidly must be current-state-first. Historical Studio behavior belongs in decisions/Git history/archive or explicitly labelled historical sections.
 - The authoritative `namecheap-beta-live` branch is protected against force pushes and deletion. Normal direct bounded pushes remain permitted; the project is not switching to a mandatory-PR workflow.
 - DevStudio palette proposals may preview a different master set, but changing the binding five-color product standard requires an explicit coordinated standards update rather than weakening the existing palette guard.
+
+## 2026-09-01 - Pre-live Working client Time Sheet refresh
+- Actual DEV may explicitly refresh the selected Working client's SQL attendance from that client's configured Google `Time Sheet` worksheet only. This is a pre-live operational utility, not legacy migration Sync/Final and it must not change `client_migration_state` authority/cutover.
+- The full Google Time Sheet snapshot must parse and validate before SQL mutation. Replacement is one transaction scoped to `employee_logs.client_id`; malformed rows, unknown/ambiguous stores or any insert/audit failure leave the prior SQL snapshot intact.
+- Missing employee identity is retained as a named attendance event with `employee_id = NULL`, matching the historical importer, so source attendance is not silently discarded merely because Workforce setup lags behind the Sheet.
+- The account-sheet Sync control is actual-DEV-only, CSRF-protected, confirms the destructive replacement, and is positioned after the Working client selector. It refuses to run once SQL attendance authority or active formal attendance lineage exists, so this pre-live shortcut cannot invalidate a completed migration. Reassess/retire it at attendance cutover.
