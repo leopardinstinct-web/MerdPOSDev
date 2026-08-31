@@ -147,3 +147,9 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Only after successful live verification, programmatically remove the matching active patches from the global DevStudio state through the revisioned Studio API.
 - Do not delete the corresponding Studio history/audit entries; history remains the implementation trail.
 - Remove only patches whose requested behavior is demonstrably implemented and verified. Unfinished or failed requests remain active.
+## Studio28 unresolved patch inbox + LLM receipt
+- DevStudio shows and copies only global patches that are not `confirmed_applied`; backend history is not exposed in the DS UI or copy payload.
+- Every active patch has a stable `patchId` and status: `pending`, `implementing`, `implemented`, or `blocked`. `confirmed_applied` removes it from the active inbox.
+- Copy for ChatGPT emits JSON v6 plus the required `merdposDevStudioReceipt: 1` response contract.
+- Paste LLM Receipt applies revisioned patch-status updates. The backend `ui_studio_history` journal remains the immutable audit/learning record.
+- The actual-DEV account summary shows compact unresolved counters; the two supplied folder SVGs are canonical assets.

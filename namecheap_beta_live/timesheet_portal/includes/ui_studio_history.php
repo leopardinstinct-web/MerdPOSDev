@@ -29,8 +29,25 @@ function merd_ui_studio_style_identity(array $patch): string
     return implode('|', [(string)($patch['scope'] ?? 'element'), (string)($patch['selector'] ?? ''), (string)($patch['property'] ?? '')]);
 }
 
+function merd_ui_studio_patch_status(mixed $value): string
+{
+    $status = strtolower(trim((string)$value));
+    if ($status === 'proposed') $status = 'pending';
+    return in_array($status, ['pending','implementing','implemented','blocked','confirmed_applied'], true) ? $status : 'pending';
+}
+function merd_ui_studio_patch_id(array $patch): string
+{
+    $existing = trim((string)($patch['patchId'] ?? ''));
+    if (preg_match('/^patch-[a-z0-9_-]{8,80}$/i', $existing)) return $existing;
+    $seed = (string)($patch['requestKey'] ?? $patch['addedKey'] ?? $patch['contextKey'] ?? $patch['createdAt'] ?? '');
+    if ($seed === '') $seed = json_encode([$patch['kind'] ?? '', $patch['roleScope'] ?? 'DEV', $patch['selector'] ?? '', $patch['property'] ?? ''], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return 'patch-' . substr(hash('sha256', $seed), 0, 24);
+}
+
 function merd_ui_studio_patch_key(array $patch): string
 {
+    $patchId = trim((string)($patch['patchId'] ?? ''));
+    if ($patchId !== '') return 'id|' . $patchId;
     $kind = strtolower(trim((string)($patch['kind'] ?? '')));
     $role = strtoupper(trim((string)($patch['roleScope'] ?? 'DEV')));
     $scope = strtolower(trim((string)($patch['scope'] ?? 'element')));
@@ -65,13 +82,16 @@ function merd_ui_studio_normalize_patches(mixed $value): array
         if (!is_array($patch)) continue;
         $kind = strtolower(trim((string)($patch['kind'] ?? '')));
         if (!in_array($kind, ['style','text','move','add','comment','request'], true)) continue;
+        $patch['patchId'] = merd_ui_studio_patch_id($patch);
+        $patch['status'] = merd_ui_studio_patch_status($patch['status'] ?? 'pending');
+        if ($patch['status'] === 'confirmed_applied') continue;
         $role = merd_ui_studio_role_key($patch['roleScope'] ?? 'DEV');
         if (($kind === 'add' || $kind === 'comment') && $role !== 'DEV') {
             $patch['kind'] = 'request';
             $patch['requestType'] = $kind;
             $patch['requestedFromPreview'] = $role;
             $patch['implementationOrigin'] = 'DEV';
-            $patch['status'] = 'proposed';
+            $patch['status'] = merd_ui_studio_patch_status($patch['status'] ?? 'pending');
             $patch['requestKey'] = (string)($patch['requestKey'] ?? $patch['addedKey'] ?? $patch['contextKey'] ?? $patch['createdAt'] ?? $patch['selector'] ?? 'legacy-request');
             $patch['roleScope'] = $role;
             $patch['roleTargets'] = merd_ui_studio_request_targets($role);
@@ -80,7 +100,7 @@ function merd_ui_studio_normalize_patches(mixed $value): array
             $patch['kind'] = 'request';
             $patch['requestedFromPreview'] = $preview;
             $patch['implementationOrigin'] = 'DEV';
-            $patch['status'] = (string)($patch['status'] ?? 'proposed');
+            $patch['status'] = merd_ui_studio_patch_status($patch['status'] ?? 'pending');
             $patch['roleScope'] = $preview;
             $patch['roleTargets'] = merd_ui_studio_request_targets($preview);
         } else {
@@ -121,6 +141,8 @@ function merd_ui_studio_patch_map(array $patches): array
 
 function merd_ui_studio_patch_mutation(array $before, array $after): array
 {
+    $before = merd_ui_studio_normalize_patches($before);
+    $after = merd_ui_studio_normalize_patches($after);
     $beforeMap = merd_ui_studio_patch_map($before);
     $afterMap = merd_ui_studio_patch_map($after);
     $remove = [];

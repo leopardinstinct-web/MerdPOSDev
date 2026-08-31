@@ -74,6 +74,50 @@
   padding: var(--space-2) var(--space-3);
   color: var(--color-nav-text);
 }
+.rail-studio-metrics {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(2.75rem, 1fr));
+  gap: var(--space-1);
+  width: 100%;
+  padding-bottom: var(--space-1);
+}
+.rail-studio-metric {
+  min-width: 0;
+  min-height: 2.875rem;
+  display: grid;
+  grid-template-rows: auto 1.35rem;
+  place-items: center;
+  gap: .125rem;
+  padding: .2rem .35rem;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-nav-text-muted);
+  cursor: pointer;
+}
+.rail-studio-metric:hover,
+.rail-studio-metric:focus-visible {
+  background: color-mix(in srgb, var(--color-nav-active) 18%, transparent);
+  color: var(--color-nav-text);
+  outline: none;
+}
+.rail-studio-metric-count {
+  min-width: 1.35rem;
+  text-align: center;
+  color: var(--merd-ui-accent, var(--color-brand-cyan));
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+.rail-studio-metric img {
+  width: 1.3rem;
+  height: 1.3rem;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: .82;
+}
+.app-frame.nav-collapsed .rail-studio-metrics { display: none; }
 .rail-user-avatar {
   width: var(--size-icon-lg);
   height: var(--size-icon-lg);

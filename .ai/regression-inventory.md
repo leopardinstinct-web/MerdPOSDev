@@ -289,3 +289,8 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Management-capable dashboards may receive active-client Store filter options; own-attendance-only filter options are derived only from that employee's permitted attendance history.
 - Store-filtered workforce, recent attendance, financial, sales and trend queries remain client-scoped and permission/dependency gated. `My current shift` remains self-scoped and independent of dashboard Store filter.
 - Management loader order must load analytics runtime before Dashboard Builder; deploy guards must require the matching `20260831analytics2` assets.
+### Studio28 unresolved inbox + receipt regressions
+- DS payload/copy must not expose history and must include stable patch IDs/statuses plus `workflow: unresolved-patches`.
+- Changes exposes Copy for ChatGPT and Paste LLM Receipt, not History.
+- A confirmed receipt removes the matching active patch globally while the backend audit mutation remains.
+- Account summary counters follow unresolved request/patch/copy counts and use the supplied DevStudio folder assets.

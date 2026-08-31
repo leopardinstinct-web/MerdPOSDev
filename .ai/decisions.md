@@ -312,3 +312,7 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Charts emit `merdpos-chart-select`; Dashboard Builder may translate a permitted chart selection into coordinated server-side filters/drill-down.
 - Dashboard Store and reporting-period filters are API inputs, not client-only masking. Backend authorization/data dependencies remain authoritative.
 - Store-filter choices must be scoped to data the effective role is already permitted to know. Own-attendance-only users cannot discover the client's complete Store directory through dashboard filters.
+## 2026-08-31 - Studio28 unresolved patch inbox and LLM receipt
+- DevStudio is an unresolved implementation inbox, not an audit-history viewer. The browser receives active patches only; history remains backend-only.
+- Stable `patchId` is the identity for LLM round trips. Copy emits v6; Paste LLM Receipt records status transitions and removes only `confirmed_applied` patches.
+- Audit history is retained for learning/compliance and cannot be deleted from DevStudio.

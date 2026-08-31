@@ -59,7 +59,7 @@ function studio_history_payload(PDO $pdo, int $clientId): array
         'csrf'=>csrf_token(),
         'revision'=>(int)$row['revision'],
         'patches'=>merd_ui_studio_normalize_patches(studio_history_decode((string)$row['patches_json'])),
-        'history'=>studio_history_rows($pdo, $clientId),
+        'audit_retained'=>true,
         'updated_at'=>$row['updated_at'],
         'generated_at'=>(new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
     ];
@@ -171,30 +171,44 @@ try {
         json_response(studio_history_payload($pdo, $clientId));
     }
 
-    if ($action === 'delete') {
-        $historyId = studio_history_text($input['history_id'] ?? '', 64);
-        if ($historyId === '') throw new MerdWorkforceException('invalid_history_id', 'Select a history step to delete.');
-        $target = $pdo->prepare('SELECT id,is_system FROM ui_studio_history WHERE client_id=? AND public_id=? AND deleted_at IS NULL FOR UPDATE');
-        $target->execute([$clientId, $historyId]);
-        $row = $target->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($row) || !empty($row['is_system'])) {
-            throw new MerdWorkforceException('history_not_found', 'That Studio history step is unavailable.');
+    if ($action === 'receipt') {
+        $receipt = is_array($input['receipt'] ?? null) ? $input['receipt'] : [];
+        if ((int)($receipt['merdposDevStudioReceipt'] ?? 0) !== 1) {
+            throw new MerdWorkforceException('invalid_receipt', 'DevStudio Receipt version 1 is required.');
         }
-        $delete = $pdo->prepare('UPDATE ui_studio_history SET deleted_at=UTC_TIMESTAMP(),deleted_by_employee_id=? WHERE id=?');
-        $delete->execute([(int)$user['id'], (int)$row['id']]);
-
-        $events = $pdo->prepare('SELECT mutation_json FROM ui_studio_history WHERE client_id=? AND deleted_at IS NULL ORDER BY id ASC');
-        $events->execute([$clientId]);
-        $mutations = [];
-        foreach ($events->fetchAll(PDO::FETCH_COLUMN) as $json) {
-            $mutations[] = studio_history_decode((string)$json, ['remove'=>[],'set'=>[]]);
+        $sourceRevision = max(0, (int)($receipt['sourceRevision'] ?? 0));
+        if ($sourceRevision > $revision) {
+            throw new MerdWorkforceException('invalid_receipt_revision', 'Receipt source revision is newer than the current Studio revision.');
         }
-        $patches = merd_ui_studio_replay_mutations($mutations);
+        $updates = is_array($receipt['updates'] ?? null) ? array_slice($receipt['updates'], 0, 100) : [];
+        if (!$updates) throw new MerdWorkforceException('empty_receipt', 'Receipt contains no patch updates.');
+        $byId = [];
+        foreach ($currentPatches as $index => $patch) $byId[(string)($patch['patchId'] ?? '')] = $index;
+        $nextPatches = $currentPatches; $safeUpdates = []; $confirmed = 0;
+        foreach ($updates as $update) {
+            if (!is_array($update)) continue;
+            $patchId = studio_history_text($update['patchId'] ?? '', 96);
+            if ($patchId === '' || !array_key_exists($patchId, $byId)) throw new MerdWorkforceException('patch_not_found', "Unresolved patch {$patchId} is no longer active.");
+            $rawStatus = strtolower(trim((string)($update['status'] ?? '')));
+            if (!in_array($rawStatus, ['pending','implementing','implemented','blocked','confirmed_applied'], true)) {
+                throw new MerdWorkforceException('invalid_patch_status', "Unsupported patch status for {$patchId}.");
+            }
+            $status = merd_ui_studio_patch_status($rawStatus);
+            $safe = ['patchId'=>$patchId,'status'=>$status,'commit'=>studio_history_text($update['commit'] ?? '', 80),'verification'=>studio_history_text($update['verification'] ?? '', 32),'note'=>studio_history_text($update['note'] ?? '', 500)];
+            $safeUpdates[] = $safe;
+            if ($status === 'confirmed_applied') { unset($nextPatches[$byId[$patchId]]); $confirmed++; }
+            else $nextPatches[$byId[$patchId]]['status'] = $status;
+        }
+        $nextPatches = merd_ui_studio_normalize_patches(array_values($nextPatches));
+        $mutation = merd_ui_studio_patch_mutation($currentPatches, $nextPatches);
+        $mutation['receipt'] = ['version'=>1,'sourceRevision'=>$sourceRevision,'updates'=>$safeUpdates];
         $nextRevision = $revision + 1;
-        $update = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=? WHERE client_id=?');
-        $update->execute([$nextRevision, json_encode($patches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), (int)$user['id'], $clientId]);
+        studio_history_insert($pdo, $user, $clientId, $nextRevision, ['action'=>'llm_receipt','summary'=>"LLM receipt applied: " . count($safeUpdates) . " updates; {$confirmed} confirmed applied",'roleScope'=>'DEV'], $mutation);
+        $updateState = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=? WHERE client_id=?');
+        $updateState->execute([$nextRevision, json_encode($nextPatches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), (int)$user['id'], $clientId]);
         $pdo->commit();
-        json_response(studio_history_payload($pdo, $clientId));
+        $payload = studio_history_payload($pdo, $clientId); $payload['receipt_summary'] = "Receipt applied: " . count($safeUpdates) . " updates; {$confirmed} confirmed.";
+        json_response($payload);
     }
 
     throw new MerdWorkforceException('invalid_action', 'Unknown Studio history action.');

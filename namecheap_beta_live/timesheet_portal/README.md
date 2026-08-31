@@ -248,3 +248,7 @@ Implementation requests authored in DevStudio are translated into canonical sour
 - Dashboard Builder coordinates Store and 7/14/30-day filters through `api/dashboard_data.php`; Store drill-down reloads all applicable widgets from the server rather than filtering privileged data only in the browser.
 - Store filter options are scope-safe: management-capable dashboard dependencies may expose active client stores, while own-attendance-only access may expose only stores present in that employee's permitted attendance history.
 - The analytics runtime consumes MERDPOS semantic/chart tokens and preserves desktop/tablet/mobile functional parity.
+### DevStudio28 unresolved implementation inbox
+- DevStudio no longer exposes its audit history. Working sessions contain only global unresolved patches.
+- Copy for ChatGPT uses patch IDs and returns a machine-readable LLM receipt contract; Paste LLM Receipt closes confirmed work and retains backend audit.
+- Confirmed implementation is the final patch state and disappears from the DS inbox/copy set.

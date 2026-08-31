@@ -118,8 +118,9 @@
     const utilities = document.createElement('div');
     utilities.className = 'rail-shell-utilities';
     utilities.id = 'merdShellUtilities';
+    const studioMetrics = auth.is_dev===true ? `<div class="rail-studio-metrics" aria-label="DevStudio unresolved patch inbox"><button type="button" class="rail-studio-metric" data-studio-metric="requests" title="Implementation requests"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/google-material-symbols/comment_48px.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="patches" title="Global unresolved patches"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/create_new_folder_24dp.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="copy" title="Copy unresolved patches for ChatGPT"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/folder_match_24dp.svg" alt=""></button></div>` : '';
     utilities.innerHTML = `
-      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
+      <div class="rail-user-summary">${studioMetrics}<span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
       <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
       ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
 
@@ -205,6 +206,27 @@
       });
       window.addEventListener('merdpos-uistudio-state', event => syncStudioToggle(event.detail||{}));
     }
+
+
+    const studioMetricButtons=[...utilities.querySelectorAll('.rail-studio-metric')];
+    function syncStudioMetrics(detail={}) {
+      if (!studioMetricButtons.length) return;
+      const counts={requests:Number(detail.requests||0),patches:Number(detail.patches||0),copy:Number(detail.copy||0)};
+      studioMetricButtons.forEach(button=>{
+        const key=button.dataset.studioMetric,count=Math.max(0,counts[key]||0);
+        const label=key==='requests'?'implementation requests':key==='patches'?'global unresolved patches':'patches ready to copy for ChatGPT';
+        button.querySelector('.rail-studio-metric-count').textContent=String(count);
+        button.setAttribute('aria-label',`${count} ${label}`);
+      });
+    }
+
+    studioMetricButtons.forEach(button=>button.addEventListener('click',()=>{
+      const studio=window.MERDPOS_UI_STUDIO;
+      if(button.dataset.studioMetric==='copy') studio?.copyForChat?.();
+      else studio?.openChanges?.();
+    }));
+    window.addEventListener('merdpos-uistudio-patches',event=>syncStudioMetrics(event.detail||{}));
+    window.setTimeout(()=>syncStudioMetrics(window.MERDPOS_UI_STUDIO?.getCounts?.()||{}),120);
 
     function applyContext(data) {
       context = data;
