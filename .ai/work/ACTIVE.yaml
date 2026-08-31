@@ -1,8 +1,4 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-01T03:01:00+05:00"
-active:
-  - id: MERD-20260901-timesheet-google-refresh
-    path: .ai/work/active/MERD-20260901-timesheet-google-refresh.yaml
-    lifecycle: WIRED
-    packet_state: CHECKED
+updated_at: "2026-09-01T03:06:00+05:00"
+active: []

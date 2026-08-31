@@ -10,10 +10,10 @@ acceptance:
   - "Success reports source/import counts and refreshes the current portal view."
   - "API requires actual DEV identity and CSRF; preview role alone cannot grant the operation."
   - "Refuse destructive refresh after SQL authority or active formal attendance lineage exists."
-packet_state: CHECKED
-lifecycle: WIRED
+packet_state: CLOSED
+lifecycle: DEPLOYED
 base_head: "57d50676262b3f93406b253a4326a7b16ccdfad8"
-last_seen_head: "57d50676262b3f93406b253a4326a7b16ccdfad8"
+last_seen_head: "6935ea5b63c88fa996283e3de771d800d0017b1d"
 affected_paths:
   - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
   - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
@@ -34,6 +34,11 @@ completed:
   - "Added actual-DEV + CSRF + stale Working client gates and account audit receipt."
   - "Added Working client Sync label/icon, confirmation, busy state, success notice and reload wiring."
   - "Bumped account/management cache generations and added runtime/deploy guards plus targeted browser coverage."
+  - "Implementation commit 6935ea5b63c88fa996283e3de771d800d0017b1d pushed to canonical Beta."
+  - "GitHub Beta Guardrails #187 completed successfully, including Chromium smoke, source contract and secret scan."
+  - "Namecheap deployed marker and release JSON independently confirmed 6935ea5."
+  - "Live authenticated actual-DEV check confirmed Working client Sync label/icon/button enabled with no page errors; safe GET to the destructive endpoint returned POST required."
+  - "The destructive MRG POST was intentionally not exercised during verification; owner activation remains an operational pre-live action."
 checks:
   - name: "PHP and JavaScript syntax"
     result: "PASS"
@@ -50,10 +55,23 @@ checks:
   - name: "Targeted account browser regressions"
     result: "PASS 4/4"
   - name: "Broad Beta browser regressions"
-    result: "67/68 on first run; sole unrelated mobile Reports?Timesheets DOM-detach timeout passed 1/1 on isolated rerun"
-remaining:
-  - "Commit/push, deploy, and verify live control without triggering destructive MRG sync."
-next_action: "Review exact diff, re-confirm canonical HEAD, commit and push checked tree."
+    result: "67/68 on first local run; sole unrelated mobile Reports?Timesheets DOM-detach timeout passed 1/1 on isolated rerun"
+  - name: "GitHub Beta Guardrails #187"
+    result: "PASS"
+    evidence: "run 33443985470 for 6935ea5; all three jobs succeeded including Chromium smoke"
+  - name: "Namecheap deployment"
+    result: "PASS"
+    evidence: ".beta_deployed_commit = 2026-08-31T21:59:35Z 6935ea5; .beta_release.json full SHA matched"
+  - name: "Live account-sheet control"
+    result: "PASS"
+    evidence: "actual DEV; Working client 1; Sync row/button/icon present and enabled; account asset 200; no page errors"
+  - name: "Destructive live database refresh"
+    result: "NOT RUN BY DESIGN"
+    evidence: "MRG was not mutated merely to verify deployment"
+remaining: []
+next_action: "Owner may press Sync when ready for the pre-live MRG refresh; verify the returned import count before go-live."
 blocked: false
 blocker: null
-updated_at: "2026-09-01T03:01:00+05:00"
+updated_at: "2026-09-01T03:06:00+05:00"
+
+closed_reason: "Implementation, CI, deployment and live non-destructive UI/route wiring verified. Closed at DEPLOYED because the destructive MRG refresh is intentionally owner-triggered, not a verification write."
