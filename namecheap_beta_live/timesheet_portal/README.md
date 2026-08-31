@@ -252,3 +252,6 @@ Implementation requests authored in DevStudio are translated into canonical sour
 - DevStudio no longer exposes its audit history. Working sessions contain only global unresolved patches.
 - Copy for ChatGPT uses patch IDs and returns a machine-readable LLM receipt contract; Paste LLM Receipt closes confirmed work and retains backend audit.
 - Confirmed implementation is the final patch state and disappears from the DS inbox/copy set.
+
+### DevStudio29 palette workflow
+DevStudio can now stage the MERDPOS brand palette itself as a global unresolved patch. Developer preview supports view/edit/reorder/add/delete through Settings â†’ MERDPOS Palette, with best-effort live token/chart preview. Copy for ChatGPT includes the palette patch; canonical token source changes only after normal implementation, deployment, verification, and receipt confirmation. Account-sheet Working client and Current role blocks are minimizable, and radial dismissal clears the previous element selection.

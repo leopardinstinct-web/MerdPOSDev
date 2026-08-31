@@ -153,3 +153,10 @@ UI Studio requires preserved actual DEV identity even while Current role preview
 - Copy for ChatGPT emits JSON v6 plus the required `merdposDevStudioReceipt: 1` response contract.
 - Paste LLM Receipt applies revisioned patch-status updates. The backend `ui_studio_history` journal remains the immutable audit/learning record.
 - The actual-DEV account summary shows compact unresolved counters; the two supplied folder SVGs are canonical assets.
+
+## Studio29 MERDPOS Palette + dismissal discipline
+- Settings â†’ **MERDPOS Palette** exposes the canonical brand palette in the radial menu for Developer preview.
+- Palette colors can be viewed, edited, moved up/down, added, and deleted. Changes create one global unresolved `palette` patch and preview through CSS custom-property overrides; palette order also remaps chart color slots so reordering is visible where possible.
+- Palette patches are included in Copy for ChatGPT and use the normal v6 receipt lifecycle. Canonical design tokens remain unchanged until the palette patch is implemented and live-verified.
+- Full radial dismissal (including Ctrl+D/Minimize and outside dismissal) deselects the previously selected MERDPOS element. Move destination mode is the explicit preserve-selection exception.
+- Working client and Current role account contexts are minimizable and persist their collapsed state locally; the verbose DEV role helper line is retired.

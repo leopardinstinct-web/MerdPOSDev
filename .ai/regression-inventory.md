@@ -294,3 +294,10 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Changes exposes Copy for ChatGPT and Paste LLM Receipt, not History.
 - A confirmed receipt removes the matching active patch globally while the backend audit mutation remains.
 - Account summary counters follow unresolved request/patch/copy counts and use the supplied DevStudio folder assets.
+
+### Studio29 palette / utility-section regressions
+- Settings â†’ MERDPOS Palette must expose view/edit/move-up/move-down/add/delete and produce one global `kind: palette` unresolved patch.
+- Palette edits must update preview CSS variables; palette order must update chart slots; Copy for ChatGPT must include the palette patch and no history.
+- Server normalization must validate palette IDs/tokens/hex values, cap the palette at 12 colors, force DEV/global scope, and preserve stable patch IDs.
+- Full radial dismissal and Ctrl+D disable must clear `.merd-ui-studio-selected`; Move destination selection must remain functional.
+- Working client and Current role account contexts must collapse/expand with persisted state, and Current role must not render the retired helper `<small>` text.

@@ -194,17 +194,17 @@ for required_asset in \
   'assets/analytics-runtime.js?v=20260831analytics2' \
   'assets/dashboard-builder.css?v=20260831analytics2' \
   'assets/dashboard-builder.js?v=20260831analytics2' \
-  'assets/account-menu.css?v=20260831studio28' \
-  'assets/account-menu.js?v=20260831studio28' \
-  'assets/ui-studio.css?v=20260831studio28' \
-  'assets/ui-studio.js?v=20260831studio28'; do
+  'assets/account-menu.css?v=20260831studio29' \
+  'assets/account-menu.js?v=20260831studio29' \
+  'assets/ui-studio.css?v=20260831studio29' \
+  'assets/ui-studio.js?v=20260831studio29'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260831studio28' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260831studio29' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi
@@ -215,6 +215,18 @@ if ! grep -q "\$action === 'receipt'" "$LIVE/timesheet_portal/api/ui_studio_hist
 fi
 if grep -q "'history'=>studio_history_rows" "$LIVE/timesheet_portal/api/ui_studio_history.php"; then
   echo "ERROR: live DevStudio API still exposes audit history to the browser." >&2
+  exit 1
+fi
+if ! grep -q 'MERDPOS_PALETTE_DEFAULT' "$LIVE/timesheet_portal/assets/ui-studio.js"; then
+  echo "ERROR: live DevStudio runtime is missing MERDPOS Palette editing." >&2
+  exit 1
+fi
+if ! grep -q 'function merd_ui_studio_normalize_palette' "$LIVE/timesheet_portal/includes/ui_studio_history.php"; then
+  echo "ERROR: live DevStudio server is missing palette validation." >&2
+  exit 1
+fi
+if ! grep -q 'rail-collapsible-context' "$LIVE/timesheet_portal/assets/account-menu.js"; then
+  echo "ERROR: live account runtime is missing minimizable context sections." >&2
   exit 1
 fi
 

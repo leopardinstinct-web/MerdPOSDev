@@ -202,8 +202,8 @@ foreach ([
     'assets/mobile-runtime.js?v=20260828mobile1',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260830bottom1',
-    'assets/account-menu.css?v=20260831studio28',
-    'assets/account-menu.js?v=20260831studio28',
+    'assets/account-menu.css?v=20260831studio29',
+    'assets/account-menu.js?v=20260831studio29',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
     'assets/dashboard-builder.css?v=20260831analytics2',
@@ -229,10 +229,10 @@ beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics2', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics2', 'Namecheap deploy dashboard analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260831studio28', 'Namecheap deploy account sheet stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260831studio28', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio28', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260831studio28', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260831studio29', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260831studio29', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio29', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260831studio29', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -244,8 +244,8 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV runtime flag', $errors);
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260831studio28', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260831studio28', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260831studio29', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260831studio29', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -329,6 +329,12 @@ beta_contract_require_contains($uiStudioJs, "'Edit Dashboard',action:'edit-dashb
 beta_contract_require_contains($uiStudioJs, "label:'Settings',action:'settings'", 'Studio root Settings action', $errors);
 beta_contract_require_contains($uiStudioJs, "SETTINGS_KEY='merdpos-ui-studio-settings-v1'", 'Studio local settings persistence', $errors);
 beta_contract_require_contains($uiStudioJs, 'function settingsColorDefinitions', 'Studio accent palette settings', $errors);
+beta_contract_require_contains($uiStudioJs, 'MERDPOS_PALETTE_DEFAULT', 'Studio MERDPOS palette baseline', $errors);
+beta_contract_require_contains($uiStudioJs, 'function brandPaletteDefinitions', 'Studio MERDPOS palette radial viewer', $errors);
+beta_contract_require_contains($uiStudioJs, 'function upsertBrandPalette', 'Studio MERDPOS palette unresolved patch writer', $errors);
+beta_contract_require_contains($uiStudioJs, 'function applyBrandPalettePreview', 'Studio MERDPOS palette live preview', $errors);
+beta_contract_require_contains($uiStudioHistoryLib, 'function merd_ui_studio_normalize_palette', 'server MERDPOS palette validation', $errors);
+beta_contract_require_contains($uiStudioJs, 'if(!options.preserveSelection)clearSelected()', 'radial dismissal deselect contract', $errors);
 beta_contract_require_contains($uiStudioJs, 'function settingsSizeDefinitions', 'Studio button/icon size settings', $errors);
 beta_contract_require_contains($uiStudioJs, "label:'Button Size'", 'Studio button geometry size branch', $errors);
 beta_contract_require_contains($uiStudioJs, "label:'Icon Size'", 'Studio independent icon size branch', $errors);
@@ -410,6 +416,10 @@ beta_contract_require_contains($accountMenuJs, '<option value="DEV">Developer</o
 beta_contract_require_contains($accountMenuJs, 'rail-devstudio-toggle', 'actual-DEV account-menu Studio toggle', $errors);
 beta_contract_require_contains($accountMenuJs, 'merdpos-uistudio-state', 'Studio state reflected into account menu', $errors);
 beta_contract_require_contains($accountMenuJs, 'rail-studio-metrics', 'DevStudio unresolved inbox account counters', $errors);
+beta_contract_require_contains($accountMenuJs, 'wireContextSections', 'account context minimization runtime', $errors);
+beta_contract_require_contains($accountMenuJs, 'rail-collapsible-context', 'account collapsible Working client/Current role markup', $errors);
+beta_contract_require_absent($accountMenuJs, 'DEV preview - the whole website follows this role', 'retired verbose DEV role helper', $errors);
+beta_contract_require_contains($accountMenuCss, '.rail-context-toggle', 'account context minimization styling', $errors);
 beta_contract_require_contains($accountMenuJs, 'merdpos-uistudio-patches', 'DevStudio account counter event bridge', $errors);
 beta_contract_require_contains($accountMenuJs, 'assets/vendor/devstudio/create_new_folder_24dp.svg', 'DevStudio supplied folder counter icon', $errors);
 beta_contract_require_contains($accountMenuJs, 'assets/vendor/devstudio/folder_match_24dp.svg', 'DevStudio supplied copy counter icon', $errors);
@@ -448,7 +458,7 @@ beta_contract_require_contains($uiStudioJs, "window.addEventListener('storage'",
 beta_contract_require_contains($uiStudioJs, 'explicitOverride:true', 'explicit lower-role override marker', $errors);
 beta_contract_require_contains($uiStudioHistoryLib, 'merd_ui_studio_style_identity', 'server inherited duplicate collapse', $errors);
 beta_contract_require_contains($uiStudioCss, '.merd-ui-studio-request-preview', 'Studio visual request placeholder', $errors);
-beta_contract_require_contains($uiStudioHistoryLib, "['style','text','move','add','comment','request']", 'server accepts Studio request patches', $errors);
+beta_contract_require_contains($uiStudioHistoryLib, "['style','text','move','add','comment','request','palette']", 'server accepts Studio request patches', $errors);
 beta_contract_require_contains($uiStudioHistoryLib, "'DEV' => ['DEV','ADMIN','SUPER','USER']", 'server canonical Developer master inheritance', $errors);
 beta_contract_require_contains($uiStudioHistoryLib, "if ((\$kind === 'add' || \$kind === 'comment') && \$role !== 'DEV')", 'server converts lower-role additions/comments into requests', $errors);
 beta_contract_require_absent($uiStudioJs, 'XMLHttpRequest', 'UI Studio fetch-only synchronization transport', $errors);
@@ -461,8 +471,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831studio28', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831studio28', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831studio29', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831studio29', 'Namecheap live dashboard status-pill cache guard', $errors);
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);

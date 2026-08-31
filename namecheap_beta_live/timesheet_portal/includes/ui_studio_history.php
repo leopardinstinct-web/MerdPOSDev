@@ -35,11 +35,28 @@ function merd_ui_studio_patch_status(mixed $value): string
     if ($status === 'proposed') $status = 'pending';
     return in_array($status, ['pending','implementing','implemented','blocked','confirmed_applied'], true) ? $status : 'pending';
 }
+function merd_ui_studio_normalize_palette(mixed $value): array
+{
+    if (!is_array($value)) throw new MerdWorkforceException('invalid_studio_palette', 'Studio palette must be an array.');
+    if (count($value) > 12) throw new MerdWorkforceException('studio_palette_limit', 'Studio palette supports up to 12 colors.');
+    $items = []; $ids = []; $tokens = [];
+    foreach ($value as $raw) {
+        if (!is_array($raw)) continue;
+        $id = strtolower(trim((string)($raw['id'] ?? ''))); $token = trim((string)($raw['token'] ?? ''));
+        $label = trim((string)($raw['label'] ?? '')); $hex = strtoupper(trim((string)($raw['value'] ?? '')));
+        if (!preg_match('/^[a-z0-9_-]{1,48}$/', $id) || !preg_match('/^--color-brand-[a-z0-9_-]{1,48}$/', $token)) continue;
+        if ($label === '' || !preg_match('/^#[0-9A-F]{6}$/', $hex) || isset($ids[$id]) || isset($tokens[$token])) continue;
+        $ids[$id] = true; $tokens[$token] = true;
+        $items[] = ['id'=>$id,'token'=>$token,'label'=>mb_substr($label,0,48),'value'=>$hex];
+    }
+    return $items;
+}
+
 function merd_ui_studio_patch_id(array $patch): string
 {
     $existing = trim((string)($patch['patchId'] ?? ''));
     if (preg_match('/^patch-[a-z0-9_-]{8,80}$/i', $existing)) return $existing;
-    $seed = (string)($patch['requestKey'] ?? $patch['addedKey'] ?? $patch['contextKey'] ?? $patch['createdAt'] ?? '');
+    $seed = (string)($patch['paletteKey'] ?? $patch['requestKey'] ?? $patch['addedKey'] ?? $patch['contextKey'] ?? $patch['createdAt'] ?? '');
     if ($seed === '') $seed = json_encode([$patch['kind'] ?? '', $patch['roleScope'] ?? 'DEV', $patch['selector'] ?? '', $patch['property'] ?? ''], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     return 'patch-' . substr(hash('sha256', $seed), 0, 24);
 }
@@ -62,6 +79,7 @@ function merd_ui_studio_patch_key(array $patch): string
             'comment', $role, (string)($patch['contextKey'] ?? ''), $selector,
             (string)($patch['createdAt'] ?? ''), (string)($patch['comment'] ?? ''),
         ]),
+        'palette' => 'palette|' . (string)($patch['paletteKey'] ?? 'brand-master'),
         'request' => implode('|', [
             'request', (string)($patch['requestedFromPreview'] ?? $role),
             (string)($patch['requestType'] ?? ''), (string)($patch['requestKey'] ?? ''), $selector,
@@ -81,12 +99,19 @@ function merd_ui_studio_normalize_patches(mixed $value): array
     foreach ($value as $patch) {
         if (!is_array($patch)) continue;
         $kind = strtolower(trim((string)($patch['kind'] ?? '')));
-        if (!in_array($kind, ['style','text','move','add','comment','request'], true)) continue;
+        if (!in_array($kind, ['style','text','move','add','comment','request','palette'], true)) continue;
         $patch['patchId'] = merd_ui_studio_patch_id($patch);
         $patch['status'] = merd_ui_studio_patch_status($patch['status'] ?? 'pending');
         if ($patch['status'] === 'confirmed_applied') continue;
         $role = merd_ui_studio_role_key($patch['roleScope'] ?? 'DEV');
-        if (($kind === 'add' || $kind === 'comment') && $role !== 'DEV') {
+        if ($kind === 'palette') {
+            $patch['kind'] = 'palette';
+            $patch['scope'] = 'global';
+            $patch['paletteKey'] = 'brand-master';
+            $patch['palette'] = merd_ui_studio_normalize_palette($patch['palette'] ?? []);
+            $patch['roleScope'] = 'DEV';
+            $patch['roleTargets'] = merd_ui_studio_role_targets('DEV');
+        } elseif (($kind === 'add' || $kind === 'comment') && $role !== 'DEV') {
             $patch['kind'] = 'request';
             $patch['requestType'] = $kind;
             $patch['requestedFromPreview'] = $role;

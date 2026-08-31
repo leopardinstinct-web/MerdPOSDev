@@ -316,3 +316,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - DevStudio is an unresolved implementation inbox, not an audit-history viewer. The browser receives active patches only; history remains backend-only.
 - Stable `patchId` is the identity for LLM round trips. Copy emits v6; Paste LLM Receipt records status transitions and removes only `confirmed_applied` patches.
 - Audit history is retained for learning/compliance and cannot be deleted from DevStudio.
+
+## 2026-08-31 - Studio29 palette patches and radial dismissal
+- MERDPOS Palette changes are first-class global unresolved DevStudio patches, not direct edits to canonical `design-tokens.css`.
+- Developer can view/edit/reorder/add/delete palette entries in the radial Settings branch; preview overrides brand variables and chart slots where possible.
+- Palette implementation still follows Copy â†’ canonical source â†’ test â†’ deploy â†’ live verify â†’ receipt confirmation.
+- A full radial dismissal must deselect the prior element. Move is the only intentional preserve-selection hide.
+- Working client and Current role utility contexts are minimizable; the old DEV explanatory helper is removed.

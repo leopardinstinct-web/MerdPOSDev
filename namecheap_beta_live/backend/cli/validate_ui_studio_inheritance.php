@@ -60,3 +60,15 @@ if (($mutation['remove'] ?? []) !== [] || count($mutation['set'] ?? []) !== 1) {
 }
 
 echo "MERDPOS Studio unresolved-inbox identity/status semantics validated.\n";
+
+
+$palette = merd_ui_studio_normalize_patches([['kind'=>'palette','paletteKey'=>'brand-master','palette'=>[
+    ['id'=>'navy','token'=>'--color-brand-navy','label'=>'Navy','value'=>'#031B4B'],
+    ['id'=>'ocean','token'=>'--color-brand-ocean','label'=>'Ocean','value'=>'#12BDF3'],
+],'roleScope'=>'USER']]);
+if (count($palette) !== 1 || ($palette[0]['kind'] ?? '') !== 'palette' || ($palette[0]['roleScope'] ?? '') !== 'DEV'
+    || count($palette[0]['palette'] ?? []) !== 2 || !str_starts_with((string)($palette[0]['patchId'] ?? ''), 'patch-')) {
+    studio_inheritance_fail('Studio palette normalization/identity contract failed.');
+}
+echo "MERDPOS Studio palette normalization semantics validated.
+";

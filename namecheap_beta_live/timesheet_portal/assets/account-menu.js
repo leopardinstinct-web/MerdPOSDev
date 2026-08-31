@@ -13,8 +13,12 @@
   const viewRoleKey = String(source.dataset.viewRoleKey || auth.view_role_key || (roleKey==='DEV'?'DEV':'ADMIN')).trim().toUpperCase();
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   const STUDIO_SETTINGS_KEY='merdpos-ui-studio-settings-v1';
+  const ACCOUNT_CONTEXT_STATE_KEY='merdpos-account-context-sections-v1';
   function readStudioSettings(){try{const saved=JSON.parse(localStorage.getItem(STUDIO_SETTINGS_KEY)||'null');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
   function writeStudioEnabled(enabled){const saved=readStudioSettings();saved.enabled=!!enabled;try{localStorage.setItem(STUDIO_SETTINGS_KEY,JSON.stringify(saved));}catch(_){}return saved;}
+  function readContextSectionState(){try{const saved=JSON.parse(localStorage.getItem(ACCOUNT_CONTEXT_STATE_KEY)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function writeContextSectionState(state){try{localStorage.setItem(ACCOUNT_CONTEXT_STATE_KEY,JSON.stringify(state));}catch(_){}}
+  function wireContextSections(root){const saved=readContextSectionState();root.querySelectorAll('.rail-collapsible-context').forEach(section=>{const key=section.dataset.contextKey||'',toggle=section.querySelector('.rail-context-toggle'),body=section.querySelector('.rail-context-body');if(!key||!toggle||!body)return;const setCollapsed=collapsed=>{section.classList.toggle('is-collapsed',collapsed);body.hidden=collapsed;toggle.setAttribute('aria-expanded',collapsed?'false':'true');toggle.title=collapsed?'Expand section':'Minimize section';};setCollapsed(saved[key]===true);toggle.addEventListener('click',()=>{const state=readContextSectionState(),collapsed=!section.classList.contains('is-collapsed');state[key]=collapsed;writeContextSectionState(state);setCollapsed(collapsed);});});}
   let context = null;
   let mounted = false;
   let utilityTrigger = null;
@@ -121,8 +125,8 @@
     const studioMetrics = auth.is_dev===true ? `<div class="rail-studio-metrics" aria-label="DevStudio unresolved patch inbox"><button type="button" class="rail-studio-metric" data-studio-metric="requests" title="Implementation requests"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/google-material-symbols/comment_48px.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="patches" title="Global unresolved patches"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/create_new_folder_24dp.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="copy" title="Copy unresolved patches for ChatGPT"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/folder_match_24dp.svg" alt=""></button></div>` : '';
     utilities.innerHTML = `
       <div class="rail-user-summary">${studioMetrics}<span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
-      <div class="rail-mobile-client-context"><span>Working client</span><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div>
-      ${auth.is_dev===true ? `<div class="rail-dev-role-context"><span>Current role</span><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select><small>DEV preview - the whole website follows this role; your DEV identity remains unchanged.</small></div>` : ''}`;
+      <div class="rail-mobile-client-context rail-collapsible-context" data-context-key="working-client"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Working client</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select></div></div>
+      ${auth.is_dev===true ? `<div class="rail-dev-role-context rail-collapsible-context" data-context-key="current-role"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Current role</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select></div></div>` : ''}`;
 
     const accountSection = document.createElement('section');
     accountSection.className = 'rail-account-section';
@@ -169,6 +173,8 @@
     utilityBackdrop.setAttribute('aria-hidden', 'true');
     utilityBackdrop.addEventListener('click', () => closeMobileTools());
     document.body.appendChild(utilityBackdrop);
+
+    wireContextSections(utilities);
 
     const desktopSelect = clientSection.querySelector('#accountClientSelect');
     const mobileSelect = utilities.querySelector('.rail-mobile-client-select');
