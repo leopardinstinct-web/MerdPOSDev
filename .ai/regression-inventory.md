@@ -281,3 +281,11 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 
 - DevStudio implementation cleanup: after a patch-backed feature is live-verified, the exact matching active patch must be removed through the global revisioned Studio API; unrelated patches and history must remain.
 - Implemented patch batch regression: attached Home/Password/Finance icons, canonical Stores Search geometry, circular icon-only Store Edit action, embedded Store Edit timings + persisted week-start day, Reports direct-to-first-report navigation, and DEV-only Disputes nav.
+
+## Shared analytics/dashboard regressions (2026-08-31)
+- Typed analytics datasets coerce declared numeric/string/date columns; `view()` filters/sorts/limits without changing the source table.
+- Bar/line/donut renderers are responsive SVG and chart items are keyboard/click selectable with `merdpos-chart-select` payloads.
+- Dashboard Store filter and chart Store selection reload through `api/dashboard_data.php`; 7/14/30-day period changes also reload server data.
+- Management-capable dashboards may receive active-client Store filter options; own-attendance-only filter options are derived only from that employee's permitted attendance history.
+- Store-filtered workforce, recent attendance, financial, sales and trend queries remain client-scoped and permission/dependency gated. `My current shift` remains self-scoped and independent of dashboard Store filter.
+- Management loader order must load analytics runtime before Dashboard Builder; deploy guards must require the matching `20260831analytics1` assets.

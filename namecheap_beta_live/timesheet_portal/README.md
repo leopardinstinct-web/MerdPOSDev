@@ -240,3 +240,11 @@ The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh`
 
 ### DevStudio implementation patches
 Implementation requests authored in DevStudio are translated into canonical source. Completion requires regression tests, deployment, live verification, and then programmatic removal of only the matching active Studio patches. Studio history is retained as the audit trail.
+
+### Shared analytics dashboard runtime (2026-08-31)
+- Dashboard visualization uses `assets/analytics-runtime.js` + `assets/analytics-runtime.css`; do not add a second chart framework for ordinary MERDPOS dashboard/report widgets.
+- Analytics follows a typed `dataset → view → renderer` contract. Data/API authorization stays separate from chart presentation.
+- Shared renderers are responsive SVG bar, line and donut charts with keyboard/click selection and a bubbling `merdpos-chart-select` event for drill-down.
+- Dashboard Builder coordinates Store and 7/14/30-day filters through `api/dashboard_data.php`; Store drill-down reloads all applicable widgets from the server rather than filtering privileged data only in the browser.
+- Store filter options are scope-safe: management-capable dashboard dependencies may expose active client stores, while own-attendance-only access may expose only stores present in that employee's permitted attendance history.
+- The analytics runtime consumes MERDPOS semantic/chart tokens and preserves desktop/tablet/mobile functional parity.

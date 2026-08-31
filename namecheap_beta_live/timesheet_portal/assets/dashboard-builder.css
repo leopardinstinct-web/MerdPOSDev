@@ -1058,3 +1058,33 @@
 .dashboard-catalog-actions { display:flex; align-items:center; gap:var(--space-2); }
 .dashboard-widget-drawer .dashboard-catalog-describe { min-height:var(--size-control-compact); padding:0 var(--space-2); border:1px solid color-mix(in srgb,var(--color-focus) 38%,var(--color-nav-border)); border-radius:var(--radius-control); background:transparent; color:var(--color-nav-text-muted); font-size:var(--type-xs); font-weight:var(--weight-semibold); cursor:pointer; }
 .dashboard-widget-drawer .dashboard-catalog-describe:hover,.dashboard-widget-drawer .dashboard-catalog-describe:focus-visible { border-color:var(--color-focus); background:color-mix(in srgb,var(--color-focus) 14%,var(--color-nav-bg-subtle)); color:var(--color-nav-text); outline:none; }
+
+
+/* Coordinated analytics controls: shared across dashboard chart widgets. */
+.dashboard-analytics-toolbar {
+  display: flex;
+  align-items: end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+  box-shadow: var(--shadow-card);
+}
+.dashboard-analytics-toolbar[hidden] { display: none; }
+.dashboard-filter-field, .dashboard-period-filter { display: grid; gap: var(--space-1); }
+.dashboard-filter-field > span, .dashboard-period-filter > span { color: var(--color-text-muted); font-size: var(--type-xs); font-weight: var(--weight-semibold); }
+.dashboard-filter-field select { min-width: 11rem; min-height: var(--size-control-compact); }
+.dashboard-period-filter > div { display: inline-flex; gap: var(--space-1); padding: .125rem; border-radius: var(--radius-control); background: var(--color-surface-muted); }
+.dashboard-period-filter button { min-width: var(--size-control-compact); min-height: var(--size-control-compact); padding: 0 var(--space-2); border: 0; border-radius: calc(var(--radius-control) - .125rem); background: transparent; color: var(--color-text-secondary); font: inherit; font-size: var(--type-xs); font-weight: var(--weight-semibold); cursor: pointer; }
+.dashboard-period-filter button[aria-pressed="true"] { background: var(--color-surface-main); color: var(--color-brand-primary); box-shadow: var(--shadow-card); }
+.dashboard-filter-summary { margin-left: auto; align-self: center; color: var(--color-text-muted); font-size: var(--type-xs); }
+@media (max-width: 50rem) {
+  .dashboard-analytics-toolbar { align-items: stretch; }
+  .dashboard-filter-field { flex: 1 1 12rem; }
+  .dashboard-filter-field select { width: 100%; min-width: 0; min-height: var(--size-touch); }
+  .dashboard-period-filter button { min-width: var(--size-touch); min-height: var(--size-touch); }
+  .dashboard-filter-summary { flex: 1 0 100%; margin-left: 0; }
+}

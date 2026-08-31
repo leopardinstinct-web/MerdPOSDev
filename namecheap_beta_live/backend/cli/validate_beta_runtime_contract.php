@@ -58,6 +58,8 @@ $shellCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/app-ui.css', $errors);
 $dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
 $dashboardBuilderJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.js', $errors);
+$analyticsCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/analytics-runtime.css', $errors);
+$analyticsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/analytics-runtime.js', $errors);
 $navigationJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/navigation.js', $errors);
 $minimalJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/minimal-controls.js', $errors);
 $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/mobile-runtime.js', $errors);
@@ -202,6 +204,10 @@ foreach ([
     'assets/navigation.js?v=20260830bottom1',
     'assets/account-menu.css?v=20260830about2',
     'assets/account-menu.js?v=20260830roleview4',
+    'assets/analytics-runtime.css?v=20260831analytics1',
+    'assets/analytics-runtime.js?v=20260831analytics1',
+    'assets/dashboard-builder.css?v=20260831analytics1',
+    'assets/dashboard-builder.js?v=20260831analytics1',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -219,8 +225,10 @@ foreach ([
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260830dashboardstudio3', 'Namecheap deploy dashboard Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics1', 'Namecheap deploy analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics1', 'Namecheap deploy analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics1', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics1', 'Namecheap deploy dashboard analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830about2', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview4', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio27', 'Namecheap deploy UI Studio stylesheet guard', $errors);
@@ -256,6 +264,18 @@ beta_contract_require_contains($dashboardBuilderJs, "params.set('dev_studio','1'
 beta_contract_require_contains($dashboardBuilderJs, 'data-describe-widget', 'dashboard widget Describe control', $errors);
 beta_contract_require_contains($dashboardBuilderJs, 'addContextComment', 'dashboard widget context handoff to Studio', $errors);
 beta_contract_require_contains($dashboardBuilderJs, 'canEdit&&editMode&&!studioEditMode', 'Studio dashboard hides redundant Add circle', $errors);
+beta_contract_require_contains($analyticsJs, 'window.MERDPOSAnalytics', 'shared analytics runtime export', $errors);
+beta_contract_require_contains($analyticsJs, 'function dataset(', 'analytics typed dataset contract', $errors);
+beta_contract_require_contains($analyticsJs, 'function view(', 'analytics view contract', $errors);
+beta_contract_require_contains($analyticsJs, 'merdpos-chart-select', 'analytics selection event contract', $errors);
+beta_contract_require_contains($analyticsCss, '.merd-chart-svg', 'responsive SVG chart styling', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'dashboardAnalyticsToolbar', 'coordinated dashboard analytics controls', $errors);
+beta_contract_require_contains($dashboardBuilderJs, "params.set('store_id'", 'dashboard store filter request', $errors);
+beta_contract_require_contains($dashboardBuilderJs, "params.set('days'", 'dashboard reporting-period request', $errors);
+beta_contract_require_contains($dashboardBuilderJs, 'merdpos-chart-select', 'dashboard chart drill-down binding', $errors);
+beta_contract_require_contains($dashboardDataApi, 'function dashboard_data_period_dates', 'dashboard variable reporting period', $errors);
+beta_contract_require_contains($dashboardDataApi, 'in_array($days, [7,14,30], true)', 'dashboard reporting-period allow-list', $errors);
+beta_contract_require_contains($dashboardDataApi, "'filter_options'=>['stores'=>\$filterStores,'periods'=>[7,14,30]]", 'dashboard coordinated filter options', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'snapshot_role_dashboard_allowance', 'permission-save dashboard allowance snapshot', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'materialize_newly_allowed_dashboard_widgets', 'newly allowed widgets materialize into affected role dashboards', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'prune_all_role_dashboards', 'permission tightening prunes forbidden dashboard widgets', $errors);
@@ -429,8 +449,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831studio27', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831studio27', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831analytics1', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831analytics1', 'Namecheap live dashboard status-pill cache guard', $errors);
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);

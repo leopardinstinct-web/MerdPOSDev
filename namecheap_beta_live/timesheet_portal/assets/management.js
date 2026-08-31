@@ -43,8 +43,10 @@
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260830dashboardstudio3');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260830dashboardstudio3');
+      appendStyle('merd-analytics-css','assets/analytics-runtime.css?v=20260831analytics1');
+      appendScript('merd-analytics','assets/analytics-runtime.js?v=20260831analytics1');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260831analytics1');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260831analytics1');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */

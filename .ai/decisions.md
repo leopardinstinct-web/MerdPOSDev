@@ -305,3 +305,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Studio JSON/Chat handoff is version 5 and includes attachment metadata/URLs. Same-browser-profile windows synchronize Studio appearance settings through localStorage `storage` events; settings remain local to that browser profile rather than server-global.
 
 - 2026-08-31: DevStudio implementation patches follow `patch -> canonical source -> tests -> deploy -> live verification -> programmatic active-patch removal`. Patch cleanup is part of completion; global history remains intact as audit. Never clear unrelated or unverified Studio patches.
+
+## 2026-08-31 - Shared analytics/dashboard interaction model
+- Reuse the useful dashboard-template and Google Charts concepts without importing React/Tailwind/Google Charts as runtime dependencies.
+- MERDPOS owns one feature-scoped analytics runtime with typed datasets/views and responsive SVG bar/line/donut renderers.
+- Charts emit `merdpos-chart-select`; Dashboard Builder may translate a permitted chart selection into coordinated server-side filters/drill-down.
+- Dashboard Store and reporting-period filters are API inputs, not client-only masking. Backend authorization/data dependencies remain authoritative.
+- Store-filter choices must be scoped to data the effective role is already permitted to know. Own-attendance-only users cannot discover the client's complete Store directory through dashboard filters.

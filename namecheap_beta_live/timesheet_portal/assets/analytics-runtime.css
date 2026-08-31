@@ -1,0 +1,158 @@
+/* Feature-scoped analytics primitives. Global geometry still comes from MERDPOS tokens. */
+.merd-chart-shell {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.merd-chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  overflow: visible;
+}
+
+.merd-chart-svg text {
+  fill: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: .74rem;
+}
+
+.merd-chart-axis-label,
+.merd-chart-value {
+  font-weight: var(--weight-semibold);
+}
+
+.merd-chart-track,
+.merd-chart-donut-track {
+  fill: none;
+  stroke: var(--color-surface-muted);
+}
+
+.merd-chart-track {
+  fill: var(--color-surface-muted);
+  stroke: none;
+}
+
+.merd-chart-bar,
+.merd-chart-line,
+.merd-chart-point circle {
+  fill: var(--color-brand-primary);
+  stroke: var(--color-brand-primary);
+}
+
+.merd-chart-line {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.merd-chart-gridline {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+}
+
+.merd-chart-item {
+  cursor: pointer;
+  outline: none;
+}
+
+.merd-chart-item:focus-visible .merd-chart-bar,
+.merd-chart-item[aria-pressed="true"] .merd-chart-bar,
+.merd-chart-item:focus-visible circle,
+.merd-chart-item[aria-pressed="true"] circle {
+  filter: brightness(1.08);
+  stroke: var(--color-focus);
+  stroke-width: 3;
+}
+
+.merd-chart-selection {
+  min-height: 1.25rem;
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  line-height: var(--line-body);
+}
+
+.merd-chart-empty {
+  min-height: 5rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.merd-chart-donut-layout {
+  grid-template-columns: minmax(8rem, 11rem) minmax(10rem, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.merd-chart-svg-donut {
+  max-width: 11rem;
+  justify-self: center;
+}
+
+.merd-chart-donut-track {
+  stroke-width: 20;
+}
+
+.merd-chart-segment circle {
+  fill: none;
+  stroke-width: 20;
+  transform: rotate(-90deg);
+  transform-origin: 72px 72px;
+  stroke-linecap: butt;
+}
+
+.merd-chart-segment.series-1 circle,
+.merd-chart-legend-dot.series-1 { stroke: var(--color-chart-1); background: var(--color-chart-1); }
+.merd-chart-segment.series-2 circle,
+.merd-chart-legend-dot.series-2 { stroke: var(--color-chart-2); background: var(--color-chart-2); }
+.merd-chart-segment.series-3 circle,
+.merd-chart-legend-dot.series-3 { stroke: var(--color-chart-3); background: var(--color-chart-3); }
+.merd-chart-segment.series-4 circle,
+.merd-chart-legend-dot.series-4 { stroke: var(--color-chart-4); background: var(--color-chart-4); }
+.merd-chart-segment.series-5 circle,
+.merd-chart-legend-dot.series-5 { stroke: var(--color-chart-5); background: var(--color-chart-5); }
+
+.merd-chart-legend {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.merd-chart-legend-row {
+  display: grid;
+  grid-template-columns: .75rem minmax(0,1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.merd-chart-legend-row strong {
+  color: var(--color-text-primary);
+  font-size: var(--type-xs);
+}
+
+.merd-chart-legend-dot {
+  width: .625rem;
+  height: .625rem;
+  border-radius: 999px;
+}
+
+@media (max-width: 42rem) {
+  .merd-chart-donut-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .merd-chart-svg-donut {
+    max-width: 9rem;
+  }
+
+  .merd-chart-svg text {
+    font-size: .82rem;
+  }
+}

@@ -203,7 +203,7 @@ function merd_attendance_scan(PDO $pdo, array $employee, string $token, ?DateTim
 function merd_working_now(PDO $pdo, int $clientId): array
 {
     $stmt = $pdo->prepare(
-        "SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,"
+        "SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.id AS store_id,st.store_name,s.clock_in_at,"
         . "TIMESTAMPDIFF(MINUTE,s.clock_in_at,UTC_TIMESTAMP()) AS working_minutes "
         . "FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id "
         . "INNER JOIN stores st ON st.id=s.store_id WHERE s.client_id=? AND s.status='open' "

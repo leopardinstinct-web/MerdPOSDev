@@ -23,11 +23,12 @@ function dashboard_data_role(PDO $pdo, array $user): array
     return $role;
 }
 
-function dashboard_data_last_seven_dates(string $businessDate, DateTimeZone $timezone): array
+function dashboard_data_period_dates(string $businessDate, DateTimeZone $timezone, int $days): array
 {
+    $days = in_array($days, [7,14,30], true) ? $days : 7;
     $end = new DateTimeImmutable($businessDate, $timezone);
     $dates = [];
-    for ($offset = 6; $offset >= 0; $offset--) {
+    for ($offset = $days - 1; $offset >= 0; $offset--) {
         $dates[] = $end->modify("-{$offset} days")->format('Y-m-d');
     }
     return $dates;
@@ -75,13 +76,26 @@ try {
     $timezone = (string)($defaults['default_timezone'] ?: 'Australia/Sydney');
     try { $timezoneObject = new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; $timezoneObject = new DateTimeZone($timezone); }
 
+    $days = filter_var($_GET['days'] ?? 7, FILTER_VALIDATE_INT);
+    if (!in_array($days, [7,14,30], true)) $days = 7;
+    $storeId = filter_var($_GET['store_id'] ?? 0, FILTER_VALIDATE_INT);
+    $storeId = ($storeId !== false && $storeId > 0) ? (int)$storeId : 0;
+    $selectedStore = null;
+    if ($storeId > 0) {
+        $storeCheck = $pdo->prepare("SELECT id,store_name FROM stores WHERE id=? AND client_id=? AND status='active' LIMIT 1");
+        $storeCheck->execute([$storeId,$clientId]);
+        $selectedStore = $storeCheck->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($selectedStore)) throw new MerdWorkforceException('store_not_found', 'Dashboard store filter is unavailable.');
+    }
+
     $needsWorkingRoster = isset($allowedMap['working_now']) || isset($allowedMap['workforce_by_store']);
     $needsWorkingCount = isset($allowedMap['working_now_count']) || $needsWorkingRoster;
     $needsMyShift = isset($allowedMap['my_shift']);
     $allWorking = ($needsMyShift || ($dashboardCanWorkforce && $needsWorkingCount)) ? merd_working_now($pdo, $clientId) : [];
-    $workingCount = ($dashboardCanWorkforce && $needsWorkingCount) ? count($allWorking) : 0;
-    $working = ($dashboardCanWorkforce && $needsWorkingRoster) ? $allWorking : [];
     $myWorking = $needsMyShift ? array_values(array_filter($allWorking, fn(array $row): bool => (string)($row['user_id'] ?? '') === (string)$user['user_id'])) : [];
+    $filteredWorking = $storeId > 0 ? array_values(array_filter($allWorking, fn(array $row): bool => (int)($row['store_id'] ?? 0) === $storeId)) : $allWorking;
+    $workingCount = ($dashboardCanWorkforce && $needsWorkingCount) ? count($filteredWorking) : 0;
+    $working = ($dashboardCanWorkforce && $needsWorkingRoster) ? $filteredWorking : [];
 
     $disputes = [];
     if (isset($allowedMap['my_disputes'])) {
@@ -106,8 +120,9 @@ try {
     if (isset($allowedMap['recent_attendance'])) {
         $shiftWhere = $allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
         $shiftArgs = $allRecent ? [$clientId] : [$clientId, (int)$user['id']];
+        if ($storeId > 0) { $shiftWhere .= ' AND s.store_id=?'; $shiftArgs[] = $storeId; }
         $shifts = $pdo->prepare(
-            'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
+            'SELECT s.public_id AS shift_id,e.full_name,e.user_id,st.id AS store_id,st.store_name,s.clock_in_at,s.clock_out_at,s.status,'
             . 'COALESCE(st.timezone,?) AS timezone '
             . 'FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id INNER JOIN stores st ON st.id=s.store_id '
             . 'WHERE ' . $shiftWhere . ' ORDER BY s.clock_in_at DESC LIMIT 100'
@@ -116,22 +131,44 @@ try {
         $recentShifts = $shifts->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    $filterStores = [];
+    $storeFilterWidgets = ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales'];
+    $needsStoreFilter = count(array_intersect($allowed, $storeFilterWidgets)) > 0;
+    if ($needsStoreFilter && ($dashboardCanWorkforce || $dashboardCanFinanceSummary)) {
+        $filterStoreStmt = $pdo->prepare("SELECT id,store_name FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC");
+        $filterStoreStmt->execute([$clientId]);
+        $filterStores = $filterStoreStmt->fetchAll(PDO::FETCH_ASSOC);
+    } elseif ($needsStoreFilter && isset($allowedMap['recent_attendance'])) {
+        $where = $allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
+        $args = $allRecent ? [$clientId] : [$clientId, (int)$user['id']];
+        $filterStoreStmt = $pdo->prepare(
+            'SELECT DISTINCT st.id,st.store_name FROM attendance_shifts s INNER JOIN stores st ON st.id=s.store_id WHERE ' . $where . ' ORDER BY st.id ASC'
+        );
+        $filterStoreStmt->execute($args);
+        $filterStores = $filterStoreStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    if ($storeId > 0 && $needsStoreFilter) {
+        $allowedStoreIds = array_map(static fn(array $row): int => (int)$row['id'], $filterStores);
+        if (!in_array($storeId, $allowedStoreIds, true)) throw new MerdWorkforceException('store_not_found', 'Dashboard store filter is unavailable.');
+    }
+
     $stores = [];
     $management = null;
     $needsManagement = $dashboardCanWorkforce || $dashboardCanFinanceSummary || $dashboardCanSync;
     if ($needsManagement) {
         $needsStoreRows = isset($allowedMap['workforce_by_store']) || isset($allowedMap['store_cash_position']) || isset($allowedMap['cash_mix']) || isset($allowedMap['today_sales_by_store']) || isset($allowedMap['top_stores_sales']);
         if ($needsStoreRows) {
-            $storeStmt = $pdo->prepare(
-                "SELECT id,store_name,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone "
-                . "FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC"
-            );
-            $storeStmt->execute([$currency,$timezone,$clientId]);
+            $storeSql = "SELECT id,store_name,COALESCE(currency_code,?) AS currency_code,COALESCE(timezone,?) AS timezone FROM stores WHERE client_id=? AND status='active'";
+            $storeArgs = [$currency,$timezone,$clientId];
+            if ($storeId > 0) { $storeSql .= ' AND id=?'; $storeArgs[] = $storeId; }
+            $storeSql .= ' ORDER BY id ASC';
+            $storeStmt = $pdo->prepare($storeSql);
+            $storeStmt->execute($storeArgs);
             $stores = $storeStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         $businessDate = (new DateTimeImmutable('now', $timezoneObject))->format('Y-m-d');
-        $trendDates = dashboard_data_last_seven_dates($businessDate, $timezoneObject);
+        $trendDates = dashboard_data_period_dates($businessDate, $timezoneObject, (int)$days);
         $trendStart = $trendDates[0];
 
         $financialRows = [];
@@ -141,9 +178,9 @@ try {
                 . "COALESCE(SUM(CASE WHEN f.account='Register' THEN COALESCE(f.closing_amount,f.opening_amount+f.in_total-f.out_total) ELSE 0 END),0) AS register_balance,"
                 . "COALESCE(SUM(CASE WHEN f.account='Petty Cash' THEN COALESCE(f.closing_amount,f.opening_amount+f.in_total-f.out_total) ELSE 0 END),0) AS petty_balance "
                 . "FROM stores st LEFT JOIN financial_day_accounts f ON f.store_id=st.id AND f.client_id=st.client_id AND f.business_date=? "
-                . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name,st.currency_code,st.timezone ORDER BY st.id"
+                . "WHERE st.client_id=? AND st.status='active' AND (?=0 OR st.id=?) GROUP BY st.id,st.store_name,st.currency_code,st.timezone ORDER BY st.id"
             );
-            $financial->execute([$currency,$timezone,$businessDate,$clientId]);
+            $financial->execute([$currency,$timezone,$businessDate,$clientId,$storeId,$storeId]);
             $financialRows = $financial->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -152,9 +189,9 @@ try {
             $sales = $pdo->prepare(
                 "SELECT st.id AS store_id,st.store_name,COALESCE(st.currency_code,?) AS currency_code,COALESCE(SUM(rs.total),0) AS today_sales "
                 . "FROM stores st LEFT JOIN retail_sales rs ON rs.store_id=st.id AND rs.client_id=st.client_id AND DATE(rs.sold_at)=? AND rs.status='completed' "
-                . "WHERE st.client_id=? AND st.status='active' GROUP BY st.id,st.store_name,st.currency_code ORDER BY st.id"
+                . "WHERE st.client_id=? AND st.status='active' AND (?=0 OR st.id=?) GROUP BY st.id,st.store_name,st.currency_code ORDER BY st.id"
             );
-            $sales->execute([$currency,$businessDate,$clientId]);
+            $sales->execute([$currency,$businessDate,$clientId,$storeId,$storeId]);
             $salesRows = $sales->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -162,10 +199,10 @@ try {
         if ($dashboardCanFinanceSummary && (isset($allowedMap['sales_change']) || isset($allowedMap['sales_trend_7d']))) {
             $stmt = $pdo->prepare(
                 "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value "
-                . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? "
+                . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? AND (?=0 OR rs.store_id=?) "
                 . "GROUP BY DATE(rs.sold_at) ORDER BY business_date ASC"
             );
-            $stmt->execute([$clientId,$trendStart,$businessDate]);
+            $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
             $salesTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), false);
         }
 
@@ -173,10 +210,10 @@ try {
         if ($dashboardCanWorkforce && (isset($allowedMap['attendance_change']) || isset($allowedMap['attendance_trend_7d']))) {
             $stmt = $pdo->prepare(
                 "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value "
-                . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? "
+                . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? AND (?=0 OR s.store_id=?) "
                 . "GROUP BY DATE(s.clock_in_at) ORDER BY business_date ASC"
             );
-            $stmt->execute([$clientId,$trendStart,$businessDate]);
+            $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
             $attendanceTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), true);
         }
 
@@ -215,13 +252,14 @@ try {
             'business_date'=>$businessDate,
             'currency_code'=>$currency,
             'timezone'=>$timezone,
+            'period_days'=>(int)$days,
             'active_employees'=>$activeEmployees,
             'sync_attention'=>$syncAttention,
             'financial_by_store'=>$financialRows,
             'sales_by_store'=>$salesRows,
             'analytics'=>[
-                'sales_7d'=>$salesTrend,
-                'attendance_7d'=>$attendanceTrend,
+                'sales_period'=>$salesTrend,
+                'attendance_period'=>$attendanceTrend,
                 'sync_statuses'=>$syncStatuses,
             ],
         ];
@@ -238,6 +276,8 @@ try {
         ],
         'allowed_widgets'=>$allowed,
         'client_defaults'=>['currency_code'=>$currency,'timezone'=>$timezone],
+        'filters'=>['store_id'=>$storeId,'days'=>(int)$days],
+        'filter_options'=>['stores'=>$filterStores,'periods'=>[7,14,30]],
         'working_count'=>$workingCount,
         'working'=>$working,
         'my_working'=>$myWorking,
