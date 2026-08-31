@@ -183,10 +183,10 @@ for required_asset in \
   'assets/mobile-runtime.js?v=20260828mobile1' \
   'assets/shell.css?v=20260830bottom1' \
   'assets/navigation.js?v=20260830bottom1' \
-  'assets/analytics-runtime.css?v=20260831analytics1' \
-  'assets/analytics-runtime.js?v=20260831analytics1' \
-  'assets/dashboard-builder.css?v=20260831analytics1' \
-  'assets/dashboard-builder.js?v=20260831analytics1' \
+  'assets/analytics-runtime.css?v=20260831analytics2' \
+  'assets/analytics-runtime.js?v=20260831analytics2' \
+  'assets/dashboard-builder.css?v=20260831analytics2' \
+  'assets/dashboard-builder.js?v=20260831analytics2' \
   'assets/account-menu.css?v=20260830about2' \
   'assets/account-menu.js?v=20260830roleview4' \
   'assets/ui-studio.css?v=20260831studio27' \
@@ -197,7 +197,7 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260831analytics1' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260831analytics2' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
   exit 1
 fi

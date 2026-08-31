@@ -204,10 +204,10 @@ foreach ([
     'assets/navigation.js?v=20260830bottom1',
     'assets/account-menu.css?v=20260830about2',
     'assets/account-menu.js?v=20260830roleview4',
-    'assets/analytics-runtime.css?v=20260831analytics1',
-    'assets/analytics-runtime.js?v=20260831analytics1',
-    'assets/dashboard-builder.css?v=20260831analytics1',
-    'assets/dashboard-builder.js?v=20260831analytics1',
+    'assets/analytics-runtime.css?v=20260831analytics2',
+    'assets/analytics-runtime.js?v=20260831analytics2',
+    'assets/dashboard-builder.css?v=20260831analytics2',
+    'assets/dashboard-builder.js?v=20260831analytics2',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -225,10 +225,10 @@ foreach ([
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics1', 'Namecheap deploy analytics stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics1', 'Namecheap deploy analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics1', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics1', 'Namecheap deploy dashboard analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics2', 'Namecheap deploy analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics2', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics2', 'Namecheap deploy dashboard analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260830about2', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260830roleview4', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio27', 'Namecheap deploy UI Studio stylesheet guard', $errors);
@@ -449,8 +449,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831analytics1', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831analytics1', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260831analytics2', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260831analytics2', 'Namecheap live dashboard status-pill cache guard', $errors);
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);

@@ -141,7 +141,7 @@
     periodButtons.forEach(button=>button.setAttribute('aria-pressed',num(button.dataset.dashboardDays)===filterState.days?'true':'false'));
     const selected=stores.find(row=>num(row.id)===filterState.storeId);
     const parts=[];if(hasStoreFilter)parts.push(selected?.store_name||'All stores');if(hasPeriodFilter)parts.push(`${filterState.days} days`);
-    filterSummary.textContent=parts.join(' Â· ');
+    filterSummary.textContent=parts.join(' | ');
   }
 
   function bars(rows,labelFn,valueFn,valueLabelFn,datasetId='dashboard-bars'){

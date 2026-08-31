@@ -288,4 +288,4 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Dashboard Store filter and chart Store selection reload through `api/dashboard_data.php`; 7/14/30-day period changes also reload server data.
 - Management-capable dashboards may receive active-client Store filter options; own-attendance-only filter options are derived only from that employee's permitted attendance history.
 - Store-filtered workforce, recent attendance, financial, sales and trend queries remain client-scoped and permission/dependency gated. `My current shift` remains self-scoped and independent of dashboard Store filter.
-- Management loader order must load analytics runtime before Dashboard Builder; deploy guards must require the matching `20260831analytics1` assets.
+- Management loader order must load analytics runtime before Dashboard Builder; deploy guards must require the matching `20260831analytics2` assets.

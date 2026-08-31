@@ -79,8 +79,8 @@ test('dashboard coordinates store drill-down and reporting-period filters',async
 test('analytics wiring and data endpoint keep filtering inside dashboard authorization scope',async()=>{
   const management=fs.readFileSync(managementPath,'utf8');
   const api=fs.readFileSync(dataApiPath,'utf8');
-  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics1")).toBeGreaterThan(-1);
-  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics1")).toBeLessThan(management.indexOf("assets/dashboard-builder.js?v=20260831analytics1"));
+  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics2")).toBeGreaterThan(-1);
+  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics2")).toBeLessThan(management.indexOf("assets/dashboard-builder.js?v=20260831analytics2"));
   expect(api).toContain('function dashboard_data_period_dates');
   expect(api).toContain("in_array($days, [7,14,30], true)");
   expect(api).toContain("AND (?=0 OR rs.store_id=?)");
