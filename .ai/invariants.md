@@ -94,9 +94,11 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 ## DEV UI Studio safety
 
 - UI Studio is available only to an actual DEV identity; a permission or LOA alone is not sufficient.
-- UI Studio is preview-only browser tooling. It must not call mutation APIs, write database state, modify repository source, or affect other users.
-- Draft UI changes may persist only as local browser preview state and must remain visibly identified as preview-only.
-- A UI Studio change-set becomes real only after it is translated into canonical source, committed, deployed and runtime-verified through the normal lifecycle.
+- DevStudio may write only to its dedicated client-scoped Studio state/audit subsystem through actual-DEV-only, CSRF/revision-checked Studio APIs. These writes are design workflow metadata, not operational MERDPOS business mutations.
+- Backend Studio audit/history is retained for audit/learning and is not exposed as an editable/deletable DevStudio history UI.
+- DevStudio must never directly modify canonical repository source, payroll/finance/workforce operational data, or ordinary product authorization state.
+- Browser-local settings may persist locally; global unresolved patches are server-backed and revisioned.
+- A DevStudio patch becomes real product behavior only after canonical source implementation, tests, deployment, real runtime verification and receipt confirmation.
 ## Security
 
 - Never commit secrets or private backend config.
@@ -116,3 +118,7 @@ Namecheap uses the established server-side pull/mirror/deploy process for Beta. 
 - Add regression coverage for incidents after the owning path is understood, but follow the current product-stage testing strategy rather than automating every changing UI flow.
 - After substantive work, leave GitHub sufficient for a fresh session to understand the new state without the originating chat.
 - For explicit implementation requests, do not stop at a plan when the available tools can perform the change; report concrete implementation evidence and exact lifecycle state.
+
+### Palette-standard escalation
+
+DevStudio may preview palette additions/deletions/reordering, but the binding canonical master palette remains the five colors above until the product owner explicitly accepts a standards change. A palette implementation that changes the master set must update the canonical tokens, this invariant, brand regressions, runtime/deploy validators and affected brand documentation together; do not weaken a failing five-color guard merely to accept an unapproved preview patch.

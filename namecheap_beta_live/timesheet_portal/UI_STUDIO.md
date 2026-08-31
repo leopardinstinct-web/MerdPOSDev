@@ -1,162 +1,150 @@
-# MERDPOS UI Studio
+# MERDPOS DevStudio — Current Contract
 
-UI Studio is an actual-DEV-only preview/handoff tool. MERDPOS remains the canvas. Studio preview state and history are synchronized through a dedicated client-scoped DEV API, but Studio never writes canonical source or operational business data.
+DevStudio is an actual-DEV-only design preview, unresolved implementation inbox, and LLM handoff tool. MERDPOS remains the product canvas and canonical source remains GitHub on `namecheap-beta-live`.
 
-## Sector radial interaction
-
-- One draggable **UI / DEV** hub is the persistent controller and opens automatically for an authenticated DEV session. Dragging preserves the original finger-to-hub-center offset, so touching near an edge never snaps the hub underneath the finger. Touch/pen taps activate directly on pointer-up and any later synthetic click is treated only as a duplicate, so a real tap after dragging still opens Studio normally. If opening the ring repositions the stage inward, that same gesture’s synthetic click is consumed at document capture so it cannot retarget a newly appeared wedge or underlying MERDPOS control.
-- The hub uses native browser Popover plus local HTML/CSS/JavaScript and locally vendored Google Material Symbols.
-- The Studio17 root begins with **Minimize**, then **Select**, **Edit Dashboard** and **Settings**, plus shared **Undo**. Once one element is selected, Add, Edit, Move, Comment and Hide/Show join those root actions. Select always replaces the prior selection, so only one element is selected at a time. There is no Exit wedge. Minimize is desktop-only and docks a Studio restore circle immediately to the right of the account circle.
-- Studio uses **single-ring drill-down**: selecting a parent replaces the current ring with its child ring instead of stacking or shrinking ancestor rings.
-- The ring is icon-only. Hover/focus previews an action name in the center hub. On fine-pointer devices, hovering the hub opens the ring; wheel input over the hub cycles available actions, the armed sector is highlighted, and clicking the hub executes it. With no armed action, the hub acts as **Back** inside a submenu.
-- **Edit** opens **Color** and **Layout** only. Color drills into **Palette**; Layout retains Padding, Margin, Gap, Radius, Width and Font.
-- **Add** chooses Text, Button, Card or Divider, then chooses **Above / Below / Left / Right** relative to the selected target.
-- **Move** first enters **Select Destination** mode; after a destination is chosen the ring offers **Top / Bottom / Left / Right**.
-- **Comment** and **Hide/Show** are direct selected-element actions. The hub change-count badge opens History, where individual steps can be deleted.
-- **Edit Dashboard** launches the existing persistent Dashboard Builder for the currently effective Current role. This is an explicit actual-DEV tool exception: the normal Admin/Super/User website remains permission-faithful, while the Dashboard Builder alone may save that role's dashboard layout through its existing API.
-- **Settings → Color** changes Studio-only accent chrome (hub, armed borders, selection outline and restore control). **Settings → Size → Font/Icon** adjusts Studio font or icon scale with Increase/Decrease. These preferences are browser-local and never recolor MERDPOS product UI.
-- The Dashboard widget drawer exposes **Describe** for each widget. Its text is stored as Studio comment/context metadata keyed to that widget and is included in Studio history/Copy/Chat handoff; Describe itself does not change application data.
-- Wheel/trackpad input over the **hub** cycles selectable actions without moving the pointer. Wheel input over the ring still rotates the ring; **Color → More** cycles through the extended preview color library while remaining a single ring.
-- Studio chrome is deliberately independent from MERDPOS product branding: background `#1A1A2E`, normal sectors `#25253D`, active sectors `#30304C`, white primary text and muted `#A8AEC1`. Bright action accents identify functions without recoloring the sector surfaces.
-- The hub and radial SVG share one fixed stage/center, and both are explicitly anchored at `left:0; top:0` inside that stage so browser static-position rules cannot give them different origins. Android visual-viewport resize/scroll events re-render and re-clamp the stage.
-- Studio17 keeps the approved prototype geometry: a `760×760` SVG viewBox, center radius `72`, ring radii `84 → 220`, and zero wedge gaps. Permanent wedge labels are removed; 48-unit Google Material Symbols are centered in the slices and the amber hub becomes the live action label/display. Normal sectors stay `#25253D`, active/armed sectors use `#30304C`, and only the icon carries the bright semantic accent.
-
-## Selection and transient UI
-
-**Select** intercepts pointer-down/click before the application action executes, so DEV can select rendered navigation buttons, sidebar submenu items, mobile utility items, dialogs/popovers and other dynamically opened controls without activating them.
-
-Desktop navigation and mobile shell tools treat `[data-ui-studio]` as a non-closing surface. Clicking the Studio hub/menu therefore does not collapse an already-expanded sidebar or close an opened shell utility menu while DEV is preparing to select one of its elements.
-
-## Preview operations
-
-- **Color → Palette** exposes Background/Text targeting, then the five MERDPOS master colors (Navy, Cyan, Violet, App Background, White) before **More** opens the extended rotating palette.
-- **Layout** exposes padding, margin, gap, radius, width and font-size. Padding, Margin, Gap, Radius and Font use a two-sector **▲ / ▼** stepper with the current value displayed in the hub; Width keeps direct preset choices.
-- **Move** is destination-first and remains single-element preview behavior. When a selected/destination node is inside a recognized MERDPOS component, Move promotes it to that component root so moving a card/feature does not accidentally move only its inner text/icon. Top/Left insert before the destination; Bottom/Right insert after it in DOM order.
-- **Hide/Show** is state-aware: a visible selection shows **Hide**; after hiding, the same action becomes **Show** and restores the preview. Reveal/Restore support remains in the patch engine for hidden-preview recovery.
-- **Comment** records Developer design-review metadata against the selected element, synchronizes it with global Studio history, and includes it in Copy/Chat handoff.
-- **Add** can create safe preview-only Text, Button, Card or Divider elements, then place the new element Above, Below, Left or Right of the selected target. Added nodes use DOM creation/textContent only; arbitrary HTML is not accepted.
-
-## History
-
-Studio maintains chronological client-global Developer history separately from the current active patch set. Every edit/comment/add/move/reset/undo/clear event records page/panel/selector context, actor, preview role and server revision.
-
-**The change-count badge on the hub** opens a temporary history card. Clicking an entry returns to its recorded portal panel/page where possible, reopens relevant navigation/dialog/tool context, selects the recorded element and scrolls it into view. Each row also has a trash-can delete control. Deletion is persisted globally and the server replays surviving mutation steps to recompute the active preview. Cross-page jumps use session storage only for the one navigation handoff.
-
-## Copy and Chat handoff
-
-`window.MERDPOS_UI_STUDIO.getChangeSet()` returns active preview patches plus history metadata. `getHistory()` exposes a defensive copy of synchronized Developer history. Copy writes structured JSON; Chat writes an apply-to-canonical-source instruction, readable summary and the same JSON to the clipboard.
-
-Comments and added-element patches are design intent only. They become MERDPOS only after canonical owner files are edited, committed to `namecheap-beta-live`, deployed through the normal Namecheap process and runtime-verified.
+This document describes the **current** contract. Historical Studio24–27 behavior is preserved in `.ai/decisions.md`, archived work packets and Git history; it is not a second current specification.
 
 ## Safety boundary
 
-UI Studio requires preserved actual DEV identity even while Current role previews Admin/Super/User. Preview patches/comments/history synchronize only through the dedicated `ui_studio_history.php` DEV API and migration 035 tables; ordinary operational APIs remain governed by the effective preview role. Device-only Studio settings and hub position stay browser-local. Edit Dashboard remains a separate authenticated Dashboard Builder path.
+- Actual DEV identity is mandatory. Preview role, LOA or permissions alone do not grant DevStudio.
+- DevStudio may write only its dedicated client-scoped Studio state/audit subsystem through actual-DEV-only, CSRF/revision-checked Studio APIs.
+- Studio state/audit writes are design-workflow metadata, not operational MERDPOS business mutations.
+- DevStudio must not directly edit repository source or mutate payroll, finance, workforce, stores or ordinary product authorization data.
+- Backend audit/history is retained for audit/learning and is not exposed as a browsable/deletable DS History UI.
+- A patch becomes real MERDPOS behavior only after canonical implementation, tests, deployment, live verification and receipt confirmation.
 
+## Global unresolved inbox
 
-## Studio18 role inheritance, contrast and radial sizing
+Current browser sessions receive only global unresolved patches.
 
-- New style/Hide patches record the effective **Current role** plus explicit downward targets: Developer ? Developer only; Admin ? Admin + Super + User; Super ? Super + User; User ? User only. Legacy draft patches without role metadata remain readable for backward compatibility. This is Studio preview inheritance only and does not alter MERDPOS permissions.
-- Background palette changes now pair the chosen background with computed readable light/dark text ink instead of relying on the old hand-maintained swatch brightness flags. Studio accent chrome uses the same computed contrast rule.
-- Settings ? Size is one Increase/Decrease control for radial geometry: it changes the center-button diameter and sector-ring thickness together. Existing font/icon scales remain readable from older local settings but are no longer separate menu branches.
-- Wheel/center candidate navigation skips disabled menu definitions; disabled slices remain visible as unavailable context but cannot become the armed scroll action.
+Each active patch has a stable `patchId` and status:
+- `pending`
+- `implementing`
+- `implemented`
+- `blocked`
 
+`confirmed_applied` is terminal for the working inbox: the matching patch leaves active DS state while backend audit remains.
 
-## Studio19 dashboard policy + size behavior
+Copy payloads use JSON v6 with:
+- `global: true`
+- synchronized `revision`
+- `workflow: unresolved-patches`
+- unresolved `patches` only
 
-- Dashboard policy saves compare each role's allowed widget set before and after the save. Widgets that become newly allowed after all visibility/data permissions are satisfied are appended to that role's dashboard; widgets that were already allowed but intentionally removed are not re-added.
-- Superseded by Studio20: widget visibility permissions no longer require granting the matching whole-application page/API permission. Standard data dependencies are resolved only inside the dashboard endpoint and do not expose the corresponding navigation or general API surface.
-- DevStudio dashboard editing uses the widget drawer directly; the redundant circular `+` dashboard control stays hidden while Studio edit mode is active.
-- Settings → Size now separates `Button Size` from `Icon Size`. Button Size scales the center hub and the radial ring's inner/outer radii together, changing hub diameter, slice thickness, and slice distance from center. Icon Size changes icons only.
+No audit-history array is included in the DS payload or Copy for ChatGPT handoff.
 
+## LLM round trip
 
-## Studio20 scoped widget dependencies + account toggle
+Copy for ChatGPT instructs the LLM to process only unresolved patches and return a receipt using stable patch IDs.
 
-- A dashboard widget may declare a standard data dependency such as `workforce.view`, while its visibility remains controlled by its dedicated `dashboard.widget.*` permission. The dashboard endpoint resolves that dependency only for the allowed widget; it does not grant the role the corresponding page, navigation item or general API permission.
-- Dashboard responses are narrowed to the widgets actually present. Count widgets receive counts; roster/list widgets receive the rows they need; unrelated dashboard payloads are not broadened by another widget's dependency.
-- Actual DEV controls DevStudio from a toggle in the account sheet. The account avatar follows the Studio accent while enabled. The old separate restore/minimized icon and duplicate DEV-panel launcher are retired.
-- Fine-pointer hover on a selectable element exposes a small Select affordance. The radial Select action is retired; once selected, the root exposes Unselect. Touch devices select directly because hover is unavailable.
+Receipt contract:
 
-## Studio21 mouse interaction model
+```json
+{
+  "merdposDevStudioReceipt": 1,
+  "sourceRevision": 62,
+  "updates": [
+    {
+      "patchId": "patch-example",
+      "status": "confirmed_applied",
+      "commit": "<deployed commit>",
+      "verification": "passed",
+      "note": "Implemented in canonical MERDPOS source and live verified."
+    }
+  ]
+}
+```
 
-- Enabling DevStudio keeps the radial controller hidden until it is needed.
-- Right-click a selectable MERDPOS element to select it and open the radial menu at that pointer location. There is no hover Select affordance.
-- While the radial is open, mouse-wheel input anywhere cycles enabled slices as if the pointer were over the center hub.
-- Middle-click activates the currently armed slice. If no slice is armed, no action is executed.
-- Right-click while the radial is open acts as Back. At the root level, Back closes the radial.
-- Left-click outside Studio hides the radial but leaves DevStudio enabled and keeps the current selection.
-- Touch keeps direct selection behavior; the radial opens after a touch selection.
+Paste LLM Receipt applies revision-checked status transitions. It must never confirm a patch that was not actually implemented and verified.
 
-## Studio22 icon URL resolution
+Standard implementation lifecycle:
 
-- Studio icon URLs are now resolved from `document.baseURI` before use.
-- This keeps radial SVG images and center-hub CSS masks on the same canonical `assets/vendor/google-material-symbols/` path.
-- The change prevents stylesheet-relative `assets/assets/vendor/...` requests in the live beta runtime.
+`active patch → canonical source → tests → deploy exact commit → live verification → receipt → confirmed_applied`
 
-## Studio23 hover, docked radial, and keyboard toggle
-- When DevStudio is enabled and its radial is closed, hovering a selectable MERDPOS element shows the dashed Studio target outline. No hover Select button is rendered.
-- Right-click selects the element but docks the radial at the viewport-safe corner farthest from the selected target, keeping the target visible.
-- While the radial is open, wheel and middle-click remain global Studio controls. Right-click remains Back/root-close.
-- A left-click outside the radial dismisses the radial and is consumed; it does not activate the underlying MERDPOS control. Normal page interaction resumes after dismissal.
-- Ctrl+D toggles DevStudio enabled/disabled for actual DEV identity and uses the same persisted state/event path as the account-menu toggle.
+Patch cleanup/confirmation is the **last step**. Never clear unrelated or unverified patches.
 
+## Role inheritance and proposals
 
-## Studio24 global history and element change markers
+Developer is the visual master:
+- DEV → DEV, ADMIN, SUPER, USER
+- ADMIN → ADMIN, SUPER, USER
+- SUPER → SUPER, USER
+- USER → USER
 
-- **Changes** is restored to the radial root and exposes History, Copy JSON, Chat, Undo, Reset and Clear.
-- Migration 035 adds client-scoped `ui_studio_state` and `ui_studio_history`. Actual Developer sessions share one revisioned preview/history stream for the active Working client.
-- Writes are CSRF-protected and use optimistic `base_revision` checks. A stale Developer session is rejected and refreshed instead of silently overwriting another machine.
-- Local draft cache records its Working-client ID. A legacy unscoped draft may bootstrap an empty server journal once; afterward server state is authoritative.
-- Every persisted history step stores actor, preview-role scope, page/panel/selector context and a normalized patch mutation. Deleting a step with the trash icon is global and recomputes active patches by replaying surviving mutations.
-- Elements with active Studio patches receive a small green change dot while Studio is enabled and the radial is closed. Hover/focus/click on the dot opens a viewport-safe branded floating history card for that element, including per-step trash actions.
-- The floating marker layer is Studio-owned and ignored by the application MutationObserver, preventing marker recreation loops while the pointer enters the dot/history card.
-- JSON/Chat handoff is version 5 and includes `global:true`, the synchronized server revision, canonical role inheritance, proposal/request metadata, and optional image-context attachments.
+Lower roles may specialize inherited existing elements. Lower-role Add or Comment/Describe actions are proposals/requests anchored to that preview; real implementation must originate from Developer master. Authorization is unchanged by this presentation inheritance.
 
+## Selection and radial behavior
 
-## Studio25 cursor action guidance and accent artifacts
+- DevStudio enable state is independent from radial visibility.
+- Fine-pointer selection is context-click driven; touch selects directly.
+- Full radial dismissal clears the previously selected MERDPOS element. This includes outside dismissal, Ctrl+D disable and Minimize.
+- Move destination mode is the explicit exception: its temporary radial hide preserves the source selection until destination placement completes or is cancelled.
+- Studio interactions are consumed so they do not accidentally activate the underlying MERDPOS control.
+- The draggable hub/radial share one viewport-clamped stage and preserve touch contact offset.
+- Studio appearance settings remain browser-local and synchronize across same-profile windows where supported.
 
-- Once an element is selected, a pointer-transparent branded pill follows the mouse cursor and reads `Select action…` until a radial action is armed.
-- Global wheel navigation updates that pill with the currently armed DevStudio action label and its local Material Symbol. Middle-click continues to execute the armed radial action; the radial may remain docked away from the selected target.
-- Clearing/unselecting the element hides the cursor pill. Closing the radial while keeping the selection restores the pill to `Select action…`.
-- Change dots use `--merd-ui-accent` for fill, glow and focus chrome, so previously rendered change markers repaint immediately when the Developer changes the Studio accent.
+## Current radial branches
 
+The current root keeps DevStudio controls compact and context-aware. Core branches include Settings, Changes, Edit Dashboard and shared Undo; selected-element actions add Edit, Move, Add, Comment and Hide/Show as appropriate.
 
-## Studio26 Developer master and lower-role proposals
+Changes is an unresolved-inbox workflow, not History. It exposes current patch actions such as Copy for ChatGPT and Paste LLM Receipt.
 
-- **Developer is the visual master template.** Implemented DEV patches inherit to DEV + ADMIN + SUPER + USER; Admin inherits to Admin + Super + User; Super to Super + User; User to User. Runtime and server normalization derive targets from `roleScope`, so older saved DEV patches that explicitly carried `roleTargets:[DEV]` are interpreted as master-wide without recreating them.
-- Implemented style, text, move, hide and DEV Add patches are layered in hierarchy order so a downstream override applies after its upstream template regardless of edit timestamp. Lower previews may specialize existing inherited elements but cannot delete an upstream element with Reset/Undo/Clear.
-- Add while previewing ADMIN/SUPER/USER is **not** an implemented lower-role element. It records a `kind:request`, `requestType:add` proposal with `requestedFromPreview`, `implementationOrigin:DEV`, `status:proposed`, placement/type/content context, and a Studio-owned dashed visual placeholder. The proposal is visible in the requested preview and DEV master context only while Studio is active.
-- Comment/Describe while previewing ADMIN/SUPER/USER is likewise a proposal request rather than an implemented comment. It remains anchored to the selected element/widget and is included in global history, change markers, JSON and Chat handoff.
-- Lower-role proposals mean "design/request observed in this preview; implementation must begin in Developer master." They do not alter product authorization and do not create production DOM outside the Developer master inheritance chain.
-- Undo, Reset and Clear operate on the current role's own Studio layer. An inherited master element can be hidden downstream but cannot be physically removed or restored against an upstream hide from a lower preview.
+## Comments and image context
 
+Comments support multiline text and optional image context. Up to six PNG/JPEG/WebP/GIF/SVG files may be attached per note. Upload is actual-DEV-only and CSRF-protected; SVG is sanitized.
 
-## Studio27 symmetric master Undo, rich comments and shared appearance
+Uploaded context lives in private backend runtime storage. A random token read URL may be included in ChatGPT handoff so the LLM can fetch the image without MERDPOS credentials or directory access.
 
-- DEV master Hide/Style and its Undo are symmetric across the inheritance chain. Legacy lower-role style patches that exactly duplicate an active upstream value and were never marked as explicit overrides are collapsed as redundant, so a plain DEV Hide → DEV Undo restores DEV/Admin/Super/User together.
-- New Admin/Super/User implemented changes are stamped `explicitOverride:true`. Those real downstream decisions survive a later DEV master Undo; only inherited/redundant effects disappear with the master action.
-- Comment / Request Note now opens a branded multiline composer rather than a browser prompt. The note may contain line breaks and may be saved with text, images, or both.
-- Up to six PNG, JPEG, WebP, GIF or SVG context files may be attached per comment. Upload is actual-DEV-only and CSRF-protected. SVG is sanitized before storage; uploads are kept under private Namecheap backend runtime storage rather than the public portal directory.
-- Each stored image receives a 256-bit random read token. `studio_context_asset.php?t=<token>` is intentionally read-only and sessionless so a copied ChatGPT handoff can fetch the referenced image without receiving MERDPOS credentials or directory access. SVG reads are sandboxed and all reads are MIME/nosniff guarded.
-- Attachment name, MIME, size, SHA-256 and token URL are stored in the Studio patch. Copy JSON and Copy for ChatGPT include those URLs directly.
-- Studio accent, font/icon scale and radial size use the browser profile's localStorage and listen for `storage` changes, so already-open MERDPOS windows repaint when another window changes Studio appearance. Studio state remains device/browser-profile local; it is not made global across machines.
+## MERDPOS Palette
 
-## Canonical implementation-patch execution rule
+Settings → **MERDPOS Palette** exposes the current brand palette in Developer preview.
 
-- DevStudio comments/style/request patches are implementation instructions, not permanent product source.
-- Execute the requested change in canonical MERDPOS source, run regressions, deploy the exact commit, and live-verify the resulting runtime first.
-- Only after successful live verification, programmatically remove the matching active patches from the global DevStudio state through the revisioned Studio API.
-- Do not delete the corresponding Studio history/audit entries; history remains the implementation trail.
-- Remove only patches whose requested behavior is demonstrably implemented and verified. Unfinished or failed requests remain active.
-## Studio28 unresolved patch inbox + LLM receipt
-- DevStudio shows and copies only global patches that are not `confirmed_applied`; backend history is not exposed in the DS UI or copy payload.
-- Every active patch has a stable `patchId` and status: `pending`, `implementing`, `implemented`, or `blocked`. `confirmed_applied` removes it from the active inbox.
-- Copy for ChatGPT emits JSON v6 plus the required `merdposDevStudioReceipt: 1` response contract.
-- Paste LLM Receipt applies revisioned patch-status updates. The backend `ui_studio_history` journal remains the immutable audit/learning record.
-- The actual-DEV account summary shows compact unresolved counters; the two supplied folder SVGs are canonical assets.
+Palette operations:
+- View
+- Edit
+- Move Up
+- Move Down
+- Add
+- Delete
 
-## Studio29 MERDPOS Palette + dismissal discipline
-- Settings â†’ **MERDPOS Palette** exposes the canonical brand palette in the radial menu for Developer preview.
-- Palette colors can be viewed, edited, moved up/down, added, and deleted. Changes create one global unresolved `palette` patch and preview through CSS custom-property overrides; palette order also remaps chart color slots so reordering is visible where possible.
-- Palette patches are included in Copy for ChatGPT and use the normal v6 receipt lifecycle. Canonical design tokens remain unchanged until the palette patch is implemented and live-verified.
-- Full radial dismissal (including Ctrl+D/Minimize and outside dismissal) deselects the previously selected MERDPOS element. Move destination mode is the explicit preserve-selection exception.
-- Working client and Current role account contexts are minimizable and persist their collapsed state locally; the verbose DEV role helper line is retired.
+A palette edit creates or replaces one global unresolved `kind: palette` patch. The server validates palette IDs, CSS token names, hex values and the maximum item count, and forces palette patches to DEV/global scope.
+
+Preview applies CSS custom-property overrides and remaps chart color slots where possible. Canonical `design-tokens.css` remains unchanged until the palette patch is implemented through the normal lifecycle.
+
+### Palette-standard escalation
+
+The binding product standard is still exactly five master colors unless the product owner explicitly changes that standard. DevStudio may preview a different set, but implementing a palette patch that adds/removes a master color is a **design-standard change**, not an ordinary token edit.
+
+Such an implementation must update together:
+- canonical `design-tokens.css` master tokens;
+- `.ai/invariants.md` brand-palette rule;
+- `browser_tests/brand-palette-runtime.spec.js`;
+- runtime/deploy validators;
+- affected brand/component documentation.
+
+Do not weaken the five-color guard simply because an unresolved preview patch conflicts with it.
+
+## Account utility integration
+
+The actual-DEV account summary displays compact unresolved DevStudio counters. The supplied Create Folder and Folder Match SVGs are canonical assets for these metrics.
+
+Working client and Current role utility contexts are independently minimizable. Their collapsed state persists locally. The retired verbose DEV role helper text must not return.
+
+## Audit retention
+
+`ui_studio_history` is backend audit/learning data. DevStudio does not expose a History browser, a browser history getter, trash/delete controls or history in Copy for ChatGPT.
+
+Status transitions, receipt application and other Studio mutations remain auditable on the backend. Operational product APIs and permissions remain separate.
+
+## Deployment/release contract
+
+Current Studio cache generation is `20260831studio29` until deliberately superseded. Loader wiring, runtime validator and Namecheap deploy guards must advance together when the generation changes.
+
+Relevant permanent coverage lives primarily in:
+- `browser_tests/ui-studio-runtime.spec.js`
+- `browser_tests/shell-account-runtime.spec.js`
+- `backend/cli/validate_ui_studio_inheritance.php`
+- `backend/cli/validate_beta_runtime_contract.php`
+- `backend/cli/validate_ai_continuity.php`
+
+Passing source/CI checks does not itself mean a visual behavior is live-verified. Use the project lifecycle and deployment marker/runtime evidence.

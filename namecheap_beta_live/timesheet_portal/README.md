@@ -224,14 +224,14 @@ The product identity is stored as exact supplied artwork under `assets/brand/`. 
 The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh` writes `.beta_release.json` beside the beta live tree after runtime validation. `dashboard.php` reads that server-side file to show the deployed MERDPOS Git reference/date, the latest DevStudio Git reference/date, and the three most recent release commit subjects. Do not replace these values with hand-maintained version strings.
 
 
-### DevStudio Developer master + preview requests (2026-08-31)
+### Historical DevStudio26 master + preview requests (superseded handoff format)
 - The visual-template chain is Developer → Admin → Super → User. Developer patches are the master and are inherited by every lower preview; lower roles can further specialize inherited elements but cannot introduce production elements absent from the Developer master.
 - Actual DEV may still design in an Admin/Super/User preview. Add or Comment/Describe there is stored as a globally synchronized proposal request anchored to that preview and explicitly marked to begin implementation from Developer.
 - Studio proposal placeholders are editing artifacts only. They do not grant permissions, create lower-role production DOM, or bypass the existing role/LOA/permission model.
 - Studio JSON v4 carries canonical role targets plus proposal metadata; migration 035 global history remains the persistence mechanism.
 
 
-### DevStudio27 context capture and inheritance reversal (2026-08-31)
+### Historical DevStudio27 context capture and inheritance reversal (superseded handoff format)
 - Developer remains the visual master. Undoing a Developer master patch removes the inherited effect from Admin/Super/User as well; an intentional lower-role override survives only when it is explicitly owned by that lower role.
 - Studio comments/requests use a multiline composer and can attach up to six PNG/JPEG/WebP/GIF/SVG images. Context upload is actual-DEV-only and CSRF-protected; SVG is sanitized.
 - Uploaded Studio context is stored under private backend runtime storage. A random-token, read-only `studio_context_asset.php` URL is copied into Studio JSON/Chat handoff so ChatGPT can fetch the image without MERDPOS authentication material.
@@ -239,7 +239,7 @@ The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh`
 
 
 ### DevStudio implementation patches
-Implementation requests authored in DevStudio are translated into canonical source. Completion requires regression tests, deployment, live verification, and then programmatic removal of only the matching active Studio patches. Studio history is retained as the audit trail.
+Implementation requests authored in DevStudio are translated into canonical source. Completion requires regression tests, deployment, live verification, and then a revisioned LLM receipt that confirms only the matching verified patches. Confirmed patches leave the unresolved inbox; backend audit/history remains retained.
 
 ### Shared analytics dashboard runtime (2026-08-31)
 - Dashboard visualization uses `assets/analytics-runtime.js` + `assets/analytics-runtime.css`; do not add a second chart framework for ordinary MERDPOS dashboard/report widgets.
@@ -248,10 +248,13 @@ Implementation requests authored in DevStudio are translated into canonical sour
 - Dashboard Builder coordinates Store and 7/14/30-day filters through `api/dashboard_data.php`; Store drill-down reloads all applicable widgets from the server rather than filtering privileged data only in the browser.
 - Store filter options are scope-safe: management-capable dashboard dependencies may expose active client stores, while own-attendance-only access may expose only stores present in that employee's permitted attendance history.
 - The analytics runtime consumes MERDPOS semantic/chart tokens and preserves desktop/tablet/mobile functional parity.
+### Current authoritative DevStudio specification
+See `UI_STUDIO.md` for the current-state-first DevStudio contract. Older versioned sections above are historical evolution and must not override Studio28/29 behavior.
+
 ### DevStudio28 unresolved implementation inbox
 - DevStudio no longer exposes its audit history. Working sessions contain only global unresolved patches.
 - Copy for ChatGPT uses patch IDs and returns a machine-readable LLM receipt contract; Paste LLM Receipt closes confirmed work and retains backend audit.
 - Confirmed implementation is the final patch state and disappears from the DS inbox/copy set.
 
 ### DevStudio29 palette workflow
-DevStudio can now stage the MERDPOS brand palette itself as a global unresolved patch. Developer preview supports view/edit/reorder/add/delete through Settings â†’ MERDPOS Palette, with best-effort live token/chart preview. Copy for ChatGPT includes the palette patch; canonical token source changes only after normal implementation, deployment, verification, and receipt confirmation. Account-sheet Working client and Current role blocks are minimizable, and radial dismissal clears the previous element selection.
+DevStudio can now stage the MERDPOS brand palette itself as a global unresolved patch. Developer preview supports view/edit/reorder/add/delete through Settings → MERDPOS Palette, with best-effort live token/chart preview. Copy for ChatGPT includes the palette patch; canonical token source changes only after normal implementation, deployment, verification, and receipt confirmation. Account-sheet Working client and Current role blocks are minimizable, and radial dismissal clears the previous element selection.

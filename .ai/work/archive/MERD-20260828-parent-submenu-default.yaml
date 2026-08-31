@@ -5,7 +5,7 @@ acceptance:
   - "Clicking a multi-item side-menu parent opens its submenu and activates the first available submenu item."
   - "Explicit submenu selection still works normally."
   - "Direct single-item side-menu sections keep their existing behavior."
-packet_state: CHECKED
+packet_state: CLOSED
 lifecycle: WIRED
 base_head: "c0910225efe322d705754e636075f8d48ff79c50"
 last_seen_head: "a78f84af16cc9357ba0884d353d3337f5d44bb62"
@@ -40,7 +40,8 @@ checks:
 remaining:
   - "Confirm Namecheap has pulled the source change."
   - "Exercise a live multi-item side-menu parent and confirm its first submenu/panel becomes active."
-next_action: "Recheck the live cache-busted navigation.js for section.tabs[0]?.click(); once present, exercise the authenticated side-menu parent interaction and close/archive this packet if successful."
+next_action: "None; historical packet archived. Current source and newer decisions govern."
 blocked: true
 blocker: "Namecheap has not yet served the source change; established server-side pull/deploy is external to the current source edit."
-updated_at: "2026-08-27T19:03:00Z"
+updated_at: "2026-09-01T00:29:00+05:00"
+closed_reason: "Closed during 2026-09-01 continuity audit because this packet is stale, superseded by newer canonical runtime, or already completed. Lifecycle was not retroactively inflated."

@@ -46,6 +46,9 @@ jobs:
       - name: Validate beta runtime contract
         run: php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
 
+      - name: Validate AI continuity truthfulness
+        run: php namecheap_beta_live/backend/cli/validate_ai_continuity.php
+
       - name: Validate portal permission policy
         run: php namecheap_beta_live/backend/cli/validate_portal_permission_policy.php
 

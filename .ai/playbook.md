@@ -8,8 +8,8 @@ Before acting:
 
 1. Confirm repository `leopardinstinct-web/MerdPOSDev`.
 2. Confirm authoritative branch `namecheap-beta-live`.
-3. Read `AGENTS.md`, `.ai/README.md`, `.ai/invariants.md`, `.ai/memory.md`, `.ai/decisions.md` and this file.
-4. Inspect the current branch version of every file you plan to change.
+3. Read `AGENTS.md`, `.ai/README.md`, `.ai/invariants.md`, `.ai/task-gates.md` and `.ai/work/ACTIVE.yaml`; then load only task-relevant sections of memory/decisions/playbook/regression docs.
+4. Inspect the current branch version and recent affected-path history for every file/component you plan to change.
 5. Resolve contradictions by the authority hierarchy in `.ai/README.md`, not by remembered chat context.
 
 Do not ask the user to restate repository facts already encoded here unless the repository itself is ambiguous.
@@ -271,3 +271,17 @@ The `.ai` layer should be curated state, not a transcript. Remove or explicitly 
 - Preserve prepared SQL and server-side authorization.
 - Prefer redacted/structural logs for security-sensitive checks.
 - When automation needs authentication, keep the mechanism documented in GitHub but the secret material external.
+
+## 16. Continuity truthfulness audit
+
+When durable knowledge changes quickly, run a contradiction pass before calling the repository a reliable fresh-session seed.
+
+1. Resolve current `namecheap-beta-live` HEAD and current Beta Guardrails status.
+2. Check the authority chain in order: invariants/task gates → ACTIVE packets → memory → later decisions → component docs → playbook/regressions.
+3. Reject stale higher-authority claims even when newer lower-authority notes are correct.
+4. Reconcile `.ai/work/ACTIVE.yaml` with `.ai/work/active/`; archive completed/superseded packets without retroactively inflating lifecycle evidence.
+5. Keep current component docs current-state-first. Historical behavior belongs in decisions/archive or an explicitly labelled historical section, not mixed into the current contract.
+6. Run `php namecheap_beta_live/backend/cli/validate_ai_continuity.php` before release.
+7. Treat encoding corruption in the durable knowledge layer as a continuity defect.
+
+A fresh session should not have to infer which of two contradictory instructions is newer. If a rule changed, update or explicitly supersede the older higher-authority wording in the same workstream.

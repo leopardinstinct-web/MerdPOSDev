@@ -135,3 +135,5 @@ For packeted work, when the task is complete:
 3. remove the task from `.ai/work/ACTIVE.yaml`;
 4. move the packet to `.ai/work/archive/`;
 5. do not copy the packet's step-by-step transcript into curated project memory.
+
+When the durable knowledge layer or work-packet index changes, run `php namecheap_beta_live/backend/cli/validate_ai_continuity.php` before completion. Treat a continuity-validator failure as a repository truthfulness defect, not as optional documentation lint.

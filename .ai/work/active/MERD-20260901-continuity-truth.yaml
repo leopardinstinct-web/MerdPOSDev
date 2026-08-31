@@ -1,0 +1,51 @@
+version: 1
+id: MERD-20260901-continuity-truth
+objective: "Make GitHub continuity state self-consistent, current, and automatically guarded against stale high-authority guidance."
+acceptance:
+  - "High-authority invariants/memory/Studio/backend docs match Studio29+ current source."
+  - "Only genuinely active work packets remain in ACTIVE.yaml; stale packets are archived without inflating lifecycle evidence."
+  - "CI/deploy run an AI continuity validator that rejects known stale contradictions and packet-index drift."
+  - "Current docs are encoding-clean and palette standard escalation is explicit."
+  - "Force-push/deletion protection is enabled without changing the normal direct bounded-push workflow."
+packet_state: CHECKED
+lifecycle: WIRED
+base_head: "e85594e0cab7264a25febdf3ab3ccc7937f66193"
+last_seen_head: "e85594e0cab7264a25febdf3ab3ccc7937f66193"
+affected_paths:
+  - ".ai/"
+  - "AGENTS.md"
+  - "namecheap_beta_live/timesheet_portal/UI_STUDIO.md"
+  - "namecheap_beta_live/timesheet_portal/README.md"
+  - "namecheap_beta_live/backend/README.md"
+  - "namecheap_beta_live/backend/cli/validate_ai_continuity.php"
+  - "namecheap_beta_live/browser_tests/continuity-runtime.spec.js"
+  - ".github/workflows/beta-guardrails.yml"
+  - "scripts/deploy_namecheap_beta.sh"
+constraints:
+  - "Current source outranks historical docs; continuity cleanup must not rewrite product runtime behavior."
+  - "Historical packets are archived at their last evidenced lifecycle; no retroactive VERIFIED claims."
+completed:
+  - "Rewrote current memory around Studio29, analytics2, migrations 035/036, receipt workflow, safety and governance."
+  - "Corrected binding DevStudio persistence/API safety invariant and added palette-standard escalation."
+  - "Rebuilt UI_STUDIO.md as a current-state-first contract; labelled older portal README Studio sections historical."
+  - "Archived eight stale/superseded active packets and removed the orphan active copy; ACTIVE now indexes this task only."
+  - "Added validate_ai_continuity.php and wired it into Beta CI, runtime contract and Namecheap deploy preflight."
+  - "Added continuity-runtime.spec.js permanent coverage and continuity process guidance to bootstrap/task-gates/playbook/regressions."
+  - "Enabled GitHub branch protection: force pushes disabled; branch deletion disabled; normal direct bounded pushes remain allowed."
+checks:
+  - name: "AI continuity validator"
+    result: "PASS"
+    evidence: "Current knowledge, Studio contract, work index/orphans and encoding validation pass."
+  - name: "Full Beta browser suite"
+    result: "PASS"
+    evidence: "67/67 passed with one worker on the exact continuity-hardening tree."
+  - name: "Release validators/lint/syntax"
+    result: "PASS"
+    evidence: "PHP lint, runtime contract, permission policy, Studio inheritance/palette, loader order, beta-state scope, JS syntax, Bash syntax and git diff --check passed."
+remaining:
+  - "Remove temporary helper scripts, commit/push exact checked tree and confirm GitHub Beta Guardrails."
+  - "Confirm Namecheap deploy marker for the continuity commit, then close/archive this packet."
+next_action: "Commit and push the exact checked continuity-hardening tree."
+blocked: false
+blocker: null
+updated_at: "2026-09-01T00:45:00+05:00"

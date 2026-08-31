@@ -8,7 +8,7 @@ acceptance:
   - "Settings Color changes Studio accent chrome only; Settings Size independently changes Font or Icon scale with Increase/Decrease."
   - "Desktop Minimize hides floating Studio and creates a restore circle immediately right of the account circle."
   - "Ordinary Studio patches/comments/settings remain browser-local; Dashboard Builder persistence remains isolated to its existing layout API."
-packet_state: CHECKED
+packet_state: CLOSED
 lifecycle: WIRED
 base_head: "dde2406024a958c06bf93472725e654cee63f131"
 last_seen_head: "dde2406024a958c06bf93472725e654cee63f131"
@@ -27,7 +27,8 @@ completed:
   - "Full beta browser suite passes 34/34; all four beta validators, 94 PHP lints, 39 JS/test syntax checks, YAML and deploy-script syntax pass."
 remaining:
   - "Commit/push, confirm guardrails/Namecheap pull, then authenticated live verification."
-next_action: "Commit/push checked Studio17, then verify CI and live beta."
+next_action: "None; historical packet archived. Current source and newer decisions govern."
 blocked: false
 blocker: null
-updated_at: "2026-08-30"
+updated_at: "2026-09-01T00:29:00+05:00"
+closed_reason: "Closed during 2026-09-01 continuity audit because this packet is stale, superseded by newer canonical runtime, or already completed. Lifecycle was not retroactively inflated."

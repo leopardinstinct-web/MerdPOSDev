@@ -86,6 +86,8 @@ $uiStudioMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend
 $storeWeekStartMigration = beta_contract_read($repo . '/namecheap_beta_live/backend/sql/036_store_week_start_day.sql', $errors);
 $storeWeekStartMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/apply_036_store_week_start_day.php', $errors);
 $uiStudioInheritanceValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_ui_studio_inheritance.php', $errors);
+$aiContinuityValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_ai_continuity.php', $errors);
+$betaGuardrails = beta_contract_read($repo . '/.github/workflows/beta-guardrails.yml', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 $deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
 
@@ -238,6 +240,11 @@ beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'N
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/devstudio/create_new_folder_24dp.svg', 'Namecheap DevStudio create-folder icon guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/devstudio/folder_match_24dp.svg', 'Namecheap DevStudio folder-match icon guard', $errors);
+
+beta_contract_require_contains($deployScript, 'validate_ai_continuity.php', 'Namecheap AI continuity preflight', $errors);
+beta_contract_require_contains($betaGuardrails, 'Validate AI continuity truthfulness', 'Beta CI continuity guard', $errors);
+beta_contract_require_contains($aiContinuityValidator, 'Orphan active work packet', 'AI continuity work-packet drift guard', $errors);
+beta_contract_require_contains($aiContinuityValidator, 'Encoding/mojibake marker', 'AI continuity encoding guard', $errors);
 
 // DEV UI Studio preview state is client-global, server-backed and actual-DEV-only; it never writes operational business data.
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV identity flag', $errors);

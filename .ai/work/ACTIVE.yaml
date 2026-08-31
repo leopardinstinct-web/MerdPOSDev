@@ -1,39 +1,9 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-08-30"
+updated_at: "2026-09-01T00:45:00+05:00"
 active:
-  - id: MERD-20260828-parent-submenu-default
-    path: .ai/work/active/MERD-20260828-parent-submenu-default.yaml
+  - id: MERD-20260901-continuity-truth
+    path: .ai/work/active/MERD-20260901-continuity-truth.yaml
     packet_state: CHECKED
     lifecycle: WIRED
-    next_action: "Recheck live navigation deployment, then verify the parent activates its first submenu item."
-  - id: MERD-20260828-reports-centre
-    path: .ai/work/active/MERD-20260828-reports-centre.yaml
-    packet_state: DEPLOYED
-    lifecycle: DEPLOYED
-    next_action: "Open an authenticated MERDPOS session and visually verify Reports Overview and report navigation on desktop/mobile light/dark."
-  - id: MERD-20260828-brand-master-palette
-    path: .ai/work/active/MERD-20260828-brand-master-palette.yaml
-    packet_state: CHECKED
-    lifecycle: WIRED
-    next_action: "Push checked five-color master palette implementation, confirm CI/deployment, then visually verify light/dark desktop/mobile."
-  - id: MERD-20260829-ui-studio
-    path: .ai/work/active/MERD-20260829-ui-studio.yaml
-    packet_state: DEPLOYED
-    lifecycle: DEPLOYED
-    next_action: "Studio14b is deployed; Studio15 follow-up is tracked separately."
-  - id: MERD-20260830-bottom-shell-studio15
-    path: .ai/work/active/MERD-20260830-bottom-shell-studio15.yaml
-    packet_state: DEPLOYED
-    lifecycle: DEPLOYED
-    next_action: "Studio15b and desktop bottom dock are deployed and live-verified; Studio16 is tracked separately."
-  - id: MERD-20260830-studio16-dev-role-view
-    path: .ai/work/active/MERD-20260830-studio16-dev-role-view.yaml
-    packet_state: CHECKED
-    lifecycle: WIRED
-    next_action: "Commit/push checked Studio16 + DEV role presentation, then verify CI and live beta."
-  - id: MERD-20260830-studio17-dashboard-controls
-    path: .ai/work/active/MERD-20260830-studio17-dashboard-controls.yaml
-    packet_state: CHECKED
-    lifecycle: WIRED
-    next_action: "Commit/push checked Studio17, then verify CI and live beta."
+    next_action: "Commit and push the exact checked continuity-hardening tree."

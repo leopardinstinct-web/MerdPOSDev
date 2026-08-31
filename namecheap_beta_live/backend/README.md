@@ -97,9 +97,13 @@ Do not describe source as `live` until `.beta_deployed_commit` confirms the inte
 Update this file by default when backend architecture, migrations, deployment invariants, security boundaries, mobile release gates or synchronization behavior changes. Documentation-only text is not implementation; runtime wiring must be verified separately.
 
 
-## UI Studio global history
+## DevStudio state and audit
 
-Migration 035 introduces `ui_studio_state` and `ui_studio_history` for client-scoped Developer preview history. The dedicated portal API is actual-DEV-only, CSRF-protected for writes, revision-checked for concurrent sessions, and never grants operational business permissions. History deletion soft-deletes the selected event and rebuilds preview patches by replaying the surviving journal. The deploy must run migration 035 and verify both tables before publishing the portal runtime.
+Migration 035 introduces `ui_studio_state` and `ui_studio_history` for client-scoped Developer design workflow state/audit. The dedicated portal API is actual-DEV-only, CSRF-protected for writes, revision-checked for concurrent sessions, and never grants operational business permissions. DevStudio browser payloads expose only unresolved patches; backend history remains retained audit/learning data and is not deletable from DevStudio. LLM receipts record patch-status transitions and remove only `confirmed_applied` patches from active state. The deploy must run migration 035 and verify both tables before publishing the portal runtime.
 
 
 - Migration 036 adds `stores.week_start_day` (1=Monday ... 7=Sunday) as store configuration. It controls Store Edit schedule ordering only and does not modify frozen timesheet/payroll pairing, rounding, payable-hours, cross-midnight, or wage-by-clock-in-date rules.
+
+### AI continuity release guard
+
+`backend/cli/validate_ai_continuity.php` checks the repository bootstrap/knowledge layer for stale DevStudio safety/history claims, work-packet index/orphan drift, current-memory markers, canonical Studio29 documentation and common mojibake. Beta CI and the Namecheap deploy preflight run it before release. This guard protects continuity truthfulness; it does not replace source/runtime tests.

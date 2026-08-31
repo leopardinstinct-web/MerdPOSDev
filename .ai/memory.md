@@ -1,262 +1,106 @@
 # MERDPOS Beta AI State
 
-**Updated:** 2026-08-27
+**Updated:** 2026-09-01
 **Authoritative repository:** `leopardinstinct-web/MerdPOSDev`
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
 
-## Start here for future AI sessions
+## Current product state
 
-The actual bootstrap entrypoint is root `AGENTS.md`. A fresh session should then follow `.ai/README.md` and its mandatory reading order before planning MERDPOS beta work.
+MERDPOS Beta is still in active product design/restructuring. Current navigation labels, panel order, DOM shape and cosmetic placement are not permanent contracts unless explicitly stabilised.
 
-**Standard rule:** GitHub is the standalone source of truth and must remain a viable seed. A fresh chat with only repository access must be able to reconstruct the beta's architecture, invariants, decisions, current state, deployment model, testing philosophy and reusable operating procedures without prior chat history or local workstation context.
+The current shared portal runtime includes the canonical design system, bottom-dock shell, account utility sheet, dashboard builder, shared analytics runtime, mobile runtime and DevStudio. Retired corrective CSS layers remain retired.
 
-The durable knowledge layer is:
+Current database migrations include:
+- 031 role/dashboard templates;
+- 032 initial role dashboards;
+- 033 portal permission levels;
+- 034 Google legacy migration sync;
+- migration 035: DevStudio global state/audit;
+- migration 036: store week-start day.
 
-- `AGENTS.md` — root entrypoint;
-- `.ai/README.md` — bootstrap manifest and authority hierarchy;
-- `.ai/invariants.md` — binding rules;
-- `.ai/task-gates.md` — mandatory affected-path history, implementation-execution and evidence gates;
-- `.ai/memory.md` — current state;
-- `.ai/decisions.md` — durable choices and supersessions;
-- `.ai/playbook.md` — reusable learned procedures;
-- task-specific docs/tests beside the code they govern.
+## Current DevStudio checkpoint
 
-Substantive future work must update this knowledge layer when it changes reality. Chat/project memory is supplementary only.
+DevStudio is an actual-DEV-only global unresolved implementation inbox plus preview/handoff tool.
 
-The beta webapp is in an **active product-design and restructuring stage**. Navigation, panels, workflows, inclusion/exclusion of features, copy and visual design are expected to keep changing. Do not treat the current UI structure as a permanent contract unless the user explicitly says a section is stable.
+- Browser sessions receive unresolved patches only; backend audit history is not exposed in DS.
+- Every patch has a stable `patchId` and status.
+- Copy for ChatGPT emits v6 unresolved-patch JSON and a required machine-readable receipt contract.
+- Paste LLM Receipt records revisioned status transitions; `confirmed_applied` removes only the matching patch from the active inbox while retaining backend audit.
+- Developer is the visual master. DEV patches inherit to DEV/ADMIN/SUPER/USER; Admin to ADMIN/SUPER/USER; Super to SUPER/USER; User to USER.
+- Lower-role Add/Comment actions are proposals/requests that must be implemented from Developer master.
+- Comments may include multiline text and tokenized image context.
+- Studio29 adds Settings → MERDPOS Palette for view/edit/reorder/add/delete preview operations. Palette edits create one global unresolved `palette` patch; canonical design tokens do not change until normal implementation/deploy/verify/receipt completion.
+- Full radial dismissal, including Ctrl+D/Minimize/outside dismissal, clears the selected element. Move destination mode is the explicit preserve-selection exception.
+- Working client and Current role account contexts are minimizable with persisted local collapse state.
 
-## Mandatory task execution gates
+## Current analytics/dashboard checkpoint
 
-For every substantive code change, inspect the current affected source plus recent Git history for the affected path/component before editing. For provenance/root-cause questions, current source alone is insufficient; inspect relevant commit diffs.
+MERDPOS uses its own feature-scoped analytics runtime rather than React/Tailwind/Google Charts runtime dependencies.
 
-When the product owner explicitly asks to implement/fix/apply/do/start/continue, analysis or a plan alone is not completion if write/execution tools are available. Implementation claims require concrete changed artifacts/commit evidence; deployment and runtime claims require their own evidence. See `.ai/task-gates.md`.
+- Typed `dataset → view → renderer` contract.
+- Responsive SVG bar/line/donut charts.
+- Keyboard/click selection emits `merdpos-chart-select`.
+- Dashboard Store drill-down and 7/14/30-day period filters reload through `api/dashboard_data.php`.
+- Store filter choices and returned datasets remain permission/dependency scoped; own-attendance-only users cannot discover the full client Store directory.
+- `My current shift` remains self-scoped and independent of dashboard Store filtering.
 
-For cross-cutting UI/design-system work, inspect both shared primitives and feature-specific styling/history. Token usage alone is not proof that typography, surface semantics, disabled/selected states or readability propagated correctly.
+## Current implementation-patch workflow
 
-## Current implementation checkpoint
+For every DevStudio implementation patch use:
 
-On 2026-08-27, the selected Concept 7 MERDPOS brand kit was implemented across the Beta shared visual runtime: canonical ribbon mark, brand lockups, shared brand/design tokens, navy navigation identity, Space Grotesk display heading preference, connected dashboard accents and login/attendance brand surfaces. The gradient remains identity-only; semantic status colors remain distinct. This work must not be called DEPLOYED/VERIFIED until the Namecheap pull and rendered live surfaces are checked.
+`active patch → canonical implementation → tests → deploy exact commit → live verification → LLM receipt / confirmed_applied → patch leaves unresolved inbox`
 
-On 2026-08-27, the authenticated header oversize regression was traced to the final design-system generic media reset outranking the brand component image dimensions. Commit 59cd4ad483f4d0f13fe547a24db1fb021ee877a5 lowers that generic reset specificity, reasserts bounded authenticated lockup geometry, and adds an immediately available persistent dark/light rail toggle backed by data-theme and localStorage key merdpos-theme. The same change strengthens dark semantic status/chart tokens. Live Opera verification confirmed the compact authenticated header, persisted light/dark switching, readable dark semantic surfaces and the rail theme control. A dark-header follow-up at commit 6130590d227c75a4294a3ec8df5d9af473314ca7 adds a small light backing behind the exact approved lockup so its navy wordmark remains legible without recoloring or reconstructing the brand asset.
+Backend audit/history is retained. Never confirm or remove unrelated/unverified patches.
 
-On 2026-08-27, the DEV visual-polish pass established two explicit toolbar composition contracts after Opera verification caught regressions. The dashboard is view-first and `Edit dashboard` must remain a single-line, non-shrinking action in the dashboard role toolbar. On Stores, the title remains on the left while Search and Add store remain together inside `.directory-actions` as one compact right-aligned action cluster; feature JavaScript must not move Search into the title wrapper. `browser_tests/dev-stores-runtime.spec.js` protects these two contracts. Future visual changes must inspect the whole rendered toolbar at representative desktop/mobile widths and in light/dark where relevant before claiming VERIFIED.
+## Current deployment discipline
 
-The permanent regression suite was merged into `namecheap-beta-live` at:
+Namecheap uses the established server-side pull/mirror process and `scripts/deploy_namecheap_beta.sh`.
 
-`df0d690dce1a312fbb523bd80c89715492b5b4b3`
+A commit on GitHub is not deployment evidence. DEPLOYED requires the intended commit in the Namecheap deployed marker/process. VERIFIED additionally requires the affected real runtime behavior to be exercised and observed.
 
-That merge includes:
+The latest known runtime feature generation before this continuity-maintenance task is Studio29 (`20260831studio29`) with analytics generation `20260831analytics2`. A fresh session must still resolve current branch HEAD and deployment evidence rather than assuming these strings remain latest forever.
 
-- authenticated live read-only audit tooling;
-- authorization-matrix verification;
-- DEV/Developer store-identity regression coverage;
-- DUMMY-only destructive Financial and core transaction runners;
-- manual DUMMY destructive GitHub workflow;
-- CI path scoping so portal-only work does not unnecessarily run Flutter/Android/root-backend suites.
+## Current regression/release posture
 
-The repository AI bootstrap/seed standard was subsequently established directly on `namecheap-beta-live` through `AGENTS.md`, `.ai/README.md`, `.ai/playbook.md`, and updated `.ai/invariants.md` / `.ai/decisions.md`.
+Beta Guardrails run PHP lint, runtime-contract validation, portal permission policy, loader-order validation, shared-state scope validation, deploy recovery guards, JavaScript syntax checks, Chromium browser regressions and secret scanning.
 
-On 2026-08-27, mandatory history/implementation/evidence gates were added through `.ai/task-gates.md` and wired into `AGENTS.md`, `.ai/README.md`, `.ai/invariants.md` and `.ai/decisions.md`.
+The current product remains under active redesign, so permanent tests should protect business/security/runtime outcomes and deliberately stabilised UI contracts rather than freeze incidental layout.
 
-The dashboard widget drawer readability issue was CODED/WIRED in `assets/dashboard-builder.css` at commit `17acb3ef4dbacc4f5ad0ed155efac63291bfd12c`. The fix strengthens dark-surface selector ownership, removes whole-card opacity from added widgets, increases catalogue/search/footer readability and limits visual de-emphasis to unavailable controls. Beta source contract, Chromium smoke and secret scan passed for that commit. Do not call it DEPLOYED/VERIFIED until the Namecheap pull and affected live drawer are checked.
+## Binding safety reminders
 
-Do not claim any commit is deployed merely because it is on the branch. Continue using the deployment-state discipline below.
-
-## Product-stage testing strategy — binding until the user changes it
-
-The current goal is **product development, not exhaustive UI automation**.
-
-### Keep and maintain now
-
-1. **Runtime smoke coverage**
-   - portal loads;
-   - no browser runtime errors on critical entry paths;
-   - no unexpected failed application HTTP responses.
-
-2. **Security and authorization contracts**
-   - `client role → LOA → named permission → UI/API/data scope`;
-   - DEV-only permissions require actual DEV identity, not LOA 1000 alone;
-   - tenant isolation must not be weakened;
-   - destructive tests must be scoped to exact DUMMY identity/context and must abort otherwise.
-
-3. **Stable business invariants**
-   - frozen payroll/timesheet reconciliation logic;
-   - Financial backend/business contracts that have already stabilised;
-   - critical permission boundaries and server-side validation.
-
-4. **Deployment/runtime guardrails**
-   - canonical runtime assets;
-   - loader order;
-   - beta-state permission scoping;
-   - Namecheap deploy recovery guards;
-   - secret/build-artifact checks.
-
-### Do not over-automate yet
-
-While the user is still moving, redesigning, adding and removing webapp features:
-
-- do not make navigation labels, panel order, DOM structure or cosmetic layout a permanent contract;
-- do not build large Playwright suites for every button and CRUD path merely because the current screen exists;
-- do not block product changes because an old UI-flow test is brittle;
-- do not spend substantial effort automating unfinished flows such as Attendance QR or evolving Dispute UX unless the user explicitly prioritizes them;
-- do not confuse existing scaffolding/endpoints with a finished product feature.
-
-### Promotion rule
-
-Use this progression for a changing feature:
-
-`BUILD/CHANGE → QUICK SMOKE → PERMISSION/SECURITY CHECK → DEPLOY → VISUAL/RUNTIME VERIFY`
-
-Only when the user treats a workflow as relatively stable should its important behavior be promoted into permanent regression coverage.
-
-Preferred permanent tests assert **business outcomes and authorization contracts**, not incidental UI placement.
-
-## DUMMY destructive testing policy
-
-- All destructive/write automation must target DUMMY only.
-- Verify the exact DUMMY client identifier at runtime; do not assume a database ID.
-- Abort before mutation if the active tenant is not the expected DUMMY tenant.
-- Never use a DEV client switch as proof that employee-owned actions are DUMMY-safe; endpoints that bind to the authenticated employee's owning client must be tested with a genuine DUMMY-native identity or skipped.
-- Never mutate MERD production data for regression purposes.
-- Test-created records should be uniquely named and cleaned up/deactivated/voided when practical.
-- Credentials/storage-state/cookies must never be committed.
-
-## Current verified baseline
-
-### Live read-only Developer regression
-
-Previously verified on the live beta with no browser runtime errors or failed app HTTP responses across the core read-only Developer surfaces, including mobile 390×844 checks.
-
-### DUMMY Financial
-
-A live DUMMY run verified:
-
-- Open Day;
-- Cash In;
-- Cash Out;
-- Z Report / close;
-- final statement reload and closing-state assertions.
-
-### DUMMY core transaction runner
-
-A live DUMMY run completed:
-
-`DUMMY_CORE_OK total=30 passed=30`
-
-Coverage includes Workforce CRUD, Store CRUD, Role/permission mutations with restoration, report/panel surfaces, mobile basics, runtime errors, failed app HTTP responses and final DUMMY context preservation.
-
-This does **not** mean every product workflow is permanently stable or should now receive exhaustive UI automation.
-
-## Work intentionally not promoted yet
-
-A follow-up branch named `dummy-native-disputes` was created to explore DUMMY-native login and full Disputes lifecycle testing. That work is **experimental/unmerged** and should not be merged or deployed merely because it exists.
-
-Reason: the webapp remains in active redesign, and exhaustive Dispute/Attendance workflow automation is not currently the highest-value use of effort.
-
-If future work returns to this branch, review its security model and current product requirements first rather than assuming it should be completed.
-
-Attendance QR/device automation remains intentionally deferred until the feature itself is sufficiently complete/stable.
-
-## CI scope policy
-
-Portal-only changes should rely primarily on:
-
-- Repository hygiene;
-- Beta source contract;
-- Beta Chromium smoke;
-- Beta secret scan / repository secret scan.
-
-Flutter/Android jobs should run only when `merdpos_staff/` changes (or on an explicit full/manual CI run).
-
-Root `backend/` PHP/catalogue jobs should run only when their relevant backend area changes (or on an explicit full/manual CI run).
-
-Do not reintroduce unrelated heavy CI jobs for portal-only changes without a concrete dependency reason.
-
-## Existing invariants retained
-
-### Frozen payroll logic — do not modify
-
-- pair `IN → next OUT`;
-- newer IN replaces an unmatched prior IN;
+Frozen payroll/timesheet logic remains unchanged unless the product owner explicitly changes it:
+- pair IN → next OUT;
+- newer IN replaces unmatched prior IN;
 - orphan OUT ignored;
-- independently round IN and OUT to nearest 15 minutes;
-- payable time = rounded OUT − rounded IN;
+- independently round IN/OUT to nearest 15 minutes;
+- payable = rounded OUT − rounded IN;
 - cross-midnight allowed;
 - no 16-hour cap;
-- wage rate selected by clock-in date.
+- wage rate by clock-in date.
 
-### Authorization
-
-Binding model:
+Authorization remains:
 
 `client role → LOA → named permission → UI/API/data scope`
 
-Named permissions are independently configurable. Do not invent parent-child permission dependencies.
+UI hiding is not security. Actual DEV identity is required for DEV-only tooling. Destructive regression writes are DUMMY-only and must abort before mutation unless exact DUMMY context/identity is proven.
 
-DEV-only capability requires actual DEV identity.
+## Fresh-session continuity rule
 
-### Runtime assets
+A fresh session must follow `AGENTS.md` → `.ai/README.md` → `.ai/invariants.md` → `.ai/task-gates.md` → `.ai/work/ACTIVE.yaml`, then load only task-relevant current source/history and targeted durable knowledge.
 
-Canonical runtime assets include:
+Current code outranks documentation. Current binding invariants outrank memory. Historical decisions remain provenance unless explicitly current/superseding.
 
-- `design-tokens.css`
-- `design-system.css`
-- `shell.css`
-- `app-ui.css`
-- `dashboard-builder.css`
-- `account-menu.css`
-- `minimal-controls.js`
-- `mobile-runtime.js`
-- `design-audit.js`
-- `management.js`
+Do not reconstruct current implementation state from old Studio version notes or chat history. Use current source, current `ACTIVE.yaml`, current tests/validators, recent commits and deployment evidence.
 
-Retired corrective CSS must not be restored:
+## Current priority
 
-- `ui-standard.css`
-- `minimal-controls.css`
-- `mobile-hardening.css`
-- `apple-principles.css`
-- `omnichannel-identity.css`
+1. Keep the Beta product moving.
+2. Preserve authorization, tenant isolation, frozen payroll logic and deployment safety.
+3. Keep GitHub continuity state truthful after substantive work.
+4. Close/archive completed work packets promptly.
+5. Promote reusable lessons into decisions/playbook/regression guards instead of leaving them only in chat.
 
-`design-audit.js` remains required.
+## Repository governance
 
-## Deployment architecture
-
-Do not restore GitHub→Namecheap SSH deployment from the development PC.
-
-Namecheap pulls/mirrors the authoritative beta branch through the established server-side process using `scripts/deploy_namecheap_beta.sh`.
-
-Public beta URL:
-
-`https://app.merdpos.com/beta/timesheet_portal/`
-
-Historical server target:
-
-`~/merdpos.com/app/beta`
-
-Server mirror:
-
-`~/git/MerdPOSDev-beta-mirror`
-
-## Implementation-state discipline
-
-Always use:
-
-`REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
-
-Never broadly call a source change live/fixed/working until the intended commit is confirmed by the Namecheap deployment marker/process and the affected runtime path is actually checked.
-
-## Default priority for new work
-
-Unless the user gives a different priority:
-
-1. build/redesign/fix the actual beta product;
-2. protect stable security/business contracts;
-3. run quick targeted smoke/runtime verification;
-4. deploy through the established Namecheap pull process;
-5. promote a workflow into permanent regression only after it becomes sufficiently stable.
-
-The regression suite is a safety net for development, not the product-development goal itself.
-
-On 2026-08-27 the earlier reconstructed ribbon-M asset was corrected: Beta now uses exact crops from the product owner's approved Concept 7 transparent logo file. The primary login uses the exact full lockup; compact dashboard/attendance identity uses the exact M crop. Redrawing/substitution is prohibited; only context-safe colour treatment is allowed. Pending deploy/runtime verification for the corrective commit.
+`namecheap-beta-live` is protected against force pushes and branch deletion while preserving the normal direct bounded-push workflow. Beta Guardrails and Namecheap deploy guards remain the release safety net; a protected branch alone is not verification.

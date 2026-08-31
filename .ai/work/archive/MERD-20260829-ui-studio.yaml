@@ -13,7 +13,7 @@ acceptance:
   - "Layout, Scope, Move and Changes use the same single-ring drill-down model; Copy and Chat handoff remain available from the circle."
   - "DEV can record element comments, add preview elements, select navigation/transient menu elements, and open navigable local history."
   - "Interacting with Studio must not collapse an already-expanded desktop MERDPOS navigation rail."
-packet_state: DEPLOYED
+packet_state: CLOSED
 lifecycle: DEPLOYED
 base_head: "96186c2d890b1bb607ef892e6b4b7789c47cbbd4"
 last_seen_head: "29b170d14e2c1054cac2440debd0d3156c699349"
@@ -62,7 +62,8 @@ completed:
   - "Live Studio14 verification exposed synthetic click retarget after the first touch repositions the stage; studio14b adds a document-capture guard and the real viewport-meta focused suite passes 12/12."
 remaining:
   - "Run full beta gate, commit/push studio14b, confirm CI + Namecheap serving studio14b, then rerun authenticated 394x512 and 681x598 live verification."
-next_action: "Studio14b is deployed; Studio15 follow-up is tracked in MERD-20260830-bottom-shell-studio15."
+next_action: "None; historical packet archived. Current source and newer decisions govern."
 blocked: false
 blocker: null
-updated_at: "2026-08-29T14:20:00+05:00"
+updated_at: "2026-09-01T00:29:00+05:00"
+closed_reason: "Closed during 2026-09-01 continuity audit because this packet is stale, superseded by newer canonical runtime, or already completed. Lifecycle was not retroactively inflated."

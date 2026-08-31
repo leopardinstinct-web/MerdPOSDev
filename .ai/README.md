@@ -158,7 +158,7 @@ Use the right layer for the right kind of state:
 - `.ai/playbook.md`: reusable learned procedures, debugging patterns, testing/deployment workflows and safety guards.
 - `.ai/regression-inventory.md`: actual coverage and known gaps when tests materially change.
 
-Close/archive a packet when its task is complete and promote only durable lessons into the curated knowledge layer. Do not copy the packet's step-by-step history into `.ai/memory.md`.
+Close/archive a packet when its task is complete and promote only durable lessons into the curated knowledge layer. Do not copy the packet's step-by-step history into `.ai/memory.md`. When knowledge/work-packet state changes, run `php namecheap_beta_live/backend/cli/validate_ai_continuity.php` so stale higher-authority guidance, orphan packets and common encoding corruption fail closed.
 
 ## What must never be required for bootstrap
 

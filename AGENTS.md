@@ -96,3 +96,5 @@ At minimum as applicable:
 - update relevant product/deployment/test docs next to the code they govern.
 
 Do not store secrets, credentials, cookies or private storage state in the knowledge layer or work packets.
+
+When continuity/knowledge files change, `php namecheap_beta_live/backend/cli/validate_ai_continuity.php` is the fail-closed consistency check before the change is considered complete.

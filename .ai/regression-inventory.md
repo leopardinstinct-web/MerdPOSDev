@@ -246,7 +246,11 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Regression: user/client pills remain visible on phone layouts without horizontal overflow.
 
 
-## Studio24 global history regressions
+## Historical Studio24–27 regression provenance
+
+The Studio24–27 bullets below explain protections introduced at those versions. Where they mention a browser History UI, history deletion, or selection retention, Studio28/29 explicitly supersede them. Current contracts are the Studio28/29 and AI continuity sections below.
+
+### Studio24 global history regressions (historical)
 - Root radial must expose Changes and Changes must expose History, Copy, Chat, Undo, Reset and Clear.
 - `ui_studio_history.php` must be actual-DEV-only through preserved actual identity, including while Current role is USER/ADMIN/SUPER.
 - Migration 035 and deploy wiring must create/verify `ui_studio_state` and `ui_studio_history` before portal publish.
@@ -296,8 +300,18 @@ Protected by `ui-studio-runtime.spec.js`: after a real touch drag at 394x512, th
 - Account summary counters follow unresolved request/patch/copy counts and use the supplied DevStudio folder assets.
 
 ### Studio29 palette / utility-section regressions
-- Settings â†’ MERDPOS Palette must expose view/edit/move-up/move-down/add/delete and produce one global `kind: palette` unresolved patch.
+- Settings → MERDPOS Palette must expose view/edit/move-up/move-down/add/delete and produce one global `kind: palette` unresolved patch.
 - Palette edits must update preview CSS variables; palette order must update chart slots; Copy for ChatGPT must include the palette patch and no history.
 - Server normalization must validate palette IDs/tokens/hex values, cap the palette at 12 colors, force DEV/global scope, and preserve stable patch IDs.
 - Full radial dismissal and Ctrl+D disable must clear `.merd-ui-studio-selected`; Move destination selection must remain functional.
 - Working client and Current role account contexts must collapse/expand with persisted state, and Current role must not render the retired helper `<small>` text.
+
+## AI continuity regressions (2026-09-01)
+
+- `validate_ai_continuity.php` must reject the retired local-only/no-Studio-API invariant, browser History/getter/delete guidance, and obsolete radial-dismiss selection retention.
+- Current `.ai/memory.md` must identify Studio29, migrations 035/036 and the shared analytics checkpoint instead of presenting 2026-08-27 work as current state.
+- Every `.ai/work/active/*.yaml` packet must be indexed by `ACTIVE.yaml`; every indexed packet must exist and remain non-closed with required resume fields. Completed/superseded packets belong in archive.
+- `UI_STUDIO.md` must remain current-state-first and define v6 unresolved inbox/receipt, palette escalation and dismissal deselection. Historical Studio24–27 behavior must not be presented as a competing current specification.
+- Backend docs must not describe DevStudio history deletion as a current capability.
+- Durable current-knowledge docs must be free of common mojibake/replacement-character corruption.
+- Beta CI and Namecheap deploy preflight must execute the continuity validator before release.

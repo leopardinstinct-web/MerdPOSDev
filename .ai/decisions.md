@@ -212,13 +212,13 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Touch/pen hub activation remains pointer-up driven. When opening or dragging repositions the Studio under the same gesture, consume the synthetic click at document capture so it cannot retarget a newly appeared radial wedge or MERDPOS control.
 - A subsequent new pointer-down clears stale suppression before the next intentional gesture.
 
-## 2026-08-30 � Unified desktop/mobile bottom navigation
+## 2026-08-30 — Unified desktop/mobile bottom navigation
 
 - Desktop no longer uses the left navigation rail. Authenticated desktop and mobile share the same four primary destinations in a persistent dark bottom dock: Home, Operations, Reports and Finance.
 - Secondary destinations remain reachable through contextual sub-navigation above the dock.
 - Working client, signed-in user/role, DEV/system links and account/app utilities are progressively disclosed from one circular account control rather than occupying primary navigation.
 
-## 2026-08-30 � UI Studio15 center-hub interaction
+## 2026-08-30 — UI Studio15 center-hub interaction
 
 - Studio sectors are icon-only with 48-unit Material Symbols; permanent wedge labels are removed.
 - The amber center hub is the primary action surface: fine-pointer hover opens the menu, wheel input cycles enabled actions, click executes the armed action, and an unarmed click is Back inside a submenu.
@@ -320,6 +320,15 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 ## 2026-08-31 - Studio29 palette patches and radial dismissal
 - MERDPOS Palette changes are first-class global unresolved DevStudio patches, not direct edits to canonical `design-tokens.css`.
 - Developer can view/edit/reorder/add/delete palette entries in the radial Settings branch; preview overrides brand variables and chart slots where possible.
-- Palette implementation still follows Copy â†’ canonical source â†’ test â†’ deploy â†’ live verify â†’ receipt confirmation.
+- Palette implementation still follows Copy → canonical source → test → deploy → live verify → receipt confirmation.
 - A full radial dismissal must deselect the prior element. Move is the only intentional preserve-selection hide.
 - Working client and Current role utility contexts are minimizable; the old DEV explanatory helper is removed.
+
+## 2026-09-01 - Continuity truthfulness is release-guarded
+
+- High-authority repository knowledge must be current-state truthful. Stale higher-authority wording must be corrected or explicitly superseded when runtime reality changes; newer low-authority notes are not enough.
+- `.ai/work/ACTIVE.yaml` and `.ai/work/active/` are a strict resumable-state pair. Completed/superseded packets are archived without retroactively inflating lifecycle evidence.
+- `namecheap_beta_live/backend/cli/validate_ai_continuity.php` is the fail-closed consistency guard for current memory markers, DevStudio safety/inbox/palette contracts, active-packet index/orphan drift and common durable-doc encoding corruption. Beta CI and Namecheap deploy preflight run it.
+- Component docs that evolve rapidly must be current-state-first. Historical Studio behavior belongs in decisions/Git history/archive or explicitly labelled historical sections.
+- The authoritative `namecheap-beta-live` branch is protected against force pushes and deletion. Normal direct bounded pushes remain permitted; the project is not switching to a mandatory-PR workflow.
+- DevStudio palette proposals may preview a different master set, but changing the binding five-color product standard requires an explicit coordinated standards update rather than weakening the existing palette guard.
