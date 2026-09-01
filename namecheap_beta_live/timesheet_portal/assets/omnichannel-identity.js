@@ -139,7 +139,11 @@
 
   function ensureStatusPills(rolebar){
     let root=document.getElementById('dashboardStatusPills');
-    if(!root){root=document.createElement('div');root.id='dashboardStatusPills';root.className='omni-status-pills';root.setAttribute('role','group');root.setAttribute('aria-label','Current MERDPOS status');rolebar.appendChild(root);}
+    if(!root){root=document.createElement('div');root.id='dashboardStatusPills';root.className='omni-status-pills';root.setAttribute('role','group');root.setAttribute('aria-label','Current MERDPOS status');}
+    const controls=rolebar.querySelector('.dashboard-role-controls');
+    const editToggle=document.getElementById('dashboardEditToggle');
+    if(controls&&editToggle?.parentElement===controls)editToggle.insertAdjacentElement('afterend',root);
+    else (controls||rolebar).appendChild(root);
     return root;
   }
 

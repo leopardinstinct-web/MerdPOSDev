@@ -48,9 +48,9 @@
     panel.innerHTML = `
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Clients</h2><p>Manage client accounts and tenant identity.</p></div>
+          <div><h2>Clients</h2></div>
         </div>
-        <div id="clientsOverview"><div class="entity-empty">Loading clients…</div></div>
+        <div id="clientsOverview"><div class="entity-empty">Loading clientsâ€¦</div></div>
       </section>`;
     main.appendChild(panel);
 
@@ -104,6 +104,7 @@
     system: 'DEV',
   };
   const order = ['home', 'operations', 'reports', 'finance', 'system'];
+  const reportsGroupIcon = '<svg class="ui-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Zm221.5-198.5Q510-807 510-820t-8.5-21.5Q493-850 480-850t-21.5 8.5Q450-833 450-820t8.5 21.5Q467-790 480-790t21.5-8.5ZM200-200v-560 560Z"/></svg>';
   const desktopQuery = window.matchMedia('(min-width: 821px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -211,7 +212,8 @@
     button.setAttribute('aria-label', visibleLabel);
     if (!direct) button.setAttribute('aria-expanded', 'false');
     const sourceIcon = tabs[0].querySelector('.ui-icon');
-    button.innerHTML = `${sourceIcon ? sourceIcon.outerHTML : ''}<span class="rail-label">${visibleLabel}</span>${direct ? '' : '<span class="rail-chevron" aria-hidden="true">›</span>'}`;
+    const groupIcon = key === 'reports' ? reportsGroupIcon : (sourceIcon ? sourceIcon.outerHTML : '');
+    button.innerHTML = `${groupIcon}<span class="rail-label">${visibleLabel}</span>${direct ? '' : '<span class="rail-chevron" aria-hidden="true">â€º</span>'}`;
 
     const subgroup = document.createElement('div');
     subgroup.className = `sidebar-group${direct ? ' sidebar-direct-proxy' : ''}`;

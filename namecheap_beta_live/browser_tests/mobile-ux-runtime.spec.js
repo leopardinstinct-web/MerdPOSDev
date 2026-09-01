@@ -88,6 +88,7 @@ test('phone shell uses four primary destinations and a bottom utility sheet', as
 test('phone page header, subtabs and responsive table preserve context without overflow', async ({ page }) => {
   const errors = await mount(page);
   await expect(page.locator('#dashboardPanel .merd-mobile-page-head h1')).toHaveText('Dashboard');
+  await expect(page.locator('#dashboardPanel .merd-mobile-page-head p')).toHaveCount(0);
   await expect(page.locator('#dashboardPanel .merd-mobile-context')).toContainText('Merd Retail Group');
   await expect(page.locator('.status-card')).toHaveClass(/merd-inline-loading/);
   await expect(page.locator('.status-card')).toHaveAttribute('role', 'status');
@@ -101,9 +102,11 @@ test('phone page header, subtabs and responsive table preserve context without o
   await page.locator('.app-rail > .rail-section[data-nav-section="reports"] .rail-group-btn').click();
   await expect(page.locator('#reportsPanel')).toBeVisible();
   await expect(page.locator('#reportsPanel .merd-mobile-page-head h1')).toHaveText('Reports');
+  await expect(page.locator('#reportsPanel .merd-mobile-page-head p')).toHaveCount(0);
   await expect(page.locator('#reportsPanel .merd-mobile-subtab')).toHaveCount(2);
   await page.locator('#reportsPanel .merd-mobile-subtab', { hasText:'Timesheets' }).click();
   await expect(page.locator('#timesheetPanel')).toBeVisible();
   await expect(page.locator('#timesheetPanel .merd-mobile-page-head h1')).toHaveText('Timesheets');
+  await expect(page.locator('#timesheetPanel .merd-mobile-page-head p')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

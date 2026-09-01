@@ -67,7 +67,7 @@ test('DEV store enrichment keeps toolbar actions together and dashboard edit act
   await page.addScriptTag({ path: asset('minimal-controls.js') });
   await page.addScriptTag({ path: asset('dev-stores-ui.js') });
 
-  await expect(page.locator('.dev-store-identity')).toHaveText('Code MX · ID 1');
+  await expect(page.locator('.dev-store-identity')).toHaveCount(0);
   await expect(page.locator('.directory-actions .search-box')).toHaveCount(1);
   await expect(page.locator('.directory-actions #addStoreBtn')).toHaveCount(1);
   await expect(page.locator('.directory-toolbar > div:first-child .search-box')).toHaveCount(0);

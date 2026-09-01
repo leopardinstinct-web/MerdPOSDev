@@ -120,8 +120,8 @@ function ui_icon(string $name): string
   <link rel="stylesheet" href="assets/styles.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/modern.css?v=20260826minimal1">
   <link rel="stylesheet" href="assets/typography.css?v=20260826minimal1">
-  <link rel="stylesheet" href="assets/table-ui.css?v=20260828mobile1">
-  <link rel="stylesheet" href="assets/app-ui.css?v=20260828mobile1">
+  <link rel="stylesheet" href="assets/table-ui.css?v=20260901ds79">
+  <link rel="stylesheet" href="assets/app-ui.css?v=20260901ds79">
   <link rel="stylesheet" href="assets/brand/brand.css?v=20260828palette1">
 </head>
 <body class="merd-shell">
@@ -222,7 +222,7 @@ function ui_icon(string $name): string
     <section id="employeesPanel" class="portal-panel"<?= $initialPanel === 'employeesPanel' ? '' : ' hidden' ?>>
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Employees</h2><p>Accounts, store access, roles and authority. Pay details appear only when permitted.</p></div>
+          <div><h2>Employees</h2></div>
           <div class="directory-actions">
             <label class="search-box" aria-label="Search employees"><?= ui_icon('search') ?><input id="employeeSearch" type="search" placeholder="Search employees"></label>
             <?php if ($canWorkforceManage): ?><button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button><?php endif; ?>
@@ -238,15 +238,14 @@ function ui_icon(string $name): string
       <header class="timesheet-page-head app-panel-head">
         <div>
           <h2>Timesheets</h2>
-          <p>Review weekly timesheet activity for the selected week.</p>
         </div>
       </header>
       <section class="controls-card timesheet-toolbar-card">
         <div class="timesheet-toolbar">
-          <label class="timesheet-week-field" for="weekSelect"><span>Week</span><select id="weekSelect" aria-label="Select week"></select></label>
-          <button id="downloadPdfBtn" class="secondary-btn compact-btn" type="button">Download PDF</button>
+          <label class="timesheet-week-field" for="weekSelect"><span>Select Week</span><select id="weekSelect" aria-label="Select week"></select></label>
+          <button id="downloadPdfBtn" class="secondary-btn timesheet-download-btn" type="button" aria-label="Download PDF" title="Download PDF"><svg class="ui-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg><span class="sr-only">Download PDF</span></button>
         </div>
-        <p id="reportSubtitle" class="timesheet-period-note">Current calendar week loads by default.</p>
+        <p id="reportSubtitle" class="timesheet-period-note" hidden>Current calendar week loads by default.</p>
         <p class="sr-only" id="reportTitle">Weekly Timesheet</p>
       </section>
       <section id="statusBox" class="status-card">Loading timesheet...</section>
@@ -256,7 +255,7 @@ function ui_icon(string $name): string
     <?php if ($canDisputes): ?>
     <section id="disputesPanel" class="portal-panel"<?= $initialPanel === 'disputesPanel' ? '' : ' hidden' ?>>
       <header class="app-panel-head disputes-page-head">
-        <div><h2>Disputes</h2><p>Review and correct attendance issues within your permitted scope.</p></div>
+        <div><h2>Disputes</h2></div>
       </header>
       <?php if ($canSubmitDisputes): ?>
       <section class="controls-card">
@@ -280,7 +279,7 @@ function ui_icon(string $name): string
     <section id="storesPanel" class="portal-panel"<?= $initialPanel === 'storesPanel' ? '' : ' hidden' ?>>
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Stores</h2><p>Store identity, availability and operating timings.</p></div>
+          <div><h2>Stores</h2></div>
           <div class="directory-actions">
             <label class="search-box" aria-label="Search stores"><?= ui_icon('search') ?><input id="storeSearch" type="search" placeholder="Search stores"></label>
             <?php if ($canStoresManage): ?><button id="addStoreBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add store</button><?php endif; ?>
@@ -449,7 +448,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260901timesheetsync1"></script>
+  <script src="assets/management.js?v=20260901ds79"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260831stores1"></script><?php endif; ?>
 </body>
 </html>

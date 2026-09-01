@@ -7,7 +7,7 @@
 
   if (!document.querySelector('script[data-store-identity-module]')) {
     const script = document.createElement('script');
-    script.src = 'assets/store-identity.js?v=20260825e';
+    script.src = 'assets/store-identity.js?v=20260901ds79';
     script.dataset.storeIdentityModule = '1';
     document.body.appendChild(script);
   }
@@ -37,7 +37,6 @@
       #storesPanel .dev-store-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;min-width:0}
       #storesPanel .dev-store-search{margin:0}
       #storesPanel .dev-store-actions #addStoreBtn{flex:0 0 auto;white-space:nowrap}
-      #storesPanel .dev-store-identity{margin-top:3px}
       @media(max-width:720px){
         #storesPanel .directory-toolbar.dev-store-toolbar{display:grid;gap:12px;align-items:stretch}
         #storesPanel .dev-store-heading{width:100%;min-width:0}
@@ -106,15 +105,7 @@
         if (/weekly opening and closing hours are managed in timings/i.test(line.textContent || '')) line.remove();
       });
 
-      if (store) {
-        let identity = copy.querySelector('.dev-store-identity');
-        if (!identity) {
-          identity = document.createElement('div');
-          identity.className = 'entity-sub dev-store-identity';
-          copy.appendChild(identity);
-        }
-        identity.textContent = `Code ${store.store_code || '—'} · ID ${store.id}`;
-      }
+      copy.querySelector('.dev-store-identity')?.remove();
     });
   }
 

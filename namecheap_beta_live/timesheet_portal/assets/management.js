@@ -45,29 +45,29 @@
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
       appendStyle('merd-analytics-css','assets/analytics-runtime.css?v=20260831analytics2');
       appendScript('merd-analytics','assets/analytics-runtime.js?v=20260831analytics2');
-      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260831analytics2');
-      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260831analytics2');
+      appendStyle('dashboard-builder-css','assets/dashboard-builder.css?v=20260901ds79');
+      appendScript('dashboard-builder','assets/dashboard-builder.js?v=20260901ds79');
     }
 
     /* Roles mounts before navigation so Operations structure is deterministic. */
     if(can('roles.manage'))appendScript('roles-module','assets/roles.js?v=20260830roles3');
 
-    appendScript('merd-navigation','assets/navigation.js?v=20260830bottom1',true);
+    appendScript('merd-navigation','assets/navigation.js?v=20260901ds79',true);
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
     appendStyle('account-menu-css','assets/account-menu.css?v=20260901timesheetsync1');
     appendScript('account-menu','assets/account-menu.js?v=20260901timesheetsync1');
 
-    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260831stores1');
+    if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260901ds79');
 
     /* Functional identity patch remains; its old standalone styling layer is
        retired because design-system.css now owns the visual grammar. */
-    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260830pills1');
+    if(can('dashboard.view'))appendScript('omnichannel-identity','assets/omnichannel-identity.js?v=20260901ds79');
 
     /* Behaviour only. Geometry comes from the canonical design system. */
     appendScript('merd-minimal-controls','assets/minimal-controls.js?v=20260826ds1');
-    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260828mobile1');
+    appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260901ds79');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
     appendStyle('merd-design-system','assets/design-system.css?v=20260830pills1');

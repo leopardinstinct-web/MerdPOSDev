@@ -152,6 +152,11 @@ for live_file in \
   "$LIVE/timesheet_portal/assets/design-audit.js" \
   "$LIVE/timesheet_portal/assets/minimal-controls.js" \
   "$LIVE/timesheet_portal/assets/mobile-runtime.js" \
+  "$LIVE/timesheet_portal/assets/navigation.js" \
+  "$LIVE/timesheet_portal/assets/omnichannel-identity.js" \
+  "$LIVE/timesheet_portal/assets/dev-stores-ui.js" \
+  "$LIVE/timesheet_portal/assets/store-identity.js" \
+  "$LIVE/timesheet_portal/assets/table-ui.css" \
   "$LIVE/timesheet_portal/assets/shell.css" \
   "$LIVE/timesheet_portal/assets/app-ui.css" \
   "$LIVE/timesheet_portal/assets/dashboard-builder.css" \
@@ -189,15 +194,16 @@ for required_asset in \
   'assets/design-tokens.css?v=20260828palette1' \
   'assets/design-system.css?v=20260830pills1' \
   'assets/design-audit.js?v=20260826ds1' \
-  'assets/omnichannel-identity.js?v=20260830pills1' \
+  'assets/omnichannel-identity.js?v=20260901ds79' \
   'assets/minimal-controls.js?v=20260826ds1' \
-  'assets/mobile-runtime.js?v=20260828mobile1' \
+  'assets/mobile-runtime.js?v=20260901ds79' \
   'assets/shell.css?v=20260830bottom1' \
-  'assets/navigation.js?v=20260830bottom1' \
+  'assets/navigation.js?v=20260901ds79' \
   'assets/analytics-runtime.css?v=20260831analytics2' \
   'assets/analytics-runtime.js?v=20260831analytics2' \
-  'assets/dashboard-builder.css?v=20260831analytics2' \
-  'assets/dashboard-builder.js?v=20260831analytics2' \
+  'assets/dashboard-builder.css?v=20260901ds79' \
+  'assets/dashboard-builder.js?v=20260901ds79' \
+  'assets/dev-stores-ui.js?v=20260901ds79' \
   'assets/account-menu.css?v=20260901timesheetsync1' \
   'assets/account-menu.js?v=20260901timesheetsync1' \
   'assets/ui-studio.css?v=20260831studio29' \
@@ -208,8 +214,24 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260901timesheetsync1' "$LIVE/timesheet_portal/dashboard.php"; then
-  echo "ERROR: live dashboard is missing the status-pill management runtime." >&2
+if ! grep -q 'assets/management.js?v=20260901ds79' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live dashboard is missing the current management runtime." >&2
+  exit 1
+fi
+if ! grep -q 'assets/table-ui.css?v=20260901ds79' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live dashboard is missing the DS79 Timesheet stylesheet." >&2
+  exit 1
+fi
+if ! grep -q 'assets/app-ui.css?v=20260901ds79' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live dashboard is missing the DS79 page-heading stylesheet." >&2
+  exit 1
+fi
+if ! grep -q 'assets/store-identity.js?v=20260901ds79' "$LIVE/timesheet_portal/assets/dev-stores-ui.js"; then
+  echo "ERROR: live Stores runtime is missing the DS79 identity-module generation." >&2
+  exit 1
+fi
+if ! grep -q 'reportsGroupIcon' "$LIVE/timesheet_portal/assets/navigation.js" || ! grep -q 'timesheet-download-btn' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live DS79 navigation/Timesheet controls are missing." >&2
   exit 1
 fi
 

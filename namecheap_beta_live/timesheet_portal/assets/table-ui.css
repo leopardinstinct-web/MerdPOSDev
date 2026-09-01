@@ -393,15 +393,42 @@
 
 .timesheet-week-field {
   width: min(34rem, 100%);
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
 }
 
 .timesheet-week-field > span {
+  flex: 0 0 auto;
   color: var(--color-text-secondary);
   font-size: var(--type-xs);
   font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.timesheet-week-field > select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.timesheet-download-btn {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  min-width: 2.75rem !important;
+  min-height: 2.75rem !important;
+  max-width: 2.75rem !important;
+  max-height: 2.75rem !important;
+  flex: 0 0 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.timesheet-download-btn .ui-icon {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .timesheet-period-note {

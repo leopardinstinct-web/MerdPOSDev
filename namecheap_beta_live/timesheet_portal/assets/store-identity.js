@@ -50,7 +50,6 @@
     style.textContent = `
       .dev-store-id-field input[readonly]{background:#F3F6FA!important;color:#607086!important;cursor:not-allowed}
       .dev-store-code-field input{text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.035em}
-      .dev-store-identity{color:#44607F!important;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:10.5px!important}
       .dev-field-chip{display:inline-flex;align-items:center;margin-left:6px;padding:2px 6px;border-radius:999px;background:#EEF4FF;color:#2859A8;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle}
       .store-logo-field{grid-column:1/-1;display:grid!important;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid #E1E8F0;border-radius:12px;background:#F8FAFC}
       .store-logo-preview{width:76px;height:76px;border-radius:12px;border:1px solid #D8E2EE;background:#fff;display:grid;place-items:center;overflow:hidden;color:#8796A8;font-size:10px;text-align:center}
@@ -184,13 +183,7 @@
       const avatar = row?.querySelector('.entity-avatar.store-avatar');
       if (!copy) return;
 
-      let identity = copy.querySelector('.dev-store-identity');
-      if (!identity) {
-        identity = document.createElement('div');
-        identity.className = 'entity-sub dev-store-identity';
-        copy.appendChild(identity);
-      }
-      identity.textContent = `Code ${store.store_code} · ID ${store.id}`;
+      copy.querySelector('.dev-store-identity')?.remove();
 
       let address = copy.querySelector('.dev-store-address');
       if (store.address) {

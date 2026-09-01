@@ -85,6 +85,7 @@ test('mobile parent navigation activates first submenu and clears on direct sect
 
   // Reports is a first-class multi-item section. Its parent opens Overview first.
   const reports = page.locator('[data-nav-group="reports"]');
+  await expect(reports.locator('.ui-icon path')).toHaveAttribute('d', 'M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Zm221.5-198.5Q510-807 510-820t-8.5-21.5Q493-850 480-850t-21.5 8.5Q450-833 450-820t8.5 21.5Q467-790 480-790t21.5-8.5ZM200-200v-560 560Z');
   const reportsOverview = page.locator('[data-sidebar-group="reports"] [data-panel="reportsPanel"]');
   await reports.click();
   await expect(page.locator('#employeesPanel')).toBeHidden();

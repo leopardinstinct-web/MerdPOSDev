@@ -1,0 +1,43 @@
+version: 1
+id: MERD-20260901-ds-revision-79
+objective: "Apply the 12 DevStudio revision 79 UI patches to canonical Beta, test, deploy, live-verify, then issue an exact patch receipt."
+acceptance:
+  - "Reports navigation uses the supplied assignment icon."
+  - "Dashboard role label/select/edit control are hidden while current-user and preview-role status pills remain in requested order."
+  - "Store directory Code/ID identity line is removed from every store row."
+  - "Brief panel descriptions are removed consistently, including Timesheets and Disputes."
+  - "Timesheet Week label becomes Select Week with the select on the same row to its right."
+  - "Timesheet period subtitle is removed."
+  - "PDF download becomes an icon-only circular button using the supplied download icon."
+  - "Affected regression/contract checks pass."
+  - "Canonical Beta is deployed and live verified before receipt status is confirmed_applied."
+packet_state: TESTED
+lifecycle: IMPLEMENTED
+base_head: "436036fc63510fe49e93cabec3495d34d28eeac5"
+last_seen_head: "436036fc63510fe49e93cabec3495d34d28eeac5"
+constraints:
+  - "Apply only revision 79 patches; do not clear unrelated DevStudio history."
+  - "Do not change permissions, attendance logic, payroll logic, or data."
+completed:
+  - "Resolved canonical HEAD 436036f and confirmed no remote branch race before release."
+  - "Implemented all 12 revision 79 requests in canonical source with supplied assignment/download icon geometry."
+  - "Removed Store Code/ID row enrichment and page/header descriptive subcopy without removing operational notes or warnings."
+  - "Added cache/deploy/runtime-contract guards and focused browser assertions for Reports icon, dashboard pill placement, Stores, mobile headings and Timesheets."
+  - "Static syntax, AI continuity, runtime contract, permission policy, loader order, state scope and Studio inheritance/inbox/palette validators pass."
+  - "Targeted browser regressions passed after correcting the PDF circular-control cascade."
+  - "Full Beta Chromium regression suite passed 68/68 sequentially."
+checks:
+  - name: "Static/continuity/permission validators"
+    result: "PASS"
+  - name: "Targeted DS79 browser coverage"
+    result: "PASS"
+  - name: "Full Beta Chromium regressions"
+    result: "PASS 68/68"
+remaining:
+  - "Commit and push canonical implementation."
+  - "Wait for Beta Guardrails and Namecheap deploy."
+  - "Live verify all 12 patch outcomes, close packet and issue receipt."
+next_action: "Commit/push the tested DS79 implementation, then verify CI and live deployment."
+blocked: false
+blocker: null
+updated_at: "2026-09-01T21:51:32+05:00"

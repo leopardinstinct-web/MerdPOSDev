@@ -334,7 +334,7 @@
         const meta = panelMeta(panel);
         header = document.createElement('header');
         header.className = 'merd-mobile-page-head';
-        header.innerHTML = `<div class="merd-mobile-page-copy"><span class="merd-mobile-context"></span><h1>${meta[0]}</h1><p>${meta[1]}</p></div><button type="button" class="merd-mobile-account-trigger" aria-label="Account, client and app settings">${accountIcon}</button><nav class="merd-mobile-subtabs" aria-label="${meta[0]} sections"></nav>`;
+        header.innerHTML = `<div class="merd-mobile-page-copy"><span class="merd-mobile-context"></span><h1>${meta[0]}</h1></div><button type="button" class="merd-mobile-account-trigger" aria-label="Account, client and app settings">${accountIcon}</button><nav class="merd-mobile-subtabs" aria-label="${meta[0]} sections"></nav>`;
         header.querySelector('.merd-mobile-account-trigger')?.addEventListener('click', function (event) {
           window.MERDPOSShellUtilities?.open?.(event.currentTarget);
         });

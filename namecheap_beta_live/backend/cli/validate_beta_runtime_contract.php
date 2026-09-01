@@ -57,6 +57,7 @@ $designSystem = beta_contract_read($repo . '/namecheap_beta_live/timesheet_porta
 $designAudit = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/design-audit.js', $errors);
 $shellCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/shell.css', $errors);
 $appUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/app-ui.css', $errors);
+$tableUiCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/table-ui.css', $errors);
 $dashboardCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.css', $errors);
 $dashboardBuilderJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dashboard-builder.js', $errors);
 $analyticsCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/analytics-runtime.css', $errors);
@@ -67,6 +68,7 @@ $mobileJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/as
 $clientJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/client.js', $errors);
 $directoryJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/directory.js', $errors);
 $devStoresJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/dev-stores-ui.js', $errors);
+$storeIdentityJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/store-identity.js', $errors);
 $timingsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/timings.js', $errors);
 $storeTimingsApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/store_timings.php', $errors);
 $rolesJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/roles.js', $errors);
@@ -201,16 +203,18 @@ foreach ([
     'assets/design-tokens.css?v=20260828palette1',
     'assets/design-system.css?v=20260830pills1',
     'assets/design-audit.js?v=20260826ds1',
+    'assets/omnichannel-identity.js?v=20260901ds79',
     'assets/minimal-controls.js?v=20260826ds1',
-    'assets/mobile-runtime.js?v=20260828mobile1',
+    'assets/mobile-runtime.js?v=20260901ds79',
     'assets/shell.css?v=20260830bottom1',
-    'assets/navigation.js?v=20260830bottom1',
+    'assets/navigation.js?v=20260901ds79',
     'assets/account-menu.css?v=20260901timesheetsync1',
     'assets/account-menu.js?v=20260901timesheetsync1',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
-    'assets/dashboard-builder.css?v=20260831analytics2',
-    'assets/dashboard-builder.js?v=20260831analytics2',
+    'assets/dashboard-builder.css?v=20260901ds79',
+    'assets/dashboard-builder.js?v=20260901ds79',
+    'assets/dev-stores-ui.js?v=20260901ds79',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
 }
@@ -227,11 +231,11 @@ foreach ([
 // Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260830bottom1', 'Namecheap deploy bottom navigation runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260901ds79', 'Namecheap deploy bottom navigation runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics2', 'Namecheap deploy analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260831analytics2', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260831analytics2', 'Namecheap deploy dashboard analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260901ds79', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260901ds79', 'Namecheap deploy dashboard analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260901timesheetsync1', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260901timesheetsync1', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio29', 'Namecheap deploy UI Studio stylesheet guard', $errors);
@@ -481,9 +485,9 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 }
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
-beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260830pills1', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260901timesheetsync1', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260901timesheetsync1', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260901ds79', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260901ds79', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260901ds79', 'Namecheap live dashboard status-pill cache guard', $errors);
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);
@@ -620,6 +624,26 @@ beta_contract_require_contains($dashboard, "'wallet' => 'M441-120v-86", 'attache
 beta_contract_require_absent($dashboard, 'id="reportsPanel"', 'retired Reports overview panel', $errors);
 beta_contract_require_absent($dashboard, 'report-center.js', 'retired Reports overview runtime', $errors);
 beta_contract_require_contains($dashboard, '$showDisputesNav = $canDisputes && strtoupper($role) === \'DEV\';', 'Disputes navigation Developer-master visibility', $errors);
+beta_contract_require_contains($dashboard, 'assets/table-ui.css?v=20260901ds79', 'DS79 Timesheet stylesheet cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/app-ui.css?v=20260901ds79', 'DS79 global page-heading stylesheet cache version', $errors);
+beta_contract_require_contains($appUiCss, '.roles-head > div > p,', 'DS79 global role description suppression', $errors);
+beta_contract_require_contains($appUiCss, '.permission-head > div > p,', 'DS79 global permission description suppression', $errors);
+beta_contract_require_contains($navigationJs, 'M200-120q-33 0-56.5-23.5T120-200', 'DS79 attached Reports assignment icon', $errors);
+beta_contract_require_contains($dashboardCss, '#dashboardRoleSelect,', 'DS79 dashboard role selector hidden', $errors);
+beta_contract_require_contains($dashboardCss, '#dashboardEditToggle', 'DS79 dashboard edit control hidden', $errors);
+beta_contract_require_contains($omnichannelJs, "editToggle.insertAdjacentElement('afterend',root)", 'DS79 current-user status placement', $errors);
+beta_contract_require_absent($devStoresJs, 'identity.textContent = `Code', 'DS79 Store row Code/ID identity text', $errors);
+beta_contract_require_absent($storeIdentityJs, 'identity.textContent = `Code', 'DS79 Store identity module Code/ID row text', $errors);
+beta_contract_require_absent($dashboard, 'Review weekly timesheet activity for the selected week.', 'DS79 Timesheet brief description', $errors);
+beta_contract_require_absent($dashboard, 'Review and correct attendance issues within your permitted scope.', 'DS79 Disputes brief description', $errors);
+beta_contract_require_absent($dashboard, 'Accounts, store access, roles and authority.', 'DS79 Workforce brief description', $errors);
+beta_contract_require_absent($dashboard, 'Store identity, availability and operating timings.</p>', 'DS79 Stores brief description', $errors);
+beta_contract_require_absent($mobileJs, '<p>${meta[1]}</p>', 'DS79 mobile brief descriptions', $errors);
+beta_contract_require_contains($dashboard, '<span>Select Week</span><select id="weekSelect"', 'DS79 Select Week inline field', $errors);
+beta_contract_require_contains($tableUiCss, '.timesheet-week-field > select', 'DS79 Select Week right-side layout', $errors);
+beta_contract_require_contains($dashboard, 'class="secondary-btn timesheet-download-btn"', 'DS79 circular PDF download control', $errors);
+beta_contract_require_contains($dashboard, 'M480-320 280-520l56-58', 'DS79 attached PDF download icon', $errors);
+beta_contract_require_contains($dashboard, 'id="reportSubtitle" class="timesheet-period-note" hidden', 'DS79 hidden Timesheet period subtitle', $errors);
 beta_contract_require_contains($dashboard, 'id="storeWeekStartDay"', 'Store Edit week-start selector', $errors);
 beta_contract_require_contains($directoryJs, 'store-edit-icon-btn', 'Store Edit icon-only action', $errors);
 beta_contract_require_contains($directoryJs, 'window.MERDPOSStoreTimings?.openStore?.', 'Store Edit opens embedded timings', $errors);

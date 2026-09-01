@@ -54,11 +54,11 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   const fixtureHtml = `<!doctype html><html><body class="merd-shell">
     <main>
       <section id="timesheetPanel">
-        <header class="timesheet-page-head app-panel-head"><div><h2>Timesheets</h2><p>Review weekly timesheet activity for the selected week.</p></div></header>
+        <header class="timesheet-page-head app-panel-head"><div><h2>Timesheets</h2></div></header>
         <section class="controls-card timesheet-toolbar-card"><div class="timesheet-toolbar">
-          <label class="timesheet-week-field" for="weekSelect"><span>Week</span><select id="weekSelect"></select></label>
-          <button id="downloadPdfBtn" type="button">Download PDF</button>
-        </div><p id="reportSubtitle"></p><p id="reportTitle"></p></section>
+          <label class="timesheet-week-field" for="weekSelect"><span>Select Week</span><select id="weekSelect"></select></label>
+          <button id="downloadPdfBtn" class="secondary-btn timesheet-download-btn" type="button" aria-label="Download PDF"><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg></button>
+        </div><p id="reportSubtitle" hidden></p><p id="reportTitle"></p></section>
         <section id="statusBox">Loading</section>
         <section id="reportContainer" class="timesheet-report"></section>
       </section>
@@ -74,9 +74,12 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await page.addScriptTag({ path: timesheetPath });
 
   await expect(page.getByRole('heading', { name: 'Timesheets', exact: true })).toBeVisible();
-  await expect(page.getByText('Review weekly timesheet activity for the selected week.')).toBeVisible();
+  await expect(page.locator('.timesheet-week-field > span')).toHaveText('Select Week');
   await expect(page.locator('#weekSelect')).toHaveValue('2026-08-03');
+  await expect(page.locator('#reportSubtitle')).toBeHidden();
   await expect(page.locator('#reportSubtitle')).toContainText('03 Aug - 09 Aug 2026');
+  await expect(page.locator('#downloadPdfBtn')).toHaveAttribute('aria-label','Download PDF');
+  await expect(page.locator('#downloadPdfBtn .ui-icon path')).toHaveAttribute('d','M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z');
   await expect(page.locator('.timesheet-metric')).toHaveCount(4);
   await expect(page.getByRole('heading', { name: 'Store summary' })).toBeVisible();
   await expect(page.locator('.timesheet-section-card').filter({ hasText: 'Store summary' })).toContainText('$495.00');
@@ -129,6 +132,15 @@ test('timesheets use standard hierarchy and expandable employee details', async 
   await page.addStyleTag({ path: tokensPath });
   await page.addStyleTag({ path: tableUiPath });
   await page.addStyleTag({ path: designSystemPath });
+
+  const [weekLabelBox, weekSelectBox, downloadBox] = await Promise.all([
+    page.locator('.timesheet-week-field > span').boundingBox(),
+    page.locator('#weekSelect').boundingBox(),
+    page.locator('#downloadPdfBtn').boundingBox(),
+  ]);
+  expect(weekSelectBox.x).toBeGreaterThan(weekLabelBox.x + weekLabelBox.width - 1);
+  expect(Math.abs(downloadBox.width - downloadBox.height)).toBeLessThanOrEqual(1);
+  await expect(page.locator('#downloadPdfBtn')).toHaveCSS('border-radius', '50%');
 
   await expect(abidRow).toBeVisible();
   await expect(otherRow).toBeVisible();

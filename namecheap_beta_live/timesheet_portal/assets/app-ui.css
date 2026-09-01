@@ -868,3 +868,12 @@
   .status-card.merd-inline-loading::before { animation: none; }
   .merd-mobile-page-head { transition: none; }
 }
+
+/* DS79: page titles stand without repetitive descriptive subcopy. */
+.app-panel-head p,
+.directory-toolbar > div > p,
+.roles-head > div > p,
+.permission-head > div > p,
+.merd-mobile-page-copy > p {
+  display: none !important;
+}
