@@ -1,6 +1,6 @@
 ﻿version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-02T02:43:00+05:00"
+updated_at: "2026-09-02T02:42:00+05:00"
 active:
   - id: MERD-20260901-ds-revision-79
     path: .ai/work/active/MERD-20260901-ds-revision-79.yaml

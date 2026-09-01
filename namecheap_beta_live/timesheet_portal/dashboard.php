@@ -364,7 +364,7 @@ function ui_icon(string $name): string
         <div class="merd-about-release-grid">
           <div class="merd-about-release-row"><span>MERDPOS</span><strong>Git <?= htmlspecialchars($productVersion) ?></strong><small>Release date · <?= htmlspecialchars($productReleaseDate) ?></small></div>
         </div>
-        <div class="merd-about-tagline"><strong>SMARTER <i>&bull;</i> FASTER <i>&bull;</i> TOGETHER</strong></div>
+        <div class="merd-about-tagline"><img src="assets/brand/smarter-faster-together.png?v=20260902about3" alt="Smarter Faster Together"></div>
         <footer class="merd-about-foot"><span>Copyright &copy; <?= date('Y') ?> All rights reserved</span></footer>
       </section>
       <section class="merd-about-art" aria-hidden="true">
@@ -450,7 +450,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260902studio30"></script>
+  <script src="assets/management.js?v=20260902about3"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260902ds97"></script><?php endif; ?>
 </body>
 </html>

@@ -204,7 +204,7 @@ for required_asset in \
   'assets/dashboard-builder.css?v=20260902ds97' \
   'assets/dashboard-builder.js?v=20260902ds97' \
   'assets/dev-stores-ui.js?v=20260901ds79' \
-  'assets/account-menu.css?v=20260902about2' \
+  'assets/account-menu.css?v=20260902about3' \
   'assets/account-menu.js?v=20260901timesheetsync1' \
   'assets/ui-studio.css?v=20260902studio30' \
   'assets/ui-studio.js?v=20260902studio30'; do
@@ -214,7 +214,7 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260902studio30' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260902about3' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
   exit 1
 fi
@@ -273,6 +273,10 @@ if ! grep -q 'function promoteStudioTopLayer' "$LIVE/timesheet_portal/assets/ui-
 fi
 if grep -q '<span>DevStudio</span>' "$LIVE/timesheet_portal/dashboard.php" || grep -q 'Release Highlights' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live About splash still exposes duplicate DevStudio/highlight release content." >&2
+  exit 1
+fi
+if ! grep -q 'assets/brand/smarter-faster-together.png?v=20260902about3' "$LIVE/timesheet_portal/dashboard.php" || [[ "$(sha256sum "$LIVE/timesheet_portal/assets/brand/smarter-faster-together.png" | awk '{print $1}')" != "c19bc5fcc96fde7508e0dccb5d112a337cc7ceeb8b138aed44fa6f478d5f4c87" ]]; then
+  echo "ERROR: live About splash is missing the exact SMARTER FASTER TOGETHER artwork." >&2
   exit 1
 fi
 if ! grep -q 'function merd_ui_studio_normalize_palette' "$LIVE/timesheet_portal/includes/ui_studio_history.php"; then

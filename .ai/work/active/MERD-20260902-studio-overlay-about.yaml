@@ -1,26 +1,30 @@
 version: 1
 id: MERD-20260902-studio-overlay-about
-objective: "Make DevStudio radial/cursor UI own the top browser layer, make unresolved dots follow target visibility/stacking, and simplify the About splash white pane."
+objective: "Make DevStudio radial/cursor UI own the top browser layer, make unresolved dots follow target visibility/stacking, and finish the About splash white pane using the latest DevStudio revision 107 intent."
 acceptance:
   - "DevStudio radial menu and cursor tooltip render above Store/Employee/About modal dialogs opened after Studio."
-  - "Unresolved change dots are anchored inside the edited element page/window context and disappear when that context is hidden, navigated away, or covered by another modal."
+  - "Unresolved change dots follow the edited target page/window visibility and disappear when navigated away or occluded by another modal."
   - "Change dots no longer use a global top-layer z-index that competes with MERDPOS windows."
-  - "About white pane contains only MERDPOS logo, MERDPOS version/release details, centered SMARTER FASTER TOGETHER tagline, and copyright line."
+  - "About white pane contains only MERDPOS logo, MERDPOS version/release details, exact attached SMARTER FASTER TOGETHER artwork, and copyright line."
+  - "MERDPOS release details are vertically centered between the logo and tagline artwork."
   - "About white pane has no duplicate DevStudio release block and no release highlights."
-  - "Canonical validators and full Chromium regression pass before publish; deployment and live verification required before VERIFIED."
+  - "DevStudio revision 107 patches patch-b0f9842d23f2d18d, patch-2a77fe948956e818 and patch-fd9d9e23df683ea3 are receipted only after live verification."
 packet_state: VALIDATED
 lifecycle: VALIDATED
 base_head: "83cb920992fe71de2c16fa3a640b22d0bcfce6f5"
-last_seen_head: "83cb920992fe71de2c16fa3a640b22d0bcfce6f5"
+last_seen_head: "7f1705497d1bb779b5a4af64c1683bde7354808c"
 constraints:
-  - "Do not change business permissions, attendance, payroll, finance, migration authority, or DevStudio receipt semantics."
+  - "Do not change business permissions, attendance, payroll, finance, migration authority, or unrelated DevStudio inbox items."
+  - "Preserve the exact attached SMT.png bytes; expected SHA-256 c19bc5fcc96fde7508e0dccb5d112a337cc7ceeb8b138aed44fa6f478d5f4c87."
 completed:
-  - "Runtime/source edits written with cache/deployment guards."
-  - "Canonical runtime, permission, loader, state-scope, AI continuity, syntax and deploy-script gates passed."
-  - "Targeted top-layer/dot/splash regressions passed; full Chromium suite passed 73/73 serially."
+  - "Overlay ownership, cursor tooltip top-layer behavior and local change-marker visibility were implemented and deployed in 7f17054."
+  - "Latest revision 107 splash instructions were reconciled from the authoritative DevStudio inbox."
+  - "Exact attached tagline asset downloaded and hash matched; splash runtime/cache/deploy guards and regression coverage updated."
+  - "Canonical runtime, permission, loader, state-scope, AI continuity and Studio semantic validators passed; deploy script parses under Git Bash."
+  - "Targeted splash midpoint regression passed and full Chromium suite passed 73/73 serially."
 remaining:
-  - "Publish canonical commit, pass GitHub Guardrails, deploy exact SHA to Namecheap, and live verify."
-next_action: "Commit and push the validated release packet to canonical Beta."
+  - "Publish follow-up commit, pass GitHub Guardrails, deploy exact SHA, live verify all three requested behaviors and apply revision 107 receipt."
+next_action: "Commit and push the validated combined release to canonical Beta."
 blocked: false
 blocker: null
-updated_at: "2026-09-02T02:43:00+05:00"
+updated_at: "2026-09-02T02:42:00+05:00"

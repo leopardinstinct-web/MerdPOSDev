@@ -208,7 +208,7 @@ foreach ([
     'assets/mobile-runtime.js?v=20260901ds79',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260902ds97',
-    'assets/account-menu.css?v=20260902about2',
+    'assets/account-menu.css?v=20260902about3',
     'assets/account-menu.js?v=20260901timesheetsync1',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
@@ -236,7 +236,7 @@ beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260902ds97', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260902ds97', 'Namecheap deploy dashboard analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260902about2', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260902about3', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260901timesheetsync1', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260902studio30', 'Namecheap deploy UI Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260902studio30', 'Namecheap deploy UI Studio runtime guard', $errors);
@@ -493,8 +493,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260902ds97', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902studio30', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902studio30', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902about3', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902about3', 'Namecheap live dashboard status-pill cache guard', $errors);
 beta_contract_require_contains($dashboard, 'assets/directory.js?v=20260902ds97', 'DS97 directory runtime cache version', $errors);
 beta_contract_require_contains($management, 'assets/design-system.css?v=20260902ds97', 'DS97 status-pill layout stylesheet cache version', $errors);
 beta_contract_require_contains($management, 'assets/navigation.js?v=20260902ds97', 'DS97 navigation runtime cache version', $errors);
@@ -509,7 +509,13 @@ beta_contract_require_contains($directoryJs, 'directory-edit-icon-btn', 'DS97 sh
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_absent($dashboard, '$devStudioVersion', 'About splash duplicate DevStudio Git reference', $errors);
 beta_contract_require_absent($dashboard, 'Release Highlights', 'About splash retired release-highlight region', $errors);
-beta_contract_require_contains($accountMenuCss, '.merd-about-release-grid', 'About splash release metadata layout', $errors);
+beta_contract_require_contains($dashboard, 'assets/brand/smarter-faster-together.png?v=20260902about3', 'About splash exact SMARTER FASTER TOGETHER artwork', $errors);
+beta_contract_require_contains($accountMenuCss, '.merd-about-release-grid { width:100%; flex:1 1 auto;', 'About splash vertically centered release region', $errors);
+beta_contract_require_contains($accountMenuCss, '.merd-about-tagline img', 'About splash tagline artwork sizing', $errors);
+$aboutTaglineAsset = $repo . '/namecheap_beta_live/timesheet_portal/assets/brand/smarter-faster-together.png';
+if (!is_file($aboutTaglineAsset) || hash_file('sha256', $aboutTaglineAsset) !== 'c19bc5fcc96fde7508e0dccb5d112a337cc7ceeb8b138aed44fa6f478d5f4c87') {
+    $errors[] = 'About splash SMARTER FASTER TOGETHER artwork hash mismatch.';
+}
 beta_contract_require_contains($deployScript, 'studio_commit_short=', 'deploy derives latest DevStudio commit', $errors);
 beta_contract_require_contains($deployScript, 'release_highlights', 'deploy derives three recent release highlights', $errors);
 beta_contract_require_contains($deployScript, '$LIVE/.beta_release.json', 'deploy publishes Git release metadata', $errors);

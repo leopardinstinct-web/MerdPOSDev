@@ -56,7 +56,7 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260902about2');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260902about3');
     appendScript('account-menu','assets/account-menu.js?v=20260901timesheetsync1');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260901ds79');

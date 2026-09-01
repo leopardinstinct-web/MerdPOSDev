@@ -220,8 +220,11 @@ The product identity is stored as exact supplied artwork under `assets/brand/`. 
 - Client freshness, Current User, and Current Preview Role share the same status-pill primitive and remain visible on mobile without horizontal overflow.
 
 
+### DevStudio overlay and unresolved markers
+DevStudio radial controls and the cursor-follow action tooltip follow the active browser top layer. When a MERDPOS modal dialog opens, Studio mounts inside that modal top-layer subtree and returns to its body Popover host when the modal closes. Unresolved change dots are anchored to the edited element context rather than a global overlay and hide when the target page is hidden, navigated away, or occluded by another modal.
+
 ### About release metadata
-The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh` writes `.beta_release.json` beside the beta live tree after runtime validation. `dashboard.php` reads that server-side file to show the deployed MERDPOS Git reference/date, the latest DevStudio Git reference/date, and the three most recent release commit subjects. Do not replace these values with hand-maintained version strings.
+The About MERDPOS splash is deployment-aware. `scripts/deploy_namecheap_beta.sh` writes `.beta_release.json` beside the beta live tree after runtime validation. `dashboard.php` reads that server-side file to show only the deployed MERDPOS Git reference/date. The white pane uses the exact supplied `assets/brand/smarter-faster-together.png` artwork between the centered release block and the copyright line; duplicate DevStudio release metadata and release highlights are intentionally omitted. Do not replace these values with hand-maintained version strings.
 
 
 ### Historical DevStudio26 master + preview requests (superseded handoff format)
