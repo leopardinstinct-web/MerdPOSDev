@@ -1,4 +1,4 @@
-version: 1
+﻿version: 1
 id: MERD-20260902-ds-revision-97
 objective: "Apply the 9 DevStudio revision 97 global patches to canonical Beta, test, deploy, live-verify, then issue an exact receipt."
 acceptance:
@@ -21,10 +21,10 @@ patch_ids:
   - patch-06146afd8f1abc5b
   - patch-b8ab57d9e1abaad1
 source_revision: 97
-packet_state: IMPLEMENTING
-lifecycle: WIRED
+packet_state: CLOSED
+lifecycle: VERIFIED
 base_head: "4c3806901a8ff9780a2abd441451794f19f4f134"
-last_seen_head: "4c3806901a8ff9780a2abd441451794f19f4f134"
+last_seen_head: "4868004aff707ba8b07aba183ecf2a9b253564b1"
 constraints:
   - "Apply only revision 97 patch intent; do not clear unrelated DevStudio patches."
   - "Do not change permissions, attendance writes, payroll writes, finance writes, or migration authority."
@@ -33,9 +33,10 @@ completed:
   - "Targeted DS97 browser coverage passes, including direct USER Timesheets icon, Current week, pill geometry, row cleanup and shared edit parity."
   - "All canonical validators pass: runtime contract, AI continuity, permission policy, loader order, state scope and DevStudio inheritance/inbox/palette."
   - "Full local Chromium regression passes 72/72 sequentially, including mobile Client edit-button geometry."
-remaining:
-  - "Push, deploy, live verify and issue revision 97 receipt."
-next_action: "Publish the tested revision 97 packet, then deploy and live-verify before issuing the receipt."
+  - "Live release marker matched 4868004aff707ba8b07aba183ecf2a9b253564b1; authenticated live verification passed all nine patch intents with zero page errors."`r`n  - "Exact nine-entry DevStudio receipt applied successfully; source revision 97 advanced to revision 98 and all nine processed IDs left the unresolved inbox."`r`nremaining:
+  - "None. Revision 97 was deployed, live verified, and receipt-applied at DevStudio revision 98."
+next_action: "Closed. Product commit 4868004 remains the verified live runtime; receipt advanced DevStudio revision 97 to 98."
 blocked: false
 blocker: null
-updated_at: "2026-09-02T00:55:19+05:00"
+updated_at: "2026-09-02T01:08:45+05:00"
+
