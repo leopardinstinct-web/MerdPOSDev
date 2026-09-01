@@ -55,7 +55,7 @@
     main.appendChild(panel);
 
     const clientScript = document.createElement('script');
-    clientScript.src = 'assets/client.js?v=20260827visual1';
+    clientScript.src = 'assets/client.js?v=20260902ds97';
     clientScript.dataset.clientModule = '1';
     document.body.appendChild(clientScript);
   }
@@ -212,7 +212,7 @@
     button.setAttribute('aria-label', visibleLabel);
     if (!direct) button.setAttribute('aria-expanded', 'false');
     const sourceIcon = tabs[0].querySelector('.ui-icon');
-    const groupIcon = key === 'reports' ? reportsGroupIcon : (sourceIcon ? sourceIcon.outerHTML : '');
+    const groupIcon = key === 'reports' && !direct ? reportsGroupIcon : (sourceIcon ? sourceIcon.outerHTML : '');
     button.innerHTML = `${groupIcon}<span class="rail-label">${visibleLabel}</span>${direct ? '' : '<span class="rail-chevron" aria-hidden="true">â€º</span>'}`;
 
     const subgroup = document.createElement('div');

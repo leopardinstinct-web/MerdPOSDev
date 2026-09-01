@@ -870,10 +870,20 @@ body.merd-shell {
 .omni-status-pills {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  width: 100%;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin-left: 0;
+}
+
+#omniFreshness {
   margin-left: auto;
+}
+
+.client-row-actions > .directory-edit-icon-btn {
+  flex: 0 0 var(--size-icon-action);
 }
 
 .omni-status-pill,
@@ -1104,6 +1114,7 @@ body.merd-shell {
   }
 
   .omni-status-pills { width:100%; margin-left:0; justify-content:flex-start; }
+  #omniFreshness { margin-left:0; }
   .omni-status-pill { min-width:0; max-width:100%; }
 }
 
@@ -1120,6 +1131,12 @@ body.merd-shell {
   .role-actions > *,
   .permission-actions > * {
     flex: 1 1 9rem;
+  }
+  .client-row-actions > .directory-edit-icon-btn {
+    flex: 0 0 var(--size-icon-action-touch) !important;
+    width: var(--size-icon-action-touch) !important;
+    min-width: var(--size-icon-action-touch) !important;
+    max-width: var(--size-icon-action-touch) !important;
   }
 }
 

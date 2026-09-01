@@ -37,6 +37,10 @@ test('DEV dashboard shows current user, preview role and client status pills',as
   await expect(page.locator('#omniFreshness')).toContainText('MRG');
   await expect(page.locator('#omniFreshness')).toContainText('Updated now');
   await expect(page.locator('#omniCurrentUser .omni-status-pill-dot')).toBeVisible();
+  const geometry=await page.evaluate(()=>{const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return{x:r.x,right:r.right,width:r.width}};return{user:box('omniCurrentUser'),preview:box('omniPreviewRole'),client:box('omniFreshness'),rolebar:document.getElementById('dashboardRolebar').getBoundingClientRect().width};});
+  expect(geometry.user.x).toBeLessThan(geometry.preview.x);
+  expect(geometry.preview.right).toBeLessThan(geometry.client.x);
+  expect(geometry.client.x).toBeGreaterThan(geometry.rolebar * .55);
 });
 
 test('non-DEV mobile keeps self/client pills visible without preview-role pill',async({page})=>{

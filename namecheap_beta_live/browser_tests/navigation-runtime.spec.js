@@ -103,3 +103,15 @@ test('mobile parent navigation activates first submenu and clears on direct sect
 
   expect(pageErrors, `Unexpected browser errors: ${pageErrors.join(' | ')}`).toEqual([]);
 });
+
+test('single USER Timesheets destination keeps its Timesheet icon instead of the Reports group icon', async ({ page }) => {
+  await page.setViewportSize({ width:390, height:844 });
+  const html=`<!doctype html><html><body><main class="merd-page-shell"><nav class="merd-nav"><div class="nav-group"><span class="nav-group-label">Reports</span><button class="portal-tab active" data-panel="timesheetPanel"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timesheets</span></button></div></nav><section id="timesheetPanel" class="portal-panel">Timesheets</section></main></body></html>`;
+  await page.route('https://merdpos-smoke.invalid/user-timesheet',r=>r.fulfill({status:200,contentType:'text/html',body:html}));
+  await page.goto('https://merdpos-smoke.invalid/user-timesheet');
+  await page.addScriptTag({path:navigationPath});
+  const button=page.locator('[data-nav-group="reports"]');
+  await expect(button).toHaveAttribute('aria-label','Timesheets');
+  await expect(button.locator('.ui-icon path')).toHaveAttribute('d','M12 7v5l3 2');
+  await expect(button.locator('.ui-icon path[d^="M200-120"]')).toHaveCount(0);
+});

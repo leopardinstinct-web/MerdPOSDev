@@ -456,8 +456,8 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260901ds79"></script>
-  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260831stores1"></script><?php endif; ?>
+  <script src="assets/management.js?v=20260902ds97"></script>
+  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260902ds97"></script><?php endif; ?>
 </body>
 </html>
 

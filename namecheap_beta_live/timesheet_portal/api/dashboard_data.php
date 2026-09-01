@@ -34,6 +34,19 @@ function dashboard_data_period_dates(string $businessDate, DateTimeZone $timezon
     return $dates;
 }
 
+function dashboard_data_current_week_dates(string $businessDate, DateTimeZone $timezone, int $weekStartDay): array
+{
+    $weekStartDay = max(1, min(7, $weekStartDay));
+    $end = new DateTimeImmutable($businessDate, $timezone);
+    $offset = ((int)$end->format('N') - $weekStartDay + 7) % 7;
+    $start = $end->modify("-{$offset} days");
+    $dates = [];
+    for ($cursor = $start; $cursor <= $end; $cursor = $cursor->modify('+1 day')) {
+        $dates[] = $cursor->format('Y-m-d');
+    }
+    return $dates;
+}
+
 function dashboard_data_fill_series(array $dates, array $rows, bool $integer = false): array
 {
     $values = [];
@@ -76,13 +89,15 @@ try {
     $timezone = (string)($defaults['default_timezone'] ?: 'Australia/Sydney');
     try { $timezoneObject = new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; $timezoneObject = new DateTimeZone($timezone); }
 
+    $period = strtolower(trim((string)($_GET['period'] ?? '')));
+    $isCurrentWeek = $period === 'current_week';
     $days = filter_var($_GET['days'] ?? 7, FILTER_VALIDATE_INT);
     if (!in_array($days, [7,14,30], true)) $days = 7;
     $storeId = filter_var($_GET['store_id'] ?? 0, FILTER_VALIDATE_INT);
     $storeId = ($storeId !== false && $storeId > 0) ? (int)$storeId : 0;
     $selectedStore = null;
     if ($storeId > 0) {
-        $storeCheck = $pdo->prepare("SELECT id,store_name FROM stores WHERE id=? AND client_id=? AND status='active' LIMIT 1");
+        $storeCheck = $pdo->prepare("SELECT id,store_name,week_start_day,timezone FROM stores WHERE id=? AND client_id=? AND status='active' LIMIT 1");
         $storeCheck->execute([$storeId,$clientId]);
         $selectedStore = $storeCheck->fetch(PDO::FETCH_ASSOC);
         if (!is_array($selectedStore)) throw new MerdWorkforceException('store_not_found', 'Dashboard store filter is unavailable.');
@@ -135,14 +150,14 @@ try {
     $storeFilterWidgets = ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales'];
     $needsStoreFilter = count(array_intersect($allowed, $storeFilterWidgets)) > 0;
     if ($needsStoreFilter && ($dashboardCanWorkforce || $dashboardCanFinanceSummary)) {
-        $filterStoreStmt = $pdo->prepare("SELECT id,store_name FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC");
+        $filterStoreStmt = $pdo->prepare("SELECT id,store_name,week_start_day,timezone FROM stores WHERE client_id=? AND status='active' ORDER BY id ASC");
         $filterStoreStmt->execute([$clientId]);
         $filterStores = $filterStoreStmt->fetchAll(PDO::FETCH_ASSOC);
     } elseif ($needsStoreFilter && isset($allowedMap['recent_attendance'])) {
         $where = $allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?';
         $args = $allRecent ? [$clientId] : [$clientId, (int)$user['id']];
         $filterStoreStmt = $pdo->prepare(
-            'SELECT DISTINCT st.id,st.store_name FROM attendance_shifts s INNER JOIN stores st ON st.id=s.store_id WHERE ' . $where . ' ORDER BY st.id ASC'
+            'SELECT DISTINCT st.id,st.store_name,st.week_start_day,st.timezone FROM attendance_shifts s INNER JOIN stores st ON st.id=s.store_id WHERE ' . $where . ' ORDER BY st.id ASC'
         );
         $filterStoreStmt->execute($args);
         $filterStores = $filterStoreStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -167,8 +182,24 @@ try {
             $stores = $storeStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        $businessDate = (new DateTimeImmutable('now', $timezoneObject))->format('Y-m-d');
-        $trendDates = dashboard_data_period_dates($businessDate, $timezoneObject, (int)$days);
+        $periodTimezoneObject = $timezoneObject;
+        $weekStartDay = 1;
+        if ($isCurrentWeek) {
+            if (is_array($selectedStore)) {
+                $weekStartDay = max(1, min(7, (int)($selectedStore['week_start_day'] ?? 1)));
+                $storeTimezone = trim((string)($selectedStore['timezone'] ?? ''));
+                if ($storeTimezone !== '') { try { $periodTimezoneObject = new DateTimeZone($storeTimezone); } catch (Throwable) {} }
+            } else {
+                $weekStarts = array_values(array_unique(array_map(static fn(array $row): int => max(1, min(7, (int)($row['week_start_day'] ?? 1))), $filterStores)));
+                if (count($weekStarts) > 1) throw new MerdWorkforceException('store_required_for_current_week', 'Choose a store to use its configured week start.');
+                if ($weekStarts) $weekStartDay = $weekStarts[0];
+            }
+        }
+        $businessDate = (new DateTimeImmutable('now', $periodTimezoneObject))->format('Y-m-d');
+        $trendDates = $isCurrentWeek
+            ? dashboard_data_current_week_dates($businessDate, $periodTimezoneObject, $weekStartDay)
+            : dashboard_data_period_dates($businessDate, $periodTimezoneObject, (int)$days);
+        $days = count($trendDates);
         $trendStart = $trendDates[0];
 
         $financialRows = [];
@@ -253,6 +284,8 @@ try {
             'currency_code'=>$currency,
             'timezone'=>$timezone,
             'period_days'=>(int)$days,
+            'period'=>$isCurrentWeek ? 'current_week' : (string)$days,
+            'week_start_day'=>$isCurrentWeek ? $weekStartDay : null,
             'active_employees'=>$activeEmployees,
             'sync_attention'=>$syncAttention,
             'financial_by_store'=>$financialRows,
@@ -276,8 +309,8 @@ try {
         ],
         'allowed_widgets'=>$allowed,
         'client_defaults'=>['currency_code'=>$currency,'timezone'=>$timezone],
-        'filters'=>['store_id'=>$storeId,'days'=>(int)$days],
-        'filter_options'=>['stores'=>$filterStores,'periods'=>[7,14,30]],
+        'filters'=>['store_id'=>$storeId,'days'=>(int)$days,'period'=>$isCurrentWeek ? 'current_week' : (string)$days,'period_label'=>$isCurrentWeek ? 'Current week' : ((int)$days . ' days'),'week_start_day'=>$isCurrentWeek ? ($weekStartDay ?? 1) : null],
+        'filter_options'=>['stores'=>$filterStores,'periods'=>['current_week',7,14,30]],
         'working_count'=>$workingCount,
         'working'=>$working,
         'my_working'=>$myWorking,

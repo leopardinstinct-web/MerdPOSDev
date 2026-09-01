@@ -23,7 +23,7 @@ test('Stores use canonical Search width and icon-only circular edit action', asy
   const directory = source('assets/directory.js');
   expect(devStores).not.toContain('width:min(460px,38vw)');
   expect(devStores).not.toContain('min-width:220px');
-  expect(directory).toContain('class="merd-icon-action store-edit-icon-btn"');
+  expect(directory).toContain('class="merd-icon-action directory-edit-icon-btn store-edit-icon-btn"');
   expect(directory).toContain('aria-label="Edit ${esc(store.store_name)}"');
   expect(directory).not.toContain("data-edit-store=\"${Number(store.id)}\">${icon('edit')}<span>Edit</span>");
 });
@@ -52,4 +52,31 @@ test('Store Edit embeds weekly timings and persists week-start day without chang
   await expect.poll(()=>posted).not.toBeNull();
   expect(posted).toMatchObject({action:'save_timings',scope:'store',store_id:7,week_start_day:2});
   expect(posted.days.map(row=>row.day_of_week)).toEqual([1,2,3,4,5,6,7]);
+});
+
+test('directory edit actions share one icon-only contract and employee rows omit requested metadata clutter', () => {
+  const directory=source('assets/directory.js');
+  const clients=source('assets/client.js');
+  expect(directory).toContain('class="merd-icon-action directory-edit-icon-btn" data-edit-employee');
+  expect(directory).toContain('class="merd-icon-action directory-edit-icon-btn store-edit-icon-btn" data-edit-store');
+  expect(clients).toContain('class="merd-icon-action directory-edit-icon-btn" data-edit-client');
+  expect(directory).not.toContain('Allowed: ${esc(accessText)}');
+  expect(directory).not.toContain('${rolePill(employee)}<span class="store-access-summary">LOA');
+  expect(directory).not.toContain('${storeAccessPill(employee)}${payMeta}');
+  expect(directory).not.toContain('class="icon-text-btn" data-edit-employee');
+  expect(clients).not.toContain('data-edit-client="${Number(client.id)}">${editIcon()}<span>Edit</span>');
+});
+
+
+test('client directory edit action stays circular on phone while Legacy Sync remains a text action', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.setContent('<body class="merd-shell"><div class="client-row-actions"><button class="icon-text-btn"><span>Legacy Sync</span></button><button class="merd-icon-action directory-edit-icon-btn" aria-label="Edit client"><svg viewBox="0 0 24 24"><path d="M12 20h9"/></svg></button></div></body>');
+  await page.addStyleTag({path:portal('assets/design-tokens.css')});
+  await page.addStyleTag({path:portal('assets/mobile-hardening.css')});
+  await page.addStyleTag({path:portal('assets/design-system.css')});
+  const geometry=await page.evaluate(()=>{const edit=document.querySelector('.directory-edit-icon-btn').getBoundingClientRect(),sync=document.querySelector('.icon-text-btn').getBoundingClientRect();return{editW:edit.width,editH:edit.height,syncW:sync.width};});
+  expect(Math.abs(geometry.editW-geometry.editH)).toBeLessThan(1);
+  expect(geometry.editW).toBeGreaterThanOrEqual(47);
+  expect(geometry.editW).toBeLessThanOrEqual(49);
+  expect(geometry.syncW).toBeGreaterThan(geometry.editW);
 });

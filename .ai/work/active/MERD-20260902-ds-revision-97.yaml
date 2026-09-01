@@ -1,0 +1,41 @@
+version: 1
+id: MERD-20260902-ds-revision-97
+objective: "Apply the 9 DevStudio revision 97 global patches to canonical Beta, test, deploy, live-verify, then issue an exact receipt."
+acceptance:
+  - "USER direct Timesheets navigation uses the Timesheets source icon; grouped Reports keeps the Reports icon."
+  - "Dashboard current-user and preview-role pills align left while the working-client freshness pill aligns right."
+  - "Dashboard Period includes Current week using the selected store week_start_day; mixed all-store week starts fail closed and require a store."
+  - "Employee rows remove Allowed, role, LOA, store-access and hourly-rate metadata while retaining identity/status and requested future-rate information."
+  - "Employees, Stores and Clients use one shared icon-only circular directory edit action contract."
+  - "Failure regression prevents store-only edit-button fixes from diverging from other directory edit actions."
+  - "All canonical validators and full Chromium regression pass."
+  - "Canonical Beta is deployed and live verified before any receipt update is confirmed_applied."
+patch_ids:
+  - patch-6e0bdfa299b9cf3e
+  - patch-33b50e27154cbccb
+  - patch-f774f9fe4e47ed56
+  - patch-81beb4f076eba308
+  - patch-4ec3a708a54a2486
+  - patch-2455b58cc75d652e
+  - patch-2f8edc2da4bb2b2f
+  - patch-06146afd8f1abc5b
+  - patch-b8ab57d9e1abaad1
+source_revision: 97
+packet_state: IMPLEMENTING
+lifecycle: WIRED
+base_head: "4c3806901a8ff9780a2abd441451794f19f4f134"
+last_seen_head: "4c3806901a8ff9780a2abd441451794f19f4f134"
+constraints:
+  - "Apply only revision 97 patch intent; do not clear unrelated DevStudio patches."
+  - "Do not change permissions, attendance writes, payroll writes, finance writes, or migration authority."
+completed:
+  - "Implemented the nine revision 97 patch intents in canonical source."
+  - "Targeted DS97 browser coverage passes, including direct USER Timesheets icon, Current week, pill geometry, row cleanup and shared edit parity."
+  - "All canonical validators pass: runtime contract, AI continuity, permission policy, loader order, state scope and DevStudio inheritance/inbox/palette."
+  - "Full local Chromium regression passes 72/72 sequentially, including mobile Client edit-button geometry."
+remaining:
+  - "Push, deploy, live verify and issue revision 97 receipt."
+next_action: "Publish the tested revision 97 packet, then deploy and live-verify before issuing the receipt."
+blocked: false
+blocker: null
+updated_at: "2026-09-02T00:55:19+05:00"

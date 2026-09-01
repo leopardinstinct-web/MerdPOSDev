@@ -35,8 +35,8 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
   const Analytics = window.MERDPOSAnalytics || null;
-  const PERIODS = [7,14,30];
-  const filterState = { storeId:0, days:7 };
+  const PERIODS = ['current_week',7,14,30];
+  const filterState = { storeId:0, period:'7', days:7 };
   let layoutApi = null, data = null, layout = [], saveTimer = null, currentRoleId = null, editMode = false, studioEditMode = false;
 
   panel.classList.add('dashboard-builder-active');
@@ -49,7 +49,7 @@
     </div>
     <div id="dashboardAnalyticsToolbar" class="dashboard-analytics-toolbar" hidden>
       <label class="dashboard-filter-field"><span>Store</span><select id="dashboardStoreFilter" aria-label="Filter dashboard by store"><option value="0">All stores</option></select></label>
-      <div class="dashboard-period-filter" role="group" aria-label="Reporting period"><span>Period</span><div>${PERIODS.map(days=>`<button type="button" data-dashboard-days="${days}" aria-pressed="${days===7?'true':'false'}">${days}D</button>`).join('')}</div></div>
+      <div class="dashboard-period-filter" role="group" aria-label="Reporting period"><span>Period</span><div>${PERIODS.map(period=>`<button type="button" data-dashboard-period="${period}" aria-pressed="${String(period)==='7'?'true':'false'}">${period==='current_week'?'Current week':`${period}D`}</button>`).join('')}</div></div>
       <span id="dashboardFilterSummary" class="dashboard-filter-summary" aria-live="polite"></span>
     </div>
     <div id="dashboardCanvas" class="dashboard-canvas" aria-label="Role dashboard"></div>
@@ -79,7 +79,7 @@
   const resetButton = document.getElementById('dashboardReset');
   const analyticsToolbar = document.getElementById('dashboardAnalyticsToolbar');
   const storeFilter = document.getElementById('dashboardStoreFilter');
-  const periodButtons = Array.from(document.querySelectorAll('[data-dashboard-days]'));
+  const periodButtons = Array.from(document.querySelectorAll('[data-dashboard-period]'));
   const filterSummary = document.getElementById('dashboardFilterSummary');
   const periodFilter = analyticsToolbar?.querySelector('.dashboard-period-filter');
   const storeFilterField = storeFilter?.closest('.dashboard-filter-field');
@@ -138,9 +138,9 @@
     if(filterState.storeId&&!validIds.has(filterState.storeId))filterState.storeId=0;
     storeFilter.innerHTML='<option value="0">All stores</option>'+stores.map(row=>`<option value="${num(row.id)}">${esc(row.store_name)}</option>`).join('');
     storeFilter.value=String(filterState.storeId||0);
-    periodButtons.forEach(button=>button.setAttribute('aria-pressed',num(button.dataset.dashboardDays)===filterState.days?'true':'false'));
+    periodButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dashboardPeriod)===filterState.period?'true':'false'));
     const selected=stores.find(row=>num(row.id)===filterState.storeId);
-    const parts=[];if(hasStoreFilter)parts.push(selected?.store_name||'All stores');if(hasPeriodFilter)parts.push(`${filterState.days} days`);
+    const parts=[];if(hasStoreFilter)parts.push(selected?.store_name||'All stores');if(hasPeriodFilter)parts.push(data?.filters?.period_label||`${filterState.days} days`);
     filterSummary.textContent=parts.join(' | ');
   }
 
@@ -307,9 +307,9 @@
       const params=new URLSearchParams();
       if(roleId)params.set('role_id',String(Number(roleId)));
       if(filterState.storeId)params.set('store_id',String(filterState.storeId));
-      params.set('days',String(filterState.days));params.set('_',String(Date.now()));
+      if(filterState.period==='current_week')params.set('period','current_week');else params.set('days',String(filterState.days));params.set('_',String(Date.now()));
       data=await json('api/dashboard_data.php?'+params.toString(),{headers:{'Accept':'application/json'}});
-      if(data?.filters){const days=num(data.filters.days);filterState.days=PERIODS.includes(days)?days:7;filterState.storeId=num(data.filters.store_id);}
+      if(data?.filters){const days=num(data.filters.days),period=String(data.filters.period||days||7);filterState.period=period==='current_week'?'current_week':String([7,14,30].includes(days)?days:7);filterState.days=days>0?days:7;filterState.storeId=num(data.filters.store_id);}
       renderCanvas();
     }catch(error){showSave(error.message,true);data=null;renderCanvas();}
   }
@@ -336,7 +336,7 @@
   addButton.addEventListener('click',()=>toggleDrawer());
   search.addEventListener('input',renderCatalog);
   storeFilter?.addEventListener('change',()=>{filterState.storeId=num(storeFilter.value);loadData(currentRoleId);});
-  periodButtons.forEach(button=>button.addEventListener('click',()=>{const days=num(button.dataset.dashboardDays);if(!PERIODS.includes(days)||days===filterState.days)return;filterState.days=days;loadData(currentRoleId);}));
+  periodButtons.forEach(button=>button.addEventListener('click',()=>{const period=String(button.dataset.dashboardPeriod||'');if(!PERIODS.map(String).includes(period)||period===filterState.period)return;filterState.period=period;if(period!=='current_week')filterState.days=num(period);loadData(currentRoleId);}));
   builder.addEventListener('merdpos-chart-select',event=>{const storeId=num(event.detail?.payload?.storeId);if(!storeId||storeId===filterState.storeId)return;filterState.storeId=storeId;if(storeFilter)storeFilter.value=String(storeId);loadData(currentRoleId);});
   resetButton.addEventListener('click',async()=>{if(!layoutApi?.can_edit||!editMode)return;if(!window.confirm(`Clear the ${layoutApi.selected_role?.role_label||'selected role'} dashboard?`))return;try{layoutApi=await json('api/dashboard_layout.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_layout',role_id:currentRoleId,csrf:layoutApi.csrf,dev_studio:studioEditMode?1:0})});layout=[];renderRolebar();renderCanvas();showSave('Dashboard cleared');}catch(error){showSave(error.message,true);}});
   document.addEventListener('pointerdown',event=>{if(drawer.classList.contains('open')&&!drawer.contains(event.target)&&!addButton.contains(event.target))toggleDrawer(false);});

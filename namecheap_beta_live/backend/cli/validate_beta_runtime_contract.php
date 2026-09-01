@@ -201,19 +201,19 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
     'assets/design-tokens.css?v=20260828palette1',
-    'assets/design-system.css?v=20260830pills1',
+    'assets/design-system.css?v=20260902ds97',
     'assets/design-audit.js?v=20260826ds1',
-    'assets/omnichannel-identity.js?v=20260901ds79',
+    'assets/omnichannel-identity.js?v=20260902ds97',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260901ds79',
     'assets/shell.css?v=20260830bottom1',
-    'assets/navigation.js?v=20260901ds79',
+    'assets/navigation.js?v=20260902ds97',
     'assets/account-menu.css?v=20260901timesheetsync1',
     'assets/account-menu.js?v=20260901timesheetsync1',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
-    'assets/dashboard-builder.css?v=20260901ds79',
-    'assets/dashboard-builder.js?v=20260901ds79',
+    'assets/dashboard-builder.css?v=20260902ds97',
+    'assets/dashboard-builder.js?v=20260902ds97',
     'assets/dev-stores-ui.js?v=20260901ds79',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
@@ -231,11 +231,11 @@ foreach ([
 // Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
 beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260830bottom1', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260901ds79', 'Namecheap deploy bottom navigation runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260902ds97', 'Namecheap deploy bottom navigation runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics2', 'Namecheap deploy analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260901ds79', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260901ds79', 'Namecheap deploy dashboard analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260902ds97', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260902ds97', 'Namecheap deploy dashboard analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260901timesheetsync1', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260901timesheetsync1', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio29', 'Namecheap deploy UI Studio stylesheet guard', $errors);
@@ -289,7 +289,7 @@ beta_contract_require_contains($dashboardBuilderJs, "params.set('days'", 'dashbo
 beta_contract_require_contains($dashboardBuilderJs, 'merdpos-chart-select', 'dashboard chart drill-down binding', $errors);
 beta_contract_require_contains($dashboardDataApi, 'function dashboard_data_period_dates', 'dashboard variable reporting period', $errors);
 beta_contract_require_contains($dashboardDataApi, 'in_array($days, [7,14,30], true)', 'dashboard reporting-period allow-list', $errors);
-beta_contract_require_contains($dashboardDataApi, "'filter_options'=>['stores'=>\$filterStores,'periods'=>[7,14,30]]", 'dashboard coordinated filter options', $errors);
+beta_contract_require_contains($dashboardDataApi, "'filter_options'=>['stores'=>\$filterStores,'periods'=>['current_week',7,14,30]]", 'dashboard coordinated filter options', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'snapshot_role_dashboard_allowance', 'permission-save dashboard allowance snapshot', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'materialize_newly_allowed_dashboard_widgets', 'newly allowed widgets materialize into affected role dashboards', $errors);
 beta_contract_require_contains($roleAuthorityApi, 'prune_all_role_dashboards', 'permission tightening prunes forbidden dashboard widgets', $errors);
@@ -485,9 +485,19 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 }
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
-beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260901ds79', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260901ds79', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260901ds79', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260902ds97', 'brand identity runtime cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902ds97', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902ds97', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/directory.js?v=20260902ds97', 'DS97 directory runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/design-system.css?v=20260902ds97', 'DS97 status-pill layout stylesheet cache version', $errors);
+beta_contract_require_contains($management, 'assets/navigation.js?v=20260902ds97', 'DS97 navigation runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/dashboard-builder.js?v=20260902ds97', 'DS97 dashboard builder cache version', $errors);
+beta_contract_require_contains($navigationJs, "key === 'reports' && !direct", 'DS97 direct Timesheets preserves source icon', $errors);
+beta_contract_require_contains($navigationJs, 'assets/client.js?v=20260902ds97', 'DS97 Clients runtime cache version', $errors);
+beta_contract_require_contains($dashboardBuilderJs, "data-dashboard-period", 'DS97 dashboard period control contract', $errors);
+beta_contract_require_contains($dashboardDataApi, 'function dashboard_data_current_week_dates', 'DS97 store-aware current-week backend', $errors);
+beta_contract_require_contains($directoryJs, 'directory-edit-icon-btn', 'DS97 shared directory edit action contract', $errors);
+
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
 beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);

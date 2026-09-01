@@ -192,17 +192,17 @@ done
 
 for required_asset in \
   'assets/design-tokens.css?v=20260828palette1' \
-  'assets/design-system.css?v=20260830pills1' \
+  'assets/design-system.css?v=20260902ds97' \
   'assets/design-audit.js?v=20260826ds1' \
-  'assets/omnichannel-identity.js?v=20260901ds79' \
+  'assets/omnichannel-identity.js?v=20260902ds97' \
   'assets/minimal-controls.js?v=20260826ds1' \
   'assets/mobile-runtime.js?v=20260901ds79' \
   'assets/shell.css?v=20260830bottom1' \
-  'assets/navigation.js?v=20260901ds79' \
+  'assets/navigation.js?v=20260902ds97' \
   'assets/analytics-runtime.css?v=20260831analytics2' \
   'assets/analytics-runtime.js?v=20260831analytics2' \
-  'assets/dashboard-builder.css?v=20260901ds79' \
-  'assets/dashboard-builder.js?v=20260901ds79' \
+  'assets/dashboard-builder.css?v=20260902ds97' \
+  'assets/dashboard-builder.js?v=20260902ds97' \
   'assets/dev-stores-ui.js?v=20260901ds79' \
   'assets/account-menu.css?v=20260901timesheetsync1' \
   'assets/account-menu.js?v=20260901timesheetsync1' \
@@ -214,8 +214,16 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260901ds79' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260902ds97' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
+  exit 1
+fi
+if ! grep -q 'assets/directory.js?v=20260902ds97' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live dashboard is missing the DS97 directory runtime." >&2
+  exit 1
+fi
+if ! grep -q 'assets/client.js?v=20260902ds97' "$LIVE/timesheet_portal/assets/navigation.js"; then
+  echo "ERROR: live navigation is missing the DS97 Clients runtime generation." >&2
   exit 1
 fi
 if ! grep -q 'assets/table-ui.css?v=20260901ds79' "$LIVE/timesheet_portal/dashboard.php"; then
@@ -232,6 +240,18 @@ if ! grep -q 'assets/store-identity.js?v=20260901ds79' "$LIVE/timesheet_portal/a
 fi
 if ! grep -q 'reportsGroupIcon' "$LIVE/timesheet_portal/assets/navigation.js" || ! grep -q 'timesheet-download-btn' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live DS79 navigation/Timesheet controls are missing." >&2
+  exit 1
+fi
+if ! grep -q "key === 'reports' && !direct" "$LIVE/timesheet_portal/assets/navigation.js"; then
+  echo "ERROR: live DS97 navigation does not preserve the Timesheets icon for a direct USER Reports destination." >&2
+  exit 1
+fi
+if ! grep -q 'data-dashboard-period' "$LIVE/timesheet_portal/assets/dashboard-builder.js" || ! grep -q 'dashboard_data_current_week_dates' "$LIVE/timesheet_portal/api/dashboard_data.php"; then
+  echo "ERROR: live DS97 Current week analytics contract is missing." >&2
+  exit 1
+fi
+if ! grep -q 'directory-edit-icon-btn' "$LIVE/timesheet_portal/assets/directory.js" || grep -q 'class="icon-text-btn" data-edit-employee' "$LIVE/timesheet_portal/assets/directory.js"; then
+  echo "ERROR: live DS97 shared directory edit-action contract is missing." >&2
   exit 1
 fi
 

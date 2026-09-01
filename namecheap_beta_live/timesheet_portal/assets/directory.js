@@ -194,15 +194,12 @@
     });
     if (!rows.length) { employeeRoot.innerHTML = '<div class="entity-empty">No employees match this search.</div>'; return; }
     employeeRoot.innerHTML = rows.map(employee => {
-      const accessNames = employeeStoreNames(employee);
-      const accessText = employee.store_access_mode === 'selected' ? (accessNames.length ? accessNames.join(', ') : 'No stores selected') : 'All active stores';
-      const payMeta = can('workforce.payrates.manage') ? `<span class="entity-rate">${money(employee.hourly_rate)}/hr</span>` : '';
       const nextRate = can('workforce.payrates.manage') && employee.next_rate ? `<div class="entity-sub rate-future">Next rate ${money(employee.next_rate.hourly_rate)} from ${esc(formatDate(employee.next_rate.effective_from))}</div>` : '';
-      const edit = can('workforce.manage') ? `<button type="button" class="icon-text-btn" data-edit-employee="${Number(employee.id)}" ${employee.editable?'':'disabled'}>${icon('edit')}<span>Edit</span></button>` : '';
+      const edit = can('workforce.manage') ? `<button type="button" class="merd-icon-action directory-edit-icon-btn" data-edit-employee="${Number(employee.id)}" aria-label="Edit ${esc(employee.full_name)}" title="Edit ${esc(employee.full_name)}" ${employee.editable?'':'disabled'}>${icon('edit')}</button>` : '';
       return `<article class="entity-row ${employee.status === 'inactive' ? 'is-muted' : ''}">
         <div class="entity-avatar">${esc(initials(employee.full_name))}</div>
-        <div class="entity-copy"><div class="entity-title-line"><strong>${esc(employee.full_name)}</strong>${employee.self?'<span class="you-chip">You</span>':''}</div><div class="entity-sub">ID ${esc(employee.user_id)}</div><div class="entity-sub">Allowed: ${esc(accessText)}</div>${nextRate}</div>
-        <div class="entity-meta">${rolePill(employee)}<span class="store-access-summary">LOA ${Number(employee.role_authority || 0)}</span>${storeAccessPill(employee)}${payMeta}${statusPill(employee.status)}</div>${edit}
+        <div class="entity-copy"><div class="entity-title-line"><strong>${esc(employee.full_name)}</strong>${employee.self?'<span class="you-chip">You</span>':''}</div><div class="entity-sub">ID ${esc(employee.user_id)}</div>${nextRate}</div>
+        <div class="entity-meta">${statusPill(employee.status)}</div>${edit}
       </article>`;
     }).join('');
     employeeRoot.querySelectorAll('[data-edit-employee]').forEach(button => button.addEventListener('click', () => openEmployee(Number(button.dataset.editEmployee))));
@@ -215,7 +212,7 @@
     const rows = (directory.stores || []).filter(s => !query || [s.store_name,s.status,s.id].some(v => String(v || '').toLowerCase().includes(query)));
     if (!rows.length) { storeRoot.innerHTML = '<div class="entity-empty">No stores match this search.</div>'; return; }
     storeRoot.innerHTML = rows.map(store => {
-      const edit = can('stores.manage') ? `<button type="button" class="merd-icon-action store-edit-icon-btn" data-edit-store="${Number(store.id)}" aria-label="Edit ${esc(store.store_name)}" title="Edit ${esc(store.store_name)}">${icon('edit')}</button>` : '';
+      const edit = can('stores.manage') ? `<button type="button" class="merd-icon-action directory-edit-icon-btn store-edit-icon-btn" data-edit-store="${Number(store.id)}" aria-label="Edit ${esc(store.store_name)}" title="Edit ${esc(store.store_name)}">${icon('edit')}</button>` : '';
       return `<article class="entity-row ${store.status==='inactive'?'is-muted':''}"><div class="entity-avatar store-avatar">${icon('store')}</div><div class="entity-copy"><div class="entity-title-line"><strong>${esc(store.store_name)}</strong></div></div><div class="entity-meta">${statusPill(store.status)}</div>${edit}</article>`;
     }).join('');
     storeRoot.querySelectorAll('[data-edit-store]').forEach(button => button.addEventListener('click', () => openStore(Number(button.dataset.editStore))));
