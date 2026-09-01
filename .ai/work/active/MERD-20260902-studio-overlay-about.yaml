@@ -1,0 +1,26 @@
+version: 1
+id: MERD-20260902-studio-overlay-about
+objective: "Make DevStudio radial/cursor UI own the top browser layer, make unresolved dots follow target visibility/stacking, and simplify the About splash white pane."
+acceptance:
+  - "DevStudio radial menu and cursor tooltip render above Store/Employee/About modal dialogs opened after Studio."
+  - "Unresolved change dots are anchored inside the edited element page/window context and disappear when that context is hidden, navigated away, or covered by another modal."
+  - "Change dots no longer use a global top-layer z-index that competes with MERDPOS windows."
+  - "About white pane contains only MERDPOS logo, MERDPOS version/release details, centered SMARTER FASTER TOGETHER tagline, and copyright line."
+  - "About white pane has no duplicate DevStudio release block and no release highlights."
+  - "Canonical validators and full Chromium regression pass before publish; deployment and live verification required before VERIFIED."
+packet_state: VALIDATED
+lifecycle: VALIDATED
+base_head: "83cb920992fe71de2c16fa3a640b22d0bcfce6f5"
+last_seen_head: "83cb920992fe71de2c16fa3a640b22d0bcfce6f5"
+constraints:
+  - "Do not change business permissions, attendance, payroll, finance, migration authority, or DevStudio receipt semantics."
+completed:
+  - "Runtime/source edits written with cache/deployment guards."
+  - "Canonical runtime, permission, loader, state-scope, AI continuity, syntax and deploy-script gates passed."
+  - "Targeted top-layer/dot/splash regressions passed; full Chromium suite passed 73/73 serially."
+remaining:
+  - "Publish canonical commit, pass GitHub Guardrails, deploy exact SHA to Namecheap, and live verify."
+next_action: "Commit and push the validated release packet to canonical Beta."
+blocked: false
+blocker: null
+updated_at: "2026-09-02T02:43:00+05:00"

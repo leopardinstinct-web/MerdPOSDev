@@ -208,7 +208,7 @@ foreach ([
     'assets/mobile-runtime.js?v=20260901ds79',
     'assets/shell.css?v=20260830bottom1',
     'assets/navigation.js?v=20260902ds97',
-    'assets/account-menu.css?v=20260901timesheetsync1',
+    'assets/account-menu.css?v=20260902about2',
     'assets/account-menu.js?v=20260901timesheetsync1',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
@@ -236,10 +236,10 @@ beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260902ds97', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260902ds97', 'Namecheap deploy dashboard analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260901timesheetsync1', 'Namecheap deploy account sheet stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260902about2', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260901timesheetsync1', 'Namecheap deploy account sheet runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260831studio29', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260831studio29', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260902studio30', 'Namecheap deploy UI Studio stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260902studio30', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -256,8 +256,15 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV runtime flag', $errors);
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260831studio29', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260831studio29', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260902studio30', 'UI Studio stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260902studio30', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($uiStudioJs, 'function promoteStudioTopLayer()', 'UI Studio top-layer re-promotion contract', $errors);
+beta_contract_require_contains($uiStudioJs, 'function markerAnchor(target)', 'UI Studio change markers anchor inside target page/window context', $errors);
+beta_contract_require_contains($uiStudioJs, "attributeFilter:['open','hidden']", 'UI Studio modal/navigation marker visibility observer', $errors);
+beta_contract_require_absent($uiStudioCss, 'z-index:2147483014', 'retired global top-layer Studio change-dot z-index', $errors);
+beta_contract_require_contains($dashboard, 'merd-about-tagline', 'About splash centered MERDPOS tagline', $errors);
+beta_contract_require_absent($dashboard, '<span>DevStudio</span>', 'About splash duplicate DevStudio release block', $errors);
+beta_contract_require_absent($dashboard, 'Release Highlights', 'About splash release highlights', $errors);
 beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview', 'universal DEV role preview resolver', $errors);
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
@@ -486,8 +493,8 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260902ds97', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902ds97', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902ds97', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902studio30', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902studio30', 'Namecheap live dashboard status-pill cache guard', $errors);
 beta_contract_require_contains($dashboard, 'assets/directory.js?v=20260902ds97', 'DS97 directory runtime cache version', $errors);
 beta_contract_require_contains($management, 'assets/design-system.css?v=20260902ds97', 'DS97 status-pill layout stylesheet cache version', $errors);
 beta_contract_require_contains($management, 'assets/navigation.js?v=20260902ds97', 'DS97 navigation runtime cache version', $errors);
@@ -500,8 +507,8 @@ beta_contract_require_contains($directoryJs, 'directory-edit-icon-btn', 'DS97 sh
 
 
 beta_contract_require_contains($dashboard, "dirname(__DIR__) . '/.beta_release.json'", 'About splash reads deployed Git release metadata', $errors);
-beta_contract_require_contains($dashboard, '$devStudioVersion', 'About splash DevStudio Git reference', $errors);
-beta_contract_require_contains($dashboard, 'Release Highlights', 'About splash three-highlight region', $errors);
+beta_contract_require_absent($dashboard, '$devStudioVersion', 'About splash duplicate DevStudio Git reference', $errors);
+beta_contract_require_absent($dashboard, 'Release Highlights', 'About splash retired release-highlight region', $errors);
 beta_contract_require_contains($accountMenuCss, '.merd-about-release-grid', 'About splash release metadata layout', $errors);
 beta_contract_require_contains($deployScript, 'studio_commit_short=', 'deploy derives latest DevStudio commit', $errors);
 beta_contract_require_contains($deployScript, 'release_highlights', 'deploy derives three recent release highlights', $errors);

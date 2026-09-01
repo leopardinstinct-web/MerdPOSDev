@@ -204,17 +204,17 @@ for required_asset in \
   'assets/dashboard-builder.css?v=20260902ds97' \
   'assets/dashboard-builder.js?v=20260902ds97' \
   'assets/dev-stores-ui.js?v=20260901ds79' \
-  'assets/account-menu.css?v=20260901timesheetsync1' \
+  'assets/account-menu.css?v=20260902about2' \
   'assets/account-menu.js?v=20260901timesheetsync1' \
-  'assets/ui-studio.css?v=20260831studio29' \
-  'assets/ui-studio.js?v=20260831studio29'; do
+  'assets/ui-studio.css?v=20260902studio30' \
+  'assets/ui-studio.js?v=20260902studio30'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260902ds97' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260902studio30' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
   exit 1
 fi
@@ -265,6 +265,14 @@ if grep -q "'history'=>studio_history_rows" "$LIVE/timesheet_portal/api/ui_studi
 fi
 if ! grep -q 'MERDPOS_PALETTE_DEFAULT' "$LIVE/timesheet_portal/assets/ui-studio.js"; then
   echo "ERROR: live DevStudio runtime is missing MERDPOS Palette editing." >&2
+  exit 1
+fi
+if ! grep -q 'function promoteStudioTopLayer' "$LIVE/timesheet_portal/assets/ui-studio.js" || ! grep -q 'function markerAnchor' "$LIVE/timesheet_portal/assets/ui-studio.js"; then
+  echo "ERROR: live DevStudio runtime is missing top-layer or local change-marker ownership." >&2
+  exit 1
+fi
+if grep -q '<span>DevStudio</span>' "$LIVE/timesheet_portal/dashboard.php" || grep -q 'Release Highlights' "$LIVE/timesheet_portal/dashboard.php"; then
+  echo "ERROR: live About splash still exposes duplicate DevStudio/highlight release content." >&2
   exit 1
 fi
 if ! grep -q 'function merd_ui_studio_normalize_palette' "$LIVE/timesheet_portal/includes/ui_studio_history.php"; then
