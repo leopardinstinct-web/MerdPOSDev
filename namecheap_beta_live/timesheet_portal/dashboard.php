@@ -10,7 +10,15 @@ try {
     $user = beta_require_active_user();
 } catch (Throwable $e) {
     error_log('MERDPOS dashboard authorization failed: ' . get_class($e));
-    header('Location: index.php');
+    if ($e instanceof MerdWorkforceException && $e->errorCode === 'account_inactive') {
+        logout_user();
+        header('Location: index.php?session=expired');
+        exit;
+    }
+    $status = ($e instanceof MerdWorkforceException && $e->errorCode === 'forbidden') ? 403 : 503;
+    http_response_code($status);
+    portal_html_response_headers();
+    echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MERDPOS</title></head><body><main><h1>MERDPOS</h1><p>' . ($status === 403 ? 'This session is not authorised to open the dashboard.' : 'MERDPOS could not validate this session. Please try again shortly.') . '</p><p><a href="index.php">Return to sign in</a></p></main></body></html>';
     exit;
 }
 

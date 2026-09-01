@@ -155,3 +155,13 @@ test('mobile utility sheet opens without a More navigation tab', async ({ page }
   await expect(page.locator('#merdposAboutDialog')).toHaveJSProperty('open', true);
   expect(pageErrors).toEqual([]);
 });
+
+test('dashboard authorization failure cannot redirect-loop through index', async () => {
+  const source=fs.readFileSync(path.join(portalRoot,'dashboard.php'),'utf8');
+  expect(source).toContain("$e->errorCode === 'account_inactive'");
+  expect(source).toContain('logout_user();');
+  expect(source).toContain("header('Location: index.php?session=expired')");
+  expect(source).toContain("$status = ($e instanceof MerdWorkforceException && $e->errorCode === 'forbidden') ? 403 : 503;");
+  const catchBlock=source.slice(source.indexOf("} catch (Throwable $e) {"), source.indexOf("$actualPermissions"));
+  expect(catchBlock).not.toContain("header('Location: index.php');");
+});
