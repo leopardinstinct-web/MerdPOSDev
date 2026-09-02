@@ -23,6 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_devstudio_structure_editor.py
+          python3 scripts/patch_devstudio_structure_strict.py
           python3 - <<'PY'
           from pathlib import Path
           old='assets/ui-studio.js?v=20260902ds117'
@@ -46,16 +47,23 @@ jobs:
       - name: Run targeted Chromium structure regression
         run: |
           set -euo pipefail
+          google-chrome --version
           mkdir -p /tmp/merdpos-pw
           cd /tmp/merdpos-pw
           npm init -y >/dev/null 2>&1
           npm install --no-package-lock @playwright/test@1.55.0 >/dev/null 2>&1
+          cat > playwright.config.cjs <<'JS'
+          const {defineConfig}=require('@playwright/test');
+          module.exports=defineConfig({testDir:process.env.GITHUB_WORKSPACE,use:{channel:'chrome',headless:true}});
+          JS
           cd "$GITHUB_WORKSPACE"
-          NODE_PATH=/tmp/merdpos-pw/node_modules /tmp/merdpos-pw/node_modules/.bin/playwright test namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js --workers=1 --reporter=line
+          NODE_PATH=/tmp/merdpos-pw/node_modules /tmp/merdpos-pw/node_modules/.bin/playwright test namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js --config=/tmp/merdpos-pw/playwright.config.cjs --workers=1 --reporter=line
       - name: Commit canonical implementation
         run: |
           set -euo pipefail
           test ! -d node_modules
+          test ! -e scripts/apply_devstudio_structure_editor.py
+          test ! -e scripts/patch_devstudio_structure_strict.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
