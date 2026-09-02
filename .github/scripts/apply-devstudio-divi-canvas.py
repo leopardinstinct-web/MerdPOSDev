@@ -217,7 +217,7 @@ test('Structure canvas keeps an active insertion control connected while the por
 });
 '''
 assert "Structure canvas exposes contextual insertion points" not in tests
-tests = tests.rstrip() + addition + '\n'
+tests = tests.rstrip() + addition.rstrip() + '\n'
 tests = tests.replace("  expect(css).toContain('height:min(68vh,640px)');", "  expect(css).toContain('height:min(68vh,640px)');\n  expect(css).toContain('.merd-ui-structure-canvas-layer{position:fixed');\n  expect(css).toContain('.merd-ui-structure-module-picker{position:fixed');")
 test_path.write_text(tests)
 
@@ -255,7 +255,7 @@ Context determines placement before type selection. Page exposes `+ Section`; a 
 
 Canvas actions call the same canonical DevStudio selection/add/duplicate/remove patch engine used by Structure and the radial editor. The radial remains the global/power action surface; the canvas toolbar is object-local. Canvas interaction state is guarded from live portal MutationObserver rebuilds exactly like the Structure action menu, and behavioral changes advance both Structure JS and CSS cache generations.
 '''
-docs_path.write_text(docs + '\n')
+docs_path.write_text(docs.rstrip() + '\n')
 
 playbook = playbook_path.read_text().rstrip()
 assert '## DevStudio canvas-first editing' not in playbook
@@ -265,7 +265,7 @@ playbook += r'''
 
 For visual editing, keep the product canvas primary and the hierarchy/layers panel secondary. Prefer contextual insertion points that determine *where* first (`+ Section`, `+ Container`, `+ Component`), then use a focused searchable picker to determine *what*. Object-local controls belong beside the selected object; global/power controls remain in the DevStudio radial or Structure view. Do not imitate another builder's branding or invent unsupported library/template capabilities. Every canvas action must route through the canonical DevStudio patch/history engine and must obey the same mutation-stability and cache-delivery rules as Structure.
 '''
-playbook_path.write_text(playbook + '\n')
+playbook_path.write_text(playbook.rstrip() + '\n')
 
 evidence_path.parent.mkdir(parents=True, exist_ok=True)
 assert not evidence_path.exists()
