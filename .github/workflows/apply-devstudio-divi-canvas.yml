@@ -21,7 +21,11 @@ jobs:
           fetch-depth: 0
 
       - name: Apply canvas-first Structure UX
-        run: python3 .github/scripts/apply-devstudio-divi-canvas.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/apply-devstudio-divi-canvas.py
+          python3 .github/scripts/fix-devstudio-canvas-refresh.py
 
       - name: Validate transformed source
         shell: bash
@@ -47,7 +51,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/apply-devstudio-divi-canvas.yml .github/scripts/apply-devstudio-divi-canvas.py
+          git rm .github/workflows/apply-devstudio-divi-canvas.yml .github/scripts/apply-devstudio-divi-canvas.py .github/scripts/fix-devstudio-canvas-refresh.py
           git add namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js \
                   namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.css \
                   namecheap_beta_live/timesheet_portal/assets/management.js \
@@ -59,5 +63,3 @@ jobs:
                   .ai/evidence/devstudio-divi-canvas-study-20260903.md
           git commit -m 'Implement canvas-first DevStudio structure editing [devstudio-canvas]'
           git push origin HEAD:namecheap-beta-live
-
-# retry after hygiene fix
