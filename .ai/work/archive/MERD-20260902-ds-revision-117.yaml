@@ -1,0 +1,58 @@
+version: 1
+id: MERD-20260902-ds-revision-117
+objective: "Implement DevStudio global unresolved patch revision 117 in canonical MERDPOS Beta, preserve truthful continuity, and advance only through deployment/live verification evidence."
+packet_state: VERIFIED
+lifecycle: CLOSED
+base_head: "f092d7112dfd0d56dbfd65c475fb3ad1eef2020e"
+verified_release_head: "0fc4b7869f9ef01ae38bf4e59451b327b998e469"
+implementation_head: "f867db1e0076e1887c6eb6d9d12d7b092284a945"
+receipt_source_revision: 117
+receipt_result_revision: 118
+acceptance:
+  - "Desktop bottom navigation buttons render icon-left and label-right."
+  - "Freshness warning plus Workforce active/inactive semantic colors are represented in the MERDPOS palette workflow without weakening the five-color brand-master invariant."
+  - "Shared directory/page toolbar alignment is propagated consistently and Employees page heading reads Workforce."
+  - "Accent color changes persist and synchronize across browser windows; prior failure mode is guarded against recurrence."
+  - "Store/Employee admin-dialog header button issue and malformed DevStudio selector generation are corrected."
+  - "About MERDPOS uses the supplied M_Icon_v2.svg asset."
+  - "Implementation/unresolved counter controls are hidden; ChatGPT-copy control sits left of the DevStudio toggle and is visible only while DevStudio is enabled."
+  - "Only revision 117 patch IDs are receipted after canonical implementation, tests, deployment and live verification."
+completed:
+  - "Implemented revision 117 product changes at f867db1e0076e1887c6eb6d9d12d7b092284a945."
+  - "Completed supplied M_Icon_v2.svg usage in the About dialog at 3dad2fd9fb6275ef5c0a3aee2d08598e82ae765b."
+  - "Clean verified release candidate 0fc4b7869f9ef01ae38bf4e59451b327b998e469 passed Beta Guardrails run 33598311383."
+  - "Guardrails passed source contract, secret scan and Chromium 78/78 sequentially."
+  - "Namecheap .beta_release.json matched MERDPOS commit 0fc4b7869f9ef01ae38bf4e59451b327b998e469."
+  - "Authenticated live assets verified palette semantics, selector safety, cross-window accent synchronization, palette editing, radial deselection, copy-only DevStudio control and v2 About artwork."
+  - "Authenticated live DevStudio API showed revision 117 with the exact 13 target patches before receipt."
+  - "User applied the exact 13-entry verified receipt."
+  - "Authenticated live DevStudio API then advanced to revision 118 with patches=[] and audit_retained=true."
+checks:
+  - name: "Canonical validators and browser regression"
+    result: "PASS"
+    evidence: "Beta Guardrails 33598311383; Chromium 78/78."
+  - name: "Namecheap deployment and live verification"
+    result: "PASS"
+    evidence: "Live release marker matched 0fc4b7869f9ef01ae38bf4e59451b327b998e469 and affected runtime assets were inspected live."
+  - name: "DevStudio receipt closure"
+    result: "PASS"
+    evidence: "Authenticated live API advanced revision 117 -> 118, patches=[], audit_retained=true."
+receipt_patch_ids:
+  - patch-ce6a4d166bfb6958
+  - patch-3d44bb7d7c88375f
+  - patch-adc9e75f40b83b4d
+  - patch-8d4d9e29a84173a7
+  - patch-3a15546522e1efad
+  - patch-a15e56351b490fe7
+  - patch-6eabcf064583166a
+  - patch-92f4e98dd57830e1
+  - patch-b9bd0720fe52e07c
+  - patch-40c4e4ef6f5b4b5f
+  - patch-3bf2482d2d402de7
+  - patch-65cfe12390410e89
+  - patch-0ce56df540c885dd
+remaining: []
+next_action: null
+blocked: false
+blocker: null
+closed_at: "2026-09-02T11:25:17+05:00"
