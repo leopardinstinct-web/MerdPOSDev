@@ -10,25 +10,23 @@ acceptance:
   - "About MERDPOS uses the supplied M_Icon_v2.svg asset."
   - "Implementation/unresolved counter controls are hidden; ChatGPT-copy control sits left of the DevStudio toggle and is visible only while DevStudio is enabled."
   - "Only revision 117 patch IDs are receipted, and only after canonical implementation, tests, deployment and live verification."
-packet_state: OPEN
-lifecycle: DOCUMENTED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 base_head: "f092d7112dfd0d56dbfd65c475fb3ad1eef2020e"
-last_seen_head: "f092d7112dfd0d56dbfd65c475fb3ad1eef2020e"
+last_seen_head: "0fc4b7869f9ef01ae38bf4e59451b327b998e469"
 affected_paths:
   - ".ai/work/ACTIVE.yaml"
   - ".ai/work/active/MERD-20260902-ds-revision-117.yaml"
   - "namecheap_beta_live/timesheet_portal/dashboard.php"
-  - "namecheap_beta_live/timesheet_portal/assets/design-tokens.css"
   - "namecheap_beta_live/timesheet_portal/assets/design-system.css"
   - "namecheap_beta_live/timesheet_portal/assets/shell.css"
   - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
   - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
-  - "namecheap_beta_live/timesheet_portal/assets/management.js"
-  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
-  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
   - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
   - "namecheap_beta_live/timesheet_portal/assets/brand/M_Icon_v2.svg"
-  - "namecheap_beta_live/browser_tests/"
+  - "namecheap_beta_live/timesheet_portal/includes/ui_studio_history.php"
+  - "namecheap_beta_live/browser_tests/revision117-runtime.spec.js"
+  - "namecheap_beta_live/browser_tests/shell-account-runtime.spec.js"
   - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
   - "scripts/deploy_namecheap_beta.sh"
 constraints:
@@ -37,23 +35,43 @@ constraints:
   - "Preserve the binding five-color brand master palette; operational success/warning/danger colors remain semantic status tokens unless the product owner explicitly changes that standard."
   - "Do not change unrelated business permissions, payroll, finance, tenant authorization or unrelated DevStudio inbox items."
 completed:
-  - "Resolved authoritative Beta HEAD f092d7112dfd0d56dbfd65c475fb3ad1eef2020e and read bootstrap, invariants, task gates and work-packet contract."
-  - "Reconciled user-supplied DevStudio revision 117 export: 13 patch IDs are pending and receipt confirmation requires deploy plus live verification."
+  - "Reconciled authenticated live DevStudio revision 117 and its exact 13 unresolved patch IDs."
+  - "Implemented revision 117 product changes at f867db1e0076e1887c6eb6d9d12d7b092284a945."
+  - "Refreshed stale shell regression expectations at b7ad944c1dc5cd350904ba415c366ea94a5281d3."
+  - "Completed supplied M_Icon_v2.svg usage in the About dialog at 3dad2fd9fb6275ef5c0a3aee2d08598e82ae765b."
+  - "Removed disposable repair workflows; clean verified release candidate was 0fc4b7869f9ef01ae38bf4e59451b327b998e469."
+  - "Beta Guardrails run 33598311383 passed source contract, secret scan and Chromium 78/78 sequentially."
+  - "Namecheap live .beta_release.json reported merdpos commit 0fc4b7869f9ef01ae38bf4e59451b327b998e469 and DevStudio commit f867db1e0076e1887c6eb6d9d12d7b092284a945."
+  - "Authenticated live account-menu.js verified copy-only DevStudio control, enabled-state visibility, cross-window storage synchronization and M_Icon_v2.svg usage."
+  - "Authenticated live ui-studio.js verified semantic warning/danger/success palette entries, DOM-clobber-safe selector generation, palette edit/reorder/add/delete/copy flow and deselection on radial dismissal/disable."
+  - "Authenticated live DevStudio API reported revision 117 with the exact 13 target patches still pending, ready for receipt application."
 checks:
   - name: "Affected source/history reconnaissance"
-    result: "NOT_RUN"
-    evidence: "Packet created before substantive implementation as required by task gates."
+    result: "PASS"
+    evidence: "Canonical source, prior packet state and authenticated live revision 117 were reconciled before final receipt generation."
   - name: "Canonical validators and browser regression"
-    result: "NOT_RUN"
-    evidence: "Pending implementation."
+    result: "PASS"
+    evidence: "Beta Guardrails 33598311383: source contract PASS, secret scan PASS, Chromium 78/78 PASS."
   - name: "Namecheap deployment and live verification"
-    result: "NOT_RUN"
-    evidence: "Pending implementation and deploy capability."
+    result: "PASS"
+    evidence: "Live release marker matched 0fc4b7869f9ef01ae38bf4e59451b327b998e469; affected DevStudio runtime assets and authenticated revision 117 state were inspected live."
+receipt_patch_ids:
+  - patch-ce6a4d166bfb6958
+  - patch-3d44bb7d7c88375f
+  - patch-adc9e75f40b83b4d
+  - patch-8d4d9e29a84173a7
+  - patch-3a15546522e1efad
+  - patch-a15e56351b490fe7
+  - patch-6eabcf064583166a
+  - patch-92f4e98dd57830e1
+  - patch-b9bd0720fe52e07c
+  - patch-40c4e4ef6f5b4b5f
+  - patch-3bf2482d2d402de7
+  - patch-65cfe12390410e89
+  - patch-0ce56df540c885dd
 remaining:
-  - "Inspect current affected source, relevant history and current runtime/deploy guards."
-  - "Implement revision 117 only and add/update targeted regression/validator coverage."
-  - "Pass executable checks/CI, deploy exact SHA, live-verify affected runtime, then apply revision 117 receipt."
-next_action: "Complete affected-path source/history reconnaissance and stabilize the revision 117 implementation plan against current canonical code."
+  - "Apply the exact 13-entry DevStudio receipt to authenticated revision 117 and verify those IDs leave the unresolved inbox."
+next_action: "Paste/apply the generated revision 117 receipt in DevStudio Changes > Paste LLM Receipt, then verify the inbox advances and archive this packet."
 blocked: false
 blocker: null
-updated_at: "2026-09-02T10:43:31+05:00"
+updated_at: "2026-09-02T11:22:30+05:00"
