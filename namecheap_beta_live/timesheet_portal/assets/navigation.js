@@ -8,13 +8,13 @@
   if (!document.querySelector('link[data-dashboard-builder-css]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'assets/dashboard-builder.css?v=20260828mobile1';
+    link.href = 'assets/dashboard-builder.css?v=20260902ds130';
     link.dataset.dashboardBuilderCss = '1';
     document.head.appendChild(link);
   }
   if (!document.querySelector('script[data-dashboard-builder]')) {
     const script = document.createElement('script');
-    script.src = 'assets/dashboard-builder.js?v=20260825a';
+    script.src = 'assets/dashboard-builder.js?v=20260902ds130';
     script.dataset.dashboardBuilder = '1';
     document.body.appendChild(script);
   }

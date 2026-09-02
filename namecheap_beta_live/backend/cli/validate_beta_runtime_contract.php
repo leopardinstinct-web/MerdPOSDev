@@ -78,6 +78,8 @@ $brandAssetsJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_port
 $omnichannelJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/omnichannel-identity.js', $errors);
 $brandCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/brand/brand.css', $errors);
 $accountMenuCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.css', $errors);
+$accountMenuJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/account-menu.js', $errors);
+$adminDirectoryApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/admin_directory.php', $errors);
 $uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
 $uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
 $uiStudioHistoryApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/ui_studio_history.php', $errors);
@@ -200,20 +202,20 @@ beta_contract_require_contains($appUiCss, '.permission-row', 'Permission feature
 
 // Runtime loads one canonical visual layer; old corrective CSS layers are retired.
 foreach ([
-    'assets/design-tokens.css?v=20260828palette1',
-    'assets/design-system.css?v=20260902ds117',
+    'assets/design-tokens.css?v=20260902ds130',
+    'assets/design-system.css?v=20260902ds130',
     'assets/design-audit.js?v=20260826ds1',
     'assets/omnichannel-identity.js?v=20260902ds97',
     'assets/minimal-controls.js?v=20260826ds1',
     'assets/mobile-runtime.js?v=20260901ds79',
-    'assets/shell.css?v=20260902ds117',
-    'assets/navigation.js?v=20260902ds97',
+    'assets/shell.css?v=20260902ds130',
+    'assets/navigation.js?v=20260902ds130',
     'assets/account-menu.css?v=20260902ds117',
-    'assets/account-menu.js?v=20260902ds117',
+    'assets/account-menu.js?v=20260902ds130',
     'assets/analytics-runtime.css?v=20260831analytics2',
     'assets/analytics-runtime.js?v=20260831analytics2',
-    'assets/dashboard-builder.css?v=20260902ds97',
-    'assets/dashboard-builder.js?v=20260902ds97',
+    'assets/dashboard-builder.css?v=20260902ds130',
+    'assets/dashboard-builder.js?v=20260902ds130',
     'assets/dev-stores-ui.js?v=20260901ds79',
 ] as $asset) {
     beta_contract_require_contains($management, $asset, 'management design-system wiring', $errors);
@@ -229,15 +231,15 @@ foreach ([
 }
 
 // Deployment recovery guards must track the current canonical cache/version and Studio vendor assets.
-beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260828palette1', 'Namecheap deploy current design-token cache guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260902ds117', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260902ds97', 'Namecheap deploy bottom navigation runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/design-tokens.css?v=20260902ds130', 'Namecheap deploy current design-token cache guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/shell.css?v=20260902ds130', 'Namecheap deploy desktop bottom-shell stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/navigation.js?v=20260902ds130', 'Namecheap deploy bottom navigation runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.css?v=20260831analytics2', 'Namecheap deploy analytics stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/analytics-runtime.js?v=20260831analytics2', 'Namecheap deploy analytics runtime guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260902ds97', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260902ds97', 'Namecheap deploy dashboard analytics runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.css?v=20260902ds130', 'Namecheap deploy dashboard analytics stylesheet guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=20260902ds130', 'Namecheap deploy dashboard analytics runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260902ds117', 'Namecheap deploy account sheet stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260902ds117', 'Namecheap deploy account sheet runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260902ds130', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260902studio30', 'Namecheap deploy UI Studio stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260902ds117', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
@@ -495,12 +497,12 @@ foreach (['LICENSE-Apache-2.0.txt','NOTICE.md','ads_click_48px.svg','palette_48p
 // Product identity uses exact supplied artwork with one runtime asset registry.
 beta_contract_require_contains($management, 'assets/brand/brand-assets.js?v=20260827brand4', 'brand asset registry wiring', $errors);
 beta_contract_require_contains($management, 'assets/omnichannel-identity.js?v=20260902ds97', 'brand identity runtime cache version', $errors);
-beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902ds117', 'status-pill management cache version', $errors);
-beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902ds117', 'Namecheap live dashboard status-pill cache guard', $errors);
-beta_contract_require_contains($dashboard, 'assets/directory.js?v=20260902ds97', 'DS97 directory runtime cache version', $errors);
-beta_contract_require_contains($management, 'assets/design-system.css?v=20260902ds117', 'DS97 status-pill layout stylesheet cache version', $errors);
-beta_contract_require_contains($management, 'assets/navigation.js?v=20260902ds97', 'DS97 navigation runtime cache version', $errors);
-beta_contract_require_contains($management, 'assets/dashboard-builder.js?v=20260902ds97', 'DS97 dashboard builder cache version', $errors);
+beta_contract_require_contains($dashboard, 'assets/management.js?v=20260902ds130', 'status-pill management cache version', $errors);
+beta_contract_require_contains($deployScript, 'assets/management.js?v=20260902ds130', 'Namecheap live dashboard status-pill cache guard', $errors);
+beta_contract_require_contains($dashboard, 'assets/directory.js?v=20260902ds130', 'DS97 directory runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/design-system.css?v=20260902ds130', 'DS97 status-pill layout stylesheet cache version', $errors);
+beta_contract_require_contains($management, 'assets/navigation.js?v=20260902ds130', 'DS97 navigation runtime cache version', $errors);
+beta_contract_require_contains($management, 'assets/dashboard-builder.js?v=20260902ds130', 'DS97 dashboard builder cache version', $errors);
 beta_contract_require_contains($navigationJs, "key === 'reports' && !direct", 'DS97 direct Timesheets preserves source icon', $errors);
 beta_contract_require_contains($navigationJs, 'assets/client.js?v=20260902ds97', 'DS97 Clients runtime cache version', $errors);
 beta_contract_require_contains($dashboardBuilderJs, "data-dashboard-period", 'DS97 dashboard period control contract', $errors);
@@ -642,6 +644,22 @@ beta_contract_require_contains($timesheetRefreshApi, "source_type='attendance_lo
 beta_contract_require_absent($timesheetRefreshApi, 'UPDATE client_migration_state', 'Time Sheet refresh authority-state mutation', $errors);
 
 
+// Revision 130 repeat-failure owners are canonical and guarded.
+beta_contract_require_contains($tokens, '--color-brand-primary: var(--color-brand-cyan);', 'cyan product accent owner', $errors);
+beta_contract_require_contains($dashboardBuilderJs, '<header class="dashboard-page-head"><h2 class="ui-page-title">Dashboard</h2></header>', 'Dashboard page heading', $errors);
+beta_contract_require_contains($designSystem, 'DS130 recurrent header-alignment guard', 'shared header alignment guard', $errors);
+beta_contract_require_contains($dashboard, 'id="storeProfileFields"', 'schema-aware store profile mount', $errors);
+beta_contract_require_absent($dashboard, 'Stores are inactivated rather than deleted', 'retired Store form hint', $errors);
+beta_contract_require_contains($dashboard, '<button type="submit" class="primary-btn compact-btn">Save</button>', 'single Store Save control', $errors);
+beta_contract_require_absent($timingsJs, 'saveTimingsBtn', 'retired separate timings save control', $errors);
+beta_contract_require_contains($timingsJs, 'collectForSave', 'Store schedule single-save handoff', $errors);
+beta_contract_require_contains($directoryJs, 'values.days=schedule.days', 'Store Save schedule merge', $errors);
+beta_contract_require_contains($adminDirectoryApi, 'function directory_store_edit_fields', 'schema-aware store profile API', $errors);
+beta_contract_require_contains($adminDirectoryApi, 'directory_save_store_schedule($pdo', 'atomic Store profile/schedule save', $errors);
+beta_contract_require_contains($shellCss, '--shell-desktop-nav-h:4.5rem', 'shorter desktop bottom dock', $errors);
+beta_contract_require_contains($accountMenuJs, "ACCOUNT_UI_STATE_KEY='merdpos-account-tools-ui-v1'", 'account tools UI persistence', $errors);
+beta_contract_require_contains($accountMenuJs, 'if(event.key!==ACCOUNT_UI_STATE_KEY)return;', 'account tools cross-window state synchronization', $errors);
+
 // Implemented DevStudio patch requests are canonical source, not permanent Studio overlays.
 beta_contract_require_contains($dashboard, "'home' => 'M600-160v-280h280v280H600", 'attached Dashboard navigation icon', $errors);
 beta_contract_require_contains($dashboard, "'key' => 'M420-360h120l-23-129", 'attached password shield icon', $errors);
@@ -671,10 +689,10 @@ beta_contract_require_contains($dashboard, 'M480-320 280-520l56-58', 'DS79 attac
 beta_contract_require_contains($dashboard, 'id="reportSubtitle" class="timesheet-period-note" hidden', 'DS79 hidden Timesheet period subtitle', $errors);
 beta_contract_require_contains($dashboard, 'id="storeWeekStartDay"', 'Store Edit week-start selector', $errors);
 beta_contract_require_contains($directoryJs, 'store-edit-icon-btn', 'Store Edit icon-only action', $errors);
-beta_contract_require_contains($directoryJs, 'window.MERDPOSStoreTimings?.openStore?.', 'Store Edit opens embedded timings', $errors);
+beta_contract_require_contains($directoryJs, 'timingsModuleReady.then', 'Store Edit waits for embedded timings', $errors);
 beta_contract_require_absent($devStoresJs, 'width:min(460px,38vw)', 'DEV Stores no longer overrides canonical Search width', $errors);
 beta_contract_require_contains($timingsJs, "const storeDialog=document.getElementById('storeDialog')", 'Store timings live inside Store Edit', $errors);
-beta_contract_require_contains($timingsJs, "scope:'store'", 'Store timings save is store-scoped', $errors);
+beta_contract_require_contains($timingsJs, 'collectForSave', 'Store timings hand off to unified Store Save', $errors);
 beta_contract_require_contains($timingsJs, 'week_start_day:weekStartDay()', 'Store timings persists week-start day', $errors);
 beta_contract_require_contains($storeTimingsApi, 'UPDATE stores SET week_start_day=?', 'Store timings week-start persistence', $errors);
 beta_contract_require_contains($storeWeekStartMigration, 'week_start_day TINYINT UNSIGNED NOT NULL DEFAULT 1', 'Store week-start migration', $errors);

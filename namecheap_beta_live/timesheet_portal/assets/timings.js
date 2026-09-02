@@ -5,7 +5,7 @@
   if(!storeDialog||!storeForm)return;
 
   const days=[[1,'Monday'],[2,'Tuesday'],[3,'Wednesday'],[4,'Thursday'],[5,'Friday'],[6,'Saturday'],[7,'Sunday']];
-  let state=null,currentStoreId=null;
+  let state=null,currentStoreId=null,readyPromise=null;
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function ensureStyles(){
@@ -40,10 +40,9 @@
       <div id="timingScopeNote" class="timing-scope-note"></div>
       <div class="timing-grid timing-grid-head"><span>Day</span><span>Closed</span><span>Start</span><span>End</span></div>
       <div id="timingRows"></div>
-      <div class="timing-footer"><span id="timingStatus" class="muted"></span><button type="button" id="saveTimingsBtn" class="primary-btn compact-btn">Save timings</button></div>`;
+      <div class="timing-footer"><span id="timingStatus" class="muted"></span></div>`;
     if(footer)body.insertBefore(section,footer);else body.appendChild(section);
     document.getElementById('copyFirstDayBtn')?.addEventListener('click',copyFirstDayToAll);
-    document.getElementById('saveTimingsBtn')?.addEventListener('click',saveTimings);
     document.getElementById('storeWeekStartDay')?.addEventListener('change',()=>renderSelectedSchedule());
   }
 
@@ -74,7 +73,7 @@
     root.innerHTML=orderedDays().map(([day,label])=>{
       const row=byDay.get(day)||blankDay(day),closed=Number(row.is_closed)===1;
       return `<div class="timing-grid timing-row" data-day="${day}"><strong>${label}</strong>
-        <label class="timing-closed"><input type="checkbox" class="timing-closed-input" ${closed?'checked':''}><span>Closed</span></label>
+        <label class="timing-closed"><input type="checkbox" class="timing-closed-input" aria-label="Closed ${esc(label)}" ${closed?'checked':''}></label>
         <label><span class="mobile-field-label">Start</span><input type="time" class="timing-start" value="${esc(row.start_time)}" ${closed?'disabled':''}></label>
         <label><span class="mobile-field-label">End</span><input type="time" class="timing-end" value="${esc(row.end_time)}" ${closed?'disabled':''}></label></div>`;
     }).join('');
@@ -115,26 +114,31 @@
     root.textContent=message||'';root.classList.toggle('is-error',error);
   }
 
-  async function saveTimings(){
-    if(!state||!currentStoreId)return;
+  async function collectForSave(){
+    if(readyPromise)await readyPromise;
+    const rows=document.querySelectorAll('#storeTimingsSection .timing-row');
+    if(!rows.length){
+      if(currentStoreId&&state)renderSelectedSchedule();
+      else renderRows(days.map(([day])=>blankDay(day)));
+    }
     const daysPayload=collectDays();
     for(const row of daysPayload){
-      if(!row.is_closed&&(!row.start_time||!row.end_time)){setStatus('Every open day needs both a start time and an end time.',true);return;}
+      if(!row.is_closed&&(!row.start_time||!row.end_time)){
+        setStatus('Every open day needs both a start time and an end time.',true);
+        throw new Error('Every open day needs both a start time and an end time.');
+      }
     }
-    const button=document.getElementById('saveTimingsBtn');if(button)button.disabled=true;
-    try{
-      state=await api('api/store_timings.php',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({action:'save_timings',csrf:state.csrf,scope:'store',store_id:Number(currentStoreId),week_start_day:weekStartDay(),days:daysPayload})});
-      renderSelectedSchedule();setStatus(state.message||'Store timings saved.');
-    }catch(error){setStatus(error.message,true);}finally{if(button)button.disabled=false;}
+    setStatus('');
+    return {week_start_day:weekStartDay(),days:daysPayload};
   }
 
   function openStore(storeId){
     createSection();currentStoreId=storeId?Number(storeId):null;
-    const section=document.getElementById('storeTimingsSection'),save=document.getElementById('saveTimingsBtn'),copy=document.getElementById('copyFirstDayBtn');
+    const section=document.getElementById('storeTimingsSection'),copy=document.getElementById('copyFirstDayBtn');
     if(!section)return;
     const note=document.getElementById('timingScopeNote');
-    if(!currentStoreId){if(note)note.textContent='Save the store first, then reopen it to configure weekly timings.';document.getElementById('timingRows').innerHTML='';if(save)save.disabled=true;if(copy)copy.disabled=true;return;}
-    if(save)save.disabled=false;if(copy)copy.disabled=false;
+    if(!currentStoreId){if(note)note.textContent='Configure weekly timings here; the Store Save button saves the store and this schedule together.';renderRows(days.map(([day])=>blankDay(day)));if(copy)copy.disabled=false;setStatus('');return;}
+    if(copy)copy.disabled=false;
     const store=currentStore();if(store&&storeForm.elements.week_start_day)storeForm.elements.week_start_day.value=String(store.week_start_day||1);
     if(note)note.textContent='Changes apply to this store only. Week start day changes the editing order, not payroll calculations.';
     if(state)renderSelectedSchedule();else setStatus('Loading timings…');
@@ -151,6 +155,6 @@
 
   ensureStyles();
   createSection();
-  window.MERDPOSStoreTimings=Object.freeze({openStore,refresh:load});
-  load();
+  readyPromise=load();
+  window.MERDPOSStoreTimings=Object.freeze({openStore,collectForSave,refresh:()=>{readyPromise=load();return readyPromise;}});
 })();

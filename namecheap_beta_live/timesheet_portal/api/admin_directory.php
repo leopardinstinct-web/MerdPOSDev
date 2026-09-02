@@ -58,6 +58,104 @@ function directory_store_columns(PDO $pdo): array
     return $columns;
 }
 
+function directory_store_edit_fields(PDO $pdo): array
+{
+    $columns = directory_store_columns($pdo);
+    $groups = [
+        [['store_code','code'], 'Code', 'text', false],
+        [['address','address_line1'], 'Address', 'text', true],
+        [['address_line2'], 'Address line 2', 'text', true],
+        [['suburb'], 'Suburb', 'text', false],
+        [['city'], 'City', 'text', false],
+        [['state','region'], 'State / region', 'text', false],
+        [['postcode','postal_code'], 'Postcode', 'text', false],
+        [['country'], 'Country', 'text', false],
+        [['phone','phone_number'], 'Phone', 'tel', false],
+        [['email','store_email'], 'Email', 'email', false],
+        [['timezone'], 'Timezone', 'text', false],
+        [['currency_code'], 'Currency', 'text', false],
+        [['tax_number'], 'Tax number', 'text', false],
+        [['abn'], 'ABN', 'text', false],
+    ];
+    $fields = [];
+    foreach ($groups as [$names,$label,$type,$wide]) {
+        foreach ($names as $name) {
+            if (!isset($columns[$name])) continue;
+            $column = $columns[$name];
+            $max = 255;
+            if (preg_match('/varchar\((\d+)\)/i', (string)($column['Type'] ?? ''), $match)) $max = (int)$match[1];
+            $fields[] = [
+                'name'=>$name,'label'=>$label,'type'=>$type,'wide'=>$wide,'max_length'=>$max,
+                'nullable'=>strtoupper((string)($column['Null'] ?? 'NO')) === 'YES',
+                'has_default'=>($column['Default'] ?? null) !== null,
+            ];
+            break;
+        }
+    }
+    return $fields;
+}
+
+function directory_store_profile_input(array $input, array $fields, bool $isNew): array
+{
+    $values = [];
+    foreach ($fields as $field) {
+        $name = (string)$field['name'];
+        $value = trim((string)($input[$name] ?? ''));
+        $max = max(1, (int)($field['max_length'] ?? 255));
+        if (mb_strlen($value) > $max) throw new MerdWorkforceException('invalid_store_field', (string)$field['label'] . ' is too long.');
+        if (($field['type'] ?? '') === 'email' && $value !== '' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            throw new MerdWorkforceException('invalid_store_email', 'Enter a valid store email address.');
+        }
+        if ($value === '' && empty($field['nullable']) && empty($field['has_default'])) {
+            if ($isNew && in_array($name, ['store_code','code'], true)) $value = directory_generated_code((string)($input['store_name'] ?? 'Store'));
+            else throw new MerdWorkforceException('required_store_field', (string)$field['label'] . ' is required.');
+        }
+        $values[$name] = ($value === '' && !empty($field['nullable'])) ? null : $value;
+    }
+    return $values;
+}
+
+function directory_normalize_store_time(mixed $value): ?string
+{
+    $text = trim((string)$value);
+    if ($text === '') return null;
+    if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $text)) throw new MerdWorkforceException('invalid_time', 'Use a valid 24-hour time.');
+    return strlen($text) === 5 ? $text . ':00' : $text;
+}
+
+function directory_normalize_store_schedule(array $rawDays): array
+{
+    $days = [];
+    foreach ($rawDays as $rawDay) {
+        if (!is_array($rawDay)) continue;
+        $day = filter_var($rawDay['day_of_week'] ?? null, FILTER_VALIDATE_INT);
+        if ($day === false || $day < 1 || $day > 7 || isset($days[$day])) throw new MerdWorkforceException('invalid_schedule', 'Each weekday must appear once.');
+        $closed = !empty($rawDay['is_closed']);
+        $start = $closed ? null : directory_normalize_store_time($rawDay['start_time'] ?? null);
+        $end = $closed ? null : directory_normalize_store_time($rawDay['end_time'] ?? null);
+        if (!$closed && ($start === null || $end === null)) throw new MerdWorkforceException('incomplete_schedule', 'Every open day needs both a start time and an end time.');
+        $days[(int)$day] = ['day_of_week'=>(int)$day,'start_time'=>$start,'end_time'=>$end,'is_closed'=>$closed?1:0];
+    }
+    ksort($days);
+    if (count($days) !== 7) throw new MerdWorkforceException('invalid_schedule', 'All seven weekdays are required.');
+    return $days;
+}
+
+function directory_save_store_schedule(PDO $pdo, int $clientId, int $storeId, string $storeName, int $weekStartDay, array $days, int $actorId): void
+{
+    $upsert = $pdo->prepare('INSERT INTO store_weekly_hours (client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP');
+    foreach ($days as $day) $upsert->execute([$clientId,$storeId,$day['day_of_week'],$day['start_time'],$day['end_time'],$day['is_closed'],$actorId]);
+    $legacyStart = null;
+    if (isset($days[1]) && !$days[1]['is_closed']) $legacyStart = $days[1]['start_time'];
+    if ($legacyStart === null) foreach ($days as $day) if (!$day['is_closed'] && $day['start_time'] !== null) { $legacyStart = $day['start_time']; break; }
+    if ($legacyStart !== null) {
+        $legacy = $pdo->prepare('INSERT INTO store_shift_start_times (client_id,store_id,store_name,shift_start_time) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE store_name=VALUES(store_name),shift_start_time=VALUES(shift_start_time),updated_at=CURRENT_TIMESTAMP');
+        $legacy->execute([$clientId,$storeId,$storeName,$legacyStart]);
+    } else {
+        $pdo->prepare('DELETE FROM store_shift_start_times WHERE client_id=? AND store_id=?')->execute([$clientId,$storeId]);
+    }
+}
+
 function directory_generated_code(string $name): string
 {
     $base = strtoupper((string)preg_replace('/[^A-Za-z0-9]+/', '-', trim($name)));
@@ -116,12 +214,11 @@ function directory_load_state(PDO $pdo, array $actor): array
     $canPay = $permissions['workforce.payrates.manage'];
 
     $stores = [];
+    $storeEditFields = $canStores ? directory_store_edit_fields($pdo) : [];
     if ($canStores) {
-        $storesStmt = $pdo->prepare(
-            "SELECT s.id,s.store_name,s.status,COALESCE(s.week_start_day,1) AS week_start_day,COALESCE(t.shift_start_time,'') AS shift_start_time "
-            . "FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id "
-            . "WHERE s.client_id=? ORDER BY s.id ASC"
-        );
+        $storeSelect = "SELECT s.id,s.store_name,s.status,COALESCE(s.week_start_day,1) AS week_start_day,COALESCE(t.shift_start_time,'') AS shift_start_time";
+        foreach ($storeEditFields as $field) $storeSelect .= ',s.`' . $field['name'] . '`';
+        $storesStmt = $pdo->prepare($storeSelect . " FROM stores s LEFT JOIN store_shift_start_times t ON t.client_id=s.client_id AND t.store_id=s.id WHERE s.client_id=? ORDER BY s.id ASC");
         $storesStmt->execute([$clientId]);
         $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -200,6 +297,7 @@ function directory_load_state(PDO $pdo, array $actor): array
         ],
         'employees'=>$employees,
         'stores'=>$stores,
+        'store_edit_fields'=>$storeEditFields,
     ];
 }
 
@@ -369,14 +467,23 @@ try {
         $dup->execute([(int)$actor['client_id'],$name,$id,$id]);
         if ($dup->fetchColumn()) throw new MerdWorkforceException('duplicate_store', 'A store with that name already exists.');
 
+        $columns = directory_store_columns($pdo);
+        $storeEditFields = directory_store_edit_fields($pdo);
+        $profileValues = directory_store_profile_input($input, $storeEditFields, $id === null);
+        $scheduleDays = null;
+        if (array_key_exists('days', $input)) {
+            beta_require_permission($actor, 'stores.timings.manage', $pdo);
+            if (!is_array($input['days'])) throw new MerdWorkforceException('invalid_schedule', 'A seven-day schedule is required.');
+            $scheduleDays = directory_normalize_store_schedule($input['days']);
+        }
+
         $pdo->beginTransaction();
         try {
             if ($id === null) {
-                $columns = directory_store_columns($pdo);
-                $values = ['client_id'=>(int)$actor['client_id'],'store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay];
+                $values = ['client_id'=>(int)$actor['client_id'],'store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay] + $profileValues;
                 if (isset($columns['name'])) $values['name'] = $name;
-                if (isset($columns['store_code'])) $values['store_code'] = directory_generated_code($name);
-                if (isset($columns['code'])) $values['code'] = directory_generated_code($name);
+                if (isset($columns['store_code']) && !array_key_exists('store_code',$values)) $values['store_code'] = directory_generated_code($name);
+                if (isset($columns['code']) && !array_key_exists('code',$values)) $values['code'] = directory_generated_code($name);
                 if (isset($columns['slug'])) $values['slug'] = strtolower(directory_generated_code($name));
                 foreach ($columns as $field=>$meta) {
                     if (array_key_exists($field,$values) || str_contains(strtolower((string)$meta['Extra']),'auto_increment')) continue;
@@ -393,20 +500,21 @@ try {
                 $check = $pdo->prepare('SELECT id FROM stores WHERE id=? AND client_id=? LIMIT 1');
                 $check->execute([$id,(int)$actor['client_id']]);
                 if (!$check->fetchColumn()) throw new MerdWorkforceException('store_not_found','Store not found.');
-                $columns = directory_store_columns($pdo);
                 $assign = ['store_name=?','status=?','week_start_day=?']; $args = [$name,$status,$weekStartDay];
                 if (isset($columns['name'])) { $assign[]='`name`=?'; $args[]=$name; }
+                foreach ($profileValues as $field=>$value) { $assign[]='`'.$field.'`=?'; $args[]=$value; }
                 $args[]=$id; $args[]=(int)$actor['client_id'];
                 $pdo->prepare('UPDATE stores SET '.implode(',',$assign).' WHERE id=? AND client_id=?')->execute($args);
                 $pdo->prepare('UPDATE store_shift_start_times SET store_name=? WHERE client_id=? AND store_id=?')->execute([$name,(int)$actor['client_id'],$id]);
                 $auditAction = 'store.update';
             }
+            if ($scheduleDays !== null) directory_save_store_schedule($pdo,(int)$actor['client_id'],(int)$id,$name,$weekStartDay,$scheduleDays,(int)$actor['id']);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
-        directory_audit($pdo,$actor,$auditAction,'store',(string)$id,['store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay]);
+        directory_audit($pdo,$actor,$auditAction,'store',(string)$id,['store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay,'profile_fields'=>array_keys($profileValues),'schedule_updated'=>$scheduleDays!==null]);
         json_response(directory_load_state($pdo,$actor));
     }
 

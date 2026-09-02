@@ -17,9 +17,9 @@
   --color-brand-violet: #8B2EFF;
 
   /* Derived brand interaction aliases. */
-  --color-brand-primary: var(--color-brand-violet);
-  --color-brand-primary-hover: color-mix(in srgb, var(--color-brand-violet) 88%, var(--color-brand-navy));
-  --color-brand-primary-active: color-mix(in srgb, var(--color-brand-violet) 76%, var(--color-brand-navy));
+  --color-brand-primary: var(--color-brand-cyan);
+  --color-brand-primary-hover: color-mix(in srgb, var(--color-brand-cyan) 88%, var(--color-brand-navy));
+  --color-brand-primary-active: color-mix(in srgb, var(--color-brand-cyan) 76%, var(--color-brand-navy));
   --color-brand-on-primary: var(--color-brand-white);
   --gradient-brand: linear-gradient(115deg, var(--color-brand-cyan) 0%, var(--color-brand-violet) 100%);
 
@@ -28,7 +28,7 @@
   --color-surface-main: var(--color-brand-white);
   --color-surface-raised: var(--color-brand-white);
   --color-surface-muted: color-mix(in srgb, var(--color-brand-background) 82%, var(--color-brand-white));
-  --color-surface-selected: color-mix(in srgb, var(--color-brand-violet) 8%, var(--color-brand-white));
+  --color-surface-selected: color-mix(in srgb, var(--color-brand-cyan) 8%, var(--color-brand-white));
 
   --color-text-primary: var(--color-brand-navy);
   --color-text-secondary: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
@@ -39,8 +39,8 @@
   --color-border-subtle: color-mix(in srgb, var(--color-brand-navy) 12%, var(--color-brand-white));
   --color-border-strong: color-mix(in srgb, var(--color-brand-navy) 40%, var(--color-brand-white));
 
-  --color-focus: var(--color-brand-violet);
-  --color-focus-soft: color-mix(in srgb, var(--color-brand-violet) 22%, transparent);
+  --color-focus: var(--color-brand-cyan);
+  --color-focus-soft: color-mix(in srgb, var(--color-brand-cyan) 22%, transparent);
 
   --color-success: #18794E;
   --color-success-surface: #ECF8F3;
@@ -54,8 +54,8 @@
   --color-nav-bg: var(--color-brand-navy);
   --color-nav-bg-hover: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
   --color-nav-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 94%, var(--color-brand-white));
-  --color-nav-active: var(--color-brand-violet);
-  --color-nav-sub-active: color-mix(in srgb, var(--color-brand-violet) 38%, var(--color-brand-navy));
+  --color-nav-active: var(--color-brand-cyan);
+  --color-nav-sub-active: color-mix(in srgb, var(--color-brand-cyan) 38%, var(--color-brand-navy));
   --color-nav-text: var(--color-brand-white);
   --color-nav-text-muted: color-mix(in srgb, var(--color-brand-white) 78%, var(--color-brand-navy));
   --color-nav-border: color-mix(in srgb, var(--color-brand-white) 18%, var(--color-brand-navy));
@@ -64,8 +64,8 @@
   --color-shadow: color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
 
   /* Chart colours use the master palette first, then operational semantics for distinction. */
-  --color-chart-1: var(--color-brand-violet);
-  --color-chart-2: var(--color-brand-cyan);
+  --color-chart-1: var(--color-brand-cyan);
+  --color-chart-2: var(--color-brand-violet);
   --color-chart-3: var(--color-brand-navy);
   --color-chart-4: var(--color-success);
   --color-chart-5: var(--color-warning);
@@ -129,7 +129,7 @@
   --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 8%, transparent);
   --shadow-raised: 0 .5rem 1.5rem color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
   --shadow-dialog: 0 1.5rem 4rem color-mix(in srgb, var(--color-brand-navy) 22%, transparent);
-  --shadow-action: 0 .5rem 1.25rem color-mix(in srgb, var(--color-brand-violet) 20%, transparent);
+  --shadow-action: 0 .5rem 1.25rem color-mix(in srgb, var(--color-brand-cyan) 20%, transparent);
 
   /* Motion. */
   --duration-fast: 140ms;
@@ -208,7 +208,7 @@
   --color-surface-main: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
   --color-surface-raised: color-mix(in srgb, var(--color-brand-navy) 82%, var(--color-brand-white));
   --color-surface-muted: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
-  --color-surface-selected: color-mix(in srgb, var(--color-brand-violet) 28%, var(--color-brand-navy));
+  --color-surface-selected: color-mix(in srgb, var(--color-brand-cyan) 28%, var(--color-brand-navy));
   --color-text-primary: var(--color-brand-white);
   --color-text-secondary: color-mix(in srgb, var(--color-brand-white) 84%, var(--color-brand-navy));
   --color-text-muted: color-mix(in srgb, var(--color-brand-white) 70%, var(--color-brand-navy));
@@ -223,12 +223,12 @@
   --color-danger-surface: #492126;
   --color-info: #84CAFF;
   --color-info-surface: #172F4D;
-  --color-chart-1: var(--color-brand-violet);
-  --color-chart-2: var(--color-brand-cyan);
+  --color-chart-1: var(--color-brand-cyan);
+  --color-chart-2: var(--color-brand-violet);
   --color-chart-3: var(--color-brand-white);
   --color-chart-4: var(--color-success);
   --color-chart-5: var(--color-warning);
-  --color-focus-soft: color-mix(in srgb, var(--color-brand-violet) 30%, transparent);
+  --color-focus-soft: color-mix(in srgb, var(--color-brand-cyan) 30%, transparent);
   --color-overlay: color-mix(in srgb, var(--color-brand-navy) 74%, transparent);
   --color-shadow: color-mix(in srgb, var(--color-brand-navy) 54%, transparent);
   --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 46%, transparent);

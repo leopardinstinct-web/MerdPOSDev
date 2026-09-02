@@ -1094,3 +1094,12 @@
   .dashboard-period-filter button { min-width: var(--size-touch); min-height: var(--size-touch); }
   .dashboard-filter-summary { flex: 1 0 100%; margin-left: 0; }
 }
+
+
+.dashboard-page-head {
+  display:flex;
+  align-items:center;
+  min-height:var(--size-icon-action);
+  margin:0 0 var(--space-3);
+}
+.dashboard-page-head .ui-page-title { margin:0; }

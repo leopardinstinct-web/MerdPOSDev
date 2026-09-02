@@ -14,10 +14,13 @@
   const roleClass = ['DEV','SUPER','ADMIN','USER'].includes(roleKey) ? roleKey.toLowerCase() : 'user';
   const STUDIO_SETTINGS_KEY='merdpos-ui-studio-settings-v1';
   const ACCOUNT_CONTEXT_STATE_KEY='merdpos-account-context-sections-v1';
+  const ACCOUNT_UI_STATE_KEY='merdpos-account-tools-ui-v1';
   function readStudioSettings(){try{const saved=JSON.parse(localStorage.getItem(STUDIO_SETTINGS_KEY)||'null');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
   function writeStudioEnabled(enabled){const saved=readStudioSettings();saved.enabled=!!enabled;try{localStorage.setItem(STUDIO_SETTINGS_KEY,JSON.stringify(saved));}catch(_){}return saved;}
   function readContextSectionState(){try{const saved=JSON.parse(localStorage.getItem(ACCOUNT_CONTEXT_STATE_KEY)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
   function writeContextSectionState(state){try{localStorage.setItem(ACCOUNT_CONTEXT_STATE_KEY,JSON.stringify(state));}catch(_){}}
+  function readAccountUiState(){try{const saved=JSON.parse(localStorage.getItem(ACCOUNT_UI_STATE_KEY)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function writeAccountUiState(open){try{localStorage.setItem(ACCOUNT_UI_STATE_KEY,JSON.stringify({open:!!open}));}catch(_){}}
   function wireContextSections(root){const saved=readContextSectionState();root.querySelectorAll('.rail-collapsible-context').forEach(section=>{const key=section.dataset.contextKey||'',toggle=section.querySelector('.rail-context-toggle'),body=section.querySelector('.rail-context-body');if(!key||!toggle||!body)return;const setCollapsed=collapsed=>{section.classList.toggle('is-collapsed',collapsed);body.hidden=collapsed;toggle.setAttribute('aria-expanded',collapsed?'false':'true');toggle.title=collapsed?'Expand section':'Minimize section';};setCollapsed(saved[key]===true);toggle.addEventListener('click',()=>{const state=readContextSectionState(),collapsed=!section.classList.contains('is-collapsed');state[key]=collapsed;writeContextSectionState(state);setCollapsed(collapsed);});});}
   let context = null;
   let mounted = false;
@@ -64,11 +67,12 @@
   function syncUtilityTriggers(open) {
     document.querySelectorAll('.merd-shell-account-trigger,.merd-mobile-account-trigger').forEach(button => button.setAttribute('aria-expanded', open ? 'true' : 'false'));
   }
-  function openMobileTools(trigger) {
+  function openMobileTools(trigger, options = {}) {
     utilityTrigger = trigger || document.activeElement;
     document.body.classList.add('merd-mobile-tools-open');
     syncUtilityTriggers(true);
     if (utilityBackdrop) utilityBackdrop.hidden = false;
+    if(options.persist!==false)writeAccountUiState(true);
     window.setTimeout(function () {
       const first = document.querySelector('.rail-shell-utilities select:not([disabled]), .rail-shell-utilities button:not([disabled])');
       first?.focus?.({preventScroll:true});
@@ -79,6 +83,7 @@
     document.body.classList.remove('merd-mobile-tools-open');
     syncUtilityTriggers(false);
     if (utilityBackdrop) utilityBackdrop.hidden = true;
+    if(options.persist!==false)writeAccountUiState(false);
     if (wasOpen && options.restoreFocus !== false) window.setTimeout(() => utilityTrigger?.focus?.({preventScroll:true}), 30);
   }
 
@@ -160,6 +165,7 @@
     const accountTrigger = document.createElement('button');
     accountTrigger.type = 'button';
     accountTrigger.className = 'merd-shell-account-trigger';
+    accountTrigger.dataset.accountToolsTrigger = '1';
     accountTrigger.title = `${name} · Account and working client`;
     accountTrigger.setAttribute('aria-label', 'Account, working client and app settings');
     accountTrigger.setAttribute('aria-controls', 'merdShellUtilities');
@@ -177,6 +183,8 @@
     document.body.appendChild(utilityBackdrop);
 
     wireContextSections(utilities);
+    if(readAccountUiState().open===true)window.setTimeout(()=>openMobileTools(accountTrigger,{persist:false}),0);
+    window.addEventListener('storage',event=>{if(event.key!==ACCOUNT_UI_STATE_KEY)return;const open=readAccountUiState().open===true;if(open)openMobileTools(accountTrigger,{persist:false});else closeMobileTools({persist:false,restoreFocus:false});});
 
     const desktopSelect = clientSection.querySelector('#accountClientSelect');
     const mobileSelect = utilities.querySelector('.rail-mobile-client-select');

@@ -419,11 +419,11 @@ function ui_icon(string $name): string
         <div class="admin-form-grid">
           <input type="hidden" name="id">
           <label class="full-field">Store name<input name="store_name" maxlength="150" required></label>
+          <div id="storeProfileFields" class="store-profile-fields full-field"></div>
           <label>Week start day<select name="week_start_day" id="storeWeekStartDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="7">Sunday</option></select></label>
           <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
         </div>
-        <p class="form-hint">Stores are inactivated rather than deleted so historical attendance, payroll and financial records stay intact.</p>
-        <div class="admin-dialog-footer"><button type="button" class="secondary-btn" data-close-dialog>Cancel</button><button type="submit" class="primary-btn compact-btn">Save store</button></div>
+        <div class="admin-dialog-footer"><button type="submit" class="primary-btn compact-btn">Save</button></div>
       </div>
     </form>
   </dialog>
@@ -450,8 +450,8 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260902ds117"></script>
-  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260902ds97"></script><?php endif; ?>
+  <script src="assets/management.js?v=20260902ds130"></script>
+  <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260902ds130"></script><?php endif; ?>
 </body>
 </html>
 

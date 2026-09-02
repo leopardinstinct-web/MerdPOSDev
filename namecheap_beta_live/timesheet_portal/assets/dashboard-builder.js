@@ -43,6 +43,7 @@
   const builder = document.createElement('section');
   builder.className = 'merd-dashboard-builder';
   builder.innerHTML = `
+    <header class="dashboard-page-head"><h2 class="ui-page-title">Dashboard</h2></header>
     <div class="dashboard-rolebar" id="dashboardRolebar">
       <div><span class="dashboard-rolebar-label">Dashboard role</span></div>
       <div class="dashboard-role-controls"><select id="dashboardRoleSelect" aria-label="Select dashboard role" hidden></select><button id="dashboardEditToggle" class="secondary-btn compact-btn dashboard-edit-toggle" type="button" aria-pressed="false" hidden>Edit dashboard</button><button id="dashboardAddButton" class="dashboard-add-button" type="button" aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button></div>

@@ -192,21 +192,21 @@ for live_file in \
 done
 
 for required_asset in \
-  'assets/design-tokens.css?v=20260828palette1' \
-  'assets/design-system.css?v=20260902ds117' \
+  'assets/design-tokens.css?v=20260902ds130' \
+  'assets/design-system.css?v=20260902ds130' \
   'assets/design-audit.js?v=20260826ds1' \
   'assets/omnichannel-identity.js?v=20260902ds97' \
   'assets/minimal-controls.js?v=20260826ds1' \
   'assets/mobile-runtime.js?v=20260901ds79' \
-  'assets/shell.css?v=20260902ds117' \
-  'assets/navigation.js?v=20260902ds97' \
+  'assets/shell.css?v=20260902ds130' \
+  'assets/navigation.js?v=20260902ds130' \
   'assets/analytics-runtime.css?v=20260831analytics2' \
   'assets/analytics-runtime.js?v=20260831analytics2' \
-  'assets/dashboard-builder.css?v=20260902ds97' \
-  'assets/dashboard-builder.js?v=20260902ds97' \
+  'assets/dashboard-builder.css?v=20260902ds130' \
+  'assets/dashboard-builder.js?v=20260902ds130' \
   'assets/dev-stores-ui.js?v=20260901ds79' \
   'assets/account-menu.css?v=20260902ds117' \
-  'assets/account-menu.js?v=20260902ds117' \
+  'assets/account-menu.js?v=20260902ds130' \
   'assets/ui-studio.css?v=20260902studio30' \
   'assets/ui-studio.js?v=20260902ds117'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
@@ -215,11 +215,11 @@ for required_asset in \
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260902ds117' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260902ds130' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
   exit 1
 fi
-if ! grep -q 'assets/directory.js?v=20260902ds97' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/directory.js?v=20260902ds130' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the DS97 directory runtime." >&2
   exit 1
 fi
@@ -253,6 +253,26 @@ if ! grep -q 'data-dashboard-period' "$LIVE/timesheet_portal/assets/dashboard-bu
 fi
 if ! grep -q 'directory-edit-icon-btn' "$LIVE/timesheet_portal/assets/directory.js" || grep -q 'class="icon-text-btn" data-edit-employee' "$LIVE/timesheet_portal/assets/directory.js"; then
   echo "ERROR: live DS97 shared directory edit-action contract is missing." >&2
+  exit 1
+fi
+if ! grep -q -- '--color-brand-primary: var(--color-brand-cyan)' "$LIVE/timesheet_portal/assets/design-tokens.css"; then
+  echo "ERROR: live revision 130 cyan product accent is missing." >&2
+  exit 1
+fi
+if ! grep -q 'dashboard-page-head' "$LIVE/timesheet_portal/assets/dashboard-builder.js"; then
+  echo "ERROR: live revision 130 Dashboard heading is missing." >&2
+  exit 1
+fi
+if ! grep -q 'id="storeProfileFields"' "$LIVE/timesheet_portal/dashboard.php" || ! grep -q 'directory_store_edit_fields' "$LIVE/timesheet_portal/api/admin_directory.php"; then
+  echo "ERROR: live revision 130 schema-aware Store profile editor is missing." >&2
+  exit 1
+fi
+if grep -q 'saveTimingsBtn' "$LIVE/timesheet_portal/assets/timings.js" || ! grep -q 'collectForSave' "$LIVE/timesheet_portal/assets/timings.js"; then
+  echo "ERROR: live revision 130 unified Store Save contract is missing." >&2
+  exit 1
+fi
+if ! grep -q "ACCOUNT_UI_STATE_KEY='merdpos-account-tools-ui-v1'" "$LIVE/timesheet_portal/assets/account-menu.js"; then
+  echo "ERROR: live revision 130 account-tools persistence is missing." >&2
   exit 1
 fi
 

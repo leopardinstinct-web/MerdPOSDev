@@ -1182,3 +1182,31 @@ body.merd-shell {
   border-radius: 50%;
   line-height: 1;
 }
+
+
+/* DS130 recurrent header-alignment guard: headings and actions share one control row. */
+.merd-shell :where(.dialog-heading, .dialog-head, .admin-dialog-header) {
+  align-items: center;
+}
+.merd-shell :where(.dialog-heading, .dialog-head, .admin-dialog-header) > :where(h1,h2,h3,strong) {
+  min-height: var(--size-icon-action);
+  display: flex;
+  align-items: center;
+}
+.merd-shell .directory-card > .directory-toolbar > :first-child {
+  min-height: var(--size-icon-action);
+  display: flex;
+  align-items: center;
+}
+.merd-shell .directory-card > .directory-toolbar > :first-child > :where(h1,h2,h3,.ui-page-title) {
+  min-height: var(--size-icon-action);
+  display: flex;
+  align-items: center;
+}
+.merd-shell .directory-card > .directory-toolbar > :is(.directory-actions,.merd-action-cluster,.dev-store-actions,.directory-toolbar-actions) {
+  display: flex;
+  align-items: center;
+}
+.merd-shell #storeProfileFields {
+  display: contents;
+}

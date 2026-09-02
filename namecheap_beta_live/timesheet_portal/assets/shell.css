@@ -557,7 +557,7 @@ body.merd-shell {
 
 /* Unified desktop bottom navigation: same primary destinations as mobile. */
 @media (min-width:51.3125rem) {
-  :root { --shell-desktop-nav-h:5.25rem; --shell-desktop-subnav-h:3.75rem; }
+  :root { --shell-desktop-nav-h:4.5rem; --shell-desktop-subnav-h:3.5rem; }
   body.merd-shell { padding-bottom:calc(var(--shell-desktop-nav-h) + env(safe-area-inset-bottom)); }
   body.merd-shell.merd-mobile-subnav-open { padding-bottom:calc(var(--shell-desktop-nav-h) + var(--shell-desktop-subnav-h) + env(safe-area-inset-bottom)); }
   .app-frame,.app-frame.nav-expanded,.app-frame.nav-collapsed { display:block; min-height:auto; }
@@ -566,7 +566,7 @@ body.merd-shell {
     position:fixed; inset:auto 0 0; z-index:80; width:100%; height:auto;
     min-height:calc(var(--shell-desktop-nav-h) + env(safe-area-inset-bottom));
     display:flex; flex-direction:row; align-items:stretch; justify-content:center;
-    gap:.35rem; padding:.45rem 1rem calc(.45rem + env(safe-area-inset-bottom));
+    gap:.3rem; padding:.3rem 1rem calc(.3rem + env(safe-area-inset-bottom));
     overflow:visible; border:0; border-top:1px solid var(--color-nav-border);
     background:color-mix(in srgb,var(--color-nav-bg) 97%,transparent);
     box-shadow:0 -.5rem 1.6rem color-mix(in srgb,var(--color-brand-navy) 18%,transparent);
@@ -577,11 +577,11 @@ body.merd-shell {
   .app-rail > .rail-section[data-nav-section="system"] { display:none !important; }
   .app-rail > .rail-section { flex:1 1 0; max-width:8.5rem; min-width:0; display:flex; justify-content:center; }
   .rail-group-btn,.app-frame.nav-collapsed .rail-group-btn {
-    position:relative; width:100%; min-height:4.2rem; display:flex; flex-direction:column;
+    position:relative; width:100%; min-height:3.45rem; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:.32rem; padding:.45rem .5rem;
     border-radius:1rem; text-align:center;
   }
-  .rail-group-btn .ui-icon { width:1.55rem; height:1.55rem; }
+  .rail-group-btn .ui-icon { width:1.35rem; height:1.35rem; }
   .rail-group-btn .rail-label,.app-frame.nav-collapsed .rail-label {
     display:block; width:auto; max-width:100%; opacity:1; transform:none; overflow:visible;
     color:inherit; font-size:.75rem; line-height:1.1; white-space:nowrap;
@@ -609,14 +609,14 @@ body.merd-shell {
     border-color:color-mix(in srgb,var(--color-brand-primary) 45%,var(--color-border-default));
     background:var(--color-surface-selected); color:var(--color-brand-primary);
   }
-  .rail-account-dock { flex:0 0 4.5rem; display:flex; align-items:center; justify-content:center; }
+  .rail-account-dock { flex:0 0 4rem; display:flex; align-items:center; justify-content:center; }
   .merd-shell-account-trigger {
-    width:3.15rem; height:3.15rem; display:grid; place-items:center; padding:0;
+    width:2.85rem; height:2.85rem; display:grid; place-items:center; padding:0;
     border:1px solid color-mix(in srgb,var(--color-brand-cyan) 38%,var(--color-nav-border));
     border-radius:50%; background:color-mix(in srgb,var(--color-nav-sub-active) 70%,var(--color-nav-bg));
     color:var(--color-nav-text); box-shadow:0 .4rem 1rem rgba(0,0,0,.22); cursor:pointer;
   }
-  .merd-shell-account-trigger .rail-user-avatar { width:2.25rem; height:2.25rem; font-size:.8rem; }
+  .merd-shell-account-trigger .rail-user-avatar { width:2rem; height:2rem; font-size:.78rem; }
   .merd-shell-account-trigger:focus-visible { outline:.1875rem solid var(--color-focus-soft); outline-offset:.125rem; }
 }
 

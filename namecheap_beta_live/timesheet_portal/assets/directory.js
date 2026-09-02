@@ -5,6 +5,7 @@
   if (!employeeRoot && !storeRoot) return;
 
   let directory = null;
+  let timingsModuleReady = Promise.resolve();
   const authPermissions = window.MERDPOS_AUTH?.permissions || {};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = value => '$' + Number(value || 0).toFixed(2);
@@ -30,10 +31,13 @@
   }
 
   function ensureTimingsModule() {
-    if (!can('stores.timings.manage') || document.querySelector('script[data-store-timings-module]')) return;
+    if (!can('stores.timings.manage')) return;
+    const existing = document.querySelector('script[data-store-timings-module]');
+    if (existing) return;
     const script = document.createElement('script');
-    script.src = 'assets/timings.js?v=20260831storeedit1';
+    script.src = 'assets/timings.js?v=20260902ds130';
     script.dataset.storeTimingsModule = '1';
+    timingsModuleReady = new Promise((resolve,reject)=>{script.addEventListener('load',resolve,{once:true});script.addEventListener('error',()=>reject(new Error('Store timings module could not load.')),{once:true});});
     document.body.appendChild(script);
   }
 
@@ -160,6 +164,7 @@
       renderEmployees();
       renderStores();
       populateEmployeeStoreOptions();
+      renderStoreProfileFields();
       hideLegacyStoreFields();
       ensureStoreAccessControls();
       ensureRateEffectiveField();
@@ -216,6 +221,17 @@
       return `<article class="entity-row ${store.status==='inactive'?'is-muted':''}"><div class="entity-avatar store-avatar">${icon('store')}</div><div class="entity-copy"><div class="entity-title-line"><strong>${esc(store.store_name)}</strong></div></div><div class="entity-meta">${statusPill(store.status)}</div>${edit}</article>`;
     }).join('');
     storeRoot.querySelectorAll('[data-edit-store]').forEach(button => button.addEventListener('click', () => openStore(Number(button.dataset.editStore))));
+  }
+
+  function renderStoreProfileFields(store = null) {
+    const root = document.getElementById('storeProfileFields');
+    if (!root) return;
+    const fields = Array.isArray(directory?.store_edit_fields) ? directory.store_edit_fields : [];
+    root.innerHTML = fields.map(field => {
+      const name=String(field.name||''),label=String(field.label||name),type=['email','tel','text'].includes(String(field.type||''))?String(field.type):'text',max=Math.max(1,Math.min(1000,Number(field.max_length||255)));
+      return `<label class="${field.wide?'full-field':''}">${esc(label)}<input name="${esc(name)}" type="${type}" maxlength="${max}"></label>`;
+    }).join('');
+    fields.forEach(field=>{const input=root.querySelector(`[name="${String(field.name||'').replace(/"/g,'\\"')}"]`);if(input)input.value=store?.[field.name]??'';});
   }
 
   function populateEmployeeStoreOptions() {
@@ -297,11 +313,13 @@
     const store = id ? (directory.stores || []).find(s => Number(s.id) === Number(id)) : null;
     form.elements.id.value = store ? store.id : '';
     form.elements.store_name.value = store?.store_name || '';
+    renderStoreProfileFields(store);
     form.elements.status.value = store?.status || 'active';
     if (form.elements.week_start_day) form.elements.week_start_day.value = String(store?.week_start_day || 1);
     document.getElementById('storeDialogTitle').textContent = store ? `Edit ${store.store_name}` : 'Add store';
     dialog.showModal();
-    window.MERDPOSStoreTimings?.openStore?.(store?.id || null);
+    if(window.MERDPOSStoreTimings?.openStore)window.MERDPOSStoreTimings.openStore(store?.id||null);
+    else timingsModuleReady.then(()=>window.MERDPOSStoreTimings?.openStore?.(store?.id||null)).catch(error=>notice(error.message,true));
   }
 
   async function saveForm(form, action) {
@@ -328,10 +346,18 @@
     const button = form.querySelector('[type="submit"]');
     try {
       if (button) button.disabled = true;
+      if(action==='save_store'&&can('stores.timings.manage')){
+        await timingsModuleReady;
+        const timingApi=window.MERDPOSStoreTimings;
+        if(!timingApi?.collectForSave)throw new Error('Store timings are not ready.');
+        const schedule=await timingApi.collectForSave();
+        values.week_start_day=String(schedule.week_start_day||values.week_start_day||'1');
+        values.days=schedule.days;
+      }
       directory = await api('api/admin_directory.php', {method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(values)});
       renderEmployees(document.getElementById('employeeSearch')?.value || '');
       renderStores(document.getElementById('storeSearch')?.value || '');
-      populateEmployeeStoreOptions(); hideLegacyStoreFields(); form.closest('dialog')?.close();
+      populateEmployeeStoreOptions(); renderStoreProfileFields(); hideLegacyStoreFields(); if(action==='save_store')window.MERDPOSStoreTimings?.refresh?.(); form.closest('dialog')?.close();
       notice(action === 'save_employee' ? 'Employee saved.' : 'Store saved.');
       document.getElementById('refreshBetaBtn')?.click();
     } catch (error) { notice(error.message, true); }
