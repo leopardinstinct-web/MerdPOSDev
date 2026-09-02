@@ -82,6 +82,8 @@ $accountMenuJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_port
 $adminDirectoryApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/admin_directory.php', $errors);
 $uiStudioJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.js', $errors);
 $uiStudioCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio.css', $errors);
+$uiStudioStructureJs = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js', $errors);
+$uiStudioStructureCss = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.css', $errors);
 $uiStudioHistoryApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/ui_studio_history.php', $errors);
 $uiStudioAssetApi = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/api/ui_studio_asset.php', $errors);
 $uiStudioAssetRead = beta_contract_read($repo . '/namecheap_beta_live/timesheet_portal/studio_context_asset.php', $errors);
@@ -241,7 +243,7 @@ beta_contract_require_contains($deployScript, 'assets/dashboard-builder.js?v=202
 beta_contract_require_contains($deployScript, 'assets/account-menu.css?v=20260902ds117', 'Namecheap deploy account sheet stylesheet guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/account-menu.js?v=20260902ds130', 'Namecheap deploy account sheet runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'assets/ui-studio.css?v=20260902studio30', 'Namecheap deploy UI Studio stylesheet guard', $errors);
-beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260902ds117', 'Namecheap deploy UI Studio runtime guard', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio.js?v=20260902structure1', 'Namecheap deploy UI Studio runtime guard', $errors);
 beta_contract_require_contains($deployScript, 'DEPLOY_SCRIPT_BLOB_BEFORE', 'Namecheap deploy self-refresh baseline capture', $errors);
 beta_contract_require_contains($deployScript, 'MERDPOS_BETA_DEPLOY_REEXEC=1', 'Namecheap deploy self-refresh re-exec gate', $errors);
 beta_contract_require_contains($deployScript, 'assets/vendor/google-material-symbols/$material_symbol', 'Namecheap deploy Material Symbols guard', $errors);
@@ -259,7 +261,7 @@ beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actua
 beta_contract_require_absent($dashboard, 'id="openUiStudioBtn"', 'retired separate UI Studio launch control', $errors);
 beta_contract_require_contains($management, 'const isDev=window.MERDPOS_AUTH?.is_dev===true', 'UI Studio runtime DEV gate', $errors);
 beta_contract_require_contains($management, 'assets/ui-studio.css?v=20260902studio30', 'UI Studio stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260902ds117', 'UI Studio runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio.js?v=20260902structure1', 'UI Studio runtime wiring', $errors);
 beta_contract_require_contains($uiStudioJs, 'function promoteStudioTopLayer()', 'UI Studio top-layer re-promotion contract', $errors);
 beta_contract_require_contains($uiStudioJs, 'function markerAnchor(target)', 'UI Studio change markers anchor inside target page/window context', $errors);
 beta_contract_require_contains($uiStudioJs, "attributeFilter:['open','hidden']", 'UI Studio modal/navigation marker visibility observer', $errors);
@@ -659,6 +661,21 @@ beta_contract_require_contains($adminDirectoryApi, 'directory_save_store_schedul
 beta_contract_require_contains($shellCss, '--shell-desktop-nav-h:4.5rem', 'shorter desktop bottom dock', $errors);
 beta_contract_require_contains($accountMenuJs, "ACCOUNT_UI_STATE_KEY='merdpos-account-tools-ui-v1'", 'account tools UI persistence', $errors);
 beta_contract_require_contains($accountMenuJs, 'if(event.key!==ACCOUNT_UI_STATE_KEY)return;', 'account tools cross-window state synchronization', $errors);
+
+
+// DevStudio Structure/Layers editor is a DEV-only view over the canonical patch engine.
+beta_contract_require_contains($management, "if(isDev){", 'DevStudio DEV-only loader', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio-structure.css?v=20260902structure1', 'Structure editor stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260902structure1', 'Structure editor runtime wiring', $errors);
+beta_contract_require_contains($uiStudioJs, "{label:'Structure',action:'structure'", 'Structure radial action', $errors);
+beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target))target.appendChild(node)", 'inside add patch semantics', $errors);
+beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target)){target.appendChild(source);return;}", 'inside move/reparent patch semantics', $errors);
+beta_contract_require_contains($uiStudioJs, 'duplicateElement:duplicateElementDirect', 'Structure duplicate bridge', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "page:['section']", 'Page to Section hierarchy', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "section:['container','text','metric-card','chart','employee-status','data-table']", 'Section child hierarchy', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "container:['container','text','metric-card','chart','employee-status','data-table']", 'Container child hierarchy', $errors);
+beta_contract_require_contains($uiStudioStructureJs, 'MERDPOS_UI_STUDIO_STRUCTURE', 'Structure editor public runtime', $errors);
+beta_contract_require_contains($uiStudioStructureCss, '@media(max-width:720px)', 'Structure editor mobile sheet', $errors);
 
 // Implemented DevStudio patch requests are canonical source, not permanent Studio overlays.
 beta_contract_require_contains($dashboard, "'home' => 'M600-160v-280h280v280H600", 'attached Dashboard navigation icon', $errors);

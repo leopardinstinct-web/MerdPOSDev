@@ -148,3 +148,23 @@ Relevant permanent coverage lives primarily in:
 - `backend/cli/validate_ai_continuity.php`
 
 Passing source/CI checks does not itself mean a visual behavior is live-verified. Use the project lifecycle and deployment marker/runtime evidence.
+
+
+## Structure / Layers editor
+
+Developer sessions expose a Structure action in the DevStudio radial menu. It opens a persistent layers tree over the currently visible portal page and uses MERDPOS semantic nodes instead of raw DOM noise:
+
+- Page
+  - Section
+    - Container
+      - Text
+      - Metric Card
+      - Chart
+      - Employee Status
+      - Data Table
+
+A Section may also own content directly (for example `Section > Data Table`). Page accepts Sections; Sections accept Containers or content modules; Containers accept nested Containers or content modules. Leaf content modules do not accept children.
+
+Tree selection is synchronized with the existing DevStudio live-preview selection. Drag/drop uses before, inside, and after placement and records the same canonical move patches used by radial Move. Add Above / Inside / Below uses the canonical add patch engine. Duplicate creates a sanitized preview clone with duplicate IDs/form ownership attributes stripped. Existing source elements use Hide rather than destructive deletion; elements created by DevStudio can be removed from the current preview layer.
+
+The Structure runtime and stylesheet are loaded only for actual DEV sessions. On narrow screens the layers panel becomes a bottom sheet. The panel is an editor view only: patch history, role scope, copy-for-ChatGPT, receipt status, and deployment truth remain owned by DevStudio's existing canonical state.

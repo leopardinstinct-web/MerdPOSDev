@@ -19,6 +19,7 @@ test('Structure editor exposes MERDPOS hierarchy vocabulary and placement rules'
   const structure=source('assets/ui-studio-structure.js');
   for(const label of ['Page','Section','Container','Text','Metric Card','Chart','Employee Status','Data Table'])expect(structure).toContain(label);
   expect(structure).toContain("page:['section']");
+  expect(structure.indexOf("if(parentType==='page')return 'section';")).toBeLessThan(structure.indexOf('const component=componentType(el);'));
   expect(structure).toContain("section:['container','text','metric-card','chart','employee-status','data-table']");
   expect(structure).toContain("container:['container','text','metric-card','chart','employee-status','data-table']");
   expect(structure).toContain("position==='inside'");

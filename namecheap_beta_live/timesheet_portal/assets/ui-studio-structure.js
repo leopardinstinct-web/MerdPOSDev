@@ -54,8 +54,8 @@
   function semanticType(el,parentType){
     if(!(el instanceof Element)||isStudioNode(el)||el.hidden)return '';
     const explicit=explicitType(el);if(explicit)return explicit;
-    const component=componentType(el);if(component)return component;
     if(parentType==='page')return 'section';
+    const component=componentType(el);if(component)return component;
     if(isSectionLike(el))return 'section';
     if(isContainerLike(el))return 'container';
     return '';
