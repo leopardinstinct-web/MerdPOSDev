@@ -292,3 +292,7 @@ Live MERDPOS panels can mutate `class` and `hidden` attributes continuously whil
 
 A browser failure reporting a detached, unstable, or suddenly hidden editor control is evidence of a real interaction race. A later retry passing is **not** sufficient closure. Root-cause the race, make the interaction state durable, and add a regression that mutates the underlying portal while the editor action remains open and usable.
 Behavioral changes to browser-loaded DevStudio assets must advance the loader cache/version key in the same change; server-side file replacement alone is not sufficient live delivery evidence. Deployment guards should bind both the cache key and the corrected runtime behavior.
+
+## DevStudio canvas-first editing
+
+For visual editing, keep the product canvas primary and the hierarchy/layers panel secondary. Prefer contextual insertion points that determine *where* first (`+ Section`, `+ Container`, `+ Component`), then use a focused searchable picker to determine *what*. Object-local controls belong beside the selected object; global/power controls remain in the DevStudio radial or Structure view. Do not imitate another builder's branding or invent unsupported library/template capabilities. Every canvas action must route through the canonical DevStudio patch/history engine and must obey the same mutation-stability and cache-delivery rules as Structure.

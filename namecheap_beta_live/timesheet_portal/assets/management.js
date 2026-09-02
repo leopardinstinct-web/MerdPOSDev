@@ -75,9 +75,9 @@
 
     if(isDev){
       appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260902studio30');
-      appendStyle('merd-ui-studio-structure-css','assets/ui-studio-structure.css?v=20260902structure1');
+      appendStyle('merd-ui-studio-structure-css','assets/ui-studio-structure.css?v=20260903structure3');
       appendScript('merd-ui-studio','assets/ui-studio.js?v=20260902structure1');
-      appendScript('merd-ui-studio-structure','assets/ui-studio-structure.js?v=20260903structure2');
+      appendScript('merd-ui-studio-structure','assets/ui-studio-structure.js?v=20260903structure3');
     }
   }
   ensureShellAssets();

@@ -172,3 +172,11 @@ The Structure runtime and stylesheet are loaded only for actual DEV sessions. On
 ### Structure interaction stability
 
 Structure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open. Behavioral Structure-runtime changes must also advance the loader cache key so existing browser sessions cannot remain pinned to the pre-fix script.
+
+### Canvas-first structural editing
+
+The Structure panel is the layers/power view; the MERDPOS page remains the primary editing surface. While Structure is open, semantic Sections and Containers receive restrained MERDPOS-colored canvas outlines. Selecting a structural node exposes a compact contextual toolbar on the live page for Edit, Duplicate, Hide/Remove and More actions without moving the user's attention away from the product.
+
+Context determines placement before type selection. Page exposes `+ Section`; a selected Section exposes `+ Container`, `+ Component`, and a following `+ Section`; a selected Container exposes `+ Container` and `+ Component`; selected content exposes `+ Component` after the content. Section/Container insertion is direct because the target type is unambiguous. Component insertion opens a floating `Insert Component` picker with search and a two-column semantic grid for Text, Metric Card, Chart, Employee Status and Data Table. MERDPOS does not present a fake saved-library tab until an actual reusable-component persistence contract exists.
+
+Canvas actions call the same canonical DevStudio selection/add/duplicate/remove patch engine used by Structure and the radial editor. The radial remains the global/power action surface; the canvas toolbar is object-local. Canvas interaction state is guarded from live portal MutationObserver rebuilds exactly like the Structure action menu, and behavioral changes advance both Structure JS and CSS cache generations.

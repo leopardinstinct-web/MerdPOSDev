@@ -7,8 +7,8 @@
   const TYPE_DEFAULTS={section:'New section',container:'New container',text:'New text','metric-card':'New metric','chart':'New chart','employee-status':'Employee status','data-table':'Data table'};
   const LEAF_TYPES=new Set(['text','metric-card','chart','employee-status','data-table']);
   const ALLOWED={page:['section'],section:['container','text','metric-card','chart','employee-status','data-table'],container:['container','text','metric-card','chart','employee-status','data-table']};
-  const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',openActionsKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0};
-  let panel=null,treeRoot=null,searchInput=null,breadcrumb=null,chooser=null;
+  const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',openActionsKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0,canvasInteraction:false,insertPickerTargetKey:'',insertPickerPosition:'inside'};
+  let panel=null,treeRoot=null,searchInput=null,breadcrumb=null,chooser=null,canvasLayer=null,modulePicker=null,canvasRaf=0;
 
   const studio=()=>window.MERDPOS_UI_STUDIO||null;
   const isStudioNode=el=>!!el?.closest?.('[data-ui-studio]');
@@ -84,7 +84,7 @@
   }
   function buildTree(){const page=visiblePanel();if(!page)return null;return makeNode(page,'page',null);}
   function flatten(node,out=[]){if(!node)return out;out.push(node);for(const child of node.children)flatten(child,out);return out;}
-  function findNodeByElement(el){return flatten(state.tree).find(node=>node.el===el||node.el.contains(el))||null;}
+  function findNodeByElement(el){const nodes=flatten(state.tree);return nodes.find(node=>node.el===el)||nodes.slice().reverse().find(node=>node.el.contains(el))||null;}
   function findNodeByKey(key){return flatten(state.tree).find(node=>node.key===key)||null;}
   function pathFor(node){const parts=[];for(let cursor=node;cursor;cursor=cursor.parent)parts.unshift(TYPE_LABELS[cursor.type]);return parts.join(' / ');}
 
@@ -101,6 +101,95 @@
   }
   function typesForPlacement(target,position){const owner=position==='inside'?target:target.parent;return owner?allowedChildren(owner.type):[];}
 
+  const COMPONENT_TYPES=['text','metric-card','chart','employee-status','data-table'];
+  function ensureCanvasUI(){
+    if(canvasLayer)return;
+    canvasLayer=document.createElement('div');canvasLayer.className='merd-ui-structure-canvas-layer';canvasLayer.dataset.uiStudio='structure-canvas';canvasLayer.hidden=true;
+    modulePicker=document.createElement('aside');modulePicker.className='merd-ui-structure-module-picker';modulePicker.dataset.uiStudio='structure-module-picker';modulePicker.hidden=true;
+    document.body.append(canvasLayer,modulePicker);
+    const arm=()=>{state.canvasInteraction=true;clearTimeout(state.refreshTimer);};
+    const release=()=>setTimeout(()=>{state.canvasInteraction=false;},0);
+    canvasLayer.addEventListener('pointerdown',event=>{if(event.target.closest('button'))arm();});
+    modulePicker.addEventListener('pointerdown',arm);
+    document.addEventListener('pointerup',release,true);document.addEventListener('pointercancel',release,true);
+    canvasLayer.addEventListener('click',onCanvasClick);modulePicker.addEventListener('click',onModulePickerClick);modulePicker.addEventListener('input',onModulePickerInput);
+  }
+  function hideModulePicker(){if(!modulePicker)return;modulePicker.hidden=true;modulePicker.innerHTML='';state.insertPickerTargetKey='';state.insertPickerPosition='inside';}
+  function canvasNodeVisible(rect){return rect.width>1&&rect.height>1&&rect.bottom>-80&&rect.top<window.innerHeight+80&&rect.right>-80&&rect.left<window.innerWidth+80;}
+  function canvasInsertButton(node,kind,position,label,anchorName){return `<button type="button" class="merd-ui-structure-canvas-insert is-${kind}" data-canvas-role="insert" data-canvas-key="${escapeHtml(node.key)}" data-canvas-action="insert" data-insert-kind="${kind}" data-position="${position}" data-anchor="${anchorName}" aria-label="Add ${escapeHtml(label)}"><span aria-hidden="true">+</span>${escapeHtml(label)}</button>`;}
+  function renderCanvas(){
+    ensureCanvasUI();
+    if(!state.open||!state.tree){canvasLayer.hidden=true;canvasLayer.innerHTML='';hideModulePicker();return;}
+    canvasLayer.hidden=false;
+    const selected=findNodeByKey(state.selectedKey)||state.tree,parts=[];
+    for(const node of flatten(state.tree)){
+      if(!['section','container'].includes(node.type))continue;
+      parts.push(`<div class="merd-ui-structure-canvas-outline is-${node.type}${selected.key===node.key?' is-selected':''}" data-canvas-role="outline" data-canvas-key="${escapeHtml(node.key)}"><span>${TYPE_LABELS[node.type]}</span></div>`);
+    }
+    if(selected.type!=='page'){
+      const removeLabel=selected.el.dataset.uiStudioAddedKey?'Remove':'Hide';
+      parts.push(`<div class="merd-ui-structure-canvas-toolbar" data-canvas-role="toolbar" data-canvas-key="${escapeHtml(selected.key)}"><strong>${TYPE_LABELS[selected.type]} · ${escapeHtml(selected.label)}</strong><button type="button" data-canvas-action="edit" aria-label="Edit ${escapeHtml(selected.label)}">Edit</button><button type="button" data-canvas-action="duplicate" aria-label="Duplicate ${escapeHtml(selected.label)}">Duplicate</button><button type="button" data-canvas-action="remove" aria-label="${removeLabel} ${escapeHtml(selected.label)}">${removeLabel}</button><button type="button" data-canvas-action="more" aria-label="More actions for ${escapeHtml(selected.label)}">•••</button></div>`);
+    }
+    if(selected.type==='page')parts.push(canvasInsertButton(selected,'section','inside','Section','inside-bottom'));
+    if(selected.type==='section'){
+      parts.push(canvasInsertButton(selected,'container','inside','Container','inside-bottom-left'));
+      parts.push(canvasInsertButton(selected,'component','inside','Component','inside-bottom-right'));
+      if(selected.parent?.type==='page')parts.push(canvasInsertButton(selected,'section','after','Section','after-bottom'));
+    }
+    if(selected.type==='container'){
+      parts.push(canvasInsertButton(selected,'container','inside','Container','inside-bottom-left'));
+      parts.push(canvasInsertButton(selected,'component','inside','Component','inside-bottom-right'));
+    }
+    if(LEAF_TYPES.has(selected.type)&&selected.parent)parts.push(canvasInsertButton(selected,'component','after','Component','after-bottom'));
+    canvasLayer.innerHTML=parts.join('');positionCanvas();
+  }
+  function positionCanvas(){
+    if(!canvasLayer||canvasLayer.hidden||!state.tree)return;
+    for(const item of canvasLayer.querySelectorAll('[data-canvas-key]')){
+      const node=findNodeByKey(item.dataset.canvasKey);if(!node||!node.el?.isConnected){item.hidden=true;continue;}
+      const rect=node.el.getBoundingClientRect();if(!canvasNodeVisible(rect)){item.hidden=true;continue;}item.hidden=false;
+      const role=item.dataset.canvasRole;
+      if(role==='outline'){item.style.left=`${Math.max(0,rect.left)}px`;item.style.top=`${Math.max(0,rect.top)}px`;item.style.width=`${Math.max(0,Math.min(window.innerWidth,rect.right)-Math.max(0,rect.left))}px`;item.style.height=`${Math.max(0,Math.min(window.innerHeight,rect.bottom)-Math.max(0,rect.top))}px`;continue;}
+      if(role==='toolbar'){item.style.left=`${Math.max(8,Math.min(window.innerWidth-8,rect.left+4))}px`;item.style.top=`${Math.max(8,Math.min(window.innerHeight-44,rect.top+4))}px`;continue;}
+      if(role==='insert'){
+        const anchor=item.dataset.anchor||'inside-bottom',center=rect.left+rect.width/2;
+        let x=center,y=rect.bottom;
+        if(anchor==='inside-bottom-left'){x=rect.left+rect.width*.36;y=rect.bottom-8;}
+        if(anchor==='inside-bottom-right'){x=rect.left+rect.width*.64;y=rect.bottom-8;}
+        if(anchor==='inside-bottom'){y=rect.bottom-10;}
+        if(anchor==='after-bottom')y=rect.bottom+10;
+        item.style.left=`${Math.max(70,Math.min(window.innerWidth-70,x))}px`;item.style.top=`${Math.max(24,Math.min(window.innerHeight-24,y))}px`;
+      }
+    }
+  }
+  function scheduleCanvasPosition(){cancelAnimationFrame(canvasRaf);canvasRaf=requestAnimationFrame(positionCanvas);}
+  function openModulePicker(target,position){
+    ensureCanvasUI();const types=typesForPlacement(target,position).filter(type=>COMPONENT_TYPES.includes(type));if(!types.length)return;
+    state.insertPickerTargetKey=target.key;state.insertPickerPosition=position;
+    modulePicker.innerHTML=`<header class="merd-ui-structure-module-head"><div><span>DEVSTUDIO</span><h3>Insert Component</h3></div><button type="button" data-module-close aria-label="Close Insert Component">×</button></header><div class="merd-ui-structure-module-tabs"><span class="is-active">New Component</span></div><div class="merd-ui-structure-module-body"><small>Add ${position==='after'?'after':'inside'} ${escapeHtml(target.label)}</small><input type="search" data-module-search placeholder="Search components…" aria-label="Search components"><div class="merd-ui-structure-module-grid">${types.map(type=>`<button type="button" data-module-type="${type}" data-module-label="${escapeHtml(TYPE_LABELS[type].toLowerCase())}"><span aria-hidden="true">${iconFor(type)}</span><strong>${TYPE_LABELS[type]}</strong></button>`).join('')}</div></div>`;
+    modulePicker.hidden=false;modulePicker.querySelector('[data-module-search]')?.focus({preventScroll:true});
+  }
+  function onModulePickerInput(event){if(!event.target.matches('[data-module-search]'))return;const query=cleanText(event.target.value).toLowerCase();for(const card of modulePicker.querySelectorAll('[data-module-type]'))card.hidden=!!query&&!String(card.dataset.moduleLabel||'').includes(query);}
+  function onModulePickerClick(event){
+    if(event.target.closest('[data-module-close]')){hideModulePicker();state.canvasInteraction=false;return;}
+    const button=event.target.closest('[data-module-type]');if(!button)return;const target=findNodeByKey(state.insertPickerTargetKey),type=button.dataset.moduleType,position=state.insertPickerPosition||'inside';
+    if(target&&COMPONENT_TYPES.includes(type)&&canAdd(target,type,position))studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);
+    hideModulePicker();state.canvasInteraction=false;refresh(true);
+  }
+  function onCanvasClick(event){
+    const button=event.target.closest('[data-canvas-action]');if(!button)return;const node=findNodeByKey(button.dataset.canvasKey);if(!node)return;const action=button.dataset.canvasAction;
+    if(action==='edit'){studio()?.selectElement?.(node.el);state.selectedKey=node.key;const rect=node.el.getBoundingClientRect();node.el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:Math.max(8,rect.left+Math.min(rect.width/2,180)),clientY:Math.max(8,rect.top+20)}));state.canvasInteraction=false;return;}
+    if(action==='duplicate'){studio()?.duplicateElement?.(node.el);state.canvasInteraction=false;return refresh();}
+    if(action==='remove'){studio()?.removeElement?.(node.el);state.canvasInteraction=false;return refresh();}
+    if(action==='more'){state.openActionsKey=node.key;state.canvasInteraction=false;render();requestAnimationFrame(()=>[...treeRoot.querySelectorAll('[data-structure-key]')].find(row=>row.dataset.structureKey===node.key)?.scrollIntoView?.({block:'nearest'}));return;}
+    if(action==='insert'){
+      const kind=button.dataset.insertKind,position=button.dataset.position||'inside';
+      if(kind==='component'){openModulePicker(node,position);return;}
+      if(kind==='section'&&canAdd(node,'section',position)){studio()?.addElement?.(node.el,'section',position,TYPE_DEFAULTS.section);state.canvasInteraction=false;return refresh(true);}
+      if(kind==='container'&&canAdd(node,'container',position)){studio()?.addElement?.(node.el,'container',position,TYPE_DEFAULTS.container);state.canvasInteraction=false;return refresh(true);}
+    }
+  }
+
   function ensureUI(){
     if(panel)return;
     panel=document.createElement('aside');panel.id=PANEL_ID;panel.className='merd-ui-structure-panel';panel.dataset.uiStudio='structure';panel.hidden=true;
@@ -115,9 +204,10 @@
     treeRoot.addEventListener('drop',onDrop);
     treeRoot.addEventListener('dragend',clearDropHints);
     chooser.addEventListener('click',onChooserClick);
+    ensureCanvasUI();
   }
   function open(){ensureUI();studio()?.open?.();state.open=true;panel.hidden=false;document.body.classList.add('merd-ui-structure-open');refresh(true);return true;}
-  function close(){if(!panel)return;state.open=false;state.openActionsKey='';panel.hidden=true;chooser.hidden=true;document.body.classList.remove('merd-ui-structure-open');clearDropHints();}
+  function close(){if(!panel)return;state.open=false;state.openActionsKey='';state.canvasInteraction=false;panel.hidden=true;chooser.hidden=true;hideModulePicker();if(canvasLayer){canvasLayer.hidden=true;canvasLayer.innerHTML='';}document.body.classList.remove('merd-ui-structure-open');clearDropHints();}
   function toggle(){return state.open?(close(),false):open();}
 
   function matchesFilter(node){if(!state.filter)return true;return node.label.toLowerCase().includes(state.filter)||(TYPE_LABELS[node.type]||'').toLowerCase().includes(state.filter)||node.children.some(matchesFilter);}
@@ -130,12 +220,13 @@
   }
   function render(){
     if(!state.open||!treeRoot)return;state.tree=buildTree();
-    if(!state.tree){state.openActionsKey='';treeRoot.innerHTML='<p class="merd-ui-structure-empty">No editable page is visible.</p>';return;}
+    if(!state.tree){state.openActionsKey='';treeRoot.innerHTML='<p class="merd-ui-structure-empty">No editable page is visible.</p>';renderCanvas();return;}
     if(state.openActionsKey&&!findNodeByKey(state.openActionsKey))state.openActionsKey='';
     treeRoot.innerHTML=rowHtml(state.tree,0)||'<p class="merd-ui-structure-empty">No matching structure.</p>';
-    const selected=findNodeByKey(state.selectedKey);breadcrumb.textContent=selected?pathFor(selected):`Page / ${state.tree.label}`;
+    const selected=findNodeByKey(state.selectedKey);breadcrumb.textContent=selected?pathFor(selected):`Page / ${state.tree.label}`;renderCanvas();
   }
-  function refresh(immediate=false){clearTimeout(state.refreshTimer);const run=()=>{if(state.open)render();};if(immediate)run();else state.refreshTimer=setTimeout(run,80);}
+  const interactionActive=()=>!!(state.openActionsKey||(chooser&&!chooser.hidden)||(modulePicker&&!modulePicker.hidden)||state.canvasInteraction);
+  function refresh(immediate=false){clearTimeout(state.refreshTimer);const run=()=>{if(!state.open)return;if(interactionActive()){state.refreshTimer=setTimeout(run,80);return;}render();};if(immediate&&!interactionActive())run();else state.refreshTimer=setTimeout(run,80);}
 
   function onTreeClick(event){
     const button=event.target.closest('[data-structure-action]');if(!button)return;const row=button.closest('[data-structure-key]'),node=findNodeByKey(row?.dataset.structureKey);if(!node)return;
@@ -151,6 +242,7 @@
 
   function openChooser(target,position){
     const types=typesForPlacement(target,position);if(!types.length)return;
+    if(types.length===1){const type=types[0];studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);state.openActionsKey='';refresh(true);return;}
     chooser.dataset.targetKey=target.key;chooser.dataset.position=position;
     chooser.innerHTML=`<div class="merd-ui-structure-chooser-head"><strong>Add ${position}</strong><button type="button" data-chooser-close aria-label="Close">×</button></div><div class="merd-ui-structure-type-grid">${types.map(type=>`<button type="button" data-add-type="${type}"><span>${iconFor(type)}</span><strong>${TYPE_LABELS[type]}</strong></button>`).join('')}</div>`;
     chooser.hidden=false;
@@ -175,8 +267,10 @@
   window.addEventListener('merdpos-uistudio-selection',event=>{const el=event.detail?.element instanceof Element?event.detail.element:null;if(!el){state.selectedKey='';if(state.open)render();return;}if(!state.open)return;state.tree=buildTree();const node=findNodeByElement(el);state.selectedKey=node?.key||'';render();});
   window.addEventListener('merdpos-uistudio-state',event=>{if(event.detail?.enabled===false)close();});
   document.addEventListener('click',event=>{if(event.target.closest('.portal-tab'))setTimeout(()=>refresh(),0);},true);
-  // Live portal widgets mutate class/hidden state frequently. Never replace an active Structure action/chooser DOM mid-interaction.
-  const observer=new MutationObserver(records=>{if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;const relevant=records.some(record=>!isStudioNode(record.target));if(relevant)refresh();});
+  window.addEventListener('resize',scheduleCanvasPosition);window.addEventListener('scroll',scheduleCanvasPosition,true);
+  // Live portal widgets mutate class/hidden state frequently. Never replace an active Structure action, chooser, or canvas control mid-interaction.
+  const mutationTouchesPortal=record=>{if(isStudioNode(record.target))return false;if(record.type==='childList'){const changed=[...record.addedNodes,...record.removedNodes].filter(node=>node instanceof Element);if(changed.length&&changed.every(node=>isStudioNode(node)))return false;}return true;};
+  const observer=new MutationObserver(records=>{if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden)||(modulePicker&&!modulePicker.hidden)||state.canvasInteraction)return;const relevant=records.some(mutationTouchesPortal);if(relevant)refresh();});
   observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
 
   window.MERDPOS_UI_STUDIO_STRUCTURE=Object.freeze({open,close,toggle,refresh:()=>refresh(true),getTree:()=>state.tree});

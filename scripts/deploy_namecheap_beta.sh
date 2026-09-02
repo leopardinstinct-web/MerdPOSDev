@@ -211,15 +211,16 @@ for required_asset in \
   'assets/account-menu.js?v=20260902ds130' \
   'assets/ui-studio.css?v=20260902studio30' \
   'assets/ui-studio.js?v=20260902structure1' \
-  'assets/ui-studio-structure.js?v=20260903structure2'; do
+  'assets/ui-studio-structure.css?v=20260903structure3' \
+  'assets/ui-studio-structure.js?v=20260903structure3'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q "openActionsKey:''" "$LIVE/timesheet_portal/assets/ui-studio-structure.js" || ! grep -Fq "if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;" "$LIVE/timesheet_portal/assets/ui-studio-structure.js"; then
-  echo "ERROR: live Structure runtime is missing durable action-menu interaction state." >&2
+if ! grep -q "openActionsKey:''" "$LIVE/timesheet_portal/assets/ui-studio-structure.js" || ! grep -q "canvasInteraction:false" "$LIVE/timesheet_portal/assets/ui-studio-structure.js" || ! grep -Fq "Insert Component" "$LIVE/timesheet_portal/assets/ui-studio-structure.js"; then
+  echo "ERROR: live Structure runtime is missing durable canvas interaction state or component picker." >&2
   exit 1
 fi
 if ! grep -q 'assets/management.js?v=20260902ds130' "$LIVE/timesheet_portal/dashboard.php"; then

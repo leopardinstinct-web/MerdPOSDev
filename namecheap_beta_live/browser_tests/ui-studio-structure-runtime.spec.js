@@ -79,4 +79,52 @@ test('Structure editor has desktop layers panel and mobile bottom-sheet contract
   expect(css).toContain('width:min(370px,calc(100vw - 32px))');
   expect(css).toContain('@media(max-width:720px)');
   expect(css).toContain('height:min(68vh,640px)');
+  expect(css).toContain('.merd-ui-structure-canvas-layer{position:fixed');
+  expect(css).toContain('.merd-ui-structure-module-picker{position:fixed');
+});
+
+test('Structure canvas exposes contextual insertion points and searchable component picker',async({page})=>{
+  await page.setContent(`<!doctype html><body><section id="dashboardPanel" class="portal-panel"><section id="sectionOne" data-ui-studio-structure-type="section" data-ui-studio-structure-label="Section One"><div id="containerOne" data-ui-studio-structure-type="container" data-ui-studio-structure-label="Container One"><p id="textOne" data-ui-studio-structure-type="text">Hello</p></div></section></section></body>`);
+  await page.addScriptTag({content:`window.MERDPOS_AUTH={is_dev:true};window.__structureCalls=[];window.MERDPOS_UI_STUDIO={open(){},selectElement(el){window.__structureCalls.push(['select',el.id]);window.dispatchEvent(new CustomEvent('merdpos-uistudio-selection',{detail:{element:el}}));},addElement(el,type,position,content){window.__structureCalls.push(['add',el.id,type,position,content]);},moveElement(){},duplicateElement(el){window.__structureCalls.push(['duplicate',el.id]);},removeElement(el){window.__structureCalls.push(['remove',el.id]);}};`});
+  await page.addScriptTag({content:source('assets/ui-studio-structure.js')});
+  await page.evaluate(()=>window.MERDPOS_UI_STUDIO_STRUCTURE.open());
+  const tree=page.locator('.merd-ui-structure-tree');
+  const section=tree.locator('[data-structure-key]').filter({hasText:'Section One'}).first();
+  await section.locator('[data-structure-action="select"]').click();
+  const canvas=page.locator('.merd-ui-structure-canvas-layer');
+  await expect(canvas).toBeVisible();
+  await expect(canvas.locator('.merd-ui-structure-canvas-outline.is-section')).toHaveCount(1);
+  await expect(canvas.locator('.merd-ui-structure-canvas-outline.is-container')).toHaveCount(1);
+  await expect(canvas.locator('[data-insert-kind="container"][data-position="inside"]')).toBeVisible();
+  await canvas.locator('[data-insert-kind="container"][data-position="inside"]').click();
+  expect(await page.evaluate(()=>window.__structureCalls.some(call=>call[0]==='add'&&call[1]==='sectionOne'&&call[2]==='container'&&call[3]==='inside'))).toBeTruthy();
+  const container=tree.locator('[data-structure-key]').filter({hasText:'Container One'}).first();
+  await container.locator('[data-structure-action="select"]').click();
+  await canvas.locator('[data-insert-kind="component"][data-position="inside"]').click();
+  const picker=page.locator('.merd-ui-structure-module-picker');
+  await expect(picker).toBeVisible();
+  await expect(picker).toContainText('Insert Component');
+  await expect(picker).toContainText('Metric Card');
+  await expect(picker).toContainText('Employee Status');
+  await picker.locator('[data-module-search]').fill('chart');
+  await expect(picker.locator('[data-module-type="chart"]')).toBeVisible();
+  await expect(picker.locator('[data-module-type="text"]')).toBeHidden();
+  await picker.locator('[data-module-type="chart"]').click();
+  expect(await page.evaluate(()=>window.__structureCalls.some(call=>call[0]==='add'&&call[1]==='containerOne'&&call[2]==='chart'&&call[3]==='inside'))).toBeTruthy();
+});
+
+test('Structure canvas keeps an active insertion control connected while the portal mutates',async({page})=>{
+  await page.setContent(`<!doctype html><body><section id="dashboardPanel" class="portal-panel"><section id="sectionOne" data-ui-studio-structure-type="section" data-ui-studio-structure-label="Section One"><div id="containerOne" data-ui-studio-structure-type="container" data-ui-studio-structure-label="Container One"><p>Text</p></div></section></section></body>`);
+  await page.addScriptTag({content:`window.MERDPOS_AUTH={is_dev:true};window.MERDPOS_UI_STUDIO={open(){},selectElement(el){window.dispatchEvent(new CustomEvent('merdpos-uistudio-selection',{detail:{element:el}}));},addElement(){},moveElement(){},duplicateElement(){},removeElement(){}};`});
+  await page.addScriptTag({content:source('assets/ui-studio-structure.js')});
+  await page.evaluate(()=>window.MERDPOS_UI_STUDIO_STRUCTURE.open());
+  const container=page.locator('.merd-ui-structure-tree [data-structure-key]').filter({hasText:'Container One'}).first();
+  await container.locator('[data-structure-action="select"]').click();
+  const addComponent=page.locator('.merd-ui-structure-canvas-layer [data-insert-kind="component"]').first();
+  await page.evaluate(()=>{window.__activeCanvasButton=document.querySelector('.merd-ui-structure-canvas-layer [data-insert-kind="component"]');window.__activeCanvasButton.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:1,pointerType:'mouse',button:0}));document.getElementById('sectionOne').classList.add('runtime-pulse');});
+  await page.waitForTimeout(150);
+  expect(await page.evaluate(()=>window.__activeCanvasButton.isConnected)).toBeTruthy();
+  await expect(addComponent).toBeVisible();
+  await addComponent.click();
+  await expect(page.locator('.merd-ui-structure-module-picker')).toBeVisible();
 });

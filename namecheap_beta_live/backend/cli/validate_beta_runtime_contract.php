@@ -665,10 +665,15 @@ beta_contract_require_contains($accountMenuJs, 'if(event.key!==ACCOUNT_UI_STATE_
 
 // DevStudio Structure/Layers editor is a DEV-only view over the canonical patch engine.
 beta_contract_require_contains($management, "if(isDev){", 'DevStudio DEV-only loader', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio-structure.css?v=20260902structure1', 'Structure editor stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260903structure2', 'Structure editor runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio-structure.css?v=20260903structure3', 'Structure editor stylesheet wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260903structure3', 'Structure editor runtime wiring', $errors);
 beta_contract_require_contains($uiStudioStructureJs, "openActionsKey:''", 'Structure action-menu durable state', $errors);
-beta_contract_require_contains($uiStudioStructureJs, "if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;", 'Structure active-interaction mutation guard', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "canvasInteraction:false", 'Structure canvas interaction durable state', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "(modulePicker&&!modulePicker.hidden)||state.canvasInteraction", 'Structure active-interaction mutation guard', $errors);
+beta_contract_require_contains($uiStudioStructureJs, 'const interactionActive=', 'Structure queued-refresh interaction guard', $errors);
+beta_contract_require_contains($uiStudioStructureJs, 'clearTimeout(state.refreshTimer);', 'Structure canvas cancels stale queued refresh', $errors);
+beta_contract_require_contains($uiStudioStructureJs, 'merd-ui-structure-canvas-layer', 'Structure canvas overlay runtime', $errors);
+beta_contract_require_contains($uiStudioStructureJs, 'Insert Component', 'Structure searchable component picker', $errors);
 beta_contract_require_contains($uiStudioJs, "{label:'Structure',action:'structure'", 'Structure radial action', $errors);
 beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target))target.appendChild(node)", 'inside add patch semantics', $errors);
 beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target)){target.appendChild(source);return;}", 'inside move/reparent patch semantics', $errors);
@@ -678,6 +683,9 @@ beta_contract_require_contains($uiStudioStructureJs, "section:['container','text
 beta_contract_require_contains($uiStudioStructureJs, "container:['container','text','metric-card','chart','employee-status','data-table']", 'Container child hierarchy', $errors);
 beta_contract_require_contains($uiStudioStructureJs, 'MERDPOS_UI_STUDIO_STRUCTURE', 'Structure editor public runtime', $errors);
 beta_contract_require_contains($uiStudioStructureCss, '@media(max-width:720px)', 'Structure editor mobile sheet', $errors);
+beta_contract_require_contains($uiStudioStructureCss, '.merd-ui-structure-canvas-toolbar', 'Structure contextual canvas toolbar styling', $errors);
+beta_contract_require_contains($uiStudioStructureCss, '.merd-ui-structure-module-grid', 'Structure component picker grid styling', $errors);
+beta_contract_require_contains($deployScript, 'assets/ui-studio-structure.js?v=20260903structure3', 'Namecheap Structure runtime cache guard', $errors);
 
 // Implemented DevStudio patch requests are canonical source, not permanent Studio overlays.
 beta_contract_require_contains($dashboard, "'home' => 'M600-160v-280h280v280H600", 'attached Dashboard navigation icon', $errors);
