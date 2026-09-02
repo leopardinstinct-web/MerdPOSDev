@@ -1,0 +1,71 @@
+name: Fix revision 130 final guardrail expectations
+
+on:
+  push:
+    branches: [namecheap-beta-live]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: contains(github.event.head_commit.message, '[fix-rev130-final-guardrail]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh only stale revision 130 guardrails
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+            Path('namecheap_beta_live/browser_tests/analytics-runtime.spec.js'): [
+              ('assets/dashboard-builder.js?v=20260902ds97', 'assets/dashboard-builder.js?v=20260902ds130'),
+            ],
+            Path('namecheap_beta_live/browser_tests/brand-palette-runtime.spec.js'): [
+              ("await expect(page.locator('#primary')).toHaveCSS('background-color', 'rgb(139, 46, 255)');", "await expect(page.locator('#primary')).toHaveCSS('background-color', 'rgb(18, 189, 243)');"),
+            ],
+            Path('namecheap_beta_live/browser_tests/shell-account-runtime.spec.js'): [
+              ('assets/management.js?v=20260902ds117', 'assets/management.js?v=20260902ds130'),
+            ],
+          }
+          for path, pairs in replacements.items():
+            text = path.read_text(encoding='utf-8')
+            for old, new in pairs:
+              if old not in text:
+                raise SystemExit(f'missing expected stale assertion in {path}: {old}')
+              text = text.replace(old, new, 1)
+            path.write_text(text, encoding='utf-8')
+
+          packet = Path('.ai/work/active/MERD-20260902-ds-revision-130.yaml')
+          text = packet.read_text(encoding='utf-8')
+          if 'last_seen_head:' not in text:
+            marker = 'base_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"\n'
+            if marker not in text:
+              raise SystemExit('packet base_head marker missing')
+            text = text.replace(marker, marker + 'last_seen_head: "${{ github.sha }}"\n', 1)
+          packet.write_text(text, encoding='utf-8')
+          PY
+      - name: Validate corrected guardrails
+        run: |
+          set -euo pipefail
+          php namecheap_beta_live/backend/cli/validate_ai_continuity.php
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright test namecheap_beta_live/browser_tests/analytics-runtime.spec.js namecheap_beta_live/browser_tests/brand-palette-runtime.spec.js namecheap_beta_live/browser_tests/shell-account-runtime.spec.js namecheap_beta_live/browser_tests/revision130-runtime.spec.js --workers=1 --reporter=line
+      - name: Commit only corrected files
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add namecheap_beta_live/browser_tests/analytics-runtime.spec.js \
+                  namecheap_beta_live/browser_tests/brand-palette-runtime.spec.js \
+                  namecheap_beta_live/browser_tests/shell-account-runtime.spec.js \
+                  .ai/work/active/MERD-20260902-ds-revision-130.yaml
+          git diff --cached --check
+          git commit -m 'Refresh revision 130 full guardrail expectations'
+          git push origin HEAD:namecheap-beta-live
