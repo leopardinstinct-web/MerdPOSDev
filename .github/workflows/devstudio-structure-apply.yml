@@ -25,13 +25,13 @@ jobs:
           python3 scripts/apply_devstudio_structure_editor.py
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php')
-          t=p.read_text(encoding='utf-8')
           old='assets/ui-studio.js?v=20260902ds117'
           new='assets/ui-studio.js?v=20260902structure1'
-          if old not in t:
-              raise SystemExit('stale Studio cache validator anchor missing')
-          p.write_text(t.replace(old,new),encoding='utf-8')
+          for name in ['namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php','scripts/deploy_namecheap_beta.sh']:
+              p=Path(name);t=p.read_text(encoding='utf-8')
+              if old not in t:
+                  raise SystemExit(f'stale Studio cache anchor missing: {name}')
+              p.write_text(t.replace(old,new),encoding='utf-8')
           PY
       - name: Validate source and runtime contract
         run: |
@@ -40,6 +40,7 @@ jobs:
           node --check namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js
           node --check namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js
           php -l namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          bash -n scripts/deploy_namecheap_beta.sh
           php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
           git diff --check
       - name: Run targeted Chromium structure regression
