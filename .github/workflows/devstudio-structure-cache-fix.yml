@@ -66,7 +66,7 @@ jobs:
               raise SystemExit('missing playbook Structure lesson anchor')
           if 'Behavioral changes to browser-loaded DevStudio assets must advance' not in p:
               p=p.replace(marker,marker+line,1)
-              playbook.write_text(p,encoding='utf-8')
+              playbook.write_text(p.rstrip()+'\n',encoding='utf-8')
 
           ui=Path('namecheap_beta_live/timesheet_portal/UI_STUDIO.md')
           u=ui.read_text(encoding='utf-8')
@@ -75,7 +75,8 @@ jobs:
           if umarker not in u:
               raise SystemExit('missing UI Studio stability lesson anchor')
           if 'Behavioral Structure-runtime changes must also advance' not in u:
-              ui.write_text(u.replace(umarker,umarker+uline,1),encoding='utf-8')
+              u=u.replace(umarker,umarker+uline,1)
+              ui.write_text(u.rstrip()+'\n',encoding='utf-8')
           PY
       - name: Validate source and deployment contract
         run: |
