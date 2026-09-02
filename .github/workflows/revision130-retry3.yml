@@ -1,0 +1,123 @@
+name: Validate DevStudio revision 130 refreshed contracts
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[retry3-rev130]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Repair transformer and apply revision 130
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import ast
+          p=Path('scripts/apply_revision130.py'); t=p.read_text(encoding='utf-8')
+          old='t=replace_once(t,"  function openMobileTools(trigger) {","  function openMobileTools(trigger, options = {}) {")'
+          new='t=replace_once(t,"  function openMobileTools(trigger) {","  function openMobileTools(trigger, options = {}) {",\'account open signature\')'
+          if t.count(old)!=1: raise SystemExit(f'expected one transformer typo, found {t.count(old)}')
+          t=t.replace(old,new,1); p.write_text(t,encoding='utf-8')
+          tree=ast.parse(t)
+          bad=[n.lineno for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='replace_once' and len(n.args)<4]
+          if bad: raise SystemExit(f'replace_once calls missing labels at {bad}')
+          PY
+          python3 scripts/apply_revision130.py
+      - name: Refresh binding runtime and deploy contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          v=Path('namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php')
+          t=v.read_text(encoding='utf-8')
+          pairs={
+            'assets/design-tokens.css?v=20260828palette1':'assets/design-tokens.css?v=20260902ds130',
+            'assets/design-system.css?v=20260902ds117':'assets/design-system.css?v=20260902ds130',
+            'assets/shell.css?v=20260902ds117':'assets/shell.css?v=20260902ds130',
+            'assets/navigation.js?v=20260902ds97':'assets/navigation.js?v=20260902ds130',
+            'assets/account-menu.js?v=20260902ds117':'assets/account-menu.js?v=20260902ds130',
+            'assets/dashboard-builder.css?v=20260902ds97':'assets/dashboard-builder.css?v=20260902ds130',
+            'assets/dashboard-builder.js?v=20260902ds97':'assets/dashboard-builder.js?v=20260902ds130',
+            'assets/management.js?v=20260902ds117':'assets/management.js?v=20260902ds130',
+            'assets/directory.js?v=20260902ds97':'assets/directory.js?v=20260902ds130',
+          }
+          for old,new in pairs.items(): t=t.replace(old,new)
+          t=t.replace("beta_contract_require_contains($directoryJs, 'window.MERDPOSStoreTimings?.openStore?.', 'Store Edit opens embedded timings', $errors);","beta_contract_require_contains($directoryJs, 'timingsModuleReady.then', 'Store Edit waits for embedded timings', $errors);")
+          t=t.replace("beta_contract_require_contains($timingsJs, \"scope:'store'\", 'Store timings save is store-scoped', $errors);","beta_contract_require_contains($timingsJs, 'collectForSave', 'Store timings hand off to unified Store Save', $errors);")
+          v.write_text(t,encoding='utf-8')
+
+          d=Path('scripts/deploy_namecheap_beta.sh'); s=d.read_text(encoding='utf-8')
+          for old,new in pairs.items(): s=s.replace(old,new)
+          anchor="""if ! grep -q 'directory-edit-icon-btn' \"$LIVE/timesheet_portal/assets/directory.js\" || grep -q 'class=\"icon-text-btn\" data-edit-employee' \"$LIVE/timesheet_portal/assets/directory.js\"; then
+  echo \"ERROR: live DS97 shared directory edit-action contract is missing.\" >&2
+  exit 1
+fi
+"""
+          guard="""if ! grep -q -- '--color-brand-primary: var(--color-brand-cyan)' \"$LIVE/timesheet_portal/assets/design-tokens.css\"; then
+  echo \"ERROR: live revision 130 cyan product accent is missing.\" >&2
+  exit 1
+fi
+if ! grep -q 'dashboard-page-head' \"$LIVE/timesheet_portal/assets/dashboard-builder.js\"; then
+  echo \"ERROR: live revision 130 Dashboard heading is missing.\" >&2
+  exit 1
+fi
+if ! grep -q 'id=\"storeProfileFields\"' \"$LIVE/timesheet_portal/dashboard.php\" || ! grep -q 'directory_store_edit_fields' \"$LIVE/timesheet_portal/api/admin_directory.php\"; then
+  echo \"ERROR: live revision 130 schema-aware Store profile editor is missing.\" >&2
+  exit 1
+fi
+if grep -q 'saveTimingsBtn' \"$LIVE/timesheet_portal/assets/timings.js\" || ! grep -q 'collectForSave' \"$LIVE/timesheet_portal/assets/timings.js\"; then
+  echo \"ERROR: live revision 130 unified Store Save contract is missing.\" >&2
+  exit 1
+fi
+if ! grep -q \"ACCOUNT_UI_STATE_KEY='merdpos-account-tools-ui-v1'\" \"$LIVE/timesheet_portal/assets/account-menu.js\"; then
+  echo \"ERROR: live revision 130 account-tools persistence is missing.\" >&2
+  exit 1
+fi
+"""
+          if anchor not in s: raise SystemExit('deploy DS97 directory guard anchor missing')
+          s=s.replace(anchor,anchor+guard,1)
+          d.write_text(s,encoding='utf-8')
+          PY
+      - name: Syntax and runtime contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l namecheap_beta_live/timesheet_portal/dashboard.php
+          php -l namecheap_beta_live/timesheet_portal/api/admin_directory.php
+          php -l namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          node --check namecheap_beta_live/timesheet_portal/assets/dashboard-builder.js
+          node --check namecheap_beta_live/timesheet_portal/assets/directory.js
+          node --check namecheap_beta_live/timesheet_portal/assets/timings.js
+          node --check namecheap_beta_live/timesheet_portal/assets/account-menu.js
+          bash -n scripts/deploy_namecheap_beta.sh
+          php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          git diff --check
+      - name: Targeted Chromium regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright test namecheap_beta_live/browser_tests/revision130-runtime.spec.js namecheap_beta_live/browser_tests/implementation-patches-runtime.spec.js --workers=1 --reporter=line
+      - name: Commit canonical product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Implement DevStudio revision 130 [rev130-applied]'
+          git push origin HEAD:namecheap-beta-live
