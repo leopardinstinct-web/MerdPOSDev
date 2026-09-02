@@ -1,0 +1,59 @@
+version: 1
+id: MERD-20260902-ds-revision-117
+objective: "Implement DevStudio global unresolved patch revision 117 in canonical MERDPOS Beta, preserve truthful continuity, and advance only through deployment/live verification evidence."
+acceptance:
+  - "Desktop bottom navigation buttons render icon-left and label-right."
+  - "Freshness warning plus Workforce active/inactive semantic colors are represented in the MERDPOS palette workflow without weakening the five-color brand-master invariant."
+  - "Shared directory/page toolbar alignment is propagated consistently and Employees page heading reads Workforce."
+  - "Accent color changes persist and synchronize across browser windows; prior failure mode is guarded against recurrence."
+  - "Store/Employee admin-dialog header button issue and malformed DevStudio selector generation are corrected."
+  - "About MERDPOS uses the supplied M_Icon_v2.svg asset."
+  - "Implementation/unresolved counter controls are hidden; ChatGPT-copy control sits left of the DevStudio toggle and is visible only while DevStudio is enabled."
+  - "Only revision 117 patch IDs are receipted, and only after canonical implementation, tests, deployment and live verification."
+packet_state: OPEN
+lifecycle: DOCUMENTED
+base_head: "f092d7112dfd0d56dbfd65c475fb3ad1eef2020e"
+last_seen_head: "f092d7112dfd0d56dbfd65c475fb3ad1eef2020e"
+affected_paths:
+  - ".ai/work/ACTIVE.yaml"
+  - ".ai/work/active/MERD-20260902-ds-revision-117.yaml"
+  - "namecheap_beta_live/timesheet_portal/dashboard.php"
+  - "namecheap_beta_live/timesheet_portal/assets/design-tokens.css"
+  - "namecheap_beta_live/timesheet_portal/assets/design-system.css"
+  - "namecheap_beta_live/timesheet_portal/assets/shell.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.css"
+  - "namecheap_beta_live/timesheet_portal/assets/account-menu.js"
+  - "namecheap_beta_live/timesheet_portal/assets/management.js"
+  - "namecheap_beta_live/timesheet_portal/assets/navigation.js"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.css"
+  - "namecheap_beta_live/timesheet_portal/assets/ui-studio.js"
+  - "namecheap_beta_live/timesheet_portal/assets/brand/M_Icon_v2.svg"
+  - "namecheap_beta_live/browser_tests/"
+  - "namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php"
+  - "scripts/deploy_namecheap_beta.sh"
+constraints:
+  - "Canonical branch is namecheap-beta-live; current source/history outrank chat state."
+  - "Do not mark any revision 117 patch confirmed_applied before exact deployed-SHA evidence and affected live-runtime verification."
+  - "Preserve the binding five-color brand master palette; operational success/warning/danger colors remain semantic status tokens unless the product owner explicitly changes that standard."
+  - "Do not change unrelated business permissions, payroll, finance, tenant authorization or unrelated DevStudio inbox items."
+completed:
+  - "Resolved authoritative Beta HEAD f092d7112dfd0d56dbfd65c475fb3ad1eef2020e and read bootstrap, invariants, task gates and work-packet contract."
+  - "Reconciled user-supplied DevStudio revision 117 export: 13 patch IDs are pending and receipt confirmation requires deploy plus live verification."
+checks:
+  - name: "Affected source/history reconnaissance"
+    result: "NOT_RUN"
+    evidence: "Packet created before substantive implementation as required by task gates."
+  - name: "Canonical validators and browser regression"
+    result: "NOT_RUN"
+    evidence: "Pending implementation."
+  - name: "Namecheap deployment and live verification"
+    result: "NOT_RUN"
+    evidence: "Pending implementation and deploy capability."
+remaining:
+  - "Inspect current affected source, relevant history and current runtime/deploy guards."
+  - "Implement revision 117 only and add/update targeted regression/validator coverage."
+  - "Pass executable checks/CI, deploy exact SHA, live-verify affected runtime, then apply revision 117 receipt."
+next_action: "Complete affected-path source/history reconnaissance and stabilize the revision 117 implementation plan against current canonical code."
+blocked: false
+blocker: null
+updated_at: "2026-09-02T10:43:31+05:00"
