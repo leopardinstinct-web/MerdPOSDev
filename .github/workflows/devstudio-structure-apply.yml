@@ -23,6 +23,16 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_devstudio_structure_editor.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php')
+          t=p.read_text(encoding='utf-8')
+          old='assets/ui-studio.js?v=20260902ds117'
+          new='assets/ui-studio.js?v=20260902structure1'
+          if old not in t:
+              raise SystemExit('stale Studio cache validator anchor missing')
+          p.write_text(t.replace(old,new),encoding='utf-8')
+          PY
       - name: Validate source and runtime contract
         run: |
           set -euo pipefail
