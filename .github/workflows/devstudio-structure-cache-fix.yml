@@ -1,0 +1,109 @@
+name: Apply DevStudio Structure cache fix
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[apply-structure-cache]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Advance Structure runtime cache key and guards
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          management=Path('namecheap_beta_live/timesheet_portal/assets/management.js')
+          s=management.read_text(encoding='utf-8')
+          old='assets/ui-studio-structure.js?v=20260902structure1'
+          new='assets/ui-studio-structure.js?v=20260903structure2'
+          if s.count(old)!=1:
+              raise SystemExit(f'expected one Structure JS cache anchor, found {s.count(old)}')
+          management.write_text(s.replace(old,new),encoding='utf-8')
+
+          contract=Path('namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php')
+          c=contract.read_text(encoding='utf-8')
+          old_contract="beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260902structure1', 'Structure editor runtime wiring', $errors);"
+          new_contract="beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260903structure2', 'Structure editor runtime wiring', $errors);\nbeta_contract_require_contains($uiStudioStructureJs, \"openActionsKey:''\", 'Structure action-menu durable state', $errors);\nbeta_contract_require_contains($uiStudioStructureJs, \"if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;\", 'Structure active-interaction mutation guard', $errors);"
+          if old_contract not in c:
+              raise SystemExit('missing Structure runtime contract cache anchor')
+          contract.write_text(c.replace(old_contract,new_contract,1),encoding='utf-8')
+
+          deploy=Path('scripts/deploy_namecheap_beta.sh')
+          d=deploy.read_text(encoding='utf-8')
+          file_anchor='  "$LIVE/timesheet_portal/assets/ui-studio.js" \\\n'
+          file_insert='  "$LIVE/timesheet_portal/assets/ui-studio.js" \\\n  "$LIVE/timesheet_portal/assets/ui-studio-structure.css" \\\n  "$LIVE/timesheet_portal/assets/ui-studio-structure.js" \\\n'
+          if file_anchor not in d:
+              raise SystemExit('missing deploy required-file Structure anchor')
+          d=d.replace(file_anchor,file_insert,1)
+          asset_anchor="  'assets/ui-studio.js?v=20260902structure1'; do"
+          asset_insert="  'assets/ui-studio.js?v=20260902structure1' \\\n  'assets/ui-studio-structure.js?v=20260903structure2'; do"
+          if asset_anchor not in d:
+              raise SystemExit('missing deploy required-asset Structure anchor')
+          d=d.replace(asset_anchor,asset_insert,1)
+          guard_anchor="if ! grep -q 'assets/management.js?v=20260902ds130' \"$LIVE/timesheet_portal/dashboard.php\"; then"
+          guard="if ! grep -q \"openActionsKey:''\" \"$LIVE/timesheet_portal/assets/ui-studio-structure.js\" || ! grep -Fq \"if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;\" \"$LIVE/timesheet_portal/assets/ui-studio-structure.js\"; then\n  echo \"ERROR: live Structure runtime is missing durable action-menu interaction state.\" >&2\n  exit 1\nfi\n"
+          if guard_anchor not in d:
+              raise SystemExit('missing deploy live-guard insertion anchor')
+          d=d.replace(guard_anchor,guard+guard_anchor,1)
+          deploy.write_text(d,encoding='utf-8')
+
+          playbook=Path('.ai/playbook.md')
+          p=playbook.read_text(encoding='utf-8')
+          line='\nBehavioral changes to browser-loaded DevStudio assets must advance the loader cache/version key in the same change; server-side file replacement alone is not sufficient live delivery evidence. Deployment guards should bind both the cache key and the corrected runtime behavior.\n'
+          marker='A browser failure reporting a detached, unstable, or suddenly hidden editor control is evidence of a real interaction race. A later retry passing is **not** sufficient closure. Root-cause the race, make the interaction state durable, and add a regression that mutates the underlying portal while the editor action remains open and usable.'
+          if marker not in p:
+              raise SystemExit('missing playbook Structure lesson anchor')
+          if 'Behavioral changes to browser-loaded DevStudio assets must advance' not in p:
+              p=p.replace(marker,marker+line,1)
+              playbook.write_text(p,encoding='utf-8')
+
+          ui=Path('namecheap_beta_live/timesheet_portal/UI_STUDIO.md')
+          u=ui.read_text(encoding='utf-8')
+          umarker='A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open.'
+          uline=' Behavioral Structure-runtime changes must also advance the loader cache key so existing browser sessions cannot remain pinned to the pre-fix script.'
+          if umarker not in u:
+              raise SystemExit('missing UI Studio stability lesson anchor')
+          if 'Behavioral Structure-runtime changes must also advance' not in u:
+              ui.write_text(u.replace(umarker,umarker+uline,1),encoding='utf-8')
+          PY
+      - name: Validate source and deployment contract
+        run: |
+          set -euo pipefail
+          node --check namecheap_beta_live/timesheet_portal/assets/management.js
+          node --check namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js
+          php -l namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          bash -n scripts/deploy_namecheap_beta.sh
+          php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          git diff --check
+      - name: Run targeted Structure regression
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/merdpos-structure-cache-pw
+          cd /tmp/merdpos-structure-cache-pw
+          npm init -y >/dev/null 2>&1
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 >/dev/null 2>&1
+          cat > playwright.config.cjs <<'JS'
+          const {defineConfig}=require('@playwright/test');
+          module.exports=defineConfig({testDir:process.env.GITHUB_WORKSPACE,use:{channel:'chrome',headless:true}});
+          JS
+          cd "$GITHUB_WORKSPACE"
+          NODE_PATH=/tmp/merdpos-structure-cache-pw/node_modules /tmp/merdpos-structure-cache-pw/node_modules/.bin/playwright test namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js --config=/tmp/merdpos-structure-cache-pw/playwright.config.cjs --workers=1 --reporter=line
+      - name: Commit canonical cache fix and remove temporary workflow
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/devstudio-structure-cache-fix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Advance DevStudio Structure runtime cache key'
+          git push origin HEAD:namecheap-beta-live
