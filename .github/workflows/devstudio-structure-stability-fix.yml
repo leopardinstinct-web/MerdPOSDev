@@ -1,0 +1,101 @@
+name: Apply DevStudio Structure stability fix
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[apply-structure-stability]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch Structure interaction state and durable learning
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          structure = Path('namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js')
+          s = structure.read_text(encoding='utf-8')
+          replacements = [
+              ("const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0};",
+               "const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',openActionsKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0};"),
+              ("function close(){if(!panel)return;state.open=false;panel.hidden=true;chooser.hidden=true;document.body.classList.remove('merd-ui-structure-open');clearDropHints();}",
+               "function close(){if(!panel)return;state.open=false;state.openActionsKey='';panel.hidden=true;chooser.hidden=true;document.body.classList.remove('merd-ui-structure-open');clearDropHints();}"),
+              ("const collapsed=state.collapsed.has(node.key)&&!state.filter,hasChildren=node.children.length>0,selected=node.key===state.selectedKey;",
+               "const collapsed=state.collapsed.has(node.key)&&!state.filter,hasChildren=node.children.length>0,selected=node.key===state.selectedKey,actionsOpen=node.type==='page'||state.openActionsKey===node.key;"),
+              ('<div class=\"merd-ui-structure-actions\" hidden>', '<div class=\"merd-ui-structure-actions\" ${actionsOpen?\'\':\'hidden\'}>'),
+              ("if(!state.tree){treeRoot.innerHTML='<p class=\"merd-ui-structure-empty\">No editable page is visible.</p>';return;}\n    treeRoot.innerHTML=rowHtml(state.tree,0)||'<p class=\"merd-ui-structure-empty\">No matching structure.</p>';",
+               "if(!state.tree){state.openActionsKey='';treeRoot.innerHTML='<p class=\"merd-ui-structure-empty\">No editable page is visible.</p>';return;}\n    if(state.openActionsKey&&!findNodeByKey(state.openActionsKey))state.openActionsKey='';\n    treeRoot.innerHTML=rowHtml(state.tree,0)||'<p class=\"merd-ui-structure-empty\">No matching structure.</p>';"),
+              ("if(action==='more'){const actions=row.querySelector('.merd-ui-structure-actions');actions.hidden=!actions.hidden;return;}",
+               "if(action==='more'){state.openActionsKey=state.openActionsKey===node.key?'':node.key;chooser.hidden=true;return render();}"),
+              ("if(event.target.closest('[data-chooser-close]')){chooser.hidden=true;return;}",
+               "if(event.target.closest('[data-chooser-close]')){chooser.hidden=true;state.openActionsKey='';refresh(true);return;}"),
+              ("studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);chooser.hidden=true;refresh();",
+               "studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);chooser.hidden=true;state.openActionsKey='';refresh(true);"),
+              ("const observer=new MutationObserver(records=>{if(!state.open)return;const relevant=records.some(record=>!isStudioNode(record.target));if(relevant)refresh();});",
+               "// Live portal widgets mutate class/hidden state frequently. Never replace an active Structure action/chooser DOM mid-interaction.\n  const observer=new MutationObserver(records=>{if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;const relevant=records.some(record=>!isStudioNode(record.target));if(relevant)refresh();});")
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'missing Structure patch anchor: {old[:90]}')
+              s = s.replace(old, new, 1)
+          structure.write_text(s, encoding='utf-8')
+
+          test = Path('namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js')
+          t = test.read_text(encoding='utf-8')
+          anchor = "  await container.locator('[data-structure-action=\"more\"]').click();\n  await container.locator('[data-structure-action=\"add\"][data-position=\"inside\"]').click();"
+          replacement = "  await container.locator('[data-structure-action=\"more\"]').click();\n  await page.evaluate(()=>document.getElementById('sectionOne').classList.add('runtime-pulse'));\n  await page.waitForTimeout(150);\n  await expect(container.locator('.merd-ui-structure-actions')).toBeVisible();\n  await container.locator('[data-structure-action=\"add\"][data-position=\"inside\"]').click();"
+          if anchor not in t:
+              raise SystemExit('missing Structure mutation regression anchor')
+          t = t.replace(anchor, replacement, 1)
+          test.write_text(t, encoding='utf-8')
+
+          playbook = Path('.ai/playbook.md')
+          p = playbook.read_text(encoding='utf-8')
+          lesson = '''\n\n## DevStudio Structure interaction stability\n\nLive MERDPOS panels can mutate `class` and `hidden` attributes continuously while DevStudio is open. Structure/Layers interaction state must therefore live in the editor state model, not only in transient DOM attributes. An open `•••` action menu or Add chooser must survive unrelated portal mutations, and the Structure MutationObserver must not replace those active controls mid-pointer interaction.\n\nA browser failure reporting a detached, unstable, or suddenly hidden editor control is evidence of a real interaction race. A later retry passing is **not** sufficient closure. Root-cause the race, make the interaction state durable, and add a regression that mutates the underlying portal while the editor action remains open and usable.\n'''
+          if '## DevStudio Structure interaction stability' not in p:
+              playbook.write_text(p.rstrip()+lesson+'\n', encoding='utf-8')
+
+          ui = Path('namecheap_beta_live/timesheet_portal/UI_STUDIO.md')
+          u = ui.read_text(encoding='utf-8')
+          note = '''\n\n### Structure interaction stability\n\nStructure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open.\n'''
+          if '### Structure interaction stability' not in u:
+              ui.write_text(u.rstrip()+note+'\n', encoding='utf-8')
+          PY
+      - name: Validate patched source
+        run: |
+          set -euo pipefail
+          node --check namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js
+          node --check namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js
+          php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          git diff --check
+      - name: Run targeted Structure Chromium regression
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/merdpos-structure-pw
+          cd /tmp/merdpos-structure-pw
+          npm init -y >/dev/null 2>&1
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 >/dev/null 2>&1
+          cat > playwright.config.cjs <<'JS'
+          const {defineConfig}=require('@playwright/test');
+          module.exports=defineConfig({testDir:process.env.GITHUB_WORKSPACE,use:{channel:'chrome',headless:true}});
+          JS
+          cd "$GITHUB_WORKSPACE"
+          NODE_PATH=/tmp/merdpos-structure-pw/node_modules /tmp/merdpos-structure-pw/node_modules/.bin/playwright test namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js --config=/tmp/merdpos-structure-pw/playwright.config.cjs --workers=1 --reporter=line
+      - name: Commit canonical fix and remove temporary workflow
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/devstudio-structure-stability-fix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Stabilize DevStudio Structure action menus'
+          git push origin HEAD:namecheap-beta-live
