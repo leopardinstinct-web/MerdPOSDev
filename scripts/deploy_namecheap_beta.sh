@@ -174,6 +174,8 @@ for live_file in \
   "$LIVE/timesheet_portal/assets/account-menu.js" \
   "$LIVE/timesheet_portal/assets/ui-studio.css" \
   "$LIVE/timesheet_portal/assets/ui-studio.js" \
+  "$LIVE/timesheet_portal/assets/ui-studio-structure.css" \
+  "$LIVE/timesheet_portal/assets/ui-studio-structure.js" \
   "$LIVE/timesheet_portal/assets/vendor/devstudio/create_new_folder_24dp.svg" \
   "$LIVE/timesheet_portal/assets/vendor/devstudio/folder_match_24dp.svg" \
   "$LIVE/timesheet_portal/assets/modal-lock.js" \
@@ -208,13 +210,18 @@ for required_asset in \
   'assets/account-menu.css?v=20260902ds117' \
   'assets/account-menu.js?v=20260902ds130' \
   'assets/ui-studio.css?v=20260902studio30' \
-  'assets/ui-studio.js?v=20260902structure1'; do
+  'assets/ui-studio.js?v=20260902structure1' \
+  'assets/ui-studio-structure.js?v=20260903structure2'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
+if ! grep -q "openActionsKey:''" "$LIVE/timesheet_portal/assets/ui-studio-structure.js" || ! grep -Fq "if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;" "$LIVE/timesheet_portal/assets/ui-studio-structure.js"; then
+  echo "ERROR: live Structure runtime is missing durable action-menu interaction state." >&2
+  exit 1
+fi
 if ! grep -q 'assets/management.js?v=20260902ds130' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
   exit 1

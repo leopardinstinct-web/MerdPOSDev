@@ -666,7 +666,9 @@ beta_contract_require_contains($accountMenuJs, 'if(event.key!==ACCOUNT_UI_STATE_
 // DevStudio Structure/Layers editor is a DEV-only view over the canonical patch engine.
 beta_contract_require_contains($management, "if(isDev){", 'DevStudio DEV-only loader', $errors);
 beta_contract_require_contains($management, 'assets/ui-studio-structure.css?v=20260902structure1', 'Structure editor stylesheet wiring', $errors);
-beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260902structure1', 'Structure editor runtime wiring', $errors);
+beta_contract_require_contains($management, 'assets/ui-studio-structure.js?v=20260903structure2', 'Structure editor runtime wiring', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "openActionsKey:''", 'Structure action-menu durable state', $errors);
+beta_contract_require_contains($uiStudioStructureJs, "if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;", 'Structure active-interaction mutation guard', $errors);
 beta_contract_require_contains($uiStudioJs, "{label:'Structure',action:'structure'", 'Structure radial action', $errors);
 beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target))target.appendChild(node)", 'inside add patch semantics', $errors);
 beta_contract_require_contains($uiStudioJs, "if(patch.position==='inside'&&canContain(target)){target.appendChild(source);return;}", 'inside move/reparent patch semantics', $errors);

@@ -171,4 +171,4 @@ The Structure runtime and stylesheet are loaded only for actual DEV sessions. On
 
 ### Structure interaction stability
 
-Structure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open.
+Structure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open. Behavioral Structure-runtime changes must also advance the loader cache key so existing browser sessions cannot remain pinned to the pre-fix script.
