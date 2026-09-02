@@ -59,3 +59,5 @@ jobs:
                   .ai/evidence/devstudio-divi-canvas-study-20260903.md
           git commit -m 'Implement canvas-first DevStudio structure editing [devstudio-canvas]'
           git push origin HEAD:namecheap-beta-live
+
+# retry after hygiene fix
