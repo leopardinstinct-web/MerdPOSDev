@@ -1155,3 +1155,30 @@ body.merd-shell {
     animation-duration: 0ms;
   }
 }
+
+
+/* DS117 shared directory/page-toolbar alignment. */
+.merd-shell .directory-card > .directory-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.merd-shell .directory-card > .directory-toolbar > :first-child {
+  min-width: 0;
+  align-self: center;
+}
+.merd-shell .directory-card > .directory-toolbar > :is(.directory-actions,.merd-action-cluster,.dev-store-actions,.directory-toolbar-actions) {
+  margin-left: auto;
+  align-self: center;
+}
+.merd-shell .admin-dialog-header > .icon-btn[data-close-dialog] {
+  width: var(--size-icon-action);
+  height: var(--size-icon-action);
+  min-width: var(--size-icon-action);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 1;
+}

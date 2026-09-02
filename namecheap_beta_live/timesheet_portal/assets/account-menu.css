@@ -473,3 +473,17 @@ body.merd-ui-studio-enabled .rail-user-avatar { background:var(--merd-ui-accent,
 .rail-collapsible-context.is-collapsed .rail-context-chevron { transform:rotate(-45deg); }
 .rail-context-body { min-width:0; display:grid; gap:.625rem; }
 .rail-context-body[hidden] { display:none !important; }
+
+
+/* DS117 DevStudio copy-control placement. */
+.rail-user-summary:has(.rail-devstudio-toggle) {
+  grid-template-columns: var(--size-icon-lg) minmax(0, 1fr) auto auto;
+}
+.rail-user-summary > .rail-studio-copy-metric {
+  grid-column: auto;
+  width: var(--size-icon-action);
+  min-width: var(--size-icon-action);
+  min-height: var(--size-icon-action);
+  padding: .2rem;
+}
+.rail-user-summary > .rail-studio-copy-metric[hidden] { display: none !important; }

@@ -225,7 +225,7 @@ function ui_icon(string $name): string
     <section id="employeesPanel" class="portal-panel"<?= $initialPanel === 'employeesPanel' ? '' : ' hidden' ?>>
       <section class="directory-card directory-layout">
         <div class="directory-toolbar">
-          <div><h2>Employees</h2></div>
+          <div><h2 class="ui-page-title">Workforce</h2></div>
           <div class="directory-actions">
             <label class="search-box" aria-label="Search employees"><?= ui_icon('search') ?><input id="employeeSearch" type="search" placeholder="Search employees"></label>
             <?php if ($canWorkforceManage): ?><button id="addEmployeeBtn" class="primary-btn compact-btn" type="button"><?= ui_icon('plus') ?> Add employee</button><?php endif; ?>
@@ -378,7 +378,7 @@ function ui_icon(string $name): string
   <?php if ($can('password.change_own')): ?>
   <dialog id="passwordDialog" class="portal-dialog">
     <form id="passwordForm" method="dialog">
-      <div class="dialog-heading"><h2>Change password</h2><button type="button" id="passwordClose" class="icon-btn" aria-label="Close">Ã—</button></div>
+      <div class="dialog-heading"><h2>Change password</h2><button type="button" id="passwordClose" class="icon-btn" aria-label="Close">×</button></div>
       <p class="muted">Use 6â€“20 digits. Your password is stored securely.</p>
       <label>Current password<input name="current_password" type="password" inputmode="numeric" pattern="[0-9]*" required></label>
       <label>New password<input name="new_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required></label>
@@ -392,7 +392,7 @@ function ui_icon(string $name): string
   <?php if ($canWorkforceManage): ?>
   <dialog id="employeeDialog" class="portal-dialog admin-dialog">
     <form id="employeeAdminForm">
-      <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">Ã—</button></div>
+      <div class="admin-dialog-header"><h2 id="employeeDialogTitle">Add employee</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
       <div class="admin-dialog-body">
         <p id="employeeSelfGuard" class="self-guard" hidden>Your own access level and active status are protected here to prevent accidental lockout.</p>
         <div class="admin-form-grid">
@@ -414,7 +414,7 @@ function ui_icon(string $name): string
   <?php if ($canStoresManage): ?>
   <dialog id="storeDialog" class="portal-dialog admin-dialog">
     <form id="storeAdminForm">
-      <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">Ã—</button></div>
+      <div class="admin-dialog-header"><h2 id="storeDialogTitle">Add store</h2><button type="button" class="icon-btn" data-close-dialog aria-label="Close">×</button></div>
       <div class="admin-dialog-body">
         <div class="admin-form-grid">
           <input type="hidden" name="id">
@@ -450,7 +450,7 @@ function ui_icon(string $name): string
   </script>
   <script src="assets/app.js?v=20260828timesheet3"></script>
   <script src="assets/beta.js?v=20260827visual1"></script>
-  <script src="assets/management.js?v=20260902about3"></script>
+  <script src="assets/management.js?v=20260902ds117"></script>
   <?php if ($canDirectory): ?><script src="assets/directory.js?v=20260902ds97"></script><?php endif; ?>
 </body>
 </html>

@@ -124,9 +124,9 @@
     const utilities = document.createElement('div');
     utilities.className = 'rail-shell-utilities';
     utilities.id = 'merdShellUtilities';
-    const studioMetrics = auth.is_dev===true ? `<div class="rail-studio-metrics" aria-label="DevStudio unresolved patch inbox"><button type="button" class="rail-studio-metric" data-studio-metric="requests" title="Implementation requests"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/google-material-symbols/comment_48px.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="patches" title="Global unresolved patches"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/create_new_folder_24dp.svg" alt=""></button><button type="button" class="rail-studio-metric" data-studio-metric="copy" title="Copy unresolved patches for ChatGPT"><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/folder_match_24dp.svg" alt=""></button></div>` : '';
+    const studioMetrics = auth.is_dev===true ? `<button type="button" class="rail-studio-metric rail-studio-copy-metric" data-studio-metric="copy" title="Copy unresolved patches for ChatGPT" hidden><span class="rail-studio-metric-count">0</span><img src="assets/vendor/devstudio/folder_match_24dp.svg" alt=""></button>` : '';
     utilities.innerHTML = `
-      <div class="rail-user-summary">${studioMetrics}<span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
+      <div class="rail-user-summary"><span class="rail-user-avatar">${esc(name.charAt(0).toUpperCase())}</span><span class="rail-user-copy"><strong>${esc(name)}</strong><small class="account-role-badge account-role-${roleClass}">${esc(roleLabel)}</small></span>${studioMetrics}${auth.is_dev===true?'<button type="button" class="rail-devstudio-toggle" data-ui-studio="toggle" aria-label="Enable DevStudio" aria-pressed="false" title="DevStudio"><span aria-hidden="true"></span></button>':''}</div>
       <div class="rail-mobile-client-context rail-collapsible-context" data-context-key="working-client"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Working client</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-mobile-client-select" aria-label="Select working client" disabled></select>${auth.is_dev===true ? `<div class="rail-timesheet-sync-row"><span>Sync</span><button type="button" class="rail-timesheet-sync-btn" aria-label="Sync Time Sheet from Google" title="Replace SQL Time Sheet from Google" disabled><img src="assets/vendor/google-material-symbols/restart_alt_48px.svg" alt=""></button></div>` : ''}</div></div>
       ${auth.is_dev===true ? `<div class="rail-dev-role-context rail-collapsible-context" data-context-key="current-role"><button type="button" class="rail-context-toggle" aria-expanded="true"><span>Current role</span><span class="rail-context-chevron" aria-hidden="true"></span></button><div class="rail-context-body"><select class="rail-dev-role-select" aria-label="Preview website as role"><option value="DEV">Developer</option><option value="ADMIN">Admin</option><option value="SUPER">Super</option><option value="USER">User</option></select></div></div>` : ''}`;
 
@@ -149,7 +149,7 @@
     const aboutBtn = document.createElement('button');
     aboutBtn.type = 'button';
     aboutBtn.className = 'rail-group-btn rail-about-toggle';
-    aboutBtn.innerHTML = '<img class="rail-asset-icon" src="assets/brand/M_Icon.svg?v=20260828about1" alt=""><span class="rail-label">About MERDPOS</span>';
+    aboutBtn.innerHTML = '<img class="rail-asset-icon" src="assets/brand/M_Icon_v2.svg?v=20260902ds117" alt=""><span class="rail-label">About MERDPOS</span>';
     aboutBtn.title = 'About MERDPOS';
     aboutBtn.setAttribute('aria-label', 'About MERDPOS');
     aboutSection.appendChild(aboutBtn);
@@ -232,6 +232,8 @@
       studioToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
       studioToggle.setAttribute('aria-label', enabled ? 'Disable DevStudio' : 'Enable DevStudio');
       studioToggle.title = enabled ? 'DevStudio enabled' : 'DevStudio disabled';
+      const copyMetric=utilities.querySelector('[data-studio-metric="copy"]');
+      if(copyMetric)copyMetric.hidden=!enabled;
     }
     if (studioToggle) {
       syncStudioToggle();
@@ -241,6 +243,7 @@
         else { writeStudioEnabled(next); syncStudioToggle({enabled:next}); window.dispatchEvent(new CustomEvent('merdpos-uistudio-toggle',{detail:{enabled:next}})); }
       });
       window.addEventListener('merdpos-uistudio-state', event => syncStudioToggle(event.detail||{}));
+      window.addEventListener('storage', event => { if(event.key===STUDIO_SETTINGS_KEY) syncStudioToggle(); });
     }
 
 

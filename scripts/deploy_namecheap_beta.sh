@@ -165,6 +165,7 @@ for live_file in \
   "$LIVE/timesheet_portal/assets/analytics-runtime.js" \
   "$LIVE/timesheet_portal/assets/brand/brand.css" \
   "$LIVE/timesheet_portal/assets/brand/brand-assets.js" \
+  "$LIVE/timesheet_portal/assets/brand/M_Icon_v2.svg" \
   "$LIVE/timesheet_portal/assets/brand/merdpos-logo-approved.png" \
   "$LIVE/timesheet_portal/assets/brand/merdpos-mark.png" \
   "$LIVE/timesheet_portal/assets/brand/merdpos-wordmark.png" \
@@ -192,29 +193,29 @@ done
 
 for required_asset in \
   'assets/design-tokens.css?v=20260828palette1' \
-  'assets/design-system.css?v=20260902ds97' \
+  'assets/design-system.css?v=20260902ds117' \
   'assets/design-audit.js?v=20260826ds1' \
   'assets/omnichannel-identity.js?v=20260902ds97' \
   'assets/minimal-controls.js?v=20260826ds1' \
   'assets/mobile-runtime.js?v=20260901ds79' \
-  'assets/shell.css?v=20260830bottom1' \
+  'assets/shell.css?v=20260902ds117' \
   'assets/navigation.js?v=20260902ds97' \
   'assets/analytics-runtime.css?v=20260831analytics2' \
   'assets/analytics-runtime.js?v=20260831analytics2' \
   'assets/dashboard-builder.css?v=20260902ds97' \
   'assets/dashboard-builder.js?v=20260902ds97' \
   'assets/dev-stores-ui.js?v=20260901ds79' \
-  'assets/account-menu.css?v=20260902about3' \
-  'assets/account-menu.js?v=20260901timesheetsync1' \
+  'assets/account-menu.css?v=20260902ds117' \
+  'assets/account-menu.js?v=20260902ds117' \
   'assets/ui-studio.css?v=20260902studio30' \
-  'assets/ui-studio.js?v=20260902studio30'; do
+  'assets/ui-studio.js?v=20260902ds117'; do
   if ! grep -q "$required_asset" "$LIVE/timesheet_portal/assets/management.js"; then
     echo "ERROR: live management runtime is missing canonical asset: $required_asset" >&2
     exit 1
   fi
 done
 
-if ! grep -q 'assets/management.js?v=20260902about3' "$LIVE/timesheet_portal/dashboard.php"; then
+if ! grep -q 'assets/management.js?v=20260902ds117' "$LIVE/timesheet_portal/dashboard.php"; then
   echo "ERROR: live dashboard is missing the current management runtime." >&2
   exit 1
 fi
@@ -302,6 +303,12 @@ for material_symbol in LICENSE-Apache-2.0.txt NOTICE.md ads_click_48px.svg arrow
     exit 1
   fi
 done
+
+
+if [[ "$(sha256sum "$LIVE/timesheet_portal/assets/brand/M_Icon_v2.svg" | awk '{print $1}')" != "fd98914e2dcb700477e04b0ed4ddece75ecebf304a632e775149b57b3f1d9177" ]]; then
+  echo "ERROR: live About control is missing the exact supplied M_Icon_v2.svg artwork." >&2
+  exit 1
+fi
 
 if ! grep -q 'assets/brand/brand-assets.js?v=20260827brand4' "$LIVE/timesheet_portal/assets/management.js"; then
   echo "ERROR: live management runtime is missing the canonical brand asset registry." >&2

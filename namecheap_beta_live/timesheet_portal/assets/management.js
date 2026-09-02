@@ -39,7 +39,7 @@
   function ensureShellAssets(){
     /* Tokens are inserted before every runtime visual layer. */
     appendStyle('merd-design-tokens','assets/design-tokens.css?v=20260828palette1');
-    appendStyle('merd-shell','assets/shell.css?v=20260830bottom1');
+    appendStyle('merd-shell','assets/shell.css?v=20260902ds117');
     appendScript('merd-brand-assets','assets/brand/brand-assets.js?v=20260827brand4');
 
     if(can('dashboard.view')&&document.getElementById('dashboardPanel')){
@@ -56,8 +56,8 @@
     appendScript('store-order','assets/store-order.js?v=20260826ds1',true);
     appendScript('modal-lock','assets/modal-lock.js?v=20260826ds1',true);
 
-    appendStyle('account-menu-css','assets/account-menu.css?v=20260902about3');
-    appendScript('account-menu','assets/account-menu.js?v=20260901timesheetsync1');
+    appendStyle('account-menu-css','assets/account-menu.css?v=20260902ds117');
+    appendScript('account-menu','assets/account-menu.js?v=20260902ds117');
 
     if(can('stores.profile.manage'))appendScript('dev-stores-ui','assets/dev-stores-ui.js?v=20260901ds79');
 
@@ -70,12 +70,12 @@
     appendScript('merd-mobile-runtime','assets/mobile-runtime.js?v=20260901ds79');
 
     /* Canonical component layer must be the final stylesheet in the beta. */
-    appendStyle('merd-design-system','assets/design-system.css?v=20260902ds97');
+    appendStyle('merd-design-system','assets/design-system.css?v=20260902ds117');
     appendScript('merd-design-audit','assets/design-audit.js?v=20260826ds1');
 
     if(isDev){
       appendStyle('merd-ui-studio-css','assets/ui-studio.css?v=20260902studio30');
-      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260902studio30');
+      appendScript('merd-ui-studio','assets/ui-studio.js?v=20260902ds117');
     }
   }
   ensureShellAssets();

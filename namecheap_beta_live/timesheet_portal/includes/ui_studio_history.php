@@ -44,7 +44,7 @@ function merd_ui_studio_normalize_palette(mixed $value): array
         if (!is_array($raw)) continue;
         $id = strtolower(trim((string)($raw['id'] ?? ''))); $token = trim((string)($raw['token'] ?? ''));
         $label = trim((string)($raw['label'] ?? '')); $hex = strtoupper(trim((string)($raw['value'] ?? '')));
-        if (!preg_match('/^[a-z0-9_-]{1,48}$/', $id) || !preg_match('/^--color-brand-[a-z0-9_-]{1,48}$/', $token)) continue;
+        if (!preg_match('/^[a-z0-9_-]{1,48}$/', $id) || !preg_match('/^--color-(?:brand-[a-z0-9_-]{1,48}|success|warning|danger)$/', $token)) continue;
         if ($label === '' || !preg_match('/^#[0-9A-F]{6}$/', $hex) || isset($ids[$id]) || isset($tokens[$token])) continue;
         $ids[$id] = true; $tokens[$token] = true;
         $items[] = ['id'=>$id,'token'=>$token,'label'=>mb_substr($label,0,48),'value'=>$hex];
