@@ -23,6 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_revision117.py
+          python3 scripts/fix_revision117_contract.py
           curl -fsSL 'https://app.merdpos.com/beta/timesheet_portal/studio_context_asset.php?t=d68bc1e925f29be6120c422f6f19bf730a9788e728ce2e17ecc6ce4a12ec71a6' \
             -o namecheap_beta_live/timesheet_portal/assets/brand/M_Icon_v2.svg
           echo 'fd98914e2dcb700477e04b0ed4ddece75ecebf304a632e775149b57b3f1d9177  namecheap_beta_live/timesheet_portal/assets/brand/M_Icon_v2.svg' | sha256sum -c -
