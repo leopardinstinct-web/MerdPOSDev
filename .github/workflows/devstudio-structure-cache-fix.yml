@@ -1,5 +1,6 @@
 name: Apply DevStudio Structure cache fix
 
+# Registered then explicitly triggered so Actions can execute it.
 on:
   push:
     branches:
