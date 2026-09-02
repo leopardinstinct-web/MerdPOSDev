@@ -168,3 +168,7 @@ A Section may also own content directly (for example `Section > Data Table`). Pa
 Tree selection is synchronized with the existing DevStudio live-preview selection. Drag/drop uses before, inside, and after placement and records the same canonical move patches used by radial Move. Add Above / Inside / Below uses the canonical add patch engine. Duplicate creates a sanitized preview clone with duplicate IDs/form ownership attributes stripped. Existing source elements use Hide rather than destructive deletion; elements created by DevStudio can be removed from the current preview layer.
 
 The Structure runtime and stylesheet are loaded only for actual DEV sessions. On narrow screens the layers panel becomes a bottom sheet. The panel is an editor view only: patch history, role scope, copy-for-ChatGPT, receipt status, and deployment truth remain owned by DevStudio's existing canonical state.
+
+### Structure interaction stability
+
+Structure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open.

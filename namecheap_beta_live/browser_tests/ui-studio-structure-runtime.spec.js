@@ -59,6 +59,9 @@ test('Structure actions select live DOM and offer allowed inside modules',async(
   await container.locator('[data-structure-action="select"]').click();
   expect(await page.evaluate(()=>window.__structureCalls.some(call=>call[0]==='select'&&call[1]==='containerOne'))).toBeTruthy();
   await container.locator('[data-structure-action="more"]').click();
+  await page.evaluate(()=>document.getElementById('sectionOne').classList.add('runtime-pulse'));
+  await page.waitForTimeout(150);
+  await expect(container.locator('.merd-ui-structure-actions')).toBeVisible();
   await container.locator('[data-structure-action="add"][data-position="inside"]').click();
   const chooser=page.locator('.merd-ui-structure-chooser');
   await expect(chooser).toContainText('Text');

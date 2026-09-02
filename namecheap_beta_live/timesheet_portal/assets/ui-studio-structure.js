@@ -7,7 +7,7 @@
   const TYPE_DEFAULTS={section:'New section',container:'New container',text:'New text','metric-card':'New metric','chart':'New chart','employee-status':'Employee status','data-table':'Data table'};
   const LEAF_TYPES=new Set(['text','metric-card','chart','employee-status','data-table']);
   const ALLOWED={page:['section'],section:['container','text','metric-card','chart','employee-status','data-table'],container:['container','text','metric-card','chart','employee-status','data-table']};
-  const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0};
+  const state={open:false,filter:'',collapsed:new Set(),selectedKey:'',openActionsKey:'',dragNode:null,dropHint:null,tree:null,refreshTimer:0};
   let panel=null,treeRoot=null,searchInput=null,breadcrumb=null,chooser=null;
 
   const studio=()=>window.MERDPOS_UI_STUDIO||null;
@@ -117,20 +117,21 @@
     chooser.addEventListener('click',onChooserClick);
   }
   function open(){ensureUI();studio()?.open?.();state.open=true;panel.hidden=false;document.body.classList.add('merd-ui-structure-open');refresh(true);return true;}
-  function close(){if(!panel)return;state.open=false;panel.hidden=true;chooser.hidden=true;document.body.classList.remove('merd-ui-structure-open');clearDropHints();}
+  function close(){if(!panel)return;state.open=false;state.openActionsKey='';panel.hidden=true;chooser.hidden=true;document.body.classList.remove('merd-ui-structure-open');clearDropHints();}
   function toggle(){return state.open?(close(),false):open();}
 
   function matchesFilter(node){if(!state.filter)return true;return node.label.toLowerCase().includes(state.filter)||(TYPE_LABELS[node.type]||'').toLowerCase().includes(state.filter)||node.children.some(matchesFilter);}
   function rowHtml(node,depth){
     if(!matchesFilter(node))return '';
-    const collapsed=state.collapsed.has(node.key)&&!state.filter,hasChildren=node.children.length>0,selected=node.key===state.selectedKey;
+    const collapsed=state.collapsed.has(node.key)&&!state.filter,hasChildren=node.children.length>0,selected=node.key===state.selectedKey,actionsOpen=node.type==='page'||state.openActionsKey===node.key;
     const canInside=allowedChildren(node.type).length>0;
     const removeLabel=node.el.dataset.uiStudioAddedKey?'Remove':'Hide';
-    return `<div class="merd-ui-structure-node${selected?' is-selected':''}" data-structure-key="${escapeHtml(node.key)}" data-structure-type="${node.type}" style="--structure-depth:${depth}" role="treeitem" aria-level="${depth+1}" aria-expanded="${hasChildren?String(!collapsed):'false'}"><div class="merd-ui-structure-row" draggable="${node.type!=='page'}"><button type="button" class="merd-ui-structure-toggle" data-structure-action="toggle" ${hasChildren?'':'disabled'} aria-label="${collapsed?'Expand':'Collapse'} ${escapeHtml(node.label)}">${hasChildren?(collapsed?'▸':'▾'):'·'}</button><button type="button" class="merd-ui-structure-select" data-structure-action="select"><span class="merd-ui-structure-icon" aria-hidden="true">${iconFor(node.type)}</span><span><strong>${escapeHtml(node.label)}</strong><small>${TYPE_LABELS[node.type]}</small></span></button><button type="button" class="merd-ui-structure-more" data-structure-action="more" aria-label="Actions for ${escapeHtml(node.label)}">•••</button></div><div class="merd-ui-structure-actions" hidden><button type="button" data-structure-action="add" data-position="above">Add above</button><button type="button" data-structure-action="add" data-position="inside" ${canInside?'':'disabled'}>Add inside</button><button type="button" data-structure-action="add" data-position="below">Add below</button><button type="button" data-structure-action="duplicate" ${node.type==='page'?'disabled':''}>Duplicate</button><button type="button" data-structure-action="remove" ${node.type==='page'?'disabled':''}>${removeLabel}</button></div></div>${!collapsed?node.children.map(child=>rowHtml(child,depth+1)).join(''):''}`;
+    return `<div class="merd-ui-structure-node${selected?' is-selected':''}" data-structure-key="${escapeHtml(node.key)}" data-structure-type="${node.type}" style="--structure-depth:${depth}" role="treeitem" aria-level="${depth+1}" aria-expanded="${hasChildren?String(!collapsed):'false'}"><div class="merd-ui-structure-row" draggable="${node.type!=='page'}"><button type="button" class="merd-ui-structure-toggle" data-structure-action="toggle" ${hasChildren?'':'disabled'} aria-label="${collapsed?'Expand':'Collapse'} ${escapeHtml(node.label)}">${hasChildren?(collapsed?'▸':'▾'):'·'}</button><button type="button" class="merd-ui-structure-select" data-structure-action="select"><span class="merd-ui-structure-icon" aria-hidden="true">${iconFor(node.type)}</span><span><strong>${escapeHtml(node.label)}</strong><small>${TYPE_LABELS[node.type]}</small></span></button><button type="button" class="merd-ui-structure-more" data-structure-action="more" aria-label="Actions for ${escapeHtml(node.label)}">•••</button></div><div class="merd-ui-structure-actions" ${actionsOpen?'':'hidden'}><button type="button" data-structure-action="add" data-position="above">Add above</button><button type="button" data-structure-action="add" data-position="inside" ${canInside?'':'disabled'}>Add inside</button><button type="button" data-structure-action="add" data-position="below">Add below</button><button type="button" data-structure-action="duplicate" ${node.type==='page'?'disabled':''}>Duplicate</button><button type="button" data-structure-action="remove" ${node.type==='page'?'disabled':''}>${removeLabel}</button></div></div>${!collapsed?node.children.map(child=>rowHtml(child,depth+1)).join(''):''}`;
   }
   function render(){
     if(!state.open||!treeRoot)return;state.tree=buildTree();
-    if(!state.tree){treeRoot.innerHTML='<p class="merd-ui-structure-empty">No editable page is visible.</p>';return;}
+    if(!state.tree){state.openActionsKey='';treeRoot.innerHTML='<p class="merd-ui-structure-empty">No editable page is visible.</p>';return;}
+    if(state.openActionsKey&&!findNodeByKey(state.openActionsKey))state.openActionsKey='';
     treeRoot.innerHTML=rowHtml(state.tree,0)||'<p class="merd-ui-structure-empty">No matching structure.</p>';
     const selected=findNodeByKey(state.selectedKey);breadcrumb.textContent=selected?pathFor(selected):`Page / ${state.tree.label}`;
   }
@@ -141,7 +142,7 @@
     const action=button.dataset.structureAction;
     if(action==='toggle'){if(state.collapsed.has(node.key))state.collapsed.delete(node.key);else state.collapsed.add(node.key);return render();}
     if(action==='select'){selectNode(node);return;}
-    if(action==='more'){const actions=row.querySelector('.merd-ui-structure-actions');actions.hidden=!actions.hidden;return;}
+    if(action==='more'){state.openActionsKey=state.openActionsKey===node.key?'':node.key;chooser.hidden=true;return render();}
     if(action==='add')return openChooser(node,button.dataset.position||'inside');
     if(action==='duplicate'){studio()?.duplicateElement?.(node.el);return refresh();}
     if(action==='remove'){studio()?.removeElement?.(node.el);return refresh();}
@@ -155,9 +156,9 @@
     chooser.hidden=false;
   }
   function onChooserClick(event){
-    if(event.target.closest('[data-chooser-close]')){chooser.hidden=true;return;}
+    if(event.target.closest('[data-chooser-close]')){chooser.hidden=true;state.openActionsKey='';refresh(true);return;}
     const button=event.target.closest('[data-add-type]');if(!button)return;const target=findNodeByKey(chooser.dataset.targetKey),type=button.dataset.addType,position=chooser.dataset.position||'inside';if(!target||!canAdd(target,type,position))return;
-    studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);chooser.hidden=true;refresh();
+    studio()?.addElement?.(target.el,type,position,TYPE_DEFAULTS[type]||TYPE_LABELS[type]);chooser.hidden=true;state.openActionsKey='';refresh(true);
   }
 
   function onDragStart(event){const row=event.target.closest('[data-structure-key]'),node=findNodeByKey(row?.dataset.structureKey);if(!node||node.type==='page'){event.preventDefault();return;}state.dragNode=node;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',node.key);}
@@ -174,7 +175,8 @@
   window.addEventListener('merdpos-uistudio-selection',event=>{const el=event.detail?.element instanceof Element?event.detail.element:null;if(!el){state.selectedKey='';if(state.open)render();return;}if(!state.open)return;state.tree=buildTree();const node=findNodeByElement(el);state.selectedKey=node?.key||'';render();});
   window.addEventListener('merdpos-uistudio-state',event=>{if(event.detail?.enabled===false)close();});
   document.addEventListener('click',event=>{if(event.target.closest('.portal-tab'))setTimeout(()=>refresh(),0);},true);
-  const observer=new MutationObserver(records=>{if(!state.open)return;const relevant=records.some(record=>!isStudioNode(record.target));if(relevant)refresh();});
+  // Live portal widgets mutate class/hidden state frequently. Never replace an active Structure action/chooser DOM mid-interaction.
+  const observer=new MutationObserver(records=>{if(!state.open||state.openActionsKey||(chooser&&!chooser.hidden))return;const relevant=records.some(record=>!isStudioNode(record.target));if(relevant)refresh();});
   observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
 
   window.MERDPOS_UI_STUDIO_STRUCTURE=Object.freeze({open,close,toggle,refresh:()=>refresh(true),getTree:()=>state.tree});

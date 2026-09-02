@@ -285,3 +285,9 @@ When durable knowledge changes quickly, run a contradiction pass before calling 
 7. Treat encoding corruption in the durable knowledge layer as a continuity defect.
 
 A fresh session should not have to infer which of two contradictory instructions is newer. If a rule changed, update or explicitly supersede the older higher-authority wording in the same workstream.
+
+## DevStudio Structure interaction stability
+
+Live MERDPOS panels can mutate `class` and `hidden` attributes continuously while DevStudio is open. Structure/Layers interaction state must therefore live in the editor state model, not only in transient DOM attributes. An open `•••` action menu or Add chooser must survive unrelated portal mutations, and the Structure MutationObserver must not replace those active controls mid-pointer interaction.
+
+A browser failure reporting a detached, unstable, or suddenly hidden editor control is evidence of a real interaction race. A later retry passing is **not** sufficient closure. Root-cause the race, make the interaction state durable, and add a regression that mutates the underlying portal while the editor action remains open and usable.
