@@ -3,6 +3,7 @@ const fs=require('fs');
 const path=require('path');
 const root=path.join(__dirname,'..','timesheet_portal');
 const source=file=>fs.readFileSync(path.join(root,file),'utf8');
+test.use({channel:'chrome'});
 
 test('DevStudio structure bridge persists inside add/move through canonical patch engine',()=>{
   const studio=source('assets/ui-studio.js');
