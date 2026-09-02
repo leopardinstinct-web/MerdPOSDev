@@ -369,7 +369,7 @@ function ui_icon(string $name): string
       </section>
       <section class="merd-about-art" aria-hidden="true">
         <span class="merd-about-shape shape-a"></span><span class="merd-about-shape shape-b"></span><span class="merd-about-shape shape-c"></span>
-        <img src="assets/brand/M_Icon.svg?v=20260828about1" alt="">
+        <img src="assets/brand/M_Icon_v2.svg?v=20260902ds117" alt="">
       </section>
       <button id="merdposAboutClose" class="merd-about-close" type="button" aria-label="Close About MERDPOS">&times;</button>
     </div>
