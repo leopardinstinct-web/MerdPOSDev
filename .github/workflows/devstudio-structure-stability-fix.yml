@@ -63,13 +63,13 @@ jobs:
           p = playbook.read_text(encoding='utf-8')
           lesson = '''\n\n## DevStudio Structure interaction stability\n\nLive MERDPOS panels can mutate `class` and `hidden` attributes continuously while DevStudio is open. Structure/Layers interaction state must therefore live in the editor state model, not only in transient DOM attributes. An open `•••` action menu or Add chooser must survive unrelated portal mutations, and the Structure MutationObserver must not replace those active controls mid-pointer interaction.\n\nA browser failure reporting a detached, unstable, or suddenly hidden editor control is evidence of a real interaction race. A later retry passing is **not** sufficient closure. Root-cause the race, make the interaction state durable, and add a regression that mutates the underlying portal while the editor action remains open and usable.\n'''
           if '## DevStudio Structure interaction stability' not in p:
-              playbook.write_text(p.rstrip()+lesson+'\n', encoding='utf-8')
+              playbook.write_text(p.rstrip()+lesson.rstrip()+'\n', encoding='utf-8')
 
           ui = Path('namecheap_beta_live/timesheet_portal/UI_STUDIO.md')
           u = ui.read_text(encoding='utf-8')
           note = '''\n\n### Structure interaction stability\n\nStructure action menus and the Add chooser are stateful editor surfaces. They must remain open and clickable across unrelated live portal mutations; the Structure observer must not rebuild active action DOM underneath the pointer. A detached-control browser failure is treated as a product defect even if a retry later passes. Permanent regression coverage must exercise a portal mutation while the action menu is open.\n'''
           if '### Structure interaction stability' not in u:
-              ui.write_text(u.rstrip()+note+'\n', encoding='utf-8')
+              ui.write_text(u.rstrip()+note.rstrip()+'\n', encoding='utf-8')
           PY
       - name: Validate patched source
         run: |
