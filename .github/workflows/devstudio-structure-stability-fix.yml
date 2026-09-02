@@ -1,5 +1,6 @@
 name: Apply DevStudio Structure stability fix
 
+# Triggered after workflow registration so GitHub Actions executes the patch job.
 on:
   push:
     branches:
