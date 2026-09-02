@@ -1,0 +1,37 @@
+name: Repair revision 117 regression expectations
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: contains(github.event.head_commit.message, '[fix-rev117-test]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Refresh stale cache/icon assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_file='namecheap_beta_live/browser_tests/shell-account-runtime.spec.js'
+          sed -i 's#assets/management.js?v=20260902about3#assets/management.js?v=20260902ds117#g' "$test_file"
+          sed -i 's#assets/brand/M_Icon.svg#assets/brand/M_Icon_v2.svg#g' "$test_file"
+          grep -q 'assets/management.js?v=20260902ds117' "$test_file"
+          grep -q 'assets/brand/M_Icon_v2.svg' "$test_file"
+          git diff --check
+      - name: Commit regression repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add namecheap_beta_live/browser_tests/shell-account-runtime.spec.js
+          git commit -m 'Refresh revision 117 shell regression contract'
+          git push origin HEAD:namecheap-beta-live
