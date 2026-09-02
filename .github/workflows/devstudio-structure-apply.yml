@@ -1,0 +1,52 @@
+name: Apply DevStudio structure editor
+
+on:
+  push:
+    branches:
+      - namecheap-beta-live
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[apply-structure-editor]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply structure editor bridge
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_devstudio_structure_editor.py
+      - name: Validate source and runtime contract
+        run: |
+          set -euo pipefail
+          node --check namecheap_beta_live/timesheet_portal/assets/ui-studio.js
+          node --check namecheap_beta_live/timesheet_portal/assets/ui-studio-structure.js
+          node --check namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js
+          php -l namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
+          git diff --check
+      - name: Run targeted Chromium structure regression
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/merdpos-pw
+          cd /tmp/merdpos-pw
+          npm init -y >/dev/null 2>&1
+          npm install --no-package-lock @playwright/test@1.55.0 >/dev/null 2>&1
+          cd "$GITHUB_WORKSPACE"
+          NODE_PATH=/tmp/merdpos-pw/node_modules /tmp/merdpos-pw/node_modules/.bin/playwright test namecheap_beta_live/browser_tests/ui-studio-structure-runtime.spec.js --workers=1 --reporter=line
+      - name: Commit canonical implementation
+        run: |
+          set -euo pipefail
+          test ! -d node_modules
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Implement DevStudio structure editor [structure-editor-applied]'
+          git push origin HEAD:namecheap-beta-live
