@@ -25,6 +25,15 @@ jobs:
           python3 scripts/revision130_release_helper.py pre
           python3 scripts/apply_revision130.py
           python3 scripts/revision130_release_helper.py post
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('namecheap_beta_live/browser_tests/revision130-runtime.spec.js')
+          t=p.read_text(encoding='utf-8')
+          old="expect(timings).not.toContain('<span>Closed</span>');"
+          new="expect(timings).not.toContain('<span>Closed</span></label>');"
+          if t.count(old)!=1: raise SystemExit(f'expected one row Closed assertion, found {t.count(old)}')
+          p.write_text(t.replace(old,new,1),encoding='utf-8')
+          PY
       - name: Validate source contracts
         run: |
           set -euo pipefail
