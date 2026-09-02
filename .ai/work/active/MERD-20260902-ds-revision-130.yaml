@@ -1,0 +1,50 @@
+version: 1
+id: MERD-20260902-ds-revision-130
+objective: "Implement DevStudio unresolved revision 130 in canonical MERDPOS Beta, preserve historical intent, deploy exact source and live-verify before receipt."
+packet_state: OPEN
+lifecycle: DOCUMENTED
+base_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
+last_seen_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
+source_revision: 130
+acceptance:
+  - "Dashboard has a canonical Dashboard heading."
+  - "MERDPOS primary product accent returns to canonical cyan where applicable without altering DevStudio user-selected accent persistence."
+  - "Admin-dialog headings and shared directory toolbars are vertically aligned with their actions everywhere they share the pattern."
+  - "Store edit restores historically supported basic store fields such as code/address where the current schema/API support them."
+  - "Store timing UI removes redundant Closed text and duplicate save/cancel controls; one Save persists basic store information and weekly timings atomically or with explicit coordinated handling."
+  - "Desktop bottom navigation and account dock are shorter while retaining usable targets."
+  - "Account/client app-settings control persistence is corrected and regression guarded."
+  - "Only revision 130 patch IDs are receipted after canonical implementation, tests, exact deployment and live verification."
+receipt_patch_ids:
+  - patch-26b64dcbbf62cea7
+  - patch-eb13f1c5171f47f9
+  - patch-9292dc1c33a629e8
+  - patch-37398104cca11fda
+  - patch-eb3db5a13176b3f3
+  - patch-b1e882de34143c28
+  - patch-c53e5c95ad9514cd
+  - patch-e32f4d2e41d9b088
+  - patch-a6b294b2805fb938
+  - patch-438c8154310f6806
+  - patch-3ef4339cd9c373d0
+  - patch-747a6c125869e292
+constraints:
+  - "Canonical branch is namecheap-beta-live; current source/history outrank chat state."
+  - "Do not mark any revision 130 patch confirmed_applied before exact deployed-SHA evidence and affected live-runtime verification."
+  - "Investigate history for the store-field regression and repeated alignment/persistence failures before final implementation."
+  - "Do not change unrelated payroll, finance, tenant authorization, role inheritance or other DevStudio inbox items."
+checks:
+  - name: "Historical/source reconnaissance"
+    result: "NOT_RUN"
+  - name: "Canonical validators and browser regression"
+    result: "NOT_RUN"
+  - name: "Namecheap deployment and live verification"
+    result: "NOT_RUN"
+remaining:
+  - "Inspect canonical source and relevant history."
+  - "Implement revision 130 with targeted regression coverage."
+  - "Pass guardrails, deploy exact SHA, live verify, then issue receipt."
+next_action: "Reconcile current store schema/dialog history, shared alignment owners, product accent owners, bottom dock sizing and account UI persistence."
+blocked: false
+blocker: null
+updated_at: "2026-09-02T17:06:00+05:00"
