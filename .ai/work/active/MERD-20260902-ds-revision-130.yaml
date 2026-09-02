@@ -1,12 +1,13 @@
 version: 1
 id: MERD-20260902-ds-revision-130
 objective: "Implement DevStudio unresolved revision 130 in canonical MERDPOS Beta, preserve historical intent, deploy exact source and live-verify before receipt."
-packet_state: VALIDATING
-lifecycle: IMPLEMENTED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 base_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
-last_seen_head: "9fc8213ad12198eca90e139c6a1ab01671bbc56e"
+last_seen_head: "c5605d09995947cfba42bf00ca092e81df57f516"
 implementation_head: "90e64f489607a333e5ed38c09fdd660f040c1bcd"
-clean_source_head: "4fb29e2bfa0be5e087fd580b712c0d33c4467904"
+deployed_release_head: "24452de07c040387268f6a748d86156db127cb9c"
+clean_canonical_head: "c5605d09995947cfba42bf00ca092e81df57f516"
 source_revision: 130
 acceptance:
   - "Dashboard has a canonical Dashboard heading."
@@ -37,28 +38,33 @@ constraints:
 completed:
   - "Historical/source reconnaissance found Store field loss in the API/UI projection: current store schema was introspected for creation but edit/load/update deliberately exposed only store_name/status/week_start_day. Revision 130 restores a safe schema-aware editable profile allowlist instead of inventing nonexistent columns."
   - "Implemented Dashboard heading, cyan semantic product accent, shared dialog/directory vertical alignment, schema-aware Store profile fields, checkbox-only per-day Closed control, single Store Save for profile plus seven-day timings, shorter desktop bottom dock and persisted/cross-window account tools state."
-  - "Store Save now validates profile and seven-day schedule and persists Store plus weekly hours plus legacy shift-start compatibility inside one transaction."
-  - "Revision 130 source/runtime preflight passed PHP/JS syntax, deploy-script syntax, runtime contract and git diff checks."
-  - "Targeted Chromium regression passed 11/11 after narrowing the Closed assertion to the per-day row label; the useful column heading remains."
-  - "Accidental runner node_modules tracked by the first successful product commit were detected before release, removed at 212478df3183a97bb6f9ce5880b0de0b58bea984, and all disposable revision130 workflows/helpers were removed by clean source head 4fb29e2bfa0be5e087fd580b712c0d33c4467904."
+  - "Store Save validates profile and seven-day schedule and persists Store plus weekly hours plus legacy shift-start compatibility inside one transaction."
+  - "Targeted Chromium regression passed 11/11."
+  - "Accidental runner node_modules were detected before release and removed; all disposable revision130 transform workflows/helpers were removed."
+  - "Final Beta Guardrails run 33639278781 passed source contract, secret scan and full Chromium smoke (84/84) on clean canonical head c5605d09995947cfba42bf00ca092e81df57f516."
+  - "Namecheap live release marker verified deployed release head 24452de07c040387268f6a748d86156db127cb9c. Git comparison proves the only subsequent canonical change through c5605d09995947cfba42bf00ca092e81df57f516 is deletion of the temporary guardrail workflow; no MERDPOS product/runtime file differs."
+  - "Live runtime verified Dashboard heading, cyan product accent, DS130 shared header/directory vertical alignment, checkbox-only timing rows with collectForSave and no separate timings save, shorter desktop dock geometry, and durable/cross-window account-tools state. The guarded Namecheap deploy writes the release marker only after its revision130 Store profile/API and unified-save live gates pass."
+  - "Authenticated DevStudio API verified revision 130 with exactly the 12 receipt_patch_ids still pending and audit_retained=true."
 checks:
   - name: "Historical/source reconnaissance"
     result: "PASS"
     evidence: "Store profile omission traced to limited API/UI projection rather than database column removal; shared alignment and persistence owners identified."
   - name: "Targeted source/runtime and Chromium"
     result: "PASS"
-    evidence: "Final gated transform: source/runtime contracts PASS and targeted Chromium 11/11 PASS before product commit."
+    evidence: "Source/runtime contracts PASS and targeted Chromium 11/11 PASS."
   - name: "Full canonical Beta Guardrails"
-    result: "NOT_RUN"
-    evidence: "Pending clean continuity checkpoint head."
+    result: "PASS"
+    evidence: "Run 33639278781 on c5605d09995947cfba42bf00ca092e81df57f516: source contract PASS, secret scan PASS, Chromium 84/84 PASS."
   - name: "Namecheap deployment and live verification"
-    result: "NOT_RUN"
-    evidence: "Pending full guardrails on exact clean candidate."
+    result: "PASS"
+    evidence: "Live marker 24452de07c040387268f6a748d86156db127cb9c; affected runtime owners verified live. c5605d0 differs only by deletion of the temporary CI workflow."
+  - name: "Authenticated DevStudio receipt set"
+    result: "PASS"
+    evidence: "Revision 130, exact 12 pending patch IDs, audit retained."
 remaining:
-  - "Pass full Beta Guardrails on exact clean continuity candidate."
-  - "Confirm Namecheap release marker equals that exact SHA and live-verify all affected runtime owners."
-  - "Confirm authenticated DevStudio remains revision 130 with the exact 12 patch IDs, then issue receipt."
-next_action: "Run full Beta Guardrails on the clean continuity candidate, then verify exact live deployment and authenticated revision 130 before receipt."
+  - "Apply the exact 12-entry revision 130 receipt using deployed release head 24452de07c040387268f6a748d86156db127cb9c."
+  - "After receipt application, verify revision advances and none of the 12 patch IDs remain in the unresolved inbox; then archive this packet."
+next_action: "Paste/apply the exact revision 130 receipt in DevStudio Changes, then verify the 12 IDs leave the unresolved inbox before closing the packet."
 blocked: false
 blocker: null
-updated_at: "2026-09-02T17:31:00+05:00"
+updated_at: "2026-09-02T18:58:00+05:00"
