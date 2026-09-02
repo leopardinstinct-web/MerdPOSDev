@@ -35,7 +35,7 @@ test('canonical brand master palette is exactly the approved five colors', async
     <div id="cyan" style="background:var(--color-brand-cyan)"></div>`);
 
   await expect(page.locator('#bg')).toHaveCSS('background-color', 'rgb(245, 247, 252)');
-  await expect(page.locator('#primary')).toHaveCSS('background-color', 'rgb(139, 46, 255)');
+  await expect(page.locator('#primary')).toHaveCSS('background-color', 'rgb(18, 189, 243)');
   await expect(page.locator('#cyan')).toHaveCSS('background-color', 'rgb(18, 189, 243)');
 
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });

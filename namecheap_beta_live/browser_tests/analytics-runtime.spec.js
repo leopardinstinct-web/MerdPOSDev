@@ -86,7 +86,7 @@ test('analytics wiring and data endpoint keep filtering inside dashboard authori
   const management=fs.readFileSync(managementPath,'utf8');
   const api=fs.readFileSync(dataApiPath,'utf8');
   expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics2")).toBeGreaterThan(-1);
-  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics2")).toBeLessThan(management.indexOf("assets/dashboard-builder.js?v=20260902ds97"));
+  expect(management.indexOf("assets/analytics-runtime.js?v=20260831analytics2")).toBeLessThan(management.indexOf("assets/dashboard-builder.js?v=20260902ds130"));
   expect(api).toContain('function dashboard_data_period_dates');
   expect(api).toContain('function dashboard_data_current_week_dates');
   expect(api).toContain("$isCurrentWeek = $period === 'current_week'");

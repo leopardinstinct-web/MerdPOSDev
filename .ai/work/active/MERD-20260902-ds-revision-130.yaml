@@ -4,6 +4,7 @@ objective: "Implement DevStudio unresolved revision 130 in canonical MERDPOS Bet
 packet_state: VALIDATING
 lifecycle: IMPLEMENTED
 base_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
+last_seen_head: "9fc8213ad12198eca90e139c6a1ab01671bbc56e"
 implementation_head: "90e64f489607a333e5ed38c09fdd660f040c1bcd"
 clean_source_head: "4fb29e2bfa0be5e087fd580b712c0d33c4467904"
 source_revision: 130
