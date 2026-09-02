@@ -1,19 +1,20 @@
 version: 1
 id: MERD-20260902-ds-revision-130
 objective: "Implement DevStudio unresolved revision 130 in canonical MERDPOS Beta, preserve historical intent, deploy exact source and live-verify before receipt."
-packet_state: OPEN
-lifecycle: DOCUMENTED
+packet_state: VALIDATING
+lifecycle: IMPLEMENTED
 base_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
-last_seen_head: "1f504a7d3a1facc31ca57b3661921e7b51382c0e"
+implementation_head: "90e64f489607a333e5ed38c09fdd660f040c1bcd"
+clean_source_head: "4fb29e2bfa0be5e087fd580b712c0d33c4467904"
 source_revision: 130
 acceptance:
   - "Dashboard has a canonical Dashboard heading."
   - "MERDPOS primary product accent returns to canonical cyan where applicable without altering DevStudio user-selected accent persistence."
   - "Admin-dialog headings and shared directory toolbars are vertically aligned with their actions everywhere they share the pattern."
   - "Store edit restores historically supported basic store fields such as code/address where the current schema/API support them."
-  - "Store timing UI removes redundant Closed text and duplicate save/cancel controls; one Save persists basic store information and weekly timings atomically or with explicit coordinated handling."
-  - "Desktop bottom navigation and account dock are shorter while retaining usable targets."
-  - "Account/client app-settings control persistence is corrected and regression guarded."
+  - "Store timing UI removes redundant per-row Closed text and duplicate save/cancel controls; one Save persists basic store information and weekly timings in one database transaction."
+  - "Desktop bottom navigation and account dock are shorter while retaining usable targets and icon-left/label-right layout."
+  - "Account/client app-settings control open state is persisted and cross-window synchronized."
   - "Only revision 130 patch IDs are receipted after canonical implementation, tests, exact deployment and live verification."
 receipt_patch_ids:
   - patch-26b64dcbbf62cea7
@@ -31,20 +32,32 @@ receipt_patch_ids:
 constraints:
   - "Canonical branch is namecheap-beta-live; current source/history outrank chat state."
   - "Do not mark any revision 130 patch confirmed_applied before exact deployed-SHA evidence and affected live-runtime verification."
-  - "Investigate history for the store-field regression and repeated alignment/persistence failures before final implementation."
   - "Do not change unrelated payroll, finance, tenant authorization, role inheritance or other DevStudio inbox items."
+completed:
+  - "Historical/source reconnaissance found Store field loss in the API/UI projection: current store schema was introspected for creation but edit/load/update deliberately exposed only store_name/status/week_start_day. Revision 130 restores a safe schema-aware editable profile allowlist instead of inventing nonexistent columns."
+  - "Implemented Dashboard heading, cyan semantic product accent, shared dialog/directory vertical alignment, schema-aware Store profile fields, checkbox-only per-day Closed control, single Store Save for profile plus seven-day timings, shorter desktop bottom dock and persisted/cross-window account tools state."
+  - "Store Save now validates profile and seven-day schedule and persists Store plus weekly hours plus legacy shift-start compatibility inside one transaction."
+  - "Revision 130 source/runtime preflight passed PHP/JS syntax, deploy-script syntax, runtime contract and git diff checks."
+  - "Targeted Chromium regression passed 11/11 after narrowing the Closed assertion to the per-day row label; the useful column heading remains."
+  - "Accidental runner node_modules tracked by the first successful product commit were detected before release, removed at 212478df3183a97bb6f9ce5880b0de0b58bea984, and all disposable revision130 workflows/helpers were removed by clean source head 4fb29e2bfa0be5e087fd580b712c0d33c4467904."
 checks:
   - name: "Historical/source reconnaissance"
+    result: "PASS"
+    evidence: "Store profile omission traced to limited API/UI projection rather than database column removal; shared alignment and persistence owners identified."
+  - name: "Targeted source/runtime and Chromium"
+    result: "PASS"
+    evidence: "Final gated transform: source/runtime contracts PASS and targeted Chromium 11/11 PASS before product commit."
+  - name: "Full canonical Beta Guardrails"
     result: "NOT_RUN"
-  - name: "Canonical validators and browser regression"
-    result: "NOT_RUN"
+    evidence: "Pending clean continuity checkpoint head."
   - name: "Namecheap deployment and live verification"
     result: "NOT_RUN"
+    evidence: "Pending full guardrails on exact clean candidate."
 remaining:
-  - "Inspect canonical source and relevant history."
-  - "Implement revision 130 with targeted regression coverage."
-  - "Pass guardrails, deploy exact SHA, live verify, then issue receipt."
-next_action: "Reconcile current store schema/dialog history, shared alignment owners, product accent owners, bottom dock sizing and account UI persistence."
+  - "Pass full Beta Guardrails on exact clean continuity candidate."
+  - "Confirm Namecheap release marker equals that exact SHA and live-verify all affected runtime owners."
+  - "Confirm authenticated DevStudio remains revision 130 with the exact 12 patch IDs, then issue receipt."
+next_action: "Run full Beta Guardrails on the clean continuity candidate, then verify exact live deployment and authenticated revision 130 before receipt."
 blocked: false
 blocker: null
-updated_at: "2026-09-02T17:06:00+05:00"
+updated_at: "2026-09-02T17:31:00+05:00"
