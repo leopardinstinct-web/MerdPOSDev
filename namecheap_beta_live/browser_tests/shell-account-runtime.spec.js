@@ -83,7 +83,7 @@ test('DEV role preview is universal across shell and API permission context', as
   const timesheetRefresh = fs.readFileSync(timesheetRefreshPath, 'utf8');
   expect(source).not.toContain('<header class="topbar merd-topbar">');
   expect(source).toContain('id="shellAccountSources"');
-  expect(source).toContain('assets/management.js?v=20260902about3');
+  expect(source).toContain('assets/management.js?v=20260902ds117');
   expect(source).toContain("$permissions = (array)($user['permissions'] ?? []);");
   expect(source).not.toContain("$previewUser['actual_employee_type']");
   expect(betaApi).toContain('function beta_apply_dev_role_preview');
@@ -111,7 +111,7 @@ test('DEV role preview is universal across shell and API permission context', as
   expect(timesheetRefresh).toContain("source_type='attendance_log'");
   expect(timesheetRefresh).not.toContain('UPDATE client_migration_state');
   expect(source).toContain('id="merdposAboutDialog"');
-  expect(source).toContain('assets/brand/M_Icon.svg');
+  expect(source).toContain('assets/brand/M_Icon_v2.svg');
   expect(source).toContain("dirname(__DIR__) . '/.beta_release.json'");
   expect(source).not.toContain('$devStudioVersion');
   expect(source).not.toContain('Release Highlights');
