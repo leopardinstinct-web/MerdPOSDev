@@ -1,3 +1,8 @@
 services:
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
+
+  merdpos_core.theme_negotiator:
+    class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
+    tags:
+      - { name: theme_negotiator, priority: 1000 }

@@ -5,3 +5,39 @@ merdpos_core.dashboard:
     _title: 'MERDPOS'
   requirements:
     _permission: 'view merdpos management dashboard'
+
+merdpos_core.operations:
+  path: '/merdpos/operations'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _title: 'Operations'
+    section: 'operations'
+  requirements:
+    _permission: 'manage merdpos operations'
+
+merdpos_core.reports:
+  path: '/merdpos/reports'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _title: 'Reports'
+    section: 'reports'
+  requirements:
+    _permission: 'access merdpos portal'
+
+merdpos_core.finance:
+  path: '/merdpos/finance'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _title: 'Finance'
+    section: 'finance'
+  requirements:
+    _permission: 'manage merdpos operations'
+
+merdpos_core.dev:
+  path: '/merdpos/dev'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _title: 'DEV'
+    section: 'dev'
+  requirements:
+    _permission: 'access merdpos dev tools'

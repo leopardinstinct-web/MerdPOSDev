@@ -1,0 +1,32 @@
+version: 1
+id: MERD-20260904-drupal-app-shell
+updated_at: "2026-09-04T02:38:00+05:00"
+objective: Replace generic Drupal frontend chrome on MERDPOS routes with a Git-owned MERDPOS application theme and current bottom-navigation shell.
+acceptance_criteria:
+  - /merdpos renders without generic Drupal frontend/admin chrome.
+  - shell follows current MERDPOS bottom-nav direction and phone four-destination rule.
+  - Claro/admin routes remain unchanged.
+  - canonical tokens and approved brand mark are manifest-synchronized resources.
+  - anonymous/protected-route behavior remains fail-closed.
+  - desktop and mobile rendered states are visually checked.
+packet_state: VALIDATED
+lifecycle: WIRED
+base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+last_seen_head: cffd57809d8d9fd8f66f87dcba71d8938f4b7400
+affected_paths:
+  - drupal/web/themes/custom/merdpos_app/
+  - drupal/web/modules/custom/merdpos_core/
+  - drupal/resources/
+  - drupal/tools/
+constraints:
+  - Existing MERDPOS Beta and operational database remain untouched.
+  - MERDPOS backend authorization stays authoritative.
+completed:
+  - Route-scoped theme, bottom navigation, account shell and safe section landings implemented.
+  - Generic theme blocks and Drupal page_top chrome removed by owned install/theme behavior.
+  - Desktop and 390px phone Playwright smoke passed; /admin theme isolation passed.
+  - Resource sync/check passed; anonymous /merdpos remains HTTP 403.
+  - Local theme enable/normalization performed; Windows updb wrapper cannot run because vendor/bin/drush requires sh.
+remaining:
+  - Commit/push source and archive packet; Namecheap deployment remains a later milestone.
+next_action: Run final continuity/composer/lint checks, commit, push, and archive this packet.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * @file
- * Theme hooks for the MERDPOS Drupal shell.
+ * Theme hooks for the MERDPOS Drupal application.
  */
 
 /**
@@ -20,6 +20,10 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
         'foundations' => [],
       ],
       'template' => 'merdpos-dashboard',
+    ],
+    'merdpos_section' => [
+      'variables' => ['section' => []],
+      'template' => 'merdpos-section',
     ],
   ];
 }

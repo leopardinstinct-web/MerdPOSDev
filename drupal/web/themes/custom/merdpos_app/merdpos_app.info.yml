@@ -1,0 +1,9 @@
+name: 'MERDPOS App'
+type: theme
+description: 'Route-scoped MERDPOS application shell for the Drupal beta.'
+base theme: false
+core_version_requirement: ^11
+libraries:
+  - merdpos_app/global
+regions:
+  content: Content

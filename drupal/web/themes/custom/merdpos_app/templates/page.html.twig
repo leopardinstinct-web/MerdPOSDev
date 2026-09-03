@@ -1,0 +1,86 @@
+<div class="merdpos-shell-frame" data-active-section="{{ merdpos_active_section }}">
+  <header class="merdpos-shell-header">
+    <a class="merdpos-shell-brand" href="{{ path('merdpos_core.dashboard') }}" aria-label="MERDPOS Home">
+      <img src="{{ base_path ~ directory ~ '/assets/M_Icon_v2.svg' }}" alt="" width="36" height="36">
+      <span class="merdpos-shell-brand-copy">
+        <strong>MERDPOS</strong>
+        <small>Drupal Beta</small>
+      </span>
+    </a>
+
+    <div class="merdpos-shell-context" aria-label="Current section">
+      <span class="merdpos-shell-context-dot" aria-hidden="true"></span>
+      <span>{{ merdpos_active_label }}</span>
+    </div>
+
+    <div class="merdpos-account">
+      <button class="merdpos-account-trigger" type="button" data-merdpos-account-toggle aria-expanded="false">
+        <span class="merdpos-account-avatar" aria-hidden="true">{{ merdpos_user_name|first|upper }}</span>
+        <span class="merdpos-account-copy">
+          <strong>{{ merdpos_user_name }}</strong>
+          <small>{{ merdpos_role_labels|last }}</small>
+        </span>
+        <span class="merdpos-account-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="merdpos-account-menu" data-merdpos-account-menu hidden>
+        <div class="merdpos-account-menu-head">
+          <strong>{{ merdpos_user_name }}</strong>
+          <span>{{ merdpos_role_labels|join(' · ') }}</span>
+        </div>
+        <a href="{{ path('user.page') }}">My account</a>
+        <a href="{{ path('user.logout') }}">Log out</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="merdpos-context-strip" aria-label="Section context">
+    {% if merdpos_active_section == 'operations' %}
+      <span class="merdpos-context-item is-current">Operations</span>
+      <span class="merdpos-context-item is-planned">Workforce</span>
+      <span class="merdpos-context-item is-planned">Stores</span>
+    {% elseif merdpos_active_section == 'reports' %}
+      <span class="merdpos-context-item is-current">Reports</span>
+      <span class="merdpos-context-item is-planned">Timesheets</span>
+      <span class="merdpos-context-item is-planned">Disputes</span>
+    {% elseif merdpos_active_section == 'finance' %}
+      <span class="merdpos-context-item is-current">Finance</span>
+      <span class="merdpos-context-item is-planned">Financial</span>
+    {% elseif merdpos_active_section == 'dev' %}
+      <span class="merdpos-context-item is-current">DEV</span>
+      <span class="merdpos-context-item is-planned">Platform</span>
+      <span class="merdpos-context-item is-planned">Clients</span>
+      <span class="merdpos-context-item is-planned">UI Studio</span>
+    {% else %}
+      <span class="merdpos-context-item is-current">Dashboard</span>
+    {% endif %}
+    <span class="merdpos-context-state">Git-owned shell</span>
+  </div>
+
+  <main id="main-content" class="merdpos-shell-workspace" tabindex="-1">
+    {{ page.content }}
+  </main>
+
+  <nav class="merdpos-bottom-nav" aria-label="MERDPOS primary navigation">
+    {% for item in merdpos_nav %}
+      <a class="merdpos-bottom-nav-item{{ item.active ? ' is-active' : '' }}"
+         href="{{ item.url }}"
+         data-nav-section="{{ item.key }}"
+         {% if item.active %}aria-current="page"{% endif %}>
+        <span class="merdpos-bottom-nav-icon" aria-hidden="true">
+          {% if item.key == 'home' %}
+            <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/></svg>
+          {% elseif item.key == 'operations' %}
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"/></svg>
+          {% elseif item.key == 'reports' %}
+            <svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg>
+          {% elseif item.key == 'finance' %}
+            <svg viewBox="0 0 24 24"><path d="M3 7h18v12H3zM3 10h18M7 15h4"/></svg>
+          {% else %}
+            <svg viewBox="0 0 24 24"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/></svg>
+          {% endif %}
+        </span>
+        <span class="merdpos-bottom-nav-label">{{ item.label }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+</div>

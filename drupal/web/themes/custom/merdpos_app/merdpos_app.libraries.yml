@@ -1,0 +1,11 @@
+global:
+  version: 1.x
+  dependencies:
+    - core/drupal
+    - core/once
+    - merdpos_core/base
+  css:
+    theme:
+      css/app-shell.css: {}
+  js:
+    js/app-shell.js: {}

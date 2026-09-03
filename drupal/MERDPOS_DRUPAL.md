@@ -47,3 +47,33 @@ and verify with:
 `php drupal/tools/sync_merdpos_design_tokens.php --check`
 
 Feature-specific Drupal CSS may compose canonical semantic tokens but should not introduce a competing brand palette.
+
+## Application shell ownership
+
+The Drupal application shell is owned by:
+
+`drupal/web/themes/custom/merdpos_app/`
+
+`merdpos_core` installs the theme and a high-priority theme negotiator applies it only to `merdpos_core.*` routes. Drupal administrative routes continue to use the configured admin theme.
+
+The MERDPOS theme intentionally does not render Drupal `page_top`; this prevents Drupal's administrative Navigation/toolbar chrome from entering the route-scoped application surface. Do not replace this with CSS hiding. `/admin` remains the escape hatch for Drupal administration.
+
+The primary application destinations follow the current canonical Beta direction:
+
+`Home → Operations → Reports → Finance → DEV`
+
+On phone layouts DEV does not occupy the four-destination primary bar. Section landing pages are safe adapter-pending states only; they do not fabricate operational data or bypass existing MERDPOS authorization/service contracts.
+
+## Resource manifest
+
+Cross-runtime design resources are declared in:
+
+`drupal/resources/merdpos-resources.json`
+
+Synchronize all declared resources with:
+
+`php drupal/tools/sync_merdpos_resources.php`
+
+Fail closed on drift with:
+
+`php drupal/tools/sync_merdpos_resources.php --check`
