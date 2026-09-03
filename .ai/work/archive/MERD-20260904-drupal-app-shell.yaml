@@ -1,0 +1,27 @@
+version: 1
+id: MERD-20260904-drupal-app-shell
+branch: beta/drupal-webapp
+base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+last_seen_head: b721dc8e1a360b7b44ddef00d1c0a60f71743922
+objective: Replace generic Drupal frontend chrome on MERDPOS routes with a Git-owned MERDPOS application theme and current bottom-navigation shell.
+packet_state: CLOSED
+lifecycle: WIRED
+outcome: Route-scoped MERDPOS theme, bottom navigation and safe section landings implemented and locally browser/visually validated; not deployed to Namecheap.
+implementation_commit: b721dc8e1a360b7b44ddef00d1c0a60f71743922
+checks:
+  - Current protected Beta HEAD and shell/navigation history checked before implementation.
+  - PHP lint passed for theme/module/install/controller/resource tooling.
+  - Resource manifest integrity and canonical design-token checks passed.
+  - Composer validation and security audit passed with no advisories.
+  - Anonymous /merdpos remains HTTP 403.
+  - Authenticated desktop and 390px phone Playwright shell smoke passed.
+  - Reports landing route and active navigation state passed.
+  - /admin confirmed not to use the MERDPOS theme.
+  - Generic Drupal blocks and page_top admin chrome removed from MERDPOS surface by owned behavior, not CSS hiding.
+  - Desktop and phone screenshots visually inspected; inactive bottom-nav contrast defect corrected and reverified.
+  - Local theme enable/normalization performed; Windows updb wrapper cannot execute because vendor/bin/drush requires sh.
+remaining:
+  - Namecheap Drupal deployment has not occurred.
+  - Operational MERDPOS API adapters remain disconnected.
+next_action: Begin read-only MERDPOS API adapter milestone, starting with Working Now and dashboard status data, before any operational write path.
+updated_at: "2026-09-04T02:41:33+05:00"
