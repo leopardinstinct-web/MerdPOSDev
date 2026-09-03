@@ -1,0 +1,31 @@
+version: 1
+id: MERD-20260904-drupal-namecheap-deploy
+branch: feature/drupal-namecheap-deploy
+base_head: 197af7a5c919648fb163529884d2eaac9c820e40
+last_seen_head: 197af7a5c919648fb163529884d2eaac9c820e40
+objective: Deploy the reviewed Drupal MERDPOS webapp to an isolated Namecheap subdomain and connect Working Now to the live signed Beta bridge.
+packet_state: VALIDATED
+lifecycle: WIRED
+constraints:
+  - Existing app.merdpos.com Beta remains untouched and authoritative.
+  - Drupal uses its own MariaDB database and document root.
+  - Drupal must not connect to MERDPOS operational tables at runtime.
+  - Working Now remains signed GET/read-only through the promoted Beta bridge.
+  - Database credentials and HMAC secret remain private Namecheap runtime state.
+  - Deployment and live verification are required before VERIFIED.
+implementation_plan:
+  - Add cPanel deployment automation and production settings template.
+  - Resolve a permitted service actor at deploy time using authoritative Beta SQL metadata.
+  - Provision private Drupal runtime settings outside Git.
+  - Install Composer dependencies and Drupal schema on the dedicated database.
+  - Create drupal-beta.merdpos.com with document root at drupal/web.
+  - Enable merdpos_core, warm caches, and emit a Drupal release marker.
+  - Live-verify HTTPS, MERDPOS shell, and real Working Now adapter behavior.
+completed:
+  - Namecheap cPanel Git checkout created at /home/dridsheikh/merdpos-drupal.
+  - Server checkout switched to beta/drupal-webapp at 197af7a5c919648fb163529884d2eaac9c820e40.
+  - Dedicated random MariaDB database/user created through cPanel.
+remaining:
+  - Commit deployment automation, update server checkout, create private runtime settings, deploy, create domain, and verify.
+updated_at: "2026-09-04T04:12:00+05:00"
+next_action: Wire reproducible cPanel deployment and private production settings.

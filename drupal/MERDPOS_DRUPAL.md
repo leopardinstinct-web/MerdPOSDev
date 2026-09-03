@@ -107,3 +107,13 @@ The service secret must be at least 32 characters and must never be committed. P
 If configuration is absent or the upstream cannot be authenticated, Drupal fails closed to an explicit unconfigured/unavailable state and never falls back to direct SQL.
 
 The endpoint under `namecheap_beta_live/backend/api/integrations/working_now.php` is present on the Drupal experiment branch for contract development. It is not live merely because it exists here. It must be reviewed/promoted to the authoritative Beta branch and deployed with the corresponding environment secret before Drupal can truthfully display real MERDPOS Working Now data.
+
+## Namecheap Beta deployment
+
+The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
+
+Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal/tools/namecheap_deploy.sh`. The deploy installs the committed Composer lockfile, resolves private runtime configuration, installs/updates Drupal idempotently, enables `merdpos_core`, rebuilds caches and refuses to publish a release marker unless the real Working Now provider returns `status=ok`.
+
+Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
+
+`drupal/deploy/settings.php` is the tracked production settings template. It trusts only `drupal-beta.merdpos.com` and places private files/config sync outside the web root. Real database credentials, hash salt, service secret and actor identifiers remain private server state and must never be committed.
