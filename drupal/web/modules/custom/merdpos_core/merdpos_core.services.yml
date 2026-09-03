@@ -1,6 +1,14 @@
 services:
+  merdpos_core.working_now_provider:
+    class: Drupal\merdpos_core\Integration\WorkingNowProvider
+    arguments: ['@http_client']
+
+  Drupal\merdpos_core\Integration\WorkingNowProviderInterface:
+    alias: merdpos_core.working_now_provider
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
+    arguments: ['@merdpos_core.working_now_provider']
 
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator

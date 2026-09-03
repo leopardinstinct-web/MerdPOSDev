@@ -17,6 +17,7 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
         'user_name' => '',
         'role_labels' => [],
         'kpis' => [],
+        'working_now' => [],
         'foundations' => [],
       ],
       'template' => 'merdpos-dashboard',

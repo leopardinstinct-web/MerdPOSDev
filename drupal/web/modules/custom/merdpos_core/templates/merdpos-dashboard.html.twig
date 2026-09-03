@@ -24,6 +24,36 @@
     {% endfor %}
   </div>
 
+  <section class="merdpos-live-panel" aria-labelledby="working-now-title">
+    <div class="merdpos-live-head">
+      <div>
+        <p class="merdpos-eyebrow">Live workforce</p>
+        <h2 id="working-now-title">Working now</h2>
+      </div>
+      <span class="merdpos-live-state merdpos-live-state--{{ working_now.status }}">{{ working_now.status|upper }}</span>
+    </div>
+
+    {% if working_now.status == 'ok' %}
+      {% if working_now.people %}
+        <div class="merdpos-working-list">
+          {% for person in working_now.people %}
+            <article class="merdpos-working-person">
+              <div>
+                <strong>{{ person.full_name }}</strong>
+                <span>{{ person.store_name }}</span>
+              </div>
+              <span class="merdpos-working-duration">{{ person.duration_label }}</span>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="merdpos-live-empty">Nobody is currently clocked in.</p>
+      {% endif %}
+    {% else %}
+      <p class="merdpos-live-empty">{{ working_now.message }}</p>
+    {% endif %}
+  </section>
+
   <div class="merdpos-section-head">
     <div>
       <p class="merdpos-eyebrow">Foundation</p>
@@ -45,7 +75,7 @@
   <footer class="merdpos-next-step">
     <div>
       <strong>Next integration boundary</strong>
-      <span>Connect read-only MERDPOS API adapters for working-now, sales, disputes, and cash status.</span>
+      <span>Promote and deploy the signed Working Now bridge; sales, disputes, and cash adapters remain pending.</span>
     </div>
     <span class="merdpos-pill">Operational DB untouched</span>
   </footer>

@@ -107,3 +107,15 @@ Migration 035 introduces `ui_studio_state` and `ui_studio_history` for client-sc
 ### AI continuity release guard
 
 `backend/cli/validate_ai_continuity.php` checks the repository bootstrap/knowledge layer for stale DevStudio safety/history claims, work-packet index/orphan drift, current-memory markers, canonical Studio29 documentation and common mojibake. Beta CI and the Namecheap deploy preflight run it before release. This guard protects continuity truthfulness; it does not replace source/runtime tests.
+
+## Drupal read-only service bridge
+
+The Drupal experiment adds a narrow Working Now integration contract at `api/integrations/working_now.php`. This endpoint is not a device/POS API and does not reuse device tokens.
+
+Requests are server-to-server HMAC-SHA256 signed with `MERDPOS_DRUPAL_SERVICE_SECRET`, include a short-lived timestamp, client ID and actor user ID, and identify the caller as `drupal-web`.
+
+Before returning data, the backend resolves the active employee/client role from SQL and applies the current permission catalogue plus client LOA overrides. Working Now follows the existing dashboard-scoped dependency model: it requires `dashboard.view` and `dashboard.widget.working_now`, then delegates roster calculation to the canonical `merd_working_now()` helper. That widget permission grants only this dashboard data dependency and does not grant the broader `workforce.view` application area. Permission-policy lookup fails closed if current SQL overrides cannot be read.
+
+The bridge is GET/read-only. Drupal must not query the operational database directly as a fallback. `backend/cli/validate_drupal_working_now_service.php` is the contract guard for signature freshness and LOA enforcement.
+
+Code present on an experimental branch is not a deployed integration. Promote/review this endpoint into the authoritative Beta source and configure the shared secret on both runtimes before calling real Drupal Working Now data live.

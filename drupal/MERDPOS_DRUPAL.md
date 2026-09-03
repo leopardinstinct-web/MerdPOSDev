@@ -77,3 +77,33 @@ Synchronize all declared resources with:
 Fail closed on drift with:
 
 `php drupal/tools/sync_merdpos_resources.php --check`
+
+## Working Now integration boundary
+
+The first Drupal operational adapter is Working Now. Drupal remains an HTTP consumer and must not connect directly to MERDPOS operational tables.
+
+The backend contract is:
+
+`Drupal dashboard → signed GET → MERDPOS integration endpoint → active service actor → current role/LOA thresholds → named permissions → merd_working_now()`
+
+The backend endpoint follows the existing dashboard-scoped dependency model. It requires:
+
+- `dashboard.view`
+- `dashboard.widget.working_now`
+
+The widget permission authorizes only this dashboard roster. It does not grant the broader Workforce area. A stricter client override on `dashboard.widget.working_now` takes effect immediately; a separate `workforce.view` threshold remains authoritative for the Workforce feature itself.
+
+The service request uses an HMAC-SHA256 signature with a short timestamp window. Device/POS tokens are not reused.
+
+Runtime configuration is environment-only:
+
+- `MERDPOS_DRUPAL_SERVICE_URL`
+- `MERDPOS_DRUPAL_SERVICE_SECRET`
+- `MERDPOS_DRUPAL_CLIENT_ID`
+- `MERDPOS_DRUPAL_ACTOR_USER_ID`
+
+The service secret must be at least 32 characters and must never be committed. Production service URLs must use HTTPS; plain HTTP is accepted only for localhost testing.
+
+If configuration is absent or the upstream cannot be authenticated, Drupal fails closed to an explicit unconfigured/unavailable state and never falls back to direct SQL.
+
+The endpoint under `namecheap_beta_live/backend/api/integrations/working_now.php` is present on the Drupal experiment branch for contract development. It is not live merely because it exists here. It must be reviewed/promoted to the authoritative Beta branch and deployed with the corresponding environment secret before Drupal can truthfully display real MERDPOS Working Now data.
