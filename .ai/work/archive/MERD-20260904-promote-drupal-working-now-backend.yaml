@@ -1,0 +1,25 @@
+version: 1
+id: MERD-20260904-promote-drupal-working-now-backend
+branch: namecheap-beta-live
+base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+last_seen_head: d7b7d46648f8fde8c0a2fce14881b7cdc8473169
+objective: Promote the reviewed read-only Drupal Working Now backend bridge into authoritative Beta, wire release guards, deploy to Namecheap, provision its private signing secret, and verify live fail-closed authorization behavior.
+packet_state: CLOSED
+lifecycle: VERIFIED
+outcome: Working Now bridge is authoritative, deployed and live-verified; private HMAC secret is auto-provisioned in rsync-excluded config.php and was proven active without disclosure.
+implementation_commits:
+  - 2b65518f13876648865758613ab34f9ed4715e67
+  - d7b7d46648f8fde8c0a2fce14881b7cdc8473169
+checks:
+  - PR 21 and PR 22 each passed Beta guardrails, CI and secret scan before merge.
+  - Namecheap release marker confirmed 2b65518 then d7b7d466 deployed.
+  - Live unsigned Working Now endpoint returned HTTP 401 service_unauthorized.
+  - Live well-formed request with deliberately invalid HMAC returned HTTP 401 service_unauthorized, proving a service secret is configured rather than service_unavailable.
+  - Secret provisioning/idempotency test passed locally without printing the secret.
+  - Deploy auto-provisions 32 random bytes only when the private config constant is absent, applies mode 600 and validates minimum length.
+  - Backend remains GET/read-only, delegates to merd_working_now(), and follows canonical dashboard-scoped LOA semantics.
+remaining:
+  - Drupal application runtime is still local-only and has no production actor mapping yet.
+  - Real Working Now roster display in Drupal requires the separate Drupal Namecheap deployment/identity milestone.
+next_action: Deploy the Drupal web application separately and map an approved Drupal identity to a MERDPOS service actor before enabling real roster display.
+updated_at: "2026-09-04T03:58:53+05:00"
