@@ -1,0 +1,26 @@
+version: 1
+id: MERD-20260904-drupal-working-now-adapter
+branch: beta/drupal-webapp
+base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+last_seen_head: c58037cf02b0119d375bbc5e70ddd5ee8c321f87
+objective: Wire the first read-only Drupal adapter to canonical MERDPOS Working Now data without direct operational DB access or device-token reuse.
+packet_state: CLOSED
+lifecycle: WIRED
+outcome: Signed read-only Working Now adapter implemented and locally contract/browser/visual validated; real MERDPOS data remains unconfigured and nothing was deployed to Namecheap.
+implementation_commit: c58037cf02b0119d375bbc5e70ddd5ee8c321f87
+checks:
+  - Protected Beta and Drupal remote refs rechecked immediately before commit; no branch drift.
+  - Drupal provider signing/normalization/fail-closed validator passed.
+  - Backend HMAC freshness and dashboard-widget LOA parity validator passed.
+  - Backend permission-level lookup fails closed if SQL policy cannot be read.
+  - Canonical resource and design-token integrity checks passed.
+  - Composer validation and locked security audit passed with no advisories.
+  - PHP lint passed for all new/changed PHP owners.
+  - Signed fake-upstream desktop/mobile browser path passed and screenshots were visually inspected.
+  - Fake service was stopped; resting localhost state passed UNCONFIGURED with zero AUTOTEST roster.
+  - MERDPOS AI continuity and git diff whitespace gates passed.
+remaining:
+  - Backend integration endpoint is not on authoritative namecheap-beta-live and is not deployed.
+  - Drupal service URL/secret/client/actor environment is intentionally unset in the resting local runtime.
+next_action: Start a separate governed promotion/deployment milestone before connecting Drupal to real MERDPOS Working Now data.
+updated_at: "2026-09-04T03:17:26+05:00"
