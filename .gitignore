@@ -62,3 +62,21 @@ backend/api/config.php
 **/storage-state*.json
 **/audit-output/
 **/live-policy*.json
+
+# Drupal local toolchain (never commit binaries)
+.tools/
+
+# Drupal Composer-managed dependencies
+/drupal/vendor/
+/drupal/web/core/
+/drupal/web/modules/contrib/
+/drupal/web/themes/contrib/
+/drupal/web/profiles/contrib/
+
+# Drupal runtime, secrets and user files
+/drupal/web/sites/*/files/
+/drupal/web/sites/*/private/
+/drupal/web/sites/*/*settings*.php
+!/drupal/web/sites/*/default.settings.php
+/drupal/web/sites/*/*services*.yml
+!/drupal/web/sites/*/default.services.yml
