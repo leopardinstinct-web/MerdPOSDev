@@ -58,6 +58,9 @@ jobs:
       - name: Validate shared beta state scope
         run: php namecheap_beta_live/backend/cli/validate_beta_state_scope.php
 
+      - name: Validate Drupal Working Now service contract
+        run: php namecheap_beta_live/backend/cli/validate_drupal_working_now_service.php
+
       - name: Validate Namecheap deploy recovery guards
         shell: bash
         run: |
@@ -65,6 +68,8 @@ jobs:
           bash -n scripts/deploy_namecheap_beta.sh
           grep -q 'validate_portal_loader_order.php' scripts/deploy_namecheap_beta.sh
           grep -q 'validate_beta_state_scope.php' scripts/deploy_namecheap_beta.sh
+          grep -q 'validate_drupal_working_now_service.php' scripts/deploy_namecheap_beta.sh
+          grep -q 'backend/api/integrations/working_now.php' scripts/deploy_namecheap_beta.sh
 
       - name: Syntax-check portal JavaScript
         shell: bash

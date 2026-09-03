@@ -83,6 +83,8 @@ Includes:
 
 SQL migrations, device/POS API support, finance/workforce helpers, CLI migration runners and deployment validators.
 
+The backend also owns narrow server-to-server adapters used by parallel MERDPOS clients such as Drupal. These adapters must be read/write scoped explicitly, reuse canonical domain helpers, enforce current client-role/LOA permissions on the backend, and use private service credentials rather than device tokens. The first such adapter is the read-only Working Now bridge under `backend/api/integrations/working_now.php`.
+
 ### Browser authorization
 
 Portal authorization is governed by `docs/pos_latest/BETA_AUTHORIZATION_STANDARD.md`.
