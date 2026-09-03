@@ -7,6 +7,6 @@ define('DB_NAME', '');
 define('DB_USER', '');
 define('DB_PASS', '');
 
-// Optional Drupal server-to-server bridge secret (minimum 32 characters).
-// Keep the real value only in private config.php or server environment.
-define('MERDPOS_DRUPAL_SERVICE_SECRET', '');
+// Drupal Working Now service secret is private runtime state.
+// The Beta deploy auto-provisions it into private config.php when absent.
+// To manage it manually instead, define MERDPOS_DRUPAL_SERVICE_SECRET here with 32+ characters.

@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-04T03:28:00+05:00"
+updated_at: "2026-09-04T03:46:00+05:00"
 active:
   - id: MERD-20260901-ds-revision-79
     path: .ai/work/active/MERD-20260901-ds-revision-79.yaml
@@ -24,5 +24,5 @@ active:
 
   - id: MERD-20260904-promote-drupal-working-now-backend
     path: .ai/work/active/MERD-20260904-promote-drupal-working-now-backend.yaml
-    lifecycle: WIRED
+    lifecycle: DEPLOYED
     packet_state: VALIDATED
