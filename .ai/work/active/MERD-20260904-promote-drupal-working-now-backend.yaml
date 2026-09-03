@@ -1,0 +1,31 @@
+version: 1
+id: MERD-20260904-promote-drupal-working-now-backend
+branch: promotion/drupal-working-now-backend
+base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+last_seen_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+objective: Promote only the reviewed read-only Drupal Working Now backend bridge into authoritative Beta, wire release guards, deploy to Namecheap, and verify the live endpoint fails closed until a private service secret is configured.
+packet_state: VALIDATED
+lifecycle: WIRED
+constraints:
+  - Do not promote Drupal UI/theme/module files into namecheap-beta-live.
+  - Existing operational data and frozen payroll/timesheet rules remain unchanged.
+  - Bridge remains GET/read-only and delegates roster calculation to merd_working_now().
+  - Dashboard-scoped LOA semantics must match canonical dashboard_data behavior.
+  - Service secret stays only in private/excluded server configuration.
+  - Deployment marker and live verification are required before calling this DEPLOYED or VERIFIED.
+implementation_plan:
+  - Promote bridge/auth/actor helpers and validator from Drupal experiment commit c58037c.
+  - Support the private backend config.php as the Namecheap secret source.
+  - Wire the bridge validator into deploy preflight and bridge files into the post-rsync live gate.
+  - Update backend/root runtime documentation.
+  - Run all authoritative Beta fail-closed validators before merge.
+  - Merge through GitHub into namecheap-beta-live, deploy, configure secret, and live-verify authorization behavior.
+completed:
+  - Backend-only bridge promoted; no Drupal UI/theme/module files are present in this worktree change.
+  - Private config.php secret fallback and sample configuration added.
+  - CI, runtime-contract, deploy preflight/post-rsync and live-copy guards wired.
+  - PHP/runtime/permission/continuity validators and Git-Bash deploy-script syntax check passed locally.
+remaining:
+  - Commit/push promotion branch, merge through GitHub, deploy authoritative Beta, configure private secret, and live-verify.
+updated_at: "2026-09-04T03:28:00+05:00"
+next_action: Commit the validated promotion branch, push it, open/merge the protected Beta PR, then deploy and verify Namecheap.

@@ -94,6 +94,10 @@ $storeWeekStartMigration = beta_contract_read($repo . '/namecheap_beta_live/back
 $storeWeekStartMigrationCli = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/apply_036_store_week_start_day.php', $errors);
 $uiStudioInheritanceValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_ui_studio_inheritance.php', $errors);
 $aiContinuityValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_ai_continuity.php', $errors);
+$drupalWorkingNowValidator = beta_contract_read($repo . '/namecheap_beta_live/backend/cli/validate_drupal_working_now_service.php', $errors);
+$drupalServiceAuth = beta_contract_read($repo . '/namecheap_beta_live/backend/api/includes/service_auth.php', $errors);
+$drupalServiceActor = beta_contract_read($repo . '/namecheap_beta_live/backend/api/includes/service_actor.php', $errors);
+$drupalWorkingNowApi = beta_contract_read($repo . '/namecheap_beta_live/backend/api/integrations/working_now.php', $errors);
 $betaGuardrails = beta_contract_read($repo . '/.github/workflows/beta-guardrails.yml', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 $deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
@@ -254,6 +258,20 @@ beta_contract_require_contains($deployScript, 'validate_ai_continuity.php', 'Nam
 beta_contract_require_contains($betaGuardrails, 'Validate AI continuity truthfulness', 'Beta CI continuity guard', $errors);
 beta_contract_require_contains($aiContinuityValidator, 'Orphan active work packet', 'AI continuity work-packet drift guard', $errors);
 beta_contract_require_contains($aiContinuityValidator, 'Encoding/mojibake marker', 'AI continuity encoding guard', $errors);
+
+// Drupal Working Now is a narrow signed read-only service bridge and a release invariant.
+beta_contract_require_contains($deployScript, 'validate_drupal_working_now_service.php', 'Namecheap Drupal Working Now pre/post-rsync validator', $errors);
+beta_contract_require_contains($deployScript, '$LIVE/backend/api/integrations/working_now.php', 'Namecheap live Working Now bridge file gate', $errors);
+beta_contract_require_contains($betaGuardrails, 'Validate Drupal Working Now service contract', 'Beta CI Drupal Working Now contract guard', $errors);
+beta_contract_require_contains($drupalWorkingNowValidator, 'Private config constant secret failed', 'Drupal service private config secret coverage', $errors);
+beta_contract_require_contains($drupalServiceAuth, "defined('MERDPOS_DRUPAL_SERVICE_SECRET')", 'Drupal service private config secret fallback', $errors);
+beta_contract_require_contains($drupalServiceAuth, 'hash_equals($expected, $signature)', 'Drupal service constant-time signature verification', $errors);
+beta_contract_require_contains($drupalServiceActor, 'client_permission_levels', 'Drupal service current client LOA policy lookup', $errors);
+beta_contract_require_contains($drupalWorkingNowApi, "'dashboard.widget.working_now'", 'Drupal Working Now widget permission enforcement', $errors);
+beta_contract_require_contains($drupalWorkingNowApi, 'merd_working_now($pdo', 'Drupal Working Now canonical workforce helper delegation', $errors);
+beta_contract_require_absent($drupalWorkingNowApi, 'INSERT INTO', 'Drupal Working Now write SQL', $errors);
+beta_contract_require_absent($drupalWorkingNowApi, 'UPDATE ', 'Drupal Working Now write SQL', $errors);
+beta_contract_require_absent($drupalWorkingNowApi, 'DELETE FROM', 'Drupal Working Now write SQL', $errors);
 
 // DEV UI Studio preview state is client-global, server-backed and actual-DEV-only; it never writes operational business data.
 beta_contract_require_contains($dashboard, "'is_dev'=>\$isDev", 'UI Studio actual DEV identity flag', $errors);
