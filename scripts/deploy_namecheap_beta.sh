@@ -97,6 +97,27 @@ rsync -az \
   "$REPO/namecheap_beta_live/backend/" \
   "$LIVE/backend/"
 
+SERVICE_CONFIG="$LIVE/backend/api/config.php"
+if [[ ! -r "$SERVICE_CONFIG" ]]; then
+  echo "ERROR: private backend config missing; cannot provision Drupal service secret." >&2
+  exit 1
+fi
+
+if ! php -r 'require $argv[1]; exit(defined("MERDPOS_DRUPAL_SERVICE_SECRET") ? 0 : 1);' "$SERVICE_CONFIG"; then
+  service_secret="$(php -r 'echo bin2hex(random_bytes(32));')"
+  printf '\n// Auto-provisioned by MERDPOS Beta deploy; never commit this value.\n' >> "$SERVICE_CONFIG"
+  printf "if (!defined('MERDPOS_DRUPAL_SERVICE_SECRET')) define('MERDPOS_DRUPAL_SERVICE_SECRET', '%s');\n" "$service_secret" >> "$SERVICE_CONFIG"
+  unset service_secret
+  chmod 600 "$SERVICE_CONFIG"
+fi
+
+php -r '
+require $argv[1];
+$secret=defined("MERDPOS_DRUPAL_SERVICE_SECRET") ? (string)constant("MERDPOS_DRUPAL_SERVICE_SECRET") : "";
+if(strlen($secret)<32){fwrite(STDERR,"Drupal Working Now service secret is not configured.\n");exit(1);}
+echo "Drupal Working Now service secret configured.\n";
+' "$SERVICE_CONFIG"
+
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
 
 php "$LIVE/backend/cli/apply_022_management_roles.php"

@@ -1,11 +1,11 @@
 version: 1
 id: MERD-20260904-promote-drupal-working-now-backend
-branch: promotion/drupal-working-now-backend
-base_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
-last_seen_head: 7315be89ab1d940b20acbcf70598d6ea60e5056a
+branch: promotion/drupal-working-now-secret
+base_head: 2b65518f13876648865758613ab34f9ed4715e67
+last_seen_head: 2b65518f13876648865758613ab34f9ed4715e67
 objective: Promote only the reviewed read-only Drupal Working Now backend bridge into authoritative Beta, wire release guards, deploy to Namecheap, and verify the live endpoint fails closed until a private service secret is configured.
 packet_state: VALIDATED
-lifecycle: WIRED
+lifecycle: DEPLOYED
 constraints:
   - Do not promote Drupal UI/theme/module files into namecheap-beta-live.
   - Existing operational data and frozen payroll/timesheet rules remain unchanged.
@@ -21,11 +21,14 @@ implementation_plan:
   - Run all authoritative Beta fail-closed validators before merge.
   - Merge through GitHub into namecheap-beta-live, deploy, configure secret, and live-verify authorization behavior.
 completed:
-  - Backend-only bridge promoted; no Drupal UI/theme/module files are present in this worktree change.
-  - Private config.php secret fallback and sample configuration added.
-  - CI, runtime-contract, deploy preflight/post-rsync and live-copy guards wired.
-  - PHP/runtime/permission/continuity validators and Git-Bash deploy-script syntax check passed locally.
+  - Backend-only bridge promoted; no Drupal UI/theme/module files were promoted.
+  - PR 21 passed Beta guardrails, CI and secret scan and merged as 2b65518f13876648865758613ab34f9ed4715e67.
+  - Namecheap release marker confirms 2b65518 deployed; unsigned live bridge returns HTTP 401 service_unauthorized.
+  - Private config.php secret fallback, CI/runtime-contract and deploy pre/post-rsync/live-copy guards are active.
+  - Follow-up deploy logic now auto-provisions a random 32-byte secret into private config.php when absent and validates it without printing it.
 remaining:
-  - Commit/push promotion branch, merge through GitHub, deploy authoritative Beta, configure private secret, and live-verify.
-updated_at: "2026-09-04T03:28:00+05:00"
-next_action: Commit the validated promotion branch, push it, open/merge the protected Beta PR, then deploy and verify Namecheap.
+  - Commit/merge/deploy the private secret auto-provisioning follow-up.
+  - Prove live secret availability with a well-formed deliberately invalid signature; expected result is HTTP 401 rather than service_unavailable.
+  - Drupal runtime deployment/service identity mapping remains a later milestone.
+updated_at: "2026-09-04T03:46:00+05:00"
+next_action: Validate and promote the secret auto-provisioning follow-up, then verify the deployed bridge reports configured-secret behavior without exposing the secret.

@@ -262,6 +262,9 @@ beta_contract_require_contains($aiContinuityValidator, 'Encoding/mojibake marker
 // Drupal Working Now is a narrow signed read-only service bridge and a release invariant.
 beta_contract_require_contains($deployScript, 'validate_drupal_working_now_service.php', 'Namecheap Drupal Working Now pre/post-rsync validator', $errors);
 beta_contract_require_contains($deployScript, '$LIVE/backend/api/integrations/working_now.php', 'Namecheap live Working Now bridge file gate', $errors);
+beta_contract_require_contains($deployScript, "bin2hex(random_bytes(32))", 'Namecheap Drupal service secret generation', $errors);
+beta_contract_require_contains($deployScript, 'chmod 600 "$SERVICE_CONFIG"', 'Namecheap Drupal service secret private config permissions', $errors);
+beta_contract_require_contains($deployScript, 'Drupal Working Now service secret configured.', 'Namecheap Drupal service secret validation', $errors);
 beta_contract_require_contains($betaGuardrails, 'Validate Drupal Working Now service contract', 'Beta CI Drupal Working Now contract guard', $errors);
 beta_contract_require_contains($drupalWorkingNowValidator, 'Private config constant secret failed', 'Drupal service private config secret coverage', $errors);
 beta_contract_require_contains($drupalServiceAuth, "defined('MERDPOS_DRUPAL_SERVICE_SECRET')", 'Drupal service private config secret fallback', $errors);
