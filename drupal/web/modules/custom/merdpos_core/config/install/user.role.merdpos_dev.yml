@@ -1,0 +1,15 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - merdpos_core
+id: merdpos_dev
+label: 'MERDPOS DEV'
+weight: 40
+is_admin: false
+permissions:
+  - 'access merdpos portal'
+  - 'view merdpos management dashboard'
+  - 'manage merdpos operations'
+  - 'manage merdpos platform'
+  - 'access merdpos dev tools'

@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Theme hooks for the MERDPOS Drupal shell.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function merdpos_core_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'merdpos_dashboard' => [
+      'variables' => [
+        'user_name' => '',
+        'role_labels' => [],
+        'kpis' => [],
+        'foundations' => [],
+      ],
+      'template' => 'merdpos-dashboard',
+    ],
+  ];
+}

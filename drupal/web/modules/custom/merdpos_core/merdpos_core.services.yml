@@ -1,0 +1,3 @@
+services:
+  merdpos_core.dashboard_controller:
+    class: Drupal\merdpos_core\Controller\DashboardController

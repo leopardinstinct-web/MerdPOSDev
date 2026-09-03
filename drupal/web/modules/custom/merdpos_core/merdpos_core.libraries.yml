@@ -1,0 +1,13 @@
+base:
+  version: 1.x
+  css:
+    theme:
+      css/design-tokens.css: {}
+
+dashboard:
+  version: 1.x
+  dependencies:
+    - merdpos_core/base
+  css:
+    theme:
+      css/dashboard.css: {}

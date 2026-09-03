@@ -1,0 +1,52 @@
+<section class="merdpos-app" aria-labelledby="merdpos-title">
+  <header class="merdpos-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / Drupal Beta</p>
+      <h1 id="merdpos-title">Management workspace</h1>
+      <p class="merdpos-lead">A parallel MERDPOS web shell built from Git-owned Drupal configuration and the existing MERDPOS design system.</p>
+    </div>
+    <div class="merdpos-identity">
+      <span class="merdpos-avatar" aria-hidden="true">{{ user_name|first|upper }}</span>
+      <div>
+        <strong>{{ user_name }}</strong>
+        <span>{{ role_labels|join(' · ') }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="merdpos-kpi-grid" aria-label="MERDPOS integration status">
+    {% for kpi in kpis %}
+      <article class="merdpos-kpi merdpos-kpi--{{ kpi.tone }}">
+        <span class="merdpos-kpi-label">{{ kpi.label }}</span>
+        <strong class="merdpos-kpi-value">{{ kpi.value }}</strong>
+        <span class="merdpos-kpi-meta">{{ kpi.meta }}</span>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="merdpos-section-head">
+    <div>
+      <p class="merdpos-eyebrow">Foundation</p>
+      <h2>Inherited MERDPOS engineering contract</h2>
+    </div>
+    <span class="merdpos-status">CODED LOCALLY</span>
+  </div>
+
+  <div class="merdpos-foundation-grid">
+    {% for foundation in foundations %}
+      <article class="merdpos-foundation-card">
+        <span class="merdpos-foundation-index">0{{ loop.index }}</span>
+        <h3>{{ foundation.title }}</h3>
+        <p>{{ foundation.text }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <footer class="merdpos-next-step">
+    <div>
+      <strong>Next integration boundary</strong>
+      <span>Connect read-only MERDPOS API adapters for working-now, sales, disputes, and cash status.</span>
+    </div>
+    <span class="merdpos-pill">Operational DB untouched</span>
+  </footer>
+</section>

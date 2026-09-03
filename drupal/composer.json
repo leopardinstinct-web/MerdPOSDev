@@ -102,5 +102,10 @@
     },
     "require-dev": {
         "drush/drush": "^13.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\merdpos_core\\": "web/modules/custom/merdpos_core/src/"
+        }
     }
 }

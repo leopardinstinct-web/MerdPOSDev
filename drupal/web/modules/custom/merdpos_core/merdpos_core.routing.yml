@@ -1,0 +1,7 @@
+merdpos_core.dashboard:
+  path: '/merdpos'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\DashboardController::dashboard'
+    _title: 'MERDPOS'
+  requirements:
+    _permission: 'view merdpos management dashboard'

@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - merdpos_core
+id: merdpos_admin
+label: 'MERDPOS ADMIN'
+weight: 20
+is_admin: false
+permissions:
+  - 'access merdpos portal'
+  - 'view merdpos management dashboard'
+  - 'manage merdpos operations'

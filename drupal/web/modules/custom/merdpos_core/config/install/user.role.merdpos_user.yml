@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - merdpos_core
+id: merdpos_user
+label: 'MERDPOS USER'
+weight: 10
+is_admin: false
+permissions:
+  - 'access merdpos portal'
