@@ -47,9 +47,9 @@ fi
 cp "$DRUPAL/deploy/settings.php" "$WEB/sites/default/settings.php"
 chmod 640 "$WEB/sites/default/settings.php"
 
-DRUSH="$DRUPAL/vendor/bin/drush"
-if [[ ! -f "$DRUSH" ]]; then
-  echo "Drush was not installed by Composer." >&2
+DRUSH_PHP="$DRUPAL/vendor/drush/drush/drush.php"
+if [[ ! -f "$DRUSH_PHP" ]]; then
+  echo "Drush PHP entry point was not installed by Composer." >&2
   exit 1
 fi
 
@@ -58,18 +58,18 @@ if [[ ! -s "$ADMIN_SECRET" ]]; then
   chmod 600 "$ADMIN_SECRET"
 fi
 
-BOOTSTRAP="$(php84 "$DRUSH" --root="$WEB" status --field=bootstrap 2>/dev/null || true)"
+BOOTSTRAP="$(php84 "$DRUSH_PHP" --root="$WEB" status --field=bootstrap 2>/dev/null || true)"
 if [[ "$BOOTSTRAP" != *Successful* ]]; then
   ADMIN_PASS="$(tr -d '\r\n' < "$ADMIN_SECRET")"
-  php84 "$DRUSH" --root="$WEB" site:install minimal -y \
+  php84 "$DRUSH_PHP" --root="$WEB" site:install minimal -y \
     --site-name='MERDPOS Drupal Beta' --account-name='merdpos-dev' --account-pass="$ADMIN_PASS"
   unset ADMIN_PASS
 fi
-php84 "$DRUSH" --root="$WEB" en merdpos_core -y
-php84 "$DRUSH" --root="$WEB" updb -y
-php84 "$DRUSH" --root="$WEB" cr
+php84 "$DRUSH_PHP" --root="$WEB" en merdpos_core -y
+php84 "$DRUSH_PHP" --root="$WEB" updb -y
+php84 "$DRUSH_PHP" --root="$WEB" cr
 
-PROBE="$(php84 "$DRUSH" --root="$WEB" php:eval \
+PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.working_now_provider")->load(); echo json_encode(["status"=>$r["status"]??null,"count"=>$r["count"]??null],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"){fwrite(STDERR,"Working Now self-test failed.\n");exit(1);}' "$PROBE"
 
