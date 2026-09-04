@@ -18,5 +18,9 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
       ],
       'template' => 'merdpos-surface',
     ],
+    'merdpos_dashboard' => [
+      'variables' => ['surface' => [], 'charts' => []],
+      'template' => 'merdpos-dashboard',
+    ],
   ];
 }

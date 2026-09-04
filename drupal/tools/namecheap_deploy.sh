@@ -69,11 +69,12 @@ if [[ "$BOOTSTRAP" != *Successful* ]]; then
     --site-name='MERDPOS Drupal Beta' --account-name='merdpos-dev' --account-pass="$ADMIN_PASS"
   unset ADMIN_PASS
 fi
-php84 "$DRUSH_PHP" --root="$WEB" en merdpos_core dashboard charts ui_patterns ui_icons better_exposed_filters gin_toolbar -y
+php84 "$DRUSH_PHP" --root="$WEB" en merdpos_core dashboard charts charts_google ui_patterns ui_icons better_exposed_filters gin_toolbar -y
 php84 "$DRUSH_PHP" --root="$WEB" theme:enable gin -y
 php84 "$DRUSH_PHP" --root="$WEB" config:set system.theme admin gin -y
 php84 "$DRUSH_PHP" --root="$WEB" config:set system.site page.front /merdpos -y
 php84 "$DRUSH_PHP" --root="$WEB" updb -y
+php84 "$DRUSH_PHP" --root="$WEB" php:eval '$r=\Drupal\user\Entity\Role::load("merdpos_user"); if(!$r){fwrite(STDERR,"MERDPOS USER role missing.\n");exit(1);} if(!$r->hasPermission("view merdpos management dashboard")){$r->grantPermission("view merdpos management dashboard");$r->save();}'
 php84 "$DRUSH_PHP" --root="$WEB" cr
 
 LOGIN_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
@@ -81,8 +82,13 @@ LOGIN_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["http_status"]??0)!==200){fwrite(STDERR,"MERDPOS login health self-test failed.\n");exit(1);}' "$LOGIN_PROBE"
 
 UI_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
-  '$mods=["dashboard","charts","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"]; $r=[]; foreach($mods as $m){$r[$m]=\Drupal::moduleHandler()->moduleExists($m)?"ok":"missing";} $r["admin_theme"]=\Drupal::config("system.theme")->get("admin"); echo json_encode($r,JSON_UNESCAPED_SLASHES);')"
-php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["admin_theme"]??"")!=="gin"){fwrite(STDERR,"Free Drupal UI stack self-test failed.\n");exit(1);} foreach(["dashboard","charts","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"] as $k){if(($p[$k]??"")!=="ok"){fwrite(STDERR,"Free Drupal UI stack missing {$k}.\n");exit(1);}}' "$UI_PROBE"
+  '$mods=["dashboard","charts","charts_google","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"]; $r=[]; foreach($mods as $m){$r[$m]=\Drupal::moduleHandler()->moduleExists($m)?"ok":"missing";} $r["admin_theme"]=\Drupal::config("system.theme")->get("admin"); echo json_encode($r,JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["admin_theme"]??"")!=="gin"){fwrite(STDERR,"Free Drupal UI stack self-test failed.\n");exit(1);} foreach(["dashboard","charts","charts_google","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"] as $k){if(($p[$k]??"")!=="ok"){fwrite(STDERR,"Free Drupal UI stack missing {$k}.\n");exit(1);}}' "$UI_PROBE"
+
+if [[ ! -s "$WEB/libraries/google_charts/loader.js" ]]; then
+  echo "Google Charts loader asset is missing." >&2
+  exit 1
+fi
 
 PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.working_now_provider")->load(); echo json_encode(["status"=>$r["status"]??null,"count"=>$r["count"]??null],JSON_UNESCAPED_SLASHES);')"
@@ -100,20 +106,25 @@ PARITY_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider"); $s=["home"=>$r->home(),"operations"=>$r->section("operations"),"reports"=>$r->section("reports"),"finance"=>$r->section("finance"),"dev"=>$r->section("dev")]; echo json_encode(array_map(static fn($v)=>$v["status"]??null,$s),JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); $keys=["home","operations","reports","finance","dev"]; if(!is_array($p)){fwrite(STDERR,"Five-surface parity self-test failed.\n");exit(1);} foreach($keys as $key){if(($p[$key]??"")!=="ok"){fwrite(STDERR,"Five-surface parity self-test failed at {$key}.\n");exit(1);}}' "$PARITY_PROBE"
 
+DASHBOARD_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$r=\Drupal::service("merdpos_core.parity_provider")->home(["period"=>"7"]); $a=$r["allowed_widgets"]??[]; $c=$r["chart_specs"]??[]; $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"allowed"=>is_array($a)?count($a):-1,"visible"=>$r["visible_widget_count"]??-1,"charts"=>is_array($c)?count($c):-1],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["allowed"]??0)<1||($p["visible"]??-1)!==($p["allowed"]??-2)||($p["charts"]??0)<1){fwrite(STDERR,"Rich dashboard v2 self-test failed.\n");exit(1);}' "$DASHBOARD_V2_PROBE"
+
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
   "gateway_dev_status"=>$d["status"]??null,
   "login_status"=>$l["status"]??null,
   "free_ui_stack"=>$u,
+  "dashboard_v2"=>$v,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

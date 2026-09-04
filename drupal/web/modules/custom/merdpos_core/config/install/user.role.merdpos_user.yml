@@ -9,3 +9,4 @@ weight: 10
 is_admin: false
 permissions:
   - 'access merdpos portal'
+  - 'view merdpos management dashboard'
