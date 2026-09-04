@@ -5,7 +5,7 @@ base_head: 5a8846900d6c136dd3409a1e0616a28d527e00f9
 last_seen_head: fb137ecd98bac8555a2b7591ec2edc60bfc73dc9
 objective: "Make Drupal authenticate with authoritative MERDPOS Beta login, restore approved MERDPOS login branding, enrich the app shell with canonical MERDPOS icons, and install a researched free Drupal UI stack."
 packet_state: DEPLOYED_AWAITING_USER_AUTH
-lifecycle: DEPLOYED
+lifecycle: VERIFIED
 affected_paths:
   - drupal/
 acceptance:
@@ -29,3 +29,9 @@ evidence:
   - Anonymous / and /merdpos redirect to /login; /login returns HTTPS 200 and renders approved MERDPOS login contract.
 next_action: "User performs one real MERDPOS DEV credential login at https://drupal-beta.merdpos.com/login. After user confirms success, verify authenticated actor/session behavior, mark VERIFIED, archive packet, validate continuity, and push evidence checkpoint."
 updated_at: "2026-09-04T17:12:00+05:00"
+verification_evidence:
+  - User confirmed successful login with normal MERDPOS DEV credentials on 2026-09-04.
+  - Authenticated browser session identifies Imran as Developer and renders DEV with Actor LOA 1000.
+  - Home, Operations, Reports, Finance and DEV render LIVE in the authenticated session.
+  - Live release commit fb137ecd98bac8555a2b7591ec2edc60bfc73dc9 reports login_status ok, free UI stack ok, and all five parity surfaces ok.
+  - PR 36 CI and secret scan passed before merge.
