@@ -86,6 +86,9 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_beta_state_scope.php"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Drupal Working Now service contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_drupal_working_now_service.php"
 
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Drupal generalized portal gateway contract"
+php "$REPO/namecheap_beta_live/backend/cli/validate_drupal_portal_gateway.php"
+
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
@@ -119,6 +122,7 @@ echo "Drupal Working Now service secret configured.\n";
 ' "$SERVICE_CONFIG"
 
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
+php "$LIVE/backend/cli/validate_drupal_portal_gateway.php"
 
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
@@ -215,7 +219,9 @@ for live_file in \
   "$LIVE/backend/api/includes/service_auth.php" \
   "$LIVE/backend/api/includes/service_actor.php" \
   "$LIVE/backend/api/integrations/working_now.php" \
+  "$LIVE/backend/api/integrations/portal_gateway.php" \
   "$LIVE/backend/cli/validate_drupal_working_now_service.php" \
+  "$LIVE/backend/cli/validate_drupal_portal_gateway.php" \
   "$LIVE/backend/README.md"; do
   if [[ ! -r "$live_file" ]]; then
     echo "ERROR: required live beta runtime/README file missing after deploy: $(basename "$live_file")" >&2
