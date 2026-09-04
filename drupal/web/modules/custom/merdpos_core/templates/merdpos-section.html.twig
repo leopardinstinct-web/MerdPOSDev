@@ -1,0 +1,42 @@
+<section class="merdpos-app merdpos-section-landing" aria-labelledby="merdpos-section-title">
+  <header class="merdpos-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / {{ section.eyebrow }}</p>
+      <h1 id="merdpos-section-title">{{ section.title }}</h1>
+      <p class="merdpos-lead">{{ section.description }}</p>
+    </div>
+    <div class="merdpos-identity">
+      <span class="merdpos-avatar" aria-hidden="true">→</span>
+      <div>
+        <strong>Adapter boundary</strong>
+        <span>Operational database untouched</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="merdpos-section-head">
+    <div>
+      <p class="merdpos-eyebrow">Prepared destinations</p>
+      <h2>Ready for service wiring</h2>
+    </div>
+    <span class="merdpos-status">SHELL WIRED</span>
+  </div>
+
+  <div class="merdpos-foundation-grid">
+    {% for item in section.items %}
+      <article class="merdpos-foundation-card">
+        <span class="merdpos-foundation-index">0{{ loop.index }}</span>
+        <h3>{{ item }}</h3>
+        <p>UI destination prepared. Existing MERDPOS service and authorization contracts must be wired before live data or actions appear here.</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <footer class="merdpos-next-step">
+    <div>
+      <strong>Current lifecycle</strong>
+      <span>Theme and navigation shell only; operational service integration remains pending.</span>
+    </div>
+    <span class="merdpos-pill">No direct DB writes</span>
+  </footer>
+</section>

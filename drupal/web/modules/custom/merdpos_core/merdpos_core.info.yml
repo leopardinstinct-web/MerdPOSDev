@@ -1,0 +1,7 @@
+name: MERDPOS Core
+type: module
+description: 'MERDPOS Drupal webapp shell, named permissions, role scaffolding, and shared design resources.'
+package: MERDPOS
+core_version_requirement: ^11
+dependencies:
+  - drupal:user

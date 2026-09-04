@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Url;
+use Drupal\user\Entity\Role;
+
+/**
+ * Prepares the Git-owned MERDPOS application shell.
+ */
+function merdpos_app_preprocess_page(array &$variables): void {
+  $account = \Drupal::currentUser();
+  $route_name = (string) \Drupal::routeMatch()->getRouteName();
+  $roles = Role::loadMultiple($account->getRoles());
+
+  $variables['merdpos_user_name'] = $account->getDisplayName();
+  $variables['merdpos_role_labels'] = array_values(array_map(
+    static fn (Role $role): string => $role->label(),
+    $roles,
+  ));
+
+  $items = [
+    ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
+    ['key' => 'operations', 'label' => 'Operations', 'route' => 'merdpos_core.operations', 'permission' => 'manage merdpos operations'],
+    ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal'],
+    ['key' => 'finance', 'label' => 'Finance', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
+    ['key' => 'dev', 'label' => 'DEV', 'route' => 'merdpos_core.dev', 'permission' => 'access merdpos dev tools'],
+  ];
+
+  $variables['merdpos_nav'] = [];
+  foreach ($items as $item) {
+    if (!$account->hasPermission($item['permission'])) {
+      continue;
+    }
+    $item['url'] = Url::fromRoute($item['route'])->toString();
+    $item['active'] = $route_name === $item['route'];
+    $variables['merdpos_nav'][] = $item;
+  }
+
+  $active = array_values(array_filter(
+    $variables['merdpos_nav'],
+    static fn (array $item): bool => $item['active'],
+  ));
+  $variables['merdpos_active_section'] = $active[0]['key'] ?? 'home';
+  $variables['merdpos_active_label'] = $active[0]['label'] ?? 'Home';
+}

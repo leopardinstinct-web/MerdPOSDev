@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Theme hooks for the MERDPOS Drupal application.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function merdpos_core_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'merdpos_surface' => [
+      'variables' => [
+        'surface' => [],
+      ],
+      'template' => 'merdpos-surface',
+    ],
+  ];
+}

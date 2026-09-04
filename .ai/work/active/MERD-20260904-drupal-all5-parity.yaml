@@ -1,0 +1,30 @@
+version: 1
+id: MERD-20260904-drupal-all5-parity
+branch: milestone/drupal-all5-parity-v2
+base_head: f43b5c0c0e28fc269585fd8a17d8a2cc49c45f45
+last_seen_head: f43b5c0c0e28fc269585fd8a17d8a2cc49c45f45
+objective: "Build and live-verify all five Drupal MERDPOS surfaces: Home, Operations, Reports, Finance and DEV, using authoritative Beta APIs through the signed portal gateway."
+packet_state: CHECKED
+lifecycle: WIRED
+affected_paths:
+  - drupal/
+  - .cpanel.yml
+  - .gitignore
+acceptance:
+  - Home shows real permission-scoped MERDPOS dashboard data.
+  - Operations shows real workforce and store state.
+  - Reports shows real timesheet and dispute state without changing frozen payroll logic.
+  - Finance shows real financial/store state through existing APIs.
+  - DEV shows real dev/client/role/store diagnostic state while DevStudio remains excluded.
+  - All five surfaces pass targeted source/runtime checks and rendered live verification.
+constraints:
+  - MERDPOS Beta remains business-rule and authorization authority.
+  - No Drupal direct SQL access to MERDPOS operational tables.
+  - Read-only parity only; no destructive MERD writes for verification.
+  - No DevStudio/UI Studio exposure.
+evidence:
+  - Five-surface provider, controllers, shared Twig surface and responsive presentation are wired.
+  - Local PHP lint, five-surface provider validator, gateway validator, Working Now validator, resource-sync check, AI continuity and git diff check passed.
+  - Live reconnaissance confirmed authoritative gateway GET routes for dashboard, workforce, stores, reports, finance prerequisites and DEV are available to the actual DEV service actor.
+next_action: Commit and promote the checked implementation to beta/drupal-webapp, deploy via permanent SSH, then perform live runtime and rendered verification of all five routes.
+updated_at: "2026-09-04T11:40:00+05:00"

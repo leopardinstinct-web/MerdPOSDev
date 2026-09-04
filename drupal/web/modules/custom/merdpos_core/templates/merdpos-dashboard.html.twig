@@ -1,0 +1,82 @@
+<section class="merdpos-app" aria-labelledby="merdpos-title">
+  <header class="merdpos-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / Drupal Beta</p>
+      <h1 id="merdpos-title">Management workspace</h1>
+      <p class="merdpos-lead">A parallel MERDPOS web shell built from Git-owned Drupal configuration and the existing MERDPOS design system.</p>
+    </div>
+    <div class="merdpos-identity">
+      <span class="merdpos-avatar" aria-hidden="true">{{ user_name|first|upper }}</span>
+      <div>
+        <strong>{{ user_name }}</strong>
+        <span>{{ role_labels|join(' · ') }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="merdpos-kpi-grid" aria-label="MERDPOS integration status">
+    {% for kpi in kpis %}
+      <article class="merdpos-kpi merdpos-kpi--{{ kpi.tone }}">
+        <span class="merdpos-kpi-label">{{ kpi.label }}</span>
+        <strong class="merdpos-kpi-value">{{ kpi.value }}</strong>
+        <span class="merdpos-kpi-meta">{{ kpi.meta }}</span>
+      </article>
+    {% endfor %}
+  </div>
+
+  <section class="merdpos-live-panel" aria-labelledby="working-now-title">
+    <div class="merdpos-live-head">
+      <div>
+        <p class="merdpos-eyebrow">Live workforce</p>
+        <h2 id="working-now-title">Working now</h2>
+      </div>
+      <span class="merdpos-live-state merdpos-live-state--{{ working_now.status }}">{{ working_now.status|upper }}</span>
+    </div>
+
+    {% if working_now.status == 'ok' %}
+      {% if working_now.people %}
+        <div class="merdpos-working-list">
+          {% for person in working_now.people %}
+            <article class="merdpos-working-person">
+              <div>
+                <strong>{{ person.full_name }}</strong>
+                <span>{{ person.store_name }}</span>
+              </div>
+              <span class="merdpos-working-duration">{{ person.duration_label }}</span>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="merdpos-live-empty">Nobody is currently clocked in.</p>
+      {% endif %}
+    {% else %}
+      <p class="merdpos-live-empty">{{ working_now.message }}</p>
+    {% endif %}
+  </section>
+
+  <div class="merdpos-section-head">
+    <div>
+      <p class="merdpos-eyebrow">Foundation</p>
+      <h2>Inherited MERDPOS engineering contract</h2>
+    </div>
+    <span class="merdpos-status">CODED LOCALLY</span>
+  </div>
+
+  <div class="merdpos-foundation-grid">
+    {% for foundation in foundations %}
+      <article class="merdpos-foundation-card">
+        <span class="merdpos-foundation-index">0{{ loop.index }}</span>
+        <h3>{{ foundation.title }}</h3>
+        <p>{{ foundation.text }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <footer class="merdpos-next-step">
+    <div>
+      <strong>Next integration boundary</strong>
+      <span>Promote and deploy the signed Working Now bridge; sales, disputes, and cash adapters remain pending.</span>
+    </div>
+    <span class="merdpos-pill">Operational DB untouched</span>
+  </footer>
+</section>

@@ -1,0 +1,496 @@
+html {
+  min-height: 100%;
+  background: var(--color-bg-main);
+  font-family: var(--font-ui);
+}
+
+body.merd-drupal-shell {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0 0 5rem;
+  background: var(--color-bg-main);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
+}
+
+.merd-drupal-shell *,
+.merd-drupal-shell *::before,
+.merd-drupal-shell *::after {
+  box-sizing: border-box;
+}
+
+.merd-drupal-shell a {
+  color: inherit;
+}
+
+.merdpos-skip-link {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 200;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-brand-navy);
+  color: var(--color-brand-white);
+  font-weight: var(--weight-semibold);
+  transform: translateY(-160%);
+  transition: transform var(--duration-fast) ease;
+}
+
+.merdpos-skip-link:focus {
+  transform: translateY(0);
+}
+
+.merdpos-shell-frame {
+  min-height: calc(100vh - 5rem);
+}
+
+.merdpos-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 4.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: color-mix(in srgb, var(--color-surface-main) 94%, transparent);
+  backdrop-filter: blur(.8rem) saturate(135%);
+}
+
+.merdpos-shell-brand {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: fit-content;
+  text-decoration: none;
+}
+
+.merdpos-shell-brand img {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+}
+
+.merdpos-shell-brand-copy {
+  display: grid;
+  min-width: 0;
+  line-height: var(--line-tight);
+}
+
+.merdpos-shell-brand-copy strong {
+  font-family: var(--font-display);
+  font-size: var(--type-lg);
+  letter-spacing: -.02em;
+}
+
+.merdpos-shell-brand-copy small {
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+}
+
+.merdpos-shell-context {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-main);
+  color: var(--color-text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.merdpos-shell-context-dot {
+  width: .45rem;
+  height: .45rem;
+  border-radius: var(--radius-circle);
+  background: var(--color-brand-cyan);
+  box-shadow: 0 0 0 .2rem var(--color-focus-soft);
+}
+
+.merdpos-account {
+  position: relative;
+  justify-self: end;
+}
+
+.merdpos-account-trigger {
+  min-height: var(--size-control);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.merdpos-account-trigger:hover {
+  border-color: var(--color-border-default);
+  background: var(--color-surface-muted);
+}
+
+.merdpos-account-avatar {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 2rem;
+  border-radius: var(--radius-circle);
+  background: var(--gradient-brand);
+  color: var(--color-brand-white);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+}
+
+.merdpos-account-copy {
+  display: grid;
+  min-width: 0;
+  text-align: left;
+  line-height: var(--line-tight);
+}
+
+.merdpos-account-copy strong {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--type-xs);
+}
+
+.merdpos-account-copy small {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+}
+
+.merdpos-account-chevron {
+  color: var(--color-text-muted);
+  transition: transform var(--duration-fast) ease;
+}
+
+.merdpos-account-trigger[aria-expanded="true"] .merdpos-account-chevron {
+  transform: rotate(180deg);
+}
+
+.merdpos-account-menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 140;
+  width: min(18rem, calc(100vw - var(--space-6)));
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-main);
+  box-shadow: var(--shadow-raised);
+}
+
+.merdpos-account-menu[hidden] {
+  display: none;
+}
+
+.merdpos-account-menu-head {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.merdpos-account-menu-head span {
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+}
+
+.merdpos-account-menu a {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--color-text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.merdpos-account-menu a:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+.merdpos-context-strip {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 70;
+  min-height: 3.25rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: color-mix(in srgb, var(--color-bg-main) 94%, transparent);
+  backdrop-filter: blur(.7rem);
+  scrollbar-width: none;
+}
+
+.merdpos-context-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.merdpos-context-item,
+.merdpos-context-state {
+  flex: 0 0 auto;
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-main);
+  color: var(--color-text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.merdpos-context-item.is-current {
+  border-color: color-mix(in srgb, var(--color-brand-cyan) 38%, var(--color-border-default));
+  background: var(--color-surface-selected);
+  color: var(--color-brand-primary);
+}
+
+.merdpos-context-item.is-live {
+  border-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border-default));
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  opacity: 1;
+}
+
+.merdpos-context-state {
+  margin-left: auto;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.merdpos-shell-workspace {
+  width: min(100%, var(--content-max));
+  min-width: 0;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-12);
+  outline: none;
+}
+
+.merdpos-bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 120;
+  min-height: 4.5rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: .3rem;
+  padding: .3rem var(--space-4) calc(.3rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-nav-border);
+  background: color-mix(in srgb, var(--color-nav-bg) 97%, transparent);
+  box-shadow: 0 -.5rem 1.6rem color-mix(in srgb, var(--color-brand-navy) 18%, transparent);
+  backdrop-filter: blur(.8rem) saturate(130%);
+}
+
+.merdpos-bottom-nav-item {
+  position: relative;
+  width: min(9rem, 20vw);
+  min-height: 3.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 1rem;
+  color: var(--color-nav-text-muted);
+  text-decoration: none;
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.merdpos-bottom-nav-item:hover {
+  background: var(--color-nav-bg-hover);
+  color: var(--color-nav-text);
+}
+
+.merdpos-bottom-nav-item.is-active {
+  background: var(--color-nav-sub-active);
+  color: var(--color-nav-text);
+}
+
+.merdpos-bottom-nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  top: .18rem;
+  left: 50%;
+  width: 1.7rem;
+  height: .2rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-cyan);
+  transform: translateX(-50%);
+}
+
+.merdpos-bottom-nav-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 1.3rem;
+}
+
+.merdpos-bottom-nav-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.merdpos-bottom-nav-label {
+  font-size: .75rem;
+  font-weight: var(--weight-semibold);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.merd-drupal-shell :where(button, a[href]):focus-visible {
+  outline: .1875rem solid var(--color-focus-soft);
+  outline-offset: .125rem;
+}
+
+@media (max-width: 51.25rem) {
+  body.merd-drupal-shell {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
+  .merdpos-shell-header {
+    min-height: 4rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .merdpos-shell-context {
+    display: none;
+  }
+
+  .merdpos-shell-brand-copy small,
+  .merdpos-account-copy,
+  .merdpos-account-chevron {
+    display: none;
+  }
+
+  .merdpos-account-trigger {
+    width: var(--size-touch);
+    height: var(--size-touch);
+    min-height: var(--size-touch);
+    justify-content: center;
+    padding: 0;
+    border-radius: var(--radius-circle);
+  }
+
+  .merdpos-account-avatar {
+    width: 2.2rem;
+    height: 2.2rem;
+    flex-basis: 2.2rem;
+  }
+
+  .merdpos-context-strip {
+    top: 4rem;
+    min-height: 3rem;
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .merdpos-context-state {
+    display: none;
+  }
+
+  .merdpos-shell-workspace {
+    padding: var(--space-4) var(--space-3) var(--space-8);
+  }
+
+  .merdpos-bottom-nav {
+    min-height: 4.75rem;
+    justify-content: space-around;
+    gap: .2rem;
+    padding: .375rem .5rem calc(.375rem + env(safe-area-inset-bottom));
+  }
+
+  .merdpos-bottom-nav-item {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 7rem;
+    min-height: 4rem;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: .45rem .25rem;
+  }
+
+  .merdpos-bottom-nav-item[data-nav-section="dev"] {
+    display: none;
+  }
+
+  .merdpos-bottom-nav-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .merdpos-bottom-nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 24rem) {
+  .merdpos-shell-brand-copy strong {
+    font-size: var(--type-md);
+  }
+
+  .merdpos-context-strip {
+    padding-inline: var(--space-2);
+  }
+
+  .merdpos-bottom-nav-label {
+    font-size: .6875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merdpos-skip-link,
+  .merdpos-account-chevron,
+  .merdpos-bottom-nav-item {
+    transition: none;
+  }
+}
+
+/* Explicit shell contrast: keep inactive destinations readable on navy. */
+.merdpos-bottom-nav .merdpos-bottom-nav-item {
+  color: color-mix(in srgb, var(--color-brand-white) 78%, var(--color-brand-navy));
+}
+
+.merdpos-bottom-nav .merdpos-bottom-nav-item:hover,
+.merdpos-bottom-nav .merdpos-bottom-nav-item.is-active {
+  color: var(--color-brand-white);
+}

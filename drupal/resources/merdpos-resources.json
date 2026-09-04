@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "resources": [
+    {
+      "id": "design-tokens",
+      "source": "namecheap_beta_live/timesheet_portal/assets/design-tokens.css",
+      "target": "drupal/web/modules/custom/merdpos_core/css/design-tokens.css"
+    },
+    {
+      "id": "brand-mark-v2",
+      "source": "namecheap_beta_live/timesheet_portal/assets/brand/M_Icon_v2.svg",
+      "target": "drupal/web/themes/custom/merdpos_app/assets/M_Icon_v2.svg"
+    }
+  ]
+}

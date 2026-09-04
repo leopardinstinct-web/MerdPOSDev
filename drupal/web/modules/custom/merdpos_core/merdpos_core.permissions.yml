@@ -1,0 +1,22 @@
+access merdpos portal:
+  title: 'Access MERDPOS portal'
+  description: 'Enter the MERDPOS Drupal web application.'
+
+view merdpos management dashboard:
+  title: 'View MERDPOS management dashboard'
+  description: 'View management dashboard surfaces and widgets allowed by underlying data permissions.'
+
+manage merdpos operations:
+  title: 'Manage MERDPOS operations'
+  description: 'Use administrative MERDPOS operational controls.'
+  restrict access: true
+
+manage merdpos platform:
+  title: 'Manage MERDPOS platform'
+  description: 'Use high-authority MERDPOS platform administration controls.'
+  restrict access: true
+
+access merdpos dev tools:
+  title: 'Access MERDPOS DEV tools'
+  description: 'Access developer-only diagnostics and tooling. Backend actual-DEV identity remains authoritative.'
+  restrict access: true

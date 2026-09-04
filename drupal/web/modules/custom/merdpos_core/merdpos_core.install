@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Installs and normalizes the route-scoped MERDPOS app theme on a fresh site.
+ */
+function merdpos_core_install(): void {
+  \Drupal::service('theme_installer')->install(['merdpos_app']);
+  _merdpos_core_normalize_app_theme_blocks();
+}
+
+/**
+ * Enables the MERDPOS app theme for sites created before the theme existed.
+ */
+function merdpos_core_update_11001(): string {
+  \Drupal::service('theme_installer')->install(['merdpos_app']);
+  _merdpos_core_normalize_app_theme_blocks();
+  return 'Enabled and normalized the route-scoped MERDPOS application theme.';
+}
+
+/**
+ * Removes generic Drupal blocks from the application shell theme only.
+ */
+function _merdpos_core_normalize_app_theme_blocks(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('block');
+  $keep = ['merdpos_app_content', 'merdpos_app_messages'];
+
+  foreach ($storage->loadByProperties(['theme' => 'merdpos_app']) as $id => $block) {
+    if (!in_array($id, $keep, true)) {
+      $block->delete();
+    }
+  }
+}

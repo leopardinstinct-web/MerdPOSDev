@@ -1,0 +1,6 @@
+merdpos_core.dashboard:
+  title: 'MERDPOS'
+  description: 'Open the MERDPOS Drupal web application shell.'
+  route_name: merdpos_core.dashboard
+  parent: system.admin
+  weight: -50

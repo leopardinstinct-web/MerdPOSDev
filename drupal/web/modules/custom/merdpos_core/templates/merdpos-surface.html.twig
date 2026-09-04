@@ -1,0 +1,125 @@
+<section class="merdpos-app merdpos-parity-surface merdpos-parity-surface--{{ surface.key }}" aria-labelledby="merdpos-surface-title">
+  <header class="merdpos-hero merdpos-parity-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / {{ surface.eyebrow }}</p>
+      <h1 id="merdpos-surface-title">{{ surface.title }}</h1>
+      <p class="merdpos-lead">{{ surface.description }}</p>
+    </div>
+    <div class="merdpos-parity-state merdpos-parity-state--{{ surface.status }}" aria-label="Integration status {{ surface.status_label }}">
+      <span class="merdpos-parity-state-dot" aria-hidden="true"></span>
+      <div>
+        <strong>{{ surface.status_label }}</strong>
+        <span>Signed MERDPOS service</span>
+      </div>
+    </div>
+  </header>
+
+  {% if surface.filters %}
+    <form class="merdpos-filter-bar" method="get" aria-label="View filters">
+      {% for filter in surface.filters %}
+        <label class="merdpos-filter-field">
+          <span>{{ filter.label }}</span>
+          {% if filter.type == 'select' %}
+            <select name="{{ filter.name }}">
+              {% for option in filter.options %}
+                <option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="{{ filter.type }}" name="{{ filter.name }}" value="{{ filter.value }}">
+          {% endif %}
+        </label>
+      {% endfor %}
+      <button class="merdpos-filter-apply" type="submit">Apply</button>
+    </form>
+  {% endif %}
+
+  {% if surface.metrics %}
+    <div class="merdpos-kpi-grid" aria-label="{{ surface.eyebrow }} summary">
+      {% for metric in surface.metrics %}
+        <article class="merdpos-kpi merdpos-kpi--{{ metric.tone }}">
+          <span class="merdpos-kpi-label">{{ metric.label }}</span>
+          <strong class="merdpos-kpi-value">{{ metric.value }}</strong>
+          <span class="merdpos-kpi-meta">{{ metric.meta }}</span>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="merdpos-parity-groups">
+    {% for group in surface.groups %}
+      <section class="merdpos-data-panel merdpos-data-panel--{{ group.kind }}">
+        <div class="merdpos-data-panel-head">
+          <div>
+            <p class="merdpos-eyebrow">{{ group.eyebrow }}</p>
+            <h2>{{ group.title }}</h2>
+          </div>
+        </div>
+        {% if group.kind == 'cards' %}
+          {% if group.items %}
+            <div class="merdpos-data-cards">
+              {% for item in group.items %}
+                <article class="merdpos-data-card">
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.meta }}</span>
+                  </div>
+                  <b>{{ item.value }}</b>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="merdpos-data-empty">{{ group.empty }}</p>
+          {% endif %}
+
+        {% elseif group.kind == 'table' %}
+          {% if group.rows %}
+            <div class="merdpos-table-wrap" tabindex="0" role="region" aria-label="{{ group.title }} table">
+              <table class="merdpos-data-table">
+                <thead>
+                  <tr>
+                    {% for column in group.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in group.rows %}
+                    <tr>
+                      {% for column in group.columns %}
+                        <td>{{ attribute(row, column.key)|default('—') }}</td>
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="merdpos-data-empty">{{ group.empty }}</p>
+          {% endif %}
+
+        {% elseif group.kind == 'bars' %}
+          {% if group.items %}
+            <div class="merdpos-bar-list">
+              {% for item in group.items %}
+                <div class="merdpos-bar-row">
+                  <span class="merdpos-bar-label">{{ item.label }}</span>
+                  <span class="merdpos-bar-track"><i style="--merdpos-bar: {{ item.percent }}%"></i></span>
+                  <strong>{{ item.value }}</strong>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="merdpos-data-empty">{{ group.empty }}</p>
+          {% endif %}
+        {% endif %}
+      </section>
+    {% endfor %}
+  </div>
+
+  <footer class="merdpos-next-step merdpos-parity-footer">
+    <div>
+      <strong>Authoritative source</strong>
+      <span>{{ surface.meta.source|default('MERDPOS Beta portal services') }}</span>
+    </div>
+    <span class="merdpos-pill">No direct operational DB access</span>
+  </footer>
+</section>
