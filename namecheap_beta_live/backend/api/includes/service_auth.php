@@ -6,16 +6,19 @@ function merd_service_signature_payload(
     string $method,
     int $timestamp,
     int $clientId,
-    string $actorUserId
+    string $actorUserId,
+    string $context = ''
 ): string {
-    return implode("\n", [
+    $parts = [
         'merdpos-service-v1',
         strtolower(trim($operation)),
         strtoupper(trim($method)),
         (string)$timestamp,
         (string)$clientId,
         $actorUserId,
-    ]);
+    ];
+    if ($context !== '') $parts[] = $context;
+    return implode("\n", $parts);
 }
 
 function merd_service_sign(
@@ -24,16 +27,18 @@ function merd_service_sign(
     int $timestamp,
     int $clientId,
     string $actorUserId,
-    string $secret
+    string $secret,
+    string $context = ''
 ): string {
-    return hash_hmac('sha256', merd_service_signature_payload($operation, $method, $timestamp, $clientId, $actorUserId), $secret);
+    return hash_hmac('sha256', merd_service_signature_payload($operation, $method, $timestamp, $clientId, $actorUserId, $context), $secret);
 }
 
 function merd_service_authenticate(
     array $server,
     string $operation,
     ?int $now = null,
-    ?string $secretOverride = null
+    ?string $secretOverride = null,
+    string $context = ''
 ): array {
     $service = trim((string)($server['HTTP_X_MERDPOS_SERVICE'] ?? ''));
     $timestampRaw = trim((string)($server['HTTP_X_MERDPOS_TIMESTAMP'] ?? ''));
@@ -73,7 +78,8 @@ function merd_service_authenticate(
         $timestamp,
         $clientId,
         $actorUserId,
-        $secret
+        $secret,
+        $context
     );
     if (!hash_equals($expected, $signature)) {
         throw new MerdRequestException('service_unauthorized', 401, 'Service authorization failed.');
