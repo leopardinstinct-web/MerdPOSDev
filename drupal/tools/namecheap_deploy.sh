@@ -10,19 +10,13 @@ ADMIN_SECRET=/home/dridsheikh/.merdpos_drupal_admin_password
 
 PHP_BIN=/opt/alt/php84/usr/bin/php
 COMPOSER=/home/dridsheikh/.merdpos-tools/composer.phar
-PHP_EXTENSIONS=(phar dom fileinfo gd mbstring xmlreader xmlwriter zip)
 
 if [[ ! -x "$PHP_BIN" || ! -f "$COMPOSER" ]]; then
   echo "PHP 8.4 or private Composer tool is missing." >&2
   exit 1
 fi
 php84() {
-  local args=("$PHP_BIN")
-  local ext
-  for ext in "${PHP_EXTENSIONS[@]}"; do
-    args+=( -d "extension=${ext}.so" )
-  done
-  "${args[@]}" "$@"
+  "$PHP_BIN" "$@"
 }
 php84 -r 'if(PHP_VERSION_ID<80400){fwrite(STDERR,"PHP 8.4 required\n");exit(1);}'
 
@@ -33,6 +27,9 @@ fi
 cp /opt/alt/default_php_ini/php84.ini "$WEB/php.ini"
 chmod 644 "$WEB/php.ini"
 touch /home/dridsheikh/.lsphp_restart.txt
+export PHPRC="$WEB"
+export PATH="/opt/alt/php84/usr/bin:$PATH"
+php84 -r '$required=["curl","dom","fileinfo","gd","mbstring","pdo_mysql","phar","xmlreader","xmlwriter","zip"]; foreach($required as $ext){if(!extension_loaded($ext)){fwrite(STDERR,"Missing PHP extension: $ext\n");exit(1);}}'
 
 cd "$DRUPAL"
 php84 "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader
