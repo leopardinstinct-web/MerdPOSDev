@@ -83,3 +83,6 @@ backend/api/config.php
 !/drupal/web/sites/*/default.settings.php
 /drupal/web/sites/*/*services*.yml
 !/drupal/web/sites/*/default.services.yml
+
+# Composer-managed frontend libraries
+/drupal/web/libraries/

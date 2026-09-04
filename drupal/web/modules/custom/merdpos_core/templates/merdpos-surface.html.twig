@@ -38,6 +38,17 @@
     <div class="merdpos-kpi-grid" aria-label="{{ surface.eyebrow }} summary">
       {% for metric in surface.metrics %}
         <article class="merdpos-kpi merdpos-kpi--{{ metric.tone }}">
+          <span class="merdpos-kpi-icon" aria-hidden="true">
+            {% set ml = metric.label|lower %}
+            {% if 'working' in ml or 'employee' in ml or 'client' in ml %}<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            {% elseif 'sales' in ml or 'hours' in ml %}<svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20V7"/></svg>
+            {% elseif 'cash' in ml or 'register' in ml or 'petty' in ml %}<svg viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/><path d="M5 7V5a2 2 0 0 1 2-2h10"/></svg>
+            {% elseif 'store' in ml %}<svg viewBox="0 0 24 24"><path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>
+            {% elseif 'dispute' in ml %}<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/></svg>
+            {% elseif 'week' in ml or 'day' in ml or 'timing' in ml %}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            {% elseif 'db' in ml or 'php' in ml or 'loa' in ml %}<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+            {% else %}<svg viewBox="0 0 24 24"><path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/></svg>{% endif %}
+          </span>
           <span class="merdpos-kpi-label">{{ metric.label }}</span>
           <strong class="merdpos-kpi-value">{{ metric.value }}</strong>
           <span class="merdpos-kpi-meta">{{ metric.meta }}</span>

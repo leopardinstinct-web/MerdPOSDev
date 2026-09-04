@@ -137,3 +137,21 @@ Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal
 Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active actual DEV service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
 
 `drupal/deploy/settings.php` is the tracked production settings template. It trusts only `drupal-beta.merdpos.com` and places private files/config sync outside the web root. Real database credentials, hash salt, service secret and actor identifiers remain private server state and must never be committed.
+
+## Authoritative MERDPOS browser login
+
+Drupal `/login` uses the approved MERDPOS login graphics and numeric User ID/password flow, but credential verification remains owned by the authoritative Beta login service:
+
+`Drupal /login → server-side HTTPS POST → /beta/timesheet_portal/api/login.php → existing lockout/password/active-account/role resolution → Drupal shadow session`
+
+Drupal never stores the submitted MERDPOS password. A successful MERDPOS identity is represented by a non-administrator shadow Drupal account whose random local password is not exposed to the user. The MERDPOS employee/client/User ID/role/LOA profile is stored as Drupal user metadata only for session context.
+
+Authenticated MERDPOS pages sign gateway and Working Now requests using the logged-in employee's MERDPOS client and User ID. The MERDPOS backend therefore re-resolves the current active employee, client role, LOA and named permissions for each service call. The private deployment DEV actor remains only the anonymous/deployment probe fallback.
+
+Anonymous access to `merdpos_core.*` routes redirects to the MERDPOS login screen with the original destination. Drupal core/local credentials are not the operational application login path.
+
+## Free UI capability stack
+
+The reviewed free/open-source Drupal UI stack is documented in `drupal/FREE_UI_STACK.md`. The selected Composer-managed projects are Dashboard, Charts, UI Patterns, UI Icons, Gin, Gin Toolbar and Better Exposed Filters. Gin is administration-only; the Git-owned `merdpos_app` theme remains the operational application shell and the canonical MERDPOS SVG icon set remains the primary visual language.
+
+Namecheap deployment enables and probes the selected runtime modules, sets Gin as the Drupal admin theme, and refuses the release marker when the expected free UI stack or authoritative MERDPOS login health check is missing.

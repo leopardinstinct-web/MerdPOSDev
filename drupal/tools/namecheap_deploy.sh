@@ -34,6 +34,8 @@ php84 -r '$required=["curl","dom","fileinfo","gd","mbstring","pdo_mysql","phar",
 cd "$DRUPAL"
 php84 "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader
 php84 "$DRUPAL/tools/validate_portal_gateway_client.php"
+php84 "$DRUPAL/tools/validate_merdpos_authenticator.php"
+php84 "$DRUPAL/tools/validate_login_rich_ui.php"
 php84 "$DRUPAL/tools/validate_parity_provider.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
@@ -67,9 +69,20 @@ if [[ "$BOOTSTRAP" != *Successful* ]]; then
     --site-name='MERDPOS Drupal Beta' --account-name='merdpos-dev' --account-pass="$ADMIN_PASS"
   unset ADMIN_PASS
 fi
-php84 "$DRUSH_PHP" --root="$WEB" en merdpos_core -y
+php84 "$DRUSH_PHP" --root="$WEB" en merdpos_core dashboard charts ui_patterns ui_icons better_exposed_filters gin_toolbar -y
+php84 "$DRUSH_PHP" --root="$WEB" theme:enable gin -y
+php84 "$DRUSH_PHP" --root="$WEB" config:set system.theme admin gin -y
+php84 "$DRUSH_PHP" --root="$WEB" config:set system.site page.front /merdpos -y
 php84 "$DRUSH_PHP" --root="$WEB" updb -y
 php84 "$DRUSH_PHP" --root="$WEB" cr
+
+LOGIN_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$r=\Drupal::service("merdpos_core.authenticator")->health(); echo json_encode(["status"=>$r["status"]??null,"http_status"=>$r["http_status"]??null],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["http_status"]??0)!==200){fwrite(STDERR,"MERDPOS login health self-test failed.\n");exit(1);}' "$LOGIN_PROBE"
+
+UI_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$mods=["dashboard","charts","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"]; $r=[]; foreach($mods as $m){$r[$m]=\Drupal::moduleHandler()->moduleExists($m)?"ok":"missing";} $r["admin_theme"]=\Drupal::config("system.theme")->get("admin"); echo json_encode($r,JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["admin_theme"]??"")!=="gin"){fwrite(STDERR,"Free Drupal UI stack self-test failed.\n");exit(1);} foreach(["dashboard","charts","ui_patterns","ui_icons","better_exposed_filters","gin_toolbar"] as $k){if(($p[$k]??"")!=="ok"){fwrite(STDERR,"Free Drupal UI stack missing {$k}.\n");exit(1);}}' "$UI_PROBE"
 
 PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.working_now_provider")->load(); echo json_encode(["status"=>$r["status"]??null,"count"=>$r["count"]??null],JSON_UNESCAPED_SLASHES);')"
@@ -90,15 +103,17 @@ php84 -r '$p=json_decode($argv[1],true); $keys=["home","operations","reports","f
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
   "gateway_dev_status"=>$d["status"]??null,
+  "login_status"=>$l["status"]??null,
+  "free_ui_stack"=>$u,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

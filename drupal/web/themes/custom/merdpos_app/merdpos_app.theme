@@ -6,18 +6,44 @@ use Drupal\Core\Url;
 use Drupal\user\Entity\Role;
 
 /**
- * Prepares the Git-owned MERDPOS application shell.
+ * Prepares the Git-owned MERDPOS application shell and login surface.
  */
 function merdpos_app_preprocess_page(array &$variables): void {
   $account = \Drupal::currentUser();
   $route_name = (string) \Drupal::routeMatch()->getRouteName();
-  $roles = Role::loadMultiple($account->getRoles());
+  $variables['merdpos_is_login'] = $route_name === 'user.login';
+  $variables['merdpos_profile'] = NULL;
 
-  $variables['merdpos_user_name'] = $account->getDisplayName();
-  $variables['merdpos_role_labels'] = array_values(array_map(
-    static fn (Role $role): string => $role->label(),
-    $roles,
-  ));
+  if ($variables['merdpos_is_login']) {
+    $variables['merdpos_user_name'] = '';
+    $variables['merdpos_role_labels'] = [];
+    $variables['merdpos_nav'] = [];
+    $variables['merdpos_active_section'] = 'login';
+    $variables['merdpos_active_label'] = 'Sign in';
+    return;
+  }
+
+  if ($account->isAuthenticated()) {
+    try {
+      $profile = \Drupal::service('merdpos_core.identity_manager')->profile((int) $account->id());
+      if (is_array($profile)) $variables['merdpos_profile'] = $profile;
+    }
+    catch (Throwable) {}
+  }
+
+  if (is_array($variables['merdpos_profile'])) {
+    $profile = $variables['merdpos_profile'];
+    $variables['merdpos_user_name'] = (string) ($profile['full_name'] ?? 'MERDPOS User');
+    $variables['merdpos_role_labels'] = [(string) ($profile['role_label'] ?? $profile['role'] ?? 'MERDPOS')];
+  }
+  else {
+    $roles = Role::loadMultiple($account->getRoles());
+    $variables['merdpos_user_name'] = $account->getDisplayName();
+    $variables['merdpos_role_labels'] = array_values(array_map(
+      static fn (Role $role): string => $role->label(),
+      $roles,
+    ));
+  }
 
   $items = [
     ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
@@ -29,9 +55,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
 
   $variables['merdpos_nav'] = [];
   foreach ($items as $item) {
-    if (!$account->hasPermission($item['permission'])) {
-      continue;
-    }
+    if (!$account->hasPermission($item['permission'])) continue;
     $item['url'] = Url::fromRoute($item['route'])->toString();
     $item['active'] = $route_name === $item['route'];
     $variables['merdpos_nav'][] = $item;
@@ -43,4 +67,13 @@ function merdpos_app_preprocess_page(array &$variables): void {
   ));
   $variables['merdpos_active_section'] = $active[0]['key'] ?? 'home';
   $variables['merdpos_active_label'] = $active[0]['label'] ?? 'Home';
+}
+
+/**
+ * Adds a stable body class for the custom MERDPOS login route.
+ */
+function merdpos_app_preprocess_html(array &$variables): void {
+  if ((string) \Drupal::routeMatch()->getRouteName() === 'user.login') {
+    $variables['attributes']['class'][] = 'merdpos-login-route';
+  }
 }
