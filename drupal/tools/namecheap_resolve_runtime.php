@@ -7,6 +7,7 @@ $dbBootstrap = '/home/dridsheikh/.merdpos_drupal_db.php';
 $runtimeFile = '/home/dridsheikh/.merdpos_drupal_runtime.php';
 $serviceUrl = 'https://app.merdpos.com/beta/backend/api/integrations/working_now.php';
 $gatewayUrl = 'https://app.merdpos.com/beta/backend/api/integrations/portal_gateway.php';
+$loginUrl = 'https://app.merdpos.com/beta/timesheet_portal/api/login.php';
 
 if (!is_readable($betaConfig) || !is_readable($dbBootstrap)) {
   fwrite(STDERR, "Required private deployment configuration is missing.\n");
@@ -78,6 +79,7 @@ $runtime .= '$databases[\'default\'][\'default\'] = ' . var_export([
 $runtime .= '$settings[\'hash_salt\'] = ' . var_export((string) $db['hash_salt'], true) . ";\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_SERVICE_URL=' . $serviceUrl, true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_GATEWAY_URL=' . $gatewayUrl, true) . ");\n";
+$runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_LOGIN_URL=' . $loginUrl, true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_SERVICE_SECRET=' . $secret, true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_CLIENT_ID=' . $chosen['client_id'], true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_ACTOR_USER_ID=' . $chosen['actor_user_id'], true) . ");\n";

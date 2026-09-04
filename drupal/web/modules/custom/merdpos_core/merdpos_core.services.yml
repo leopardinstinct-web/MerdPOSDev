@@ -1,14 +1,14 @@
 services:
   merdpos_core.working_now_provider:
     class: Drupal\merdpos_core\Integration\WorkingNowProvider
-    arguments: ['@http_client']
+    arguments: ['@http_client', '@current_user', '@user.data']
 
   Drupal\merdpos_core\Integration\WorkingNowProviderInterface:
     alias: merdpos_core.working_now_provider
 
   merdpos_core.portal_gateway:
     class: Drupal\merdpos_core\Integration\PortalGatewayClient
-    arguments: ['@http_client']
+    arguments: ['@http_client', '@current_user', '@user.data']
 
   Drupal\merdpos_core\Integration\PortalGatewayClientInterface:
     alias: merdpos_core.portal_gateway
@@ -20,6 +20,17 @@ services:
   Drupal\merdpos_core\Integration\ParityDataProviderInterface:
     alias: merdpos_core.parity_provider
 
+  merdpos_core.authenticator:
+    class: Drupal\merdpos_core\Auth\MerdposAuthenticator
+    arguments: ['@http_client']
+
+  Drupal\merdpos_core\Auth\MerdposAuthenticatorInterface:
+    alias: merdpos_core.authenticator
+
+  merdpos_core.identity_manager:
+    class: Drupal\merdpos_core\Auth\MerdposIdentityManager
+    arguments: ['@entity_type.manager', '@user.data']
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
     arguments: ['@merdpos_core.parity_provider']
@@ -28,3 +39,14 @@ services:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
     tags:
       - { name: theme_negotiator, priority: 1000 }
+
+  merdpos_core.route_subscriber:
+    class: Drupal\merdpos_core\Routing\MerdposRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  merdpos_core.access_denied_subscriber:
+    class: Drupal\merdpos_core\Routing\MerdposAccessDeniedSubscriber
+    arguments: ['@current_user', '@current_route_match']
+    tags:
+      - { name: event_subscriber }

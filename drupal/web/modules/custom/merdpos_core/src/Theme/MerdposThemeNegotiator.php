@@ -14,7 +14,7 @@ final class MerdposThemeNegotiator implements ThemeNegotiatorInterface {
 
   public function applies(RouteMatchInterface $route_match): bool {
     $route_name = (string) $route_match->getRouteName();
-    return str_starts_with($route_name, 'merdpos_core.');
+    return str_starts_with($route_name, 'merdpos_core.') || $route_name === 'user.login';
   }
 
   public function determineActiveTheme(RouteMatchInterface $route_match): string {

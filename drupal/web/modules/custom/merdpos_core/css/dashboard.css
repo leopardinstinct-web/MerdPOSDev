@@ -620,3 +620,35 @@
   .merdpos-data-panel { padding: var(--space-4); }
   .merdpos-bar-row { grid-template-columns: 4.75rem minmax(4rem, 1fr) auto; gap: var(--space-2); }
 }
+
+/* Rich MERDPOS widget treatment: canonical Beta icon language + depth. */
+.merdpos-kpi {
+  isolation: isolate;
+  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease, border-color var(--duration-fast) ease;
+}
+.merdpos-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 22%, var(--color-border-subtle));
+}
+.merdpos-kpi-icon {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 2.65rem;
+  height: 2.65rem;
+  display: grid;
+  place-items: center;
+  border-radius: .9rem;
+  background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-surface-main));
+  color: var(--color-brand-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 13%, transparent);
+}
+.merdpos-kpi-icon svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.merdpos-kpi-label { padding-right: 3.15rem; }
+.merdpos-data-panel {
+  box-shadow: 0 .85rem 2.2rem color-mix(in srgb, var(--color-brand-navy) 7%, transparent);
+}
+.merdpos-data-panel-head {
+  border-bottom-color: color-mix(in srgb, var(--color-brand-primary) 11%, var(--color-border-subtle));
+}

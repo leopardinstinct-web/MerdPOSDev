@@ -3,12 +3,18 @@ declare(strict_types=1);
 
 namespace Drupal\merdpos_core\Integration;
 
+use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use Throwable;
 
 final class WorkingNowProvider implements WorkingNowProviderInterface {
 
-  public function __construct(private readonly ClientInterface $httpClient) {}
+  public function __construct(
+    private readonly ClientInterface $httpClient,
+    private readonly ?AccountProxyInterface $currentUser = NULL,
+    private readonly ?UserDataInterface $userData = NULL,
+  ) {}
 
   public function load(): array {
     $config = $this->environmentConfig();
@@ -73,6 +79,14 @@ final class WorkingNowProvider implements WorkingNowProviderInterface {
       || !preg_match('/^\d{1,20}$/', $actorUserId)) {
       return null;
     }
+    $clientId = (int)$clientRaw;
+    if ($this->currentUser?->isAuthenticated() && $this->userData !== NULL) {
+      $profile = $this->userData->get('merdpos_core', (int)$this->currentUser->id(), 'identity');
+      if (is_array($profile) && (int)($profile['client_id'] ?? 0) > 0 && preg_match('/^\d{1,20}$/', (string)($profile['user_id'] ?? ''))) {
+        $clientId = (int)$profile['client_id'];
+        $actorUserId = (string)$profile['user_id'];
+      }
+    }
 
     $parts = parse_url($url);
     if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) return null;
@@ -84,7 +98,7 @@ final class WorkingNowProvider implements WorkingNowProviderInterface {
     return [
       'url' => $url,
       'secret' => $secret,
-      'client_id' => (int)$clientRaw,
+      'client_id' => $clientId,
       'actor_user_id' => $actorUserId,
     ];
   }
