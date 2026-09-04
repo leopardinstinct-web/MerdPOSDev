@@ -36,24 +36,24 @@
   <div class="merdpos-context-strip" aria-label="Section context">
     {% if merdpos_active_section == 'operations' %}
       <span class="merdpos-context-item is-current">Operations</span>
-      <span class="merdpos-context-item is-planned">Workforce</span>
-      <span class="merdpos-context-item is-planned">Stores</span>
+      <span class="merdpos-context-item is-live">Workforce</span>
+      <span class="merdpos-context-item is-live">Stores</span>
     {% elseif merdpos_active_section == 'reports' %}
       <span class="merdpos-context-item is-current">Reports</span>
-      <span class="merdpos-context-item is-planned">Timesheets</span>
-      <span class="merdpos-context-item is-planned">Disputes</span>
+      <span class="merdpos-context-item is-live">Timesheets</span>
+      <span class="merdpos-context-item is-live">Disputes</span>
     {% elseif merdpos_active_section == 'finance' %}
       <span class="merdpos-context-item is-current">Finance</span>
-      <span class="merdpos-context-item is-planned">Financial</span>
+      <span class="merdpos-context-item is-live">Store cash</span>
+      <span class="merdpos-context-item is-live">Ledger</span>
     {% elseif merdpos_active_section == 'dev' %}
       <span class="merdpos-context-item is-current">DEV</span>
-      <span class="merdpos-context-item is-planned">Platform</span>
-      <span class="merdpos-context-item is-planned">Clients</span>
-      <span class="merdpos-context-item is-planned">UI Studio</span>
+      <span class="merdpos-context-item is-live">Platform</span>
+      <span class="merdpos-context-item is-live">Clients</span>
     {% else %}
       <span class="merdpos-context-item is-current">Dashboard</span>
     {% endif %}
-    <span class="merdpos-context-state">Git-owned shell</span>
+    <span class="merdpos-context-state">Signed MERDPOS data</span>
   </div>
 
   <main id="main-content" class="merdpos-shell-workspace" tabindex="-1">

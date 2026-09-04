@@ -272,9 +272,11 @@ body.merd-drupal-shell {
   color: var(--color-brand-primary);
 }
 
-.merdpos-context-item.is-planned {
-  color: var(--color-text-muted);
-  opacity: .72;
+.merdpos-context-item.is-live {
+  border-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border-default));
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  opacity: 1;
 }
 
 .merdpos-context-state {

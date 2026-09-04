@@ -62,7 +62,7 @@ The primary application destinations follow the current canonical Beta direction
 
 `Home → Operations → Reports → Finance → DEV`
 
-On phone layouts DEV does not occupy the four-destination primary bar. Section landing pages are safe adapter-pending states only; they do not fabricate operational data or bypass existing MERDPOS authorization/service contracts.
+On phone layouts DEV does not occupy the four-destination primary bar. All five destinations now render read-only, permission-scoped MERDPOS data through service adapters; Drupal does not fabricate operational data or bypass existing MERDPOS authorization/service contracts.
 
 ## Resource manifest
 
@@ -80,7 +80,7 @@ Fail closed on drift with:
 
 ## Working Now integration boundary
 
-The first Drupal operational adapter is Working Now. Drupal remains an HTTP consumer and must not connect directly to MERDPOS operational tables.
+Working Now remains the dedicated low-latency roster adapter. Drupal remains an HTTP consumer and must not connect directly to MERDPOS operational tables.
 
 The backend contract is:
 
@@ -108,19 +108,31 @@ If configuration is absent or the upstream cannot be authenticated, Drupal fails
 
 ## Generalized MERDPOS portal gateway
 
-Drupal uses `merdpos_core.portal_gateway` for the remaining Beta parity work. Calls are JSON envelopes sent to the authoritative Beta `backend/api/integrations/portal_gateway.php`; the gateway synthesizes only the approved service identity and then executes the existing portal API so its current role/LOA permission policy and business rules remain authoritative.
+Drupal uses `merdpos_core.portal_gateway` for five-surface Beta read parity across Home, Operations, Reports, Finance and DEV. Calls are JSON envelopes sent to the authoritative Beta `backend/api/integrations/portal_gateway.php`; the gateway synthesizes only the approved service identity and then executes the existing portal API so its current role/LOA permission policy and business rules remain authoritative.
 
 Gateway signatures cover the exact raw JSON body (`sha256:<body hash>`) in addition to the service/timestamp/client/actor fields. The gateway allowlist excludes login/logout, multipart store-logo upload and all UI Studio/DevStudio endpoints. `dashboard_layout` is rejected whenever a `dev_studio` flag is present. Drupal must not reproduce Beta write logic or query operational tables as a fallback.
 
-Runtime adds `MERDPOS_DRUPAL_GATEWAY_URL`. If absent, the client may derive the sibling `portal_gateway.php` URL from the Working Now service URL. Namecheap deployment resolves an active actual DEV service actor and refuses to publish a release marker unless Working Now, generalized `beta_state`, and `dev_status` probes all pass through the signed boundary.
+Runtime adds `MERDPOS_DRUPAL_GATEWAY_URL`. If absent, the client may derive the sibling `portal_gateway.php` URL from the Working Now service URL. Namecheap deployment resolves an active actual DEV service actor and refuses to publish a release marker unless Working Now, generalized `beta_state`, `dev_status`, and all five rendered data providers pass through the signed boundary.
 
-The endpoint under `namecheap_beta_live/backend/api/integrations/working_now.php` is present on the Drupal experiment branch for contract development. It is not live merely because it exists here. It must be reviewed/promoted to the authoritative Beta branch and deployed with the corresponding environment secret before Drupal can truthfully display real MERDPOS Working Now data.
+The Working Now and generalized portal gateway endpoints are promoted on authoritative `namecheap-beta-live`; the Drupal runtime consumes those deployed services with the private server-side service identity. UI Studio/DevStudio routes remain intentionally excluded.
+
+## Five-surface read parity
+
+`merdpos_core.parity_provider` is the shared read-only presentation adapter. It maps existing canonical MERDPOS responses into Drupal surface view models without querying operational tables or reimplementing payroll/finance business rules.
+
+- Home: `dashboard_data` plus dedicated `working_now`.
+- Operations: `admin_directory`, `store_identity`, and `store_timings`.
+- Reports: `dashboard_data`, `weeks`, `timesheet`, and `disputes`; the canonical frozen timesheet reconciliation output is rendered as returned.
+- Finance: `dashboard_data`, `store_identity`, and read-only `financials` statements.
+- DEV: `dev_status`, `clients`, `role_authority`, and `client_context`; DevStudio/UI Studio is excluded.
+
+The shared `merdpos-surface.html.twig` template renders metrics, cards, tables, trend bars, and safe GET filters for report week / finance store and business date. No operational write form is exposed by this parity milestone.
 
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
 
-Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal/tools/namecheap_deploy.sh`. The deploy installs the committed Composer lockfile, resolves private runtime configuration, installs/updates Drupal idempotently, enables `merdpos_core`, rebuilds caches and refuses to publish a release marker unless Working Now and the generalized Beta-state/DEV gateway probes all return successful signed responses.
+Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal/tools/namecheap_deploy.sh`. The deploy installs the committed Composer lockfile, validates the gateway client and five-surface provider, checks synchronized design resources, resolves private runtime configuration, installs/updates Drupal idempotently, enables `merdpos_core`, rebuilds caches and refuses to publish a release marker unless Working Now, Beta-state, DEV and Home/Operations/Reports/Finance/DEV provider probes all return successful signed responses.
 
 Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active actual DEV service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
 

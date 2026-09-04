@@ -13,9 +13,16 @@ services:
   Drupal\merdpos_core\Integration\PortalGatewayClientInterface:
     alias: merdpos_core.portal_gateway
 
+  merdpos_core.parity_provider:
+    class: Drupal\merdpos_core\Integration\ParityDataProvider
+    arguments: ['@merdpos_core.portal_gateway', '@merdpos_core.working_now_provider']
+
+  Drupal\merdpos_core\Integration\ParityDataProviderInterface:
+    alias: merdpos_core.parity_provider
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
-    arguments: ['@merdpos_core.working_now_provider']
+    arguments: ['@merdpos_core.parity_provider']
 
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator

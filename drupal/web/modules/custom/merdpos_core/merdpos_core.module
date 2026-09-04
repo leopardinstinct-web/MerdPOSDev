@@ -12,19 +12,11 @@ declare(strict_types=1);
  */
 function merdpos_core_theme(array $existing, string $type, string $theme, string $path): array {
   return [
-    'merdpos_dashboard' => [
+    'merdpos_surface' => [
       'variables' => [
-        'user_name' => '',
-        'role_labels' => [],
-        'kpis' => [],
-        'working_now' => [],
-        'foundations' => [],
+        'surface' => [],
       ],
-      'template' => 'merdpos-dashboard',
-    ],
-    'merdpos_section' => [
-      'variables' => ['section' => []],
-      'template' => 'merdpos-section',
+      'template' => 'merdpos-surface',
     ],
   ];
 }
