@@ -12,6 +12,7 @@ if (!is_readable($betaConfig) || !is_readable($dbBootstrap)) {
   exit(1);
 }
 
+$_SERVER['REQUEST_METHOD'] ??= 'GET';
 require $betaConfig;
 if (!isset($pdo) || !$pdo instanceof PDO) {
   fwrite(STDERR, "Authoritative Beta database connection is unavailable.\n");
