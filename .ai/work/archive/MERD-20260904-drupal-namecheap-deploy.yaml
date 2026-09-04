@@ -1,0 +1,22 @@
+version: 1
+id: MERD-20260904-drupal-namecheap-deploy
+branch: beta/drupal-webapp
+base_head: 197af7a5c919648fb163529884d2eaac9c820e40
+last_seen_head: 2b8ce0869d31fa9976aa606cb8f1a2560e2eda66
+objective: Deploy the reviewed Drupal MERDPOS webapp to an isolated Namecheap subdomain and connect Working Now to the live signed Beta bridge.
+packet_state: CLOSED
+lifecycle: VERIFIED
+outcome: Drupal 11.4.6 is live at drupal-beta.merdpos.com on PHP 8.4.24 with a dedicated MariaDB database and the signed read-only Working Now adapter verified against authoritative Beta.
+implementation_commit: 2b8ce0869d31fa9976aa606cb8f1a2560e2eda66
+checks:
+  - Namecheap server checkout and public release marker both identify 2b8ce0869d31fa9976aa606cb8f1a2560e2eda66.
+  - HTTPS homepage returns HTTP 200 and identifies Drupal 11.
+  - Anonymous /merdpos returns HTTP 403 as designed.
+  - Deployment self-test reports working_now_status=ok with current count 0.
+  - Public LiteSpeed runtime was verified as PHP 8.4.24 with curl, dom, fileinfo, gd, mbstring, pdo_mysql, phar, xmlreader, xmlwriter and zip.
+  - Dedicated Drupal MariaDB and private runtime configuration remain outside Git.
+  - app.merdpos.com and the operational MERDPOS database were not repointed or replaced by Drupal.
+remaining:
+  - Expand Drupal feature adapters beyond Working Now in separate governed milestones.
+next_action: Begin the next Drupal vertical slice from the verified live baseline.
+updated_at: "2026-09-04T07:00:00+05:00"
