@@ -1,0 +1,38 @@
+version: 1
+id: MERD-20260904-drupal-all5-parity
+branch: milestone/drupal-all5-parity-v2
+base_head: f43b5c0c0e28fc269585fd8a17d8a2cc49c45f45
+last_seen_head: fde6e4f7eb6d46269d4913b452a5262a4d774cfc
+objective: "Build and live-verify all five Drupal MERDPOS surfaces: Home, Operations, Reports, Finance and DEV, using authoritative Beta APIs through the signed portal gateway."
+packet_state: CLOSED
+lifecycle: VERIFIED
+outcome: "All five Drupal Beta read-parity surfaces are deployed and live-verified on Namecheap at beta/drupal-webapp commit 5a8846900d6c136dd3409a1e0616a28d527e00f9."
+affected_paths:
+  - drupal/
+  - .cpanel.yml
+  - .gitignore
+acceptance:
+  - Home shows real permission-scoped MERDPOS dashboard data.
+  - Operations shows real workforce and store state.
+  - Reports shows real timesheet and dispute state without changing frozen payroll logic.
+  - Finance shows real financial/store state through existing APIs.
+  - DEV shows real dev/client/role/store diagnostic state while DevStudio remains excluded.
+  - All five surfaces pass targeted source/runtime checks and rendered live verification.
+constraints:
+  - MERDPOS Beta remains business-rule and authorization authority.
+  - No Drupal direct SQL access to MERDPOS operational tables.
+  - Read-only parity only; no destructive MERD writes for verification.
+  - No DevStudio/UI Studio exposure.
+evidence:
+  - Local PHP lint, five-surface provider validator, gateway validator, Working Now validator, resource sync, continuity and diff checks passed.
+  - Promotion PR #35 passed CI and secret scan, then merged to beta/drupal-webapp as 5a8846900d6c136dd3409a1e0616a28d527e00f9.
+  - Permanent SSH preflight returned SSH_OK and server checkout synced to the merged commit.
+  - Release marker reports working_now_status=ok, gateway_status=ok, gateway_role=DEV, gateway_is_dev=true, gateway_dev_status=ok and parity_status=ok.
+  - Release marker parity_surfaces reports home=ok, operations=ok, reports=ok, finance=ok and dev=ok.
+  - Authenticated live browser checks refreshed all five HTTPS routes and each rendered Integration status LIVE with authoritative MERDPOS data.
+  - Desktop screenshots of all five live routes showed the shared shell, LIVE state, navigation and surface-specific controls/content rendering correctly.
+  - Headless mobile verification at 390x844 passed all five routes: LIVE and heading present, no body horizontal overflow, bottom navigation visible and LIVE state visible.
+  - Mobile verifier emitted MOBILE_ALL5_OK.
+  - DevStudio/UI Studio remains intentionally excluded and no private key, service secret or runtime DB credential is committed.
+next_action: "Use live commit 5a8846900d6c136dd3409a1e0616a28d527e00f9 as the verified Drupal read-parity baseline; add write parity only by explicit authorization."
+updated_at: "2026-09-04T12:04:00+05:00"
