@@ -125,3 +125,19 @@ Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal
 Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active actual DEV service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
 
 `drupal/deploy/settings.php` is the tracked production settings template. It trusts only `drupal-beta.merdpos.com` and places private files/config sync outside the web root. Real database credentials, hash salt, service secret and actor identifiers remain private server state and must never be committed.
+
+## Namecheap deployment access
+
+Routine Namecheap deployment must use the dedicated persistent inbound SSH identity `namecheap_drupal_deploy`; do not revoke it after normal milestones. The cPanel public key remains authorized until the deployment identity is deliberately rotated, compromised or the project is decommissioned.
+
+Connection contract:
+
+- host: `198.187.29.30`
+- SSH port: `21098`
+- account: `dridsheikh`
+- cPanel public-key name: `namecheap_drupal_deploy`
+- the private key exists only in the developer machine's ignored local toolchain and must never be committed or copied into project documentation.
+
+On the current Windows toolchain, Paramiko must load this OpenSSH RSA key explicitly with `paramiko.RSAKey.from_private_key_file(...)`; generic `key_filename=` auto-detection has misclassified the key in the past. A successful `SSH_OK` handshake is the required preflight before server mutation.
+
+Normal deployment path is GitHub truth → direct SSH → `/home/dridsheikh/merdpos-drupal` → Git-owned deploy script → live verification. Opera/cPanel is a recovery/control-plane path only for SSH key import, authorization or rotation and must not be used for routine deploys.
