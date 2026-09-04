@@ -10,7 +10,7 @@ ADMIN_SECRET=/home/dridsheikh/.merdpos_drupal_admin_password
 
 PHP_BIN=/opt/alt/php84/usr/bin/php
 COMPOSER=/home/dridsheikh/.merdpos-tools/composer.phar
-PHP_EXTENSIONS=(phar dom fileinfo mbstring xmlreader xmlwriter zip)
+PHP_EXTENSIONS=(phar dom fileinfo gd mbstring xmlreader xmlwriter zip)
 
 if [[ ! -x "$PHP_BIN" || ! -f "$COMPOSER" ]]; then
   echo "PHP 8.4 or private Composer tool is missing." >&2
