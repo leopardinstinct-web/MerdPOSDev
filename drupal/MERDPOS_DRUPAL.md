@@ -106,14 +106,22 @@ The service secret must be at least 32 characters and must never be committed. P
 
 If configuration is absent or the upstream cannot be authenticated, Drupal fails closed to an explicit unconfigured/unavailable state and never falls back to direct SQL.
 
+## Generalized MERDPOS portal gateway
+
+Drupal uses `merdpos_core.portal_gateway` for the remaining Beta parity work. Calls are JSON envelopes sent to the authoritative Beta `backend/api/integrations/portal_gateway.php`; the gateway synthesizes only the approved service identity and then executes the existing portal API so its current role/LOA permission policy and business rules remain authoritative.
+
+Gateway signatures cover the exact raw JSON body (`sha256:<body hash>`) in addition to the service/timestamp/client/actor fields. The gateway allowlist excludes login/logout, multipart store-logo upload and all UI Studio/DevStudio endpoints. `dashboard_layout` is rejected whenever a `dev_studio` flag is present. Drupal must not reproduce Beta write logic or query operational tables as a fallback.
+
+Runtime adds `MERDPOS_DRUPAL_GATEWAY_URL`. If absent, the client may derive the sibling `portal_gateway.php` URL from the Working Now service URL. Namecheap deployment resolves an active actual DEV service actor and refuses to publish a release marker unless Working Now, generalized `beta_state`, and `dev_status` probes all pass through the signed boundary.
+
 The endpoint under `namecheap_beta_live/backend/api/integrations/working_now.php` is present on the Drupal experiment branch for contract development. It is not live merely because it exists here. It must be reviewed/promoted to the authoritative Beta branch and deployed with the corresponding environment secret before Drupal can truthfully display real MERDPOS Working Now data.
 
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
 
-Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal/tools/namecheap_deploy.sh`. The deploy installs the committed Composer lockfile, resolves private runtime configuration, installs/updates Drupal idempotently, enables `merdpos_core`, rebuilds caches and refuses to publish a release marker unless the real Working Now provider returns `status=ok`.
+Deployment is driven by the checked-in root `.cpanel.yml`, which invokes `drupal/tools/namecheap_deploy.sh`. The deploy installs the committed Composer lockfile, resolves private runtime configuration, installs/updates Drupal idempotently, enables `merdpos_core`, rebuilds caches and refuses to publish a release marker unless Working Now and the generalized Beta-state/DEV gateway probes all return successful signed responses.
 
-Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
+Production database credentials start in `/home/dridsheikh/.merdpos_drupal_db.php`. During deployment, `namecheap_resolve_runtime.php` reads the authoritative Beta config only in the deployment process, selects an active actual DEV service actor by testing the live signed bridge, and writes `/home/dridsheikh/.merdpos_drupal_runtime.php` mode `0600`. Normal Drupal requests read that private runtime file and do not connect to the MERDPOS operational database.
 
 `drupal/deploy/settings.php` is the tracked production settings template. It trusts only `drupal-beta.merdpos.com` and places private files/config sync outside the web root. Real database credentials, hash salt, service secret and actor identifiers remain private server state and must never be committed.

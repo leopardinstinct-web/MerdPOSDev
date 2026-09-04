@@ -6,6 +6,7 @@ $betaConfig = '/home/dridsheikh/merdpos.com/app/beta/backend/api/config.php';
 $dbBootstrap = '/home/dridsheikh/.merdpos_drupal_db.php';
 $runtimeFile = '/home/dridsheikh/.merdpos_drupal_runtime.php';
 $serviceUrl = 'https://app.merdpos.com/beta/backend/api/integrations/working_now.php';
+$gatewayUrl = 'https://app.merdpos.com/beta/backend/api/integrations/portal_gateway.php';
 
 if (!is_readable($betaConfig) || !is_readable($dbBootstrap)) {
   fwrite(STDERR, "Required private deployment configuration is missing.\n");
@@ -37,6 +38,7 @@ SELECT e.client_id,e.user_id,e.id,
 FROM employees e
 LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id
 WHERE e.status='active' AND e.user_id IS NOT NULL AND TRIM(e.user_id)<>''
+  AND UPPER(COALESCE(r.base_role,e.employee_type,e.role_name,''))='DEV'
   AND (r.id IS NULL OR r.status='active')
 ORDER BY CASE UPPER(COALESCE(r.base_role,e.employee_type,e.role_name,''))
   WHEN 'DEV' THEN 0 WHEN 'SUPER' THEN 1 WHEN 'ADMIN' THEN 2 ELSE 3 END,
@@ -55,7 +57,7 @@ foreach ($candidates as $candidate) {
   }
 }
 if ($chosen === null) {
-  fwrite(STDERR, "No active MERDPOS service actor passed the live Working Now permission contract.\n");
+  fwrite(STDERR, "No active MERDPOS DEV service actor passed the live Working Now permission contract.\n");
   exit(1);
 }$database = $db['database'];
 foreach (['database','username','password','host','port'] as $key) {
@@ -75,6 +77,7 @@ $runtime .= '$databases[\'default\'][\'default\'] = ' . var_export([
 ], true) . ";\n";
 $runtime .= '$settings[\'hash_salt\'] = ' . var_export((string) $db['hash_salt'], true) . ";\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_SERVICE_URL=' . $serviceUrl, true) . ");\n";
+$runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_GATEWAY_URL=' . $gatewayUrl, true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_SERVICE_SECRET=' . $secret, true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_CLIENT_ID=' . $chosen['client_id'], true) . ");\n";
 $runtime .= 'putenv(' . var_export('MERDPOS_DRUPAL_ACTOR_USER_ID=' . $chosen['actor_user_id'], true) . ");\n";
