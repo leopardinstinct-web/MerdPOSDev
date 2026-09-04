@@ -58,7 +58,7 @@ core/.phpstan-baseline.php text eol=lf whitespace=blank-at-eol,-blank-at-eof,-sp
 *.jpg     -text diff
 *.otf     -text diff
 *.phar    -text diff
-*.png     -text diff
+*.png     -text -diff
 *.svgz    -text diff
 *.ttf     -text diff
 *.woff    -text diff
