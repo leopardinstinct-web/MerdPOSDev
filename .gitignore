@@ -73,6 +73,9 @@ backend/api/config.php
 /drupal/web/themes/contrib/
 /drupal/web/profiles/contrib/
 
+# Namecheap per-domain PHP runtime generated during deploy
+/drupal/web/php.ini
+
 # Drupal runtime, secrets and user files
 /drupal/web/sites/*/files/
 /drupal/web/sites/*/private/
