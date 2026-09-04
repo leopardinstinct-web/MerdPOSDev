@@ -2,7 +2,7 @@ version: 1
 id: MERD-20260904-drupal-namecheap-deploy
 branch: feature/drupal-namecheap-deploy
 base_head: 197af7a5c919648fb163529884d2eaac9c820e40
-last_seen_head: 197af7a5c919648fb163529884d2eaac9c820e40
+last_seen_head: 7c5f1a03c8d0ee96f8de84147c6ab233bded4c52
 objective: Deploy the reviewed Drupal MERDPOS webapp to an isolated Namecheap subdomain and connect Working Now to the live signed Beta bridge.
 packet_state: VALIDATED
 lifecycle: WIRED
