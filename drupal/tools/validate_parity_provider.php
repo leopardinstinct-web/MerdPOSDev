@@ -32,15 +32,30 @@ final class StubGateway implements PortalGatewayClientInterface {
     $payload = match ($route) {
       'dashboard_data' => [
         'success'=>true,
+        'role'=>['role_key'=>'DEV','role_label'=>'Developer','base_role'=>'DEV','authority_level'=>1000],
+        'allowed_widgets'=>[
+          'working_now_count','pending_disputes','active_employees','sync_attention','working_now','workforce_by_store',
+          'store_cash_position','cash_mix','today_sales_by_store','recent_attendance','my_shift','my_disputes',
+          'sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales','sync_status_table',
+        ],
         'client_defaults'=>['currency_code'=>'AUD','timezone'=>'Australia/Sydney'],
+        'filters'=>['store_id'=>0,'days'=>7,'period'=>'7','period_label'=>'7 days'],
+        'filter_options'=>['stores'=>[['id'=>1,'store_name'=>'Test Store']],'periods'=>['current_week',7,14,30]],
+        'working_count'=>1,
+        'working'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','timezone'=>'Australia/Sydney']],
+        'my_working'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','timezone'=>'Australia/Sydney']],
+        'disputes'=>[['status'=>'pending']],
         'pending_disputes_count'=>2,
+        'recent_shifts'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>'2026-09-04 09:00:00','timezone'=>'Australia/Sydney']],
+        'stores'=>[['id'=>1,'store_name'=>'Test Store']],
         'management'=>[
-          'business_date'=>'2026-09-04','currency_code'=>'AUD',
+          'business_date'=>'2026-09-04','currency_code'=>'AUD','timezone'=>'Australia/Sydney','active_employees'=>44,'sync_attention'=>1,
           'sales_by_store'=>[['store_id'=>1,'store_name'=>'Test Store','currency_code'=>'AUD','today_sales'=>123.45]],
           'financial_by_store'=>[['store_id'=>1,'store_name'=>'Test Store','currency_code'=>'AUD','register_balance'=>100,'petty_balance'=>25]],
           'analytics'=>[
             'sales_period'=>[['date'=>'2026-09-03','value'=>100],['date'=>'2026-09-04','value'=>123.45]],
             'attendance_period'=>[['date'=>'2026-09-03','value'=>3],['date'=>'2026-09-04','value'=>4]],
+            'sync_statuses'=>[['status'=>'failed','count'=>1],['status'=>'processing','count'=>0],['status'=>'pending','count'=>0]],
           ],
         ],
       ],
@@ -127,11 +142,23 @@ foreach ($surfaces as $key => $surface) {
   parity_check(($surface['key'] ?? '') === $key, $key . ' surface key mismatch.');
   parity_check(($surface['status'] ?? '') === 'ok', $key . ' surface did not resolve OK.');
   parity_check(($surface['status_label'] ?? '') === 'LIVE', $key . ' surface live label missing.');
-  parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
-  parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
+  if ($key === 'home') {
+    parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Home role did not resolve DEV.');
+    parity_check(($surface['role']['loa'] ?? 0) === 1000, 'Home role LOA mismatch.');
+    parity_check(count($surface['allowed_widgets'] ?? []) === 18, 'Home allowed widget count mismatch.');
+    parity_check(($surface['visible_widget_count'] ?? -1) === 18, 'Home did not render every authorized widget.');
+    parity_check(count($surface['metrics'] ?? []) === 8, 'Home role-aware KPI count mismatch.');
+    parity_check(count($surface['dashboard_widgets'] ?? []) === 10, 'Home rich widget count mismatch.');
+    parity_check(count($surface['chart_specs'] ?? []) === 6, 'Home chart spec count mismatch.');
+    parity_check(count($surface['filters'] ?? []) === 2, 'Home dashboard filters missing.');
+  }
+  else {
+    parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
+    parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
+  }
 }
 
-parity_check(($surfaces['home']['metrics'][1]['value'] ?? '') === 'AUD 123.45', 'Home sales metric mismatch.');
+parity_check(($surfaces['home']['metrics'][6]['value'] ?? '') === 'AUD 123.45', 'Home sales change current value mismatch.');
 parity_check(($surfaces['reports']['meta']['payroll_visible'] ?? '') === 'yes', 'Reports payroll visibility mismatch.');
 parity_check(count($surfaces['reports']['filters'] ?? []) === 1, 'Reports week filter missing.');
 parity_check(count($surfaces['finance']['filters'] ?? []) === 2, 'Finance filters missing.');

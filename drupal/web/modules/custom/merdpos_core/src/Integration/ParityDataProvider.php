@@ -11,65 +11,190 @@ final class ParityDataProvider implements ParityDataProviderInterface {
   ) {}
 
   public function home(array $query = []): array {
-    $dashboard = $this->call('dashboard_data');
-    $working = $this->workingNow->load();
+    $dashboardQuery = $this->dashboardQuery($query);
+    $dashboard = $this->call('dashboard_data', $dashboardQuery);
     $payload = $dashboard['payload'];
+    $allowedKeys = $this->strings($payload['allowed_widgets'] ?? []);
+    $allowed = array_fill_keys($allowedKeys, true);
+    $role = $this->map($payload['role'] ?? []);
     $management = $this->map($payload['management'] ?? []);
+    $analytics = $this->map($management['analytics'] ?? []);
     $currency = (string)($management['currency_code'] ?? $payload['client_defaults']['currency_code'] ?? 'AUD');
+    $businessDate = (string)($management['business_date'] ?? 'Current business date');
+    $working = $this->rows($payload['working'] ?? []);
     $salesRows = $this->rows($management['sales_by_store'] ?? []);
     $cashRows = $this->rows($management['financial_by_store'] ?? []);
-    $totalSales = $this->sum($salesRows, 'today_sales');
-    $cashPosition = $this->sum($cashRows, 'register_balance') + $this->sum($cashRows, 'petty_balance');
-    $workingCount = ($working['status'] ?? '') === 'ok' ? (int)($working['count'] ?? 0) : null;
-    $pending = isset($payload['pending_disputes_count']) ? (int)$payload['pending_disputes_count'] : null;
+    $stores = $this->rows($payload['stores'] ?? []);
+    $timezone = (string)($management['timezone'] ?? $payload['client_defaults']['timezone'] ?? 'Australia/Sydney');
 
-    $workingCards = [];
-    foreach ($this->rows($working['people'] ?? []) as $person) {
-      $minutes = max(0, (int)($person['working_minutes'] ?? 0));
-      $workingCards[] = [
-        'title' => (string)($person['full_name'] ?? ''),
-        'meta' => (string)($person['store_name'] ?? ''),
-        'value' => $this->duration($minutes),
+    $kpis = [];
+    if (isset($allowed['working_now_count'])) {
+      $kpis[] = $this->dashboardKpi('working_now_count', 'Working now', (string)(int)($payload['working_count'] ?? 0), 'Live QR attendance', 'info', 'users');
+    }
+    if (isset($allowed['pending_disputes'])) {
+      $kpis[] = $this->dashboardKpi('pending_disputes', 'Pending disputes', (string)(int)($payload['pending_disputes_count'] ?? 0), 'Waiting for review', 'warning', 'message');
+    }
+    if (isset($allowed['active_employees'])) {
+      $kpis[] = $this->dashboardKpi('active_employees', 'Active employees', (string)(int)($management['active_employees'] ?? 0), 'Working client', 'success', 'users');
+    }
+    if (isset($allowed['sync_attention'])) {
+      $kpis[] = $this->dashboardKpi('sync_attention', 'Sync attention', (string)(int)($management['sync_attention'] ?? 0), 'Pending / failed outbox', 'danger', 'sync');
+    }    if (isset($allowed['my_shift'])) {
+      $mine = $this->rows($payload['my_working'] ?? []);
+      $shift = $mine[0] ?? NULL;
+      $kpis[] = $this->dashboardKpi(
+        'my_shift', 'My current shift', $shift ? 'Clocked in' : 'Off shift',
+        $shift ? ((string)($shift['store_name'] ?? '') . ' · since ' . $this->localDateTime($shift['clock_in_at'] ?? '', (string)($shift['timezone'] ?? $timezone))) : 'Not clocked in',
+        $shift ? 'success' : 'info', 'clock'
+      );
+    }
+    if (isset($allowed['my_disputes'])) {
+      $open = count(array_filter($this->rows($payload['disputes'] ?? []), static fn(array $row): bool => in_array((string)($row['status'] ?? ''), ['pending','awaiting_employee'], true)));
+      $kpis[] = $this->dashboardKpi('my_disputes', 'My open disputes', (string)$open, 'Attendance corrections', 'warning', 'message');
+    }
+    if (isset($allowed['sales_change'])) {
+      $kpis[] = $this->dashboardChange('sales_change', 'Sales change', $this->rows($analytics['sales_period'] ?? []), $currency, true, 'Completed sales', 'chart');
+    }
+    if (isset($allowed['attendance_change'])) {
+      $kpis[] = $this->dashboardChange('attendance_change', 'Attendance change', $this->rows($analytics['attendance_period'] ?? []), '', false, 'Clock-ins', 'clock');
+    }
+
+    $widgets = [];
+    $chartSpecs = [];
+    if (isset($allowed['working_now'])) {
+      $items = [];
+      foreach (array_slice($working, 0, 30) as $row) {
+        $items[] = [
+          'title'=>(string)($row['full_name'] ?? ''),
+          'meta'=>(string)($row['store_name'] ?? ''),
+          'value'=>$this->localDateTime($row['clock_in_at'] ?? '', (string)($row['timezone'] ?? $timezone)),
+        ];
+      }
+      $widgets[] = $this->dashboardWidget('working_now', 'list', 'Who is working now', 'Live employee and store attendance.', 'users', ['items'=>$items, 'empty'=>'Nobody is currently clocked in.']);
+    }    if (isset($allowed['sales_trend_7d'])) {
+      $series = $this->rows($analytics['sales_period'] ?? []);
+      $chartSpecs[] = $this->chartSpec('sales_trend_7d', 'line', $series, 'Completed sales', '#1c4587');
+      $widgets[] = $this->dashboardWidget('sales_trend_7d', 'chart', 'Sales trend', 'Completed sales across the selected period.', 'chart', ['chart_key'=>'sales_trend_7d']);
+    }
+    if (isset($allowed['attendance_trend_7d'])) {
+      $series = $this->rows($analytics['attendance_period'] ?? []);
+      $chartSpecs[] = $this->chartSpec('attendance_trend_7d', 'line', $series, 'Clock-ins', '#23a6a8');
+      $widgets[] = $this->dashboardWidget('attendance_trend_7d', 'chart', 'Attendance trend', 'Clock-ins across the selected period.', 'clock', ['chart_key'=>'attendance_trend_7d']);
+    }
+    if (isset($allowed['today_sales_by_store'])) {
+      $labels = array_map(static fn(array $row): string => (string)($row['store_name'] ?? ''), $salesRows);
+      $values = array_map(static fn(array $row): float => (float)($row['today_sales'] ?? 0), $salesRows);
+      $chartSpecs[] = $this->chartSpecValues('today_sales_by_store', 'column', $labels, $values, 'Sales', '#6f42c1');
+      $widgets[] = $this->dashboardWidget('today_sales_by_store', 'chart', "Today's sales by store", 'Completed retail sales grouped by store.', 'store', ['chart_key'=>'today_sales_by_store']);
+    }
+    if (isset($allowed['workforce_by_store'])) {
+      $counts = [];
+      foreach ($stores as $store) $counts[(string)($store['store_name'] ?? '')] = 0;
+      foreach ($working as $row) {
+        $name = (string)($row['store_name'] ?? '');
+        $counts[$name] = ($counts[$name] ?? 0) + 1;
+      }
+      $labels = array_keys($counts);
+      $values = array_values($counts);
+      $chartSpecs[] = $this->chartSpecValues('workforce_by_store', 'column', $labels, $values, 'People', '#00a6c7');
+      $widgets[] = $this->dashboardWidget('workforce_by_store', 'chart', 'Workforce by store', 'Open shifts grouped by store.', 'users', ['chart_key'=>'workforce_by_store']);
+    }    if (isset($allowed['store_cash_position'])) {
+      $labels = array_map(static fn(array $row): string => (string)($row['store_name'] ?? ''), $cashRows);
+      $values = array_map(static fn(array $row): float => (float)($row['register_balance'] ?? 0) + (float)($row['petty_balance'] ?? 0), $cashRows);
+      $chartSpecs[] = $this->chartSpecValues('store_cash_position', 'column', $labels, $values, 'Cash position', '#1c4587');
+      $widgets[] = $this->dashboardWidget('store_cash_position', 'chart', 'Store cash position', 'Register plus petty cash by store.', 'wallet', ['chart_key'=>'store_cash_position']);
+    }
+    if (isset($allowed['cash_mix'])) {
+      $register = $this->sum($cashRows, 'register_balance');
+      $petty = $this->sum($cashRows, 'petty_balance');
+      $chartSpecs[] = [
+        'key'=>'cash_mix', 'type'=>'donut', 'labels'=>['Register','Petty Cash'],
+        'values'=>[$register,$petty], 'series_label'=>'Balance',
+        'color'=>'#1c4587', 'colors'=>['#1c4587','#23a6a8'], 'height'=>280,
+      ];
+      $widgets[] = $this->dashboardWidget('cash_mix', 'chart', 'Register vs Petty Cash', 'Current cash mix for the working client.', 'wallet', ['chart_key'=>'cash_mix']);
+    }
+    if (isset($allowed['top_stores_sales'])) {
+      $ranked = $salesRows;
+      usort($ranked, static fn(array $a, array $b): int => ((float)($b['today_sales'] ?? 0) <=> (float)($a['today_sales'] ?? 0)) ?: ((int)($a['store_id'] ?? 0) <=> (int)($b['store_id'] ?? 0)));
+      $items = [];
+      foreach (array_slice($ranked, 0, 5) as $index => $row) {
+        $items[] = [
+          'rank'=>$index + 1,
+          'title'=>(string)($row['store_name'] ?? ''),
+          'value'=>$this->money($row['today_sales'] ?? 0, (string)($row['currency_code'] ?? $currency)),
+        ];
+      }
+      $widgets[] = $this->dashboardWidget('top_stores_sales', 'ranking', 'Top stores by sales', "Stores ranked by today's completed sales.", 'trophy', ['items'=>$items]);
+    }    if (isset($allowed['recent_attendance'])) {
+      $rows = [];
+      foreach (array_slice($this->rows($payload['recent_shifts'] ?? []), 0, 30) as $row) {
+        $rowTz = (string)($row['timezone'] ?? $timezone);
+        $rows[] = [
+          'employee'=>(string)($row['full_name'] ?? ''),
+          'store'=>(string)($row['store_name'] ?? ''),
+          'in'=>$this->localDateTime($row['clock_in_at'] ?? '', $rowTz),
+          'out'=>$this->localDateTime($row['clock_out_at'] ?? '', $rowTz),
+        ];
+      }
+      $widgets[] = $this->dashboardWidget('recent_attendance', 'table', 'Recent attendance', 'Latest attendance visible to this role.', 'clock', [
+        'columns'=>[['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'in','label'=>'In'],['key'=>'out','label'=>'Out']],
+        'rows'=>$rows, 'empty'=>'No recent attendance.',
+      ]);
+    }
+    if (isset($allowed['sync_status_table'])) {
+      $statusRows = [];
+      foreach ($this->rows($analytics['sync_statuses'] ?? []) as $row) {
+        $statusRows[] = [
+          'status'=>ucfirst((string)($row['status'] ?? '')),
+          'count'=>(string)(int)($row['count'] ?? 0),
+          'tone'=>match((string)($row['status'] ?? '')) {'failed'=>'danger','processing'=>'warning',default=>'info'},
+        ];
+      }
+      $widgets[] = $this->dashboardWidget('sync_status_table', 'status', 'Sync status', 'Outbox exceptions grouped by current status.', 'sync', ['items'=>$statusRows]);
+    }
+
+    $filterOptions = $this->map($payload['filter_options'] ?? []);
+    $filterState = $this->map($payload['filters'] ?? []);
+    $filters = [];
+    $filterable = array_intersect($allowedKeys, ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales']);
+    if ($filterable) {
+      $storeOptions = [['value'=>'0','label'=>'All stores']];
+      foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
+        $storeOptions[] = ['value'=>(string)($store['id'] ?? ''),'label'=>(string)($store['store_name'] ?? '')];
+      }
+      $filters[] = ['name'=>'store_id','label'=>'Store','type'=>'select','value'=>(string)($filterState['store_id'] ?? 0),'options'=>$storeOptions];
+    }    if (array_intersect($allowedKeys, ['sales_trend_7d','attendance_trend_7d'])) {
+      $filters[] = [
+        'name'=>'period', 'label'=>'Period', 'type'=>'select',
+        'value'=>(string)($filterState['period'] ?? '7'),
+        'options'=>[
+          ['value'=>'current_week','label'=>'Current week'],
+          ['value'=>'7','label'=>'7 days'],
+          ['value'=>'14','label'=>'14 days'],
+          ['value'=>'30','label'=>'30 days'],
+        ],
       ];
     }
 
-    $salesTable = [];
-    foreach ($salesRows as $row) {
-      $salesTable[] = [
-        'store' => (string)($row['store_name'] ?? ''),
-        'sales' => $this->money($row['today_sales'] ?? 0, (string)($row['currency_code'] ?? $currency)),
-      ];
-    }
-    $cashTable = [];
-    foreach ($cashRows as $row) {
-      $rowCurrency = (string)($row['currency_code'] ?? $currency);
-      $cashTable[] = [
-        'store' => (string)($row['store_name'] ?? ''),
-        'register' => $this->money($row['register_balance'] ?? 0, $rowCurrency),
-        'petty' => $this->money($row['petty_balance'] ?? 0, $rowCurrency),
-      ];
-    }
-
-    $analytics = $this->map($management['analytics'] ?? []);
-    return $this->surface(
+    $surface = $this->surface(
       'home', 'Home', 'Management workspace',
-      'Live MERDPOS Beta operations through the signed Drupal service boundary.',
-      $this->status([$dashboard['status'], (string)($working['status'] ?? 'unavailable')]),
-      [
-        $this->metric('Working now', $workingCount === null ? '—' : (string)$workingCount, 'Current open attendance shifts', 'info'),
-        $this->metric('Sales today', $this->money($totalSales, $currency), (string)($management['business_date'] ?? 'Current business date'), 'brand'),
-        $this->metric('Pending disputes', $pending === null ? '—' : (string)$pending, 'Awaiting review', 'warning'),
-        $this->metric('Cash position', $this->money($cashPosition, $currency), 'Register + petty cash', 'success'),
-      ],
-      [
-        $this->cards('Live workforce', 'Working now', $workingCards, 'Nobody is currently clocked in.'),
-        $this->table('Store sales', 'Today by store', [['key'=>'store','label'=>'Store'],['key'=>'sales','label'=>'Sales']], $salesTable),
-        $this->table('Cash position', 'Register and petty cash', [['key'=>'store','label'=>'Store'],['key'=>'register','label'=>'Register'],['key'=>'petty','label'=>'Petty cash']], $cashTable),
-        $this->bars('Sales trend', 'Recent period', $this->trend($analytics['sales_period'] ?? [], $currency, true)),
-        $this->bars('Attendance trend', 'Recent period', $this->trend($analytics['attendance_period'] ?? [], '', false)),
-      ],
-      ['source' => 'dashboard_data + working_now', 'generated_at' => (string)($working['generated_at'] ?? '')],
+      'A role-aware operational command centre using only widgets authorized by MERDPOS LOA policy.',
+      $dashboard['status'], $kpis, [],
+      ['source'=>'dashboard_data', 'business_date'=>$businessDate, 'currency_code'=>$currency],
+      $filters,
     );
+    $surface['role'] = [
+      'key'=>(string)($role['role_key'] ?? $role['base_role'] ?? 'USER'),
+      'label'=>(string)($role['role_label'] ?? $role['base_role'] ?? 'MERDPOS'),
+      'loa'=>(int)($role['authority_level'] ?? 0),
+    ];
+    $surface['allowed_widgets'] = $allowedKeys;
+    $surface['dashboard_widgets'] = $widgets;
+    $surface['chart_specs'] = $chartSpecs;
+    $surface['visible_widget_count'] = count($kpis) + count($widgets);
+    $surface['period_label'] = (string)($filterState['period_label'] ?? 'Current period');
+    return $surface;
   }
 
   public function section(string $section, array $query = []): array {
@@ -486,6 +611,87 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       ];
     }
     return $out;
+  }
+
+  private function dashboardQuery(array $query): array {
+    $out = [];
+    $storeId = filter_var($query['store_id'] ?? 0, FILTER_VALIDATE_INT);
+    if ($storeId !== false && $storeId > 0) $out['store_id'] = (string)$storeId;
+    $period = strtolower(trim((string)($query['period'] ?? '7')));
+    if (!in_array($period, ['current_week','7','14','30'], true)) $period = '7';
+    $out['period'] = $period;
+    if ($period !== 'current_week') $out['days'] = $period;
+    return $out;
+  }
+
+  private function strings(mixed $value): array {
+    if (!is_array($value) || !array_is_list($value)) return [];
+    $out = [];
+    foreach ($value as $item) {
+      if (!is_scalar($item)) continue;
+      $text = trim((string)$item);
+      if ($text !== '') $out[] = $text;
+    }
+    return array_values(array_unique($out));
+  }
+
+  private function dashboardKpi(string $key, string $label, string $value, string $meta, string $tone, string $icon): array {
+    return ['key'=>$key,'kind'=>'kpi','label'=>$label,'value'=>$value,'meta'=>$meta,'tone'=>$tone,'icon'=>$icon];
+  }
+  private function dashboardChange(string $key, string $label, array $rows, string $currency, bool $money, string $meta, string $icon): array {
+    $count = count($rows);
+    $current = $count > 0 ? (float)($rows[$count - 1]['value'] ?? 0) : 0.0;
+    $previous = $count > 1 ? (float)($rows[$count - 2]['value'] ?? 0) : 0.0;
+    $delta = $current - $previous;
+    $direction = $delta > 0 ? 'up' : ($delta < 0 ? 'down' : 'flat');
+    if ($previous != 0.0) {
+      $relative = ($delta > 0 ? '+' : '') . number_format(($delta / abs($previous)) * 100, 1) . '%';
+    }
+    else {
+      $relative = $current != 0.0 ? 'New activity' : 'No change';
+    }
+    $formattedCurrent = $money ? $this->money($current, $currency) : (string)(int)round($current);
+    $formattedDelta = $money ? $this->money($delta, $currency) : (string)(int)round($delta);
+    $detail = $delta == 0.0 ? 'Same as yesterday' : (($delta > 0 ? '+' : '') . $formattedDelta . ' vs yesterday');
+    $tone = $money ? ($direction === 'up' ? 'success' : ($direction === 'down' ? 'danger' : 'info')) : 'info';
+    return [
+      'key'=>$key,'kind'=>'change','label'=>$label,'value'=>$formattedCurrent,'meta'=>$meta,
+      'tone'=>$tone,'icon'=>$icon,'direction'=>$direction,'change'=>$relative,'detail'=>$detail,
+    ];
+  }
+
+  private function dashboardWidget(string $key, string $kind, string $title, string $description, string $icon, array $data = []): array {
+    return ['key'=>$key,'kind'=>$kind,'title'=>$title,'description'=>$description,'icon'=>$icon] + $data;
+  }
+  private function chartSpec(string $key, string $type, array $rows, string $seriesLabel, string $color): array {
+    $labels = [];
+    $values = [];
+    foreach ($rows as $row) {
+      $date = (string)($row['date'] ?? '');
+      $labels[] = $date !== '' && strlen($date) >= 10 ? substr($date, 5) : $date;
+      $values[] = is_numeric($row['value'] ?? NULL) ? (float)$row['value'] : 0.0;
+    }
+    return $this->chartSpecValues($key, $type, $labels, $values, $seriesLabel, $color);
+  }
+
+  private function chartSpecValues(string $key, string $type, array $labels, array $values, string $seriesLabel, string $color): array {
+    return [
+      'key'=>$key,'type'=>$type,'labels'=>array_values($labels),'values'=>array_values($values),
+      'series_label'=>$seriesLabel,'color'=>$color,'height'=>280,
+    ];
+  }
+
+  private function localDateTime(mixed $value, string $timezone): string {
+    $text = trim((string)$value);
+    if ($text === '') return '—';
+    try {
+      $source = new \DateTimeImmutable($text, new \DateTimeZone('UTC'));
+      $zone = new \DateTimeZone($timezone !== '' ? $timezone : 'Australia/Sydney');
+      return $source->setTimezone($zone)->format('d M H:i');
+    }
+    catch (\Throwable) {
+      return $text;
+    }
   }
 
   private function status(array $statuses): string {

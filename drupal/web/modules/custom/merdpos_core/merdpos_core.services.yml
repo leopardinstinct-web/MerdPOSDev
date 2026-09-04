@@ -31,9 +31,12 @@ services:
     class: Drupal\merdpos_core\Auth\MerdposIdentityManager
     arguments: ['@entity_type.manager', '@user.data']
 
+  merdpos_core.dashboard_chart_builder:
+    class: Drupal\merdpos_core\Presentation\DashboardChartBuilder
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
-    arguments: ['@merdpos_core.parity_provider']
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
 
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator

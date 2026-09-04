@@ -1,0 +1,34 @@
+version: 1
+id: MERD-20260904-drupal-rich-dashboard-v2
+branch: milestone/drupal-rich-dashboard-v2
+base_head: fb137ecd98bac8555a2b7591ec2edc60bfc73dc9
+last_seen_head: fb137ecd98bac8555a2b7591ec2edc60bfc73dc9
+objective: Deliver a role-aware, graphic-rich MERDPOS Drupal Home dashboard using authoritative MERDPOS widget policy and free Drupal chart/UI components.
+packet_state: VALIDATED
+lifecycle: WIRED
+scope:
+  - Render only dashboard widgets returned by authoritative MERDPOS allowed_widgets policy.
+  - Preserve MERDPOS role and LOA context for USER, SUPER, ADMIN and DEV sessions.
+  - Add rich KPI, workforce, sales, attendance, finance, ranking and sync widgets.
+  - Add store and period filters through the existing signed dashboard_data service.
+  - Use Drupal Charts with a free Composer-managed Google Charts provider.
+  - Preserve the existing five-surface read-only service boundary and frozen timesheet/payroll logic.
+acceptance:
+  - Local PHP, parity, gateway, Working Now, rich-dashboard, Composer and continuity checks pass.
+  - CI and secret scan pass before merge to beta/drupal-webapp.
+  - Namecheap deployment release marker reports five-surface parity and dashboard_v2 OK.
+  - Authenticated desktop and mobile Home render without overflow or authorization leakage.
+  - Operations, Reports, Finance and DEV remain LIVE after deployment.
+checks:
+  - PHP lint passed for all MERDPOS custom-module and Drupal tool PHP files.
+  - Authoritative login, login rich UI, portal gateway, Working Now, five-surface parity and rich-dashboard validators passed.
+  - Composer strict validation, locked audit and install dry-run passed with no security advisories.
+  - Canonical MERDPOS resource synchronization check passed.
+  - Namecheap deployment shell passed Git Bash syntax validation.
+  - AI continuity, YAML parse and git diff checks passed.
+  - MERDPOS USER role now receives Home dashboard permission while widget visibility remains authoritative to allowed_widgets.
+
+remaining:
+  - Complete PR/CI, deployment and live rendered verification.
+next_action: Commit and promote through PR/CI, deploy to Namecheap, then verify desktop/mobile runtime.
+updated_at: "2026-09-04T18:15:00+05:00"
