@@ -6,6 +6,13 @@ services:
   Drupal\merdpos_core\Integration\WorkingNowProviderInterface:
     alias: merdpos_core.working_now_provider
 
+  merdpos_core.portal_gateway:
+    class: Drupal\merdpos_core\Integration\PortalGatewayClient
+    arguments: ['@http_client']
+
+  Drupal\merdpos_core\Integration\PortalGatewayClientInterface:
+    alias: merdpos_core.portal_gateway
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
     arguments: ['@merdpos_core.working_now_provider']
