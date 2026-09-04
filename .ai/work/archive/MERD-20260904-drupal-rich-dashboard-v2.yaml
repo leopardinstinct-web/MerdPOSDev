@@ -2,10 +2,10 @@ version: 1
 id: MERD-20260904-drupal-rich-dashboard-v2
 branch: milestone/drupal-rich-dashboard-v2
 base_head: fb137ecd98bac8555a2b7591ec2edc60bfc73dc9
-last_seen_head: fb137ecd98bac8555a2b7591ec2edc60bfc73dc9
+last_seen_head: 14d61f8963c295c53b0e1b81a22e08fe61acfe14
 objective: Deliver a role-aware, graphic-rich MERDPOS Drupal Home dashboard using authoritative MERDPOS widget policy and free Drupal chart/UI components.
-packet_state: VALIDATED
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Render only dashboard widgets returned by authoritative MERDPOS allowed_widgets policy.
   - Preserve MERDPOS role and LOA context for USER, SUPER, ADMIN and DEV sessions.
@@ -32,3 +32,9 @@ remaining:
   - Complete PR/CI, deployment and live rendered verification.
 next_action: Commit and promote through PR/CI, deploy to Namecheap, then verify desktop/mobile runtime.
 updated_at: "2026-09-04T18:15:00+05:00"
+verification:
+  - PR 37 merged after CI and secret scan passed.
+  - Namecheap release marker commit 14d61f8963c295c53b0e1b81a22e08fe61acfe14 reports login, gateway, parity, free UI stack and dashboard_v2 status OK.
+  - Runtime dashboard identifies Developer, LOA 1000, 18 authorized widgets and renders Drupal Charts.
+  - Operations, Reports, Finance and DEV each render LIVE under the authenticated DEV session.
+  - Desktop rich dashboard screenshot visually confirms the new responsive shell and dashboard composition.
