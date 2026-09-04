@@ -33,6 +33,8 @@ php84 -r '$required=["curl","dom","fileinfo","gd","mbstring","pdo_mysql","phar",
 
 cd "$DRUPAL"
 php84 "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader
+# Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
+git -C "$REPO" checkout -- drupal/web/.htaccess
 php84 "$DRUPAL/tools/namecheap_resolve_runtime.php"
 mkdir -p "$PRIVATE" "$SYNC" "$WEB/sites/default/files"
 chmod 700 "$PRIVATE" "$SYNC"
