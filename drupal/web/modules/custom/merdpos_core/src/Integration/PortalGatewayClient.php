@@ -24,7 +24,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
       return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
     }
 
-    $envelope = ['route'=>$route, 'method'=>$method, 'query'=>$query, 'body'=>$body];
+    $envelope = ['route'=>$route, 'method'=>$method, 'query'=>(object) $query, 'body'=>(object) $body];
     try {
       $raw = json_encode($envelope, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
       if (strlen($raw) > 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');

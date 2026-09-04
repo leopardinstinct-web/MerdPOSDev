@@ -44,6 +44,9 @@ gateway_client_check(hash_equals($expected, $request->getHeaderLine('X-MERDPOS-S
 $envelope = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
 gateway_client_check(($envelope['route'] ?? '') === 'beta_state', 'Gateway route envelope mismatch.');
 gateway_client_check(($envelope['method'] ?? '') === 'GET', 'Gateway method envelope mismatch.');
+$objectEnvelope = json_decode($raw, false, 32, JSON_THROW_ON_ERROR);
+gateway_client_check($objectEnvelope->query instanceof stdClass, 'Gateway query must be a JSON object.');
+gateway_client_check($objectEnvelope->body instanceof stdClass, 'Gateway body must be a JSON object.');
 $forbidden = new PortalGatewayClient(new Client(['handler'=>new MockHandler([
   new Response(403, ['Content-Type'=>'application/json'], '{"success":false,"error_code":"service_forbidden"}'),
 ])]));
