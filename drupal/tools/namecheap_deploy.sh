@@ -20,11 +20,11 @@ php84() {
 }
 php84 -r 'if(PHP_VERSION_ID<80400){fwrite(STDERR,"PHP 8.4 required\n");exit(1);}'
 
-if [[ ! -f /opt/alt/default_php_ini/php84.ini ]]; then
-  echo "Namecheap PHP 8.4 default ini is missing." >&2
+if [[ ! -f "$DRUPAL/deploy/php84.ini" ]]; then
+  echo "Git-owned PHP 8.4 site ini is missing." >&2
   exit 1
 fi
-cp /opt/alt/default_php_ini/php84.ini "$WEB/php.ini"
+cp "$DRUPAL/deploy/php84.ini" "$WEB/php.ini"
 chmod 644 "$WEB/php.ini"
 touch /home/dridsheikh/.lsphp_restart.txt
 export PHPRC="$WEB"
