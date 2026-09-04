@@ -49,7 +49,7 @@ function merd_drupal_gateway_reject_studio(string $route, array $query, array $b
 
 function merd_drupal_gateway_scalar_map(mixed $value, string $field): array
 {
-    if ($value === null) return [];
+    if ($value === null || $value === []) return [];
     if (!is_array($value) || array_is_list($value) || count($value) > 100) {
         throw new MerdRequestException('invalid_request', 400, 'Invalid ' . $field . '.');
     }

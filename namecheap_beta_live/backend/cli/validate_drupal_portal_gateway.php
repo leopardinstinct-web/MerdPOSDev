@@ -78,5 +78,6 @@ foreach (['ui_studio_history','ui_studio_asset','login','logout','store_logo'] a
 gateway_check(str_contains($gatewaySource, "route === 'dashboard_layout'"), 'Dashboard layout DevStudio guard missing.');
 gateway_check(str_contains($gatewaySource, "'dev_studio'"), 'DevStudio request guard missing.');
 gateway_check(str_contains($gatewaySource, "'/includes/beta_api.php'"), 'Canonical Beta permission/runtime reuse missing.');
+gateway_check(str_contains($gatewaySource, '$value === null || $value === []'), 'Empty gateway map compatibility guard missing.');
 
 echo "MERDPOS Drupal generalized portal gateway contract validated.\n";
