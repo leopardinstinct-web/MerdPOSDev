@@ -46,23 +46,39 @@ try {
     }
 
     $file = $_FILES['logo'] ?? null;
-    if (!is_array($file) || (int)($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        throw new MerdWorkforceException('logo_upload_failed', 'Choose a PNG, JPEG or WebP logo image.');
+    $tmp = '';
+    $size = 0;
+    $temporaryBase64File = false;
+    if (is_array($file) && (int)($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $size = (int)($file['size'] ?? 0);
+        $tmp = (string)($file['tmp_name'] ?? '');
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
+            throw new MerdWorkforceException('logo_upload_failed', 'Uploaded logo could not be verified.');
+        }
+    } else {
+        $encoded = trim((string)($_POST['logo_base64'] ?? ''));
+        $bytes = $encoded !== '' ? base64_decode($encoded, true) : false;
+        if (!is_string($bytes) || $bytes === '') {
+            throw new MerdWorkforceException('logo_upload_failed', 'Choose a PNG, JPEG or WebP logo image.');
+        }
+        $size = strlen($bytes);
+        $tmp = tempnam(sys_get_temp_dir(), 'merdpos-logo-') ?: '';
+        if ($tmp === '' || file_put_contents($tmp, $bytes, LOCK_EX) !== $size) {
+            if ($tmp !== '' && is_file($tmp)) @unlink($tmp);
+            throw new RuntimeException('Uploaded logo could not be staged.');
+        }
+        $temporaryBase64File = true;
     }
-    $size = (int)($file['size'] ?? 0);
     if ($size < 1 || $size > 2 * 1024 * 1024) {
+        if ($temporaryBase64File && is_file($tmp)) @unlink($tmp);
         throw new MerdWorkforceException('logo_too_large', 'Store logo must be 2 MB or smaller.');
-    }
-
-    $tmp = (string)($file['tmp_name'] ?? '');
-    if ($tmp === '' || !is_uploaded_file($tmp)) {
-        throw new MerdWorkforceException('logo_upload_failed', 'Uploaded logo could not be verified.');
     }
 
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime = strtolower((string)$finfo->file($tmp));
     $extensions = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
     if (!isset($extensions[$mime])) {
+        if ($temporaryBase64File && is_file($tmp)) @unlink($tmp);
         throw new MerdWorkforceException('invalid_logo_type', 'Store logo must be PNG, JPEG or WebP.');
     }
 
@@ -84,7 +100,9 @@ try {
 
     $filename = sprintf('c%d_s%d_%s.%s', (int)$user['client_id'], (int)$storeId, bin2hex(random_bytes(8)), $extensions[$mime]);
     $absolutePath = $absoluteDir . '/' . $filename;
-    if (!move_uploaded_file($tmp, $absolutePath)) {
+    $moved = $temporaryBase64File ? @rename($tmp, $absolutePath) : move_uploaded_file($tmp, $absolutePath);
+    if (!$moved) {
+        if ($temporaryBase64File && is_file($tmp)) @unlink($tmp);
         throw new RuntimeException('Store logo could not be saved.');
     }
     @chmod($absolutePath, 0644);
