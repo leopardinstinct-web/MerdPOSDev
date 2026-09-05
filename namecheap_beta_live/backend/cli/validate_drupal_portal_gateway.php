@@ -78,6 +78,10 @@ foreach (['ui_studio_history','ui_studio_asset','login','logout','store_logo'] a
 gateway_check(str_contains($gatewaySource, "route === 'dashboard_layout'"), 'Dashboard layout DevStudio guard missing.');
 gateway_check(str_contains($gatewaySource, "'dev_studio'"), 'DevStudio request guard missing.');
 gateway_check(str_contains($gatewaySource, "'/includes/beta_api.php'"), 'Canonical Beta permission/runtime reuse missing.');
+gateway_check(str_contains($gatewaySource, "'client_context' => ['GET', 'POST']"), 'Drupal client-context POST route missing.');
+gateway_check(str_contains($gatewaySource, '$request[\'context_client_id\']'), 'Explicit Drupal client context envelope missing.');
+gateway_check(str_contains($gatewaySource, "Only DEV may select another client context"), 'Cross-client DEV guard missing.');
+gateway_check(str_contains($gatewaySource, '$_SESSION[\'dev_active_client_id\'] = $contextClientId'), 'Selected client context is not applied before target dispatch.');
 gateway_check(str_contains($gatewaySource, '$value === null || $value === []'), 'Empty gateway map compatibility guard missing.');
 
 echo "MERDPOS Drupal generalized portal gateway contract validated.\n";
