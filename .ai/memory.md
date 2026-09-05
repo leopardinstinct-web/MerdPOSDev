@@ -1,6 +1,6 @@
 # MERDPOS Beta AI State
 
-**Updated:** 2026-09-01
+**Updated:** 2026-09-06
 **Authoritative repository:** `leopardinstinct-web/MerdPOSDev`
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
@@ -55,7 +55,11 @@ Backend audit/history is retained. Never confirm or remove unrelated/unverified 
 
 ## Current deployment discipline
 
-Namecheap uses the established server-side pull/mirror process and `scripts/deploy_namecheap_beta.sh`.
+Namecheap uses server-side Git checkouts and Git-owned deploy scripts. On the current Windows toolchain, remote command execution uses the persistent Paramiko RSA identity; plain Windows `ssh` is not the project deployment path.
+
+Canonical remote access: `198.187.29.30:21098`, user `dridsheikh`, ignored local key `.tools/namecheap_drupal_deploy`, loaded explicitly with `paramiko.RSAKey.from_private_key_file(...)`. Always require `SSH_OK` before mutation. Backend deploys from `/home/dridsheikh/git/MerdPOSDev-beta-mirror` / `namecheap-beta-live`; Drupal deploys from `/home/dridsheikh/merdpos-drupal` / `beta/drupal-webapp`. If Drupal depends on a newly exposed backend route, backend goes first.
+
+Use `drupal/tools/namecheap_remote_deploy.py` instead of rediscovering this connection contract.
 
 A commit on GitHub is not deployment evidence. DEPLOYED requires the intended commit in the Namecheap deployed marker/process. VERIFIED additionally requires the affected real runtime behavior to be exercised and observed.
 
