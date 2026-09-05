@@ -296,3 +296,13 @@ Behavioral changes to browser-loaded DevStudio assets must advance the loader ca
 ## DevStudio canvas-first editing
 
 For visual editing, keep the product canvas primary and the hierarchy/layers panel secondary. Prefer contextual insertion points that determine *where* first (`+ Section`, `+ Container`, `+ Component`), then use a focused searchable picker to determine *what*. Object-local controls belong beside the selected object; global/power controls remain in the DevStudio radial or Structure view. Do not imitate another builder's branding or invent unsupported library/template capabilities. Every canvas action must route through the canonical DevStudio patch/history engine and must obey the same mutation-stability and cache-delivery rules as Structure.
+
+## Continuity promotion for operational access
+
+When a task discovers a workstation/server access fact that would materially change how the next session executes work (SSH identity, port, canonical checkout, deploy ordering, required helper), do not leave it only in chat or a component footnote. Promote it in the same turn to:
+
+1. `.ai/invariants.md` when it is binding execution behavior;
+2. `.ai/memory.md` for current-state orientation; and
+3. a repo-owned executable/helper or validator when the workflow can be encoded without secrets.
+
+For Namecheap on the current Windows toolchain, the binding path is `drupal/tools/namecheap_remote_deploy.py`; plain Windows `ssh` is not a valid first attempt.

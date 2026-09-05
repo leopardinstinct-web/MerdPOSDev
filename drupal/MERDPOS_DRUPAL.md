@@ -245,3 +245,8 @@ Drupal does not edit attendance shifts, employees or payroll tables. Every mutat
 The Drupal controller adds its own CSRF token, strict action/field allowlists, POST/redirect/GET authoritative refresh and destructive confirmations. The current service has no edit-in-place action for an open employee dispute, so Drupal does not fabricate one: a user cancels an open request and submits a replacement correction when necessary.
 
 Operations and Reports navigation show the permission-scoped open-dispute count, and the Operations dispute panel links directly into the new workspace. Frozen timesheet/payroll calculation logic is unchanged.
+
+
+### Routine remote deploy helper
+
+Use `python drupal/tools/namecheap_remote_deploy.py preflight|backend|drupal|all`. It uses Paramiko plus the ignored persistent RSA key and executes only server-side Git pulls/deploy scripts. Do not try plain Windows `ssh` first.

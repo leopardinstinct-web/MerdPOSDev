@@ -108,7 +108,19 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 
 ## Deployment architecture
 
-Namecheap uses the established server-side pull/mirror/deploy process for Beta. Do not restore a GitHub→Namecheap SSH push deployment path unless the product owner explicitly changes the architecture.
+Namecheap deployment is **server-side Git pull + Git-owned deploy scripts**. SSH is the remote command transport, never a source-file push path.
+
+- Backend Beta: server mirror `/home/dridsheikh/git/MerdPOSDev-beta-mirror`, branch `namecheap-beta-live`, then `/bin/bash scripts/deploy_namecheap_beta.sh`.
+- Drupal Beta: server checkout `/home/dridsheikh/merdpos-drupal`, branch `beta/drupal-webapp`, then `/bin/bash drupal/tools/namecheap_deploy.sh`.
+- On the current Windows developer toolchain, routine Namecheap SSH **must use Paramiko** with `paramiko.RSAKey.from_private_key_file(...)` and the ignored local identity `.tools/namecheap_drupal_deploy`.
+- Connection contract: host `198.187.29.30`, port `21098`, account `dridsheikh`, cPanel public-key identity `namecheap_drupal_deploy`.
+- Do **not** try plain `ssh` first on this workstation: the Windows OpenSSH path does not own the project deployment identity and has previously produced false access failures.
+- Required preflight before server mutation: successful Paramiko handshake emitting `SSH_OK`, then resolve current server branch/HEAD.
+- When a Drupal release depends on a new backend gateway/API capability, deploy/verify backend first, then Drupal.
+- Never commit/copy the private key, credentials, cookies or server secrets. `.tools/` remains ignored local state.
+- Prefer the repo-owned helper `drupal/tools/namecheap_remote_deploy.py` for preflight and routine remote deployment rather than reconstructing SSH commands from chat history.
+
+Do not restore a GitHub→Namecheap file-push deployment path unless the product owner explicitly changes the architecture.
 
 ## Working style
 
