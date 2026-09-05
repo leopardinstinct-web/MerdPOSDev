@@ -29,7 +29,7 @@ function merd_drupal_gateway_routes(): array
         'store_identity' => ['GET', 'POST'],
         'store_timings' => ['GET', 'POST'],
         'role_authority' => ['GET', 'POST'],
-        'client_context' => ['GET'],
+        'client_context' => ['GET', 'POST'],
         'check_sheet' => ['GET'],
         'timesheet_google_refresh' => ['POST'],
         'change_password' => ['POST'],
@@ -86,6 +86,14 @@ try {
     $method = strtoupper(trim((string)($request['method'] ?? 'GET')));
     $query = merd_drupal_gateway_scalar_map($request['query'] ?? [], 'query');
     $body = merd_drupal_gateway_scalar_map($request['body'] ?? [], 'body');
+    $contextClientId = $request['context_client_id'] ?? null;
+    if ($contextClientId !== null) {
+        $validatedContext = filter_var($contextClientId, FILTER_VALIDATE_INT);
+        if ($validatedContext === false || $validatedContext <= 0) {
+            throw new MerdRequestException('invalid_request', 400, 'Invalid client context.');
+        }
+        $contextClientId = (int)$validatedContext;
+    }
 
     $routes = merd_drupal_gateway_routes();
     if (!isset($routes[$route]) || !in_array($method, $routes[$route], true)) {
@@ -96,6 +104,13 @@ try {
     $actor = merd_service_actor($pdo, (int)$service['client_id'], (string)$service['actor_user_id']);
     $employee = $actor['employee'];
     $role = $actor['role'];
+    $baseRole = strtoupper((string)$role['base_role']);
+    if ($contextClientId !== null && $contextClientId !== (int)$service['client_id']) {
+        if ($baseRole !== 'DEV') throw new MerdRequestException('forbidden', 403, 'Only DEV may select another client context.');
+        $clientStmt = $pdo->prepare("SELECT id FROM clients WHERE id=? AND status='active' LIMIT 1");
+        $clientStmt->execute([$contextClientId]);
+        if (!$clientStmt->fetchColumn()) throw new MerdRequestException('client_not_found', 404, 'Active client not found.');
+    }
 
     $storeStmt = $pdo->prepare('SELECT store_id FROM employees WHERE id=? AND client_id=? LIMIT 1');
     $storeStmt->execute([(int)$employee['id'], (int)$service['client_id']]);
@@ -123,6 +138,9 @@ try {
     $_SESSION['login_at_utc'] = gmdate(DateTimeInterface::ATOM);
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
     unset($_SESSION['dev_active_client_id']);
+    if ($contextClientId !== null && $contextClientId !== (int)$service['client_id']) {
+        $_SESSION['dev_active_client_id'] = $contextClientId;
+    }
     $_COOKIE['merdpos_dev_view_role'] = 'DEV';
 
     if ($method === 'POST') $body['csrf'] = csrf_token();
