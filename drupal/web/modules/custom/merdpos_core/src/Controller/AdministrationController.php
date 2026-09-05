@@ -7,6 +7,7 @@ namespace Drupal\merdpos_core\Controller;
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Drupal\merdpos_core\Integration\AdministrationOnboardingProvisioner;
 use Drupal\merdpos_core\Integration\PortalGatewayClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,6 +20,7 @@ final class AdministrationController extends ControllerBase {
 
   public function __construct(
     private readonly PortalGatewayClientInterface $gateway,
+    private readonly AdministrationOnboardingProvisioner $onboarding,
     private readonly RequestStack $requestStack,
     private readonly CsrfTokenGenerator $csrf,
   ) {}
@@ -26,6 +28,7 @@ final class AdministrationController extends ControllerBase {
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('merdpos_core.portal_gateway'),
+      $container->get('merdpos_core.administration_onboarding'),
       $container->get('request_stack'),
       $container->get('csrf_token'),
     );
@@ -85,7 +88,7 @@ final class AdministrationController extends ControllerBase {
       '#form_token' => $this->csrf->get(self::TOKEN_ID),
       '#gateway_status' => $directoryResult['status'] ?? 'unavailable',
       '#attached' => ['library' => ['merdpos_core/administration']],
-      '#cache' => ['contexts' => ['user', 'url.query_args:client_id'], 'max-age' => 0],
+      '#cache' => ['contexts' => ['user', 'url.query_args:client_id', 'url.query_args:tab'], 'max-age' => 0],
     ];
   }
 
@@ -98,6 +101,7 @@ final class AdministrationController extends ControllerBase {
 
     $action = (string) $request->request->get('entity_action', '');
     $result = match ($action) {
+      'onboard_client' => $this->onboardClient($request),
       'save_client' => $this->saveClient($request),
       'save_store' => $this->saveStore($request, $selectedClientId, $directory),
       'save_employee' => $this->saveEmployee($request, $selectedClientId),
@@ -105,6 +109,8 @@ final class AdministrationController extends ControllerBase {
     };
 
     $payload = is_array($result['payload'] ?? null) ? $result['payload'] : [];
+    $redirectClientId = max(0, (int) ($payload['redirect_client_id'] ?? $selectedClientId));
+    $redirectTab = isset($payload['redirect_tab']) ? (string) $payload['redirect_tab'] : NULL;
     if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) {
       $message = trim((string) ($payload['message'] ?? 'Saved.')) ?: 'Saved.';
       $this->messenger()->addStatus($message);
@@ -113,7 +119,11 @@ final class AdministrationController extends ControllerBase {
       $message = trim((string) ($payload['error'] ?? $result['message'] ?? 'The change could not be saved.'));
       $this->messenger()->addError($message ?: 'The change could not be saved.');
     }
-    return $this->redirectBack($selectedClientId);
+    return $this->redirectBack($redirectClientId, $redirectTab);
+  }
+
+  private function onboardClient(Request $request): array {
+    return $this->onboarding->provision($request->request->all());
   }
 
   private function saveClient(Request $request): array {
@@ -181,8 +191,10 @@ final class AdministrationController extends ControllerBase {
     return $parsed !== false && $parsed > 0 ? (int) $parsed : NULL;
   }
 
-  private function redirectBack(int $clientId): RedirectResponse {
-    $options = $clientId > 0 ? ['query' => ['client_id' => $clientId]] : [];
+  private function redirectBack(int $clientId, ?string $tab = NULL): RedirectResponse {
+    $query = $clientId > 0 ? ['client_id' => $clientId] : [];
+    if ($tab !== NULL && in_array($tab, ['onboarding','clients','stores','workforce'], true)) $query['tab'] = $tab;
+    $options = $query ? ['query' => $query] : [];
     return new RedirectResponse(Url::fromRoute('merdpos_core.administration', [], $options)->toString());
   }
 

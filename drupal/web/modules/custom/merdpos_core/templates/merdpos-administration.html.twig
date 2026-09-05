@@ -39,16 +39,58 @@
   {% endif %}
 
   <div class="merdpos-admin-tabs" role="tablist" aria-label="Administration areas">
-    {% if can_manage_clients %}<button type="button" class="is-active" data-admin-tab="clients">Clients <b>{{ clients|length }}</b></button>{% endif %}
+    {% if can_manage_clients %}<button type="button" class="is-active" data-admin-tab="onboarding">Onboard <b>3 steps</b></button><button type="button" data-admin-tab="clients">Clients <b>{{ clients|length }}</b></button>{% endif %}
     <button type="button" class="{{ can_manage_clients ? '' : 'is-active' }}" data-admin-tab="stores">Stores <b>{{ stores|length }}</b></button>
     <button type="button" data-admin-tab="workforce">Workforce <b>{{ employees|length }}</b></button>
   </div>
 
   {% if can_manage_clients %}
-  <section class="merdpos-admin-section is-active" data-admin-panel="clients">
+  <section class="merdpos-admin-section is-active merdpos-onboard-v2" data-admin-panel="onboarding">
+    <div class="merdpos-admin-section-head">
+      <div><p>GUIDED PROVISIONING</p><h2>Client → store → admin</h2><span>Provision the minimum working MERDPOS tenant from one governed submission.</span></div>
+      <span class="merdpos-admin-permission">DEV · clients.manage</span>
+    </div>
+    <div class="merdpos-onboard-steps" aria-label="Onboarding steps"><span><b>1</b> Client</span><i></i><span><b>2</b> First store</span><i></i><span><b>3</b> Initial admin</span></div>
+    <form method="post" action="{{ post_url }}" class="merdpos-onboard-form" data-onboard-form>
+      <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="onboard_client">
+      <fieldset><legend><b>1</b><span>Client identity</span></legend><div class="merdpos-onboard-grid">
+        <label><span>Client name</span><input name="onboard_client_name" maxlength="100" required placeholder="Example Retail Group"></label>
+        <label><span>Client code</span><input name="onboard_client_code" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]+" required placeholder="EXAMPLE"></label>
+      </div></fieldset>
+      <fieldset><legend><b>2</b><span>First store</span></legend><div class="merdpos-onboard-grid">
+        <label><span>Store name</span><input name="onboard_store_name" maxlength="150" required placeholder="Example Central"></label>
+        <label><span>Store code</span><input name="onboard_store_code" maxlength="50" placeholder="Optional — generated if blank"></label>
+        <label class="is-wide"><span>Address</span><input name="onboard_store_address" maxlength="1000" placeholder="Optional"></label>
+        <label><span>Store email</span><input type="email" name="onboard_store_email" maxlength="255" placeholder="Optional"></label>
+        <label><span>Store phone</span><input type="tel" name="onboard_store_phone" maxlength="50" placeholder="Optional"></label>
+        <label><span>Week starts</span><select name="onboard_week_start_day"><option value="1">Monday</option><option value="7">Sunday</option></select></label>
+        <label><span>Timezone</span><input name="onboard_store_timezone" value="Australia/Sydney"></label>
+        <label><span>Currency</span><input name="onboard_store_currency" maxlength="3" value="AUD"></label>
+      </div>
+      <label class="merdpos-onboard-schedule-toggle"><input type="checkbox" name="onboard_schedule_enabled" value="1" data-onboard-schedule-toggle><span>Configure weekly trading hours now</span></label>
+      <div class="merdpos-onboard-schedule" data-onboard-schedule hidden>
+        {% set day_names = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}
+        {% for day, label in day_names %}
+          <div class="merdpos-onboard-day"><strong>{{ label }}</strong><label><span>Open</span><input type="time" name="onboard_day_{{ day }}_start" value="09:00"></label><label><span>Close</span><input type="time" name="onboard_day_{{ day }}_end" value="17:00"></label><label class="merdpos-onboard-closed"><input type="checkbox" name="onboard_day_{{ day }}_closed" value="1" data-onboard-day-closed><span>Closed</span></label></div>
+        {% endfor %}
+      </div></fieldset>
+      <fieldset><legend><b>3</b><span>Initial administrator</span></legend><div class="merdpos-onboard-grid">
+        <label><span>Full name</span><input name="onboard_admin_name" maxlength="190" required></label>
+        <label><span>User ID</span><input name="onboard_admin_user_id" inputmode="numeric" maxlength="32" pattern="[0-9]+" required></label>
+        <label><span>Numeric password</span><input type="password" name="onboard_admin_password" inputmode="numeric" minlength="4" maxlength="20" pattern="[0-9]+" required autocomplete="new-password"></label>
+        <label><span>Hourly rate</span><input name="onboard_admin_rate" inputmode="decimal" value="0.00"></label>
+      </div></fieldset>
+      <div class="merdpos-onboard-review"><strong>One submission, three authoritative writes.</strong><span>If a later step is rejected, MERDPOS keeps the completed records and tells you exactly where to resume instead of silently rolling back valid audited work.</span></div>
+      <div class="merdpos-admin-form-actions"><button type="submit" data-onboard-submit>Provision client</button></div>
+    </form>
+  </section>
+  {% endif %}
+
+  {% if can_manage_clients %}
+  <section class="merdpos-admin-section" data-admin-panel="clients">
     <div class="merdpos-admin-section-head">
       <div><p>PLATFORM</p><h2>Clients</h2><span>Create tenants and maintain their lifecycle.</span></div>
-      <span class="merdpos-admin-permission">DEV · clients.manage</span>
+      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search clients</span><input type="search" data-admin-search="clients" placeholder="Name or code"></label><span class="merdpos-admin-permission">DEV · clients.manage</span></div>
     </div>
     <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
       <summary><strong>New client</strong><span>Add a governed MERDPOS tenant</span></summary>
@@ -80,7 +122,7 @@
   <section class="merdpos-admin-section{{ can_manage_clients ? '' : ' is-active' }}" data-admin-panel="stores">
     <div class="merdpos-admin-section-head">
       <div><p>OPERATIONS</p><h2>Stores</h2><span>Create locations and maintain operational identity.</span></div>
-      <span class="merdpos-admin-permission">stores.manage</span>
+      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search stores</span><input type="search" data-admin-search="stores" placeholder="Name or code"></label><span class="merdpos-admin-permission">stores.manage</span></div>
     </div>
     {% if permissions['stores.manage']|default(false) %}
     <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
@@ -117,7 +159,7 @@
   <section class="merdpos-admin-section" data-admin-panel="workforce">
     <div class="merdpos-admin-section-head">
       <div><p>PEOPLE</p><h2>Workforce</h2><span>Create employees, assign role/LOA authority and control store access.</span></div>
-      <span class="merdpos-admin-permission">workforce.manage</span>
+      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search workforce</span><input type="search" data-admin-search="workforce" placeholder="Name, ID or role"></label><span class="merdpos-admin-permission">workforce.manage</span></div>
     </div>
     {% if permissions['workforce.manage']|default(false) %}
     <details class="merdpos-admin-editor merdpos-admin-editor--new" open>

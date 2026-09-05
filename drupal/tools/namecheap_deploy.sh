@@ -42,6 +42,9 @@ php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
+php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
+php84 "$DRUPAL/tools/validate_administration_twig.php"
+php84 "$DRUPAL/tools/validate_onboarding_provisioner.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess
@@ -137,10 +140,14 @@ ADMIN_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway"); $c=$g->call("clients","GET"); $x=$g->call("client_context","GET"); $cp=$c["payload"]??[]; $xp=$x["payload"]??[]; $home=(int)($xp["home_client_id"]??0); $target=$home; foreach(($xp["clients"]??[]) as $row){$id=(int)($row["id"]??0); if($id>0&&$id!==$home){$target=$id;break;}} $d=$g->call("admin_directory","GET",[],[],$target>0?$target:null); $dp=$d["payload"]??[]; echo json_encode(["clients_status"=>$c["status"]??null,"clients"=>count($cp["clients"]??[]),"directory_status"=>$d["status"]??null,"target_client_id"=>$target,"active_client_id"=>$dp["active_client_id"]??null,"stores_manage"=>!empty($dp["permissions"]["stores.manage"]),"workforce_manage"=>!empty($dp["permissions"]["workforce.manage"]),"stores"=>count($dp["stores"]??[]),"employees"=>count($dp["employees"]??[])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["clients_status"]??"")!=="ok"||($p["directory_status"]??"")!=="ok"||($p["clients"]??0)<1||empty($p["stores_manage"])||empty($p["workforce_manage"])||($p["target_client_id"]??0)!==($p["active_client_id"]??-1)){fwrite(STDERR,"Administration v1 signed read/context self-test failed.\n");exit(1);}' "$ADMIN_V1_PROBE"
 
+ONBOARDING_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$g=\Drupal::service("merdpos_core.portal_gateway"); $x=$g->call("client_context","GET"); $xp=$x["payload"]??[]; $home=(int)($xp["home_client_id"]??0); $d=$g->call("admin_directory","GET",[],[],$home>0?$home:null); $dp=$d["payload"]??[]; $admin=false; foreach(($dp["actor"]["roles"]??[]) as $role){if(strtoupper((string)($role["role_key"]??""))==="ADMIN"){$admin=true;break;}} echo json_encode(["status"=>($x["status"]??"")==="ok"&&($d["status"]??"")==="ok"?"ok":"failed","can_select_client"=>!empty($xp["can_select_client"]),"admin_role_available"=>$admin,"stores_manage"=>!empty($dp["permissions"]["stores.manage"]),"workforce_manage"=>!empty($dp["permissions"]["workforce.manage"])],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["can_select_client"])||empty($p["admin_role_available"])||empty($p["stores_manage"])||empty($p["workforce_manage"])){fwrite(STDERR,"Administration & Onboarding v2 precondition self-test failed.\n");exit(1);}' "$ONBOARDING_V2_PROBE"
+
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); $x=json_decode($argv[14],true); $m=json_decode($argv[15],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); $x=json_decode($argv[14],true); $m=json_decode($argv[15],true); $n=json_decode($argv[16],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
@@ -153,10 +160,11 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
   "finance_v2"=>$f,
   "dev_v2"=>$x,
   "administration_v1"=>$m,
+  "onboarding_v2"=>$n,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" "$ONBOARDING_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

@@ -209,3 +209,15 @@ The deployment contract validates the administration controller/template, proves
 ### Administration v1 verified checkpoint
 
 The live Namecheap Drupal release at `04368ce5bc9119dde831d6e3d25cd703d75e365b` completed the authenticated Administration closure regression. DEV client switching, governed Client/Store/Workforce writes, save feedback, 1440x1000 desktop and 390x844 mobile layouts, and both Light/Dark themes were verified with no horizontal overflow. Durable evidence is archived under `.ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/`.
+
+## Administration & Onboarding v2
+
+The DEV Administration workspace now starts with a guided `Onboard` flow that provisions the minimum working tenant from one browser submission: Client → first Store → initial ADMIN. Drupal remains an orchestration layer only; the provisioner calls the existing signed `clients` and `admin_directory` gateway routes and contains no MERDPOS operational SQL.
+
+The flow deliberately preserves authoritative service boundaries rather than wrapping the three writes in a fake Drupal transaction. If a later step is rejected, the already-audited Client/Store records remain valid and the user is redirected into the new client context at the exact recovery tab. This prevents Drupal from pretending to roll back writes that were already committed by MERDPOS.
+
+The initial ADMIN role is resolved from the new client's seeded authoritative role rows, not hard-coded by local Drupal role ID. The initial administrator is assigned to the first store through the existing employee-store access model. Pay-rate and credential writes remain subject to the existing MERDPOS permissions.
+
+Onboarding can optionally submit the full seven-day trading-hours schedule through the existing store timing contract, together with supported profile fields such as store code, address, timezone and currency. Client, Store and Workforce lists also gain client-side search without changing server-side authorization or data scope.
+
+Deployment runs both a static Onboarding v2 contract validator and a standalone fake-gateway sequence test, then checks live DEV preconditions through the signed gateway before publishing the release marker. Browser closure must verify desktop/mobile and Light/Dark modes without creating test tenants.
