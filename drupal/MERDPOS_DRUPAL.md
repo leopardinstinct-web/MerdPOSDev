@@ -221,3 +221,7 @@ The initial ADMIN role is resolved from the new client's seeded authoritative ro
 Onboarding can optionally submit the full seven-day trading-hours schedule through the existing store timing contract, together with supported profile fields such as store code, address, timezone and currency. Client, Store and Workforce lists also gain client-side search without changing server-side authorization or data scope.
 
 Deployment runs both a static Onboarding v2 contract validator and a standalone fake-gateway sequence test, then checks live DEV preconditions through the signed gateway before publishing the release marker. Browser closure must verify desktop/mobile and Light/Dark modes without creating test tenants.
+
+### Administration & Onboarding v2 verified checkpoint
+
+The final live Namecheap Drupal release at `86795de180bfea97a721e27d22413b18a60d1bd3` passed the authenticated Onboarding v2 closure regression. The guided Client → first Store → initial ADMIN flow, optional weekly trading-hours controls, DEV client switching, client search, and desktop/mobile Light/Dark layouts were verified without creating test operational records. Durable evidence is archived under `.ai/work/archive/evidence/MERD-20260906-drupal-onboarding-v2/`.

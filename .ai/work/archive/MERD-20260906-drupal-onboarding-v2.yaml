@@ -1,0 +1,27 @@
+version: 1
+id: MERD-20260906-drupal-onboarding-v2
+branch: beta/drupal-webapp
+base_head: 1c2b15ab9fa6015a90aa681b1697bbd783a04de5
+implementation_head: 86795de180bfea97a721e27d22413b18a60d1bd3
+objective: Deliver and verify Administration & Onboarding v2 with one guided DEV workflow for Client -> first Store -> initial ADMIN.
+packet_state: VERIFIED
+lifecycle: VERIFIED
+outcome: Guided onboarding is live on Drupal Beta, uses only signed authoritative MERDPOS writes, supports optional store profile/trading-hours setup, and preserves recoverable partial progress.
+checks:
+  - PHP/controller/provisioner syntax passed.
+  - Administration v1, Onboarding v2, provisioner-sequence, Twig, and five-surface validators passed on the deployment runtime.
+  - Namecheap release marker identifies 86795de180bfea97a721e27d22413b18a60d1bd3 and onboarding_v2.status=ok.
+  - Release marker reports gateway/login/Working Now and Home/Operations/Reports/Finance/DEV parity all OK.
+  - Authenticated browser exposed Onboard, Clients, Stores and Workforce tabs and two active DEV client contexts.
+  - Weekly trading-hours controls start collapsed, expand on request and disable time inputs for closed days.
+  - Client search/filter regression passed.
+  - Desktop 1440x1000 Light/Dark and mobile 390x844 Light/Dark passed with no horizontal overflow.
+  - Browser verification did not submit provisioning, so no fake client/store/employee was created.
+  - No operational SQL was introduced into Drupal; payroll/timesheet reconciliation and Studio remain untouched.
+evidence:
+  - .ai/work/archive/evidence/MERD-20260906-drupal-onboarding-v2/browser-regression.txt
+  - .ai/work/archive/evidence/MERD-20260906-drupal-onboarding-v2/release-marker-summary.json
+  - .ai/work/archive/evidence/MERD-20260906-drupal-onboarding-v2/visual-evidence-manifest.json
+remaining: []
+next_action: Begin the Home attendance QR widget milestone from this verified onboarding baseline.
+updated_at: "2026-09-06T02:26:00+05:00"

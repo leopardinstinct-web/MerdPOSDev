@@ -1,0 +1,10 @@
+{
+  "capture": "authenticated /merdpos/admin onboarding v2 desktop/mobile light/dark",
+  "screenshots_committed": false,
+  "files": [
+    {"name":"onboarding-desktop-dark.png","bytes":241399,"sha256":"aafea85dd8a11ba27524b2aae6c252d5cc598949435d7574729a72ed907c6f85"},
+    {"name":"onboarding-desktop-light.png","bytes":252045,"sha256":"ecfa8da238bbf41ca2744e5e79cf642e3486b9d60f705e8d1e78287912b80dda"},
+    {"name":"onboarding-mobile-dark.png","bytes":145519,"sha256":"87c9ad69b5891ece0764ccbee5beeccbd2dca1f1ed7673fa85c6a09927169fc8"},
+    {"name":"onboarding-mobile-light.png","bytes":147465,"sha256":"7cceae356b7b5ebf10e70470ec70d1d6bca0a5b4fac9e0c52702894ead855511"}
+  ]
+}

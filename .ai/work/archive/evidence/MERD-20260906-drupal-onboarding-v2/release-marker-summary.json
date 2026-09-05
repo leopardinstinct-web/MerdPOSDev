@@ -1,0 +1,19 @@
+{
+  "commit": "86795de180bfea97a721e27d22413b18a60d1bd3",
+  "branch": "beta/drupal-webapp",
+  "deployed_at": "2026-09-05T21:52:02Z",
+  "working_now_status": "ok",
+  "gateway_status": "ok",
+  "gateway_role": "DEV",
+  "gateway_dev_status": "ok",
+  "login_status": "ok",
+  "onboarding_v2": {
+    "status": "ok",
+    "can_select_client": true,
+    "admin_role_available": true,
+    "stores_manage": true,
+    "workforce_manage": true
+  },
+  "parity_status": "ok",
+  "parity_surfaces": {"home":"ok","operations":"ok","reports":"ok","finance":"ok","dev":"ok"}
+}
