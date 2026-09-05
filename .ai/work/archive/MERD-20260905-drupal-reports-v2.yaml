@@ -2,10 +2,10 @@ version: 1
 id: MERD-20260905-drupal-reports-v2
 branch: milestone/drupal-reports-v2
 base_head: de7b9e45dac6fed9fa16bf4b20c34ce992c3645b
-last_seen_head: de7b9e45dac6fed9fa16bf4b20c34ce992c3645b
+last_seen_head: d7e62996b2a36572ca407c3228ed2af3c09be86c
 objective: Deliver a role-aware, graphic-rich MERDPOS Reports v2 for timesheets, attendance, payroll visibility, disputes, filtering and safe exports.
-packet_state: VALIDATED
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Keep the existing MERDPOS timesheet/reconciliation engine authoritative.
   - Add role-scoped week, store, employee and attendance filters over returned report data.
@@ -22,7 +22,15 @@ acceptance:
 checks:
   - PHP lint, Twig syntax, auth, gateway, Working Now, resource sync and Composer security gates pass.
   - CSV export includes only currently authorized/filtered report rows and never invents payroll fields.
-remaining:
-  - Promote through PR/CI, deploy to Namecheap, live-verify desktop/mobile and archive.
-next_action: Promote through PR, deploy to Namecheap, verify live Reports v2 and archive.
-updated_at: "2026-09-05T22:39:00+05:00"
+remaining: []
+next_action: Archived after production verification; continue with Finance v2.
+updated_at: "2026-09-05T23:34:00+05:00"
+
+verification:
+  - PR 41 merged after CI run 74 and Secret scan run 73 passed.
+  - Namecheap release marker commit d7e62996b2a36572ca407c3228ed2af3c09be86c reports reports_v2 OK, DEV, LOA 1000, 4 filters, 7 metrics, 4 charts, 8 export columns, 19 rows and payroll=true.
+  - Authenticated MERDPOS DEV Reports page renders LIVE with role/LOA, charts, CSV export and Print/PDF controls.
+  - Live responsive narrow-window render shows the Reports mobile composition and bottom navigation without visible horizontal clipping.
+  - Runtime CSV controller returned HTTP 200, text/csv, attachment disposition, private no-store cache and 20 lines.
+  - Home, Operations, Finance and DEV remain LIVE after deployment; release marker five-surface parity is OK.
+  - USER fail-closed validator confirms payroll fields/charts/export wage columns remain redacted when payroll_visible is false.
