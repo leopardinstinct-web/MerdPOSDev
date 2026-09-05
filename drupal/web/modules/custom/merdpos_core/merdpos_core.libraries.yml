@@ -8,10 +8,15 @@ dashboard:
   version: 2.x
   dependencies:
     - merdpos_core/base
+    - core/drupal
+    - core/once
   css:
     theme:
       css/dashboard.css: {}
       css/dashboard-v2.css: {}
+      css/attendance-scan.css: {}
+  js:
+    js/attendance-scan.js: {}
 
 operations:
   version: 2.x
