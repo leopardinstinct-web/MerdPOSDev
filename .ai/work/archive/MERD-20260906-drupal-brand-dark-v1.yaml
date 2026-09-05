@@ -1,0 +1,30 @@
+version: 1
+id: MERD-20260906-drupal-brand-dark-v1
+branch: beta/drupal-webapp
+base_head: 24098dcbf478aeb8edce97963064514a3a52f4b5
+last_seen_head: c4d821be53f0eebbcf43b69f89efe17108dca64e
+objective: Apply the approved MERDPOS brand hierarchy and a persistent System/Light/Dark theme to the Drupal Beta shell.
+packet_state: VERIFIED
+lifecycle: VERIFIED
+scope:
+  - Keep the approved full lockup on login and use the standalone M plus approved wordmark in the authenticated shell.
+  - Copy canonical wordmark and tagline assets unchanged from the Beta brand directory.
+  - Persist System, Light and Dark preference in browser localStorage and resolve System against OS color preference.
+  - Resolve theme before CSS paint and keep dark mode semantic-token driven across the shell and v2 surfaces.
+acceptance:
+  - Live login exposes the theme selector and approved lockup over HTTPS.
+  - Approved wordmark, tagline and M assets return HTTP 200 from the Drupal theme.
+  - Desktop Light/Dark switching updates the root theme state without reload.
+  - 390x844 mobile Dark mode renders without login-card horizontal overflow.
+checks:
+  - Namecheap deploy release marker commit matches c4d821be53f0eebbcf43b69f89efe17108dca64e.
+  - Working Now, beta_state, dev_status, Home, Operations, Reports, Finance and DEV release probes are all OK.
+  - Live Playwright verification reports desktop_dark=dark, desktop_light=light, mobile_dark=dark, card_width=358.
+  - Local Node syntax and PHP theme lint pass; server PHP 8.4 deployment validators completed before release marker publication.
+verification:
+  - HTTPS login returned 200 and contained merdpos-theme-control plus merdpos-logo-approved.png.
+  - merdpos-wordmark.png, merdpos-tagline.png and M_Icon_v2.svg each returned HTTP 200.
+  - Local visual evidence: .tools/evidence/brand-dark-v1/login-dark-1440x1000.png, login-light-1440x1000.png, login-dark-390x844.png.
+remaining: []
+next_action: Archived as verified; future Drupal surface CSS should consume semantic design tokens directly instead of light-only literals.
+updated_at: "2026-09-06T01:18:00+05:00"
