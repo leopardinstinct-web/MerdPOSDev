@@ -38,6 +38,10 @@ services:
     class: Drupal\merdpos_core\Controller\DashboardController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
 
+  merdpos_core.operations_controller:
+    class: Drupal\merdpos_core\Controller\OperationsController
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
+
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
     tags:

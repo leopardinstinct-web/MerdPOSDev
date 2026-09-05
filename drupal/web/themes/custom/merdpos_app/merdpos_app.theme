@@ -47,7 +47,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
 
   $items = [
     ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
-    ['key' => 'operations', 'label' => 'Operations', 'route' => 'merdpos_core.operations', 'permission' => 'manage merdpos operations'],
+    ['key' => 'operations', 'label' => 'Operations', 'route' => 'merdpos_core.operations', 'permission' => 'access merdpos portal'],
     ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal'],
     ['key' => 'finance', 'label' => 'Finance', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
     ['key' => 'dev', 'label' => 'DEV', 'route' => 'merdpos_core.dev', 'permission' => 'access merdpos dev tools'],
