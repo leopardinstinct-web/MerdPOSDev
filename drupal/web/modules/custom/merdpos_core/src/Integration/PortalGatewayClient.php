@@ -17,7 +17,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     private readonly ?UserDataInterface $userData = NULL,
   ) {}
 
-  public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
+  public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $config = $this->environmentConfig();
     if ($config === null) return $this->result('unconfigured', null, null, 'MERDPOS gateway is not configured.');
 
@@ -26,11 +26,13 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     if (!preg_match('/^[a-z][a-z0-9_]{1,63}$/', $route) || !in_array($method, ['GET','POST'], true)) {
       return $this->result('invalid', null, null, 'Invalid MERDPOS gateway request.');
     }
+    if ($contextClientId !== NULL && $contextClientId <= 0) return $this->result('invalid', null, null, 'Invalid MERDPOS client context.');
     if (count($query) > 100 || count($body) > 100) {
       return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
     }
 
     $envelope = ['route'=>$route, 'method'=>$method, 'query'=>(object) $query, 'body'=>(object) $body];
+    if ($contextClientId !== NULL) $envelope['context_client_id'] = $contextClientId;
     try {
       $raw = json_encode($envelope, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
       if (strlen($raw) > 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');

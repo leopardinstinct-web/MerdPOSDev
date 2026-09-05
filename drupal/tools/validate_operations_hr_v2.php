@@ -22,7 +22,7 @@ final class OpsGateway implements PortalGatewayClientInterface {
   public array $calls = [];
   public function __construct(private readonly string $role) {}
 
-  public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
+  public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $this->calls[] = [$route,$method,$query,$body];
     $isUser = $this->role === 'USER';
     if ($isUser && in_array($route, ['admin_directory','store_identity','store_timings'], true)) {

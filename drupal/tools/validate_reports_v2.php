@@ -18,7 +18,7 @@ final class ReportsWorkingNow implements WorkingNowProviderInterface {
 }
 final class ReportsGateway implements PortalGatewayClientInterface {
   public function __construct(private readonly string $role) {}
-  public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
+  public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $isUser = $this->role === 'USER';
     $payload = match ($route) {
       'dashboard_data' => [

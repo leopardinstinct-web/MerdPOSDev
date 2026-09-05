@@ -27,7 +27,7 @@ final class StubWorkingNow implements WorkingNowProviderInterface {
 final class StubGateway implements PortalGatewayClientInterface {
   public array $calls = [];
 
-  public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
+  public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $this->calls[] = [$route, $method, $query, $body];
     $payload = match ($route) {
       'beta_state' => [
@@ -218,7 +218,7 @@ foreach (['beta_state','dashboard_data','admin_directory','store_identity','stor
 }
 
 final class ForbiddenGateway implements PortalGatewayClientInterface {
-  public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
+  public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     return ['status'=>'forbidden','http_status'=>403,'payload'=>['success'=>false],'message'=>'forbidden'];
   }
 }

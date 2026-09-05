@@ -10,7 +10,7 @@ use Drupal\merdpos_core\Integration\WorkingNowProviderInterface;
 function dev_v2_check(bool $ok,string $message): void { if(!$ok) throw new RuntimeException($message); }
 final class DevWorking implements WorkingNowProviderInterface { public function load(): array { return ['status'=>'ok','count'=>0,'people'=>[],'message'=>'ok']; } }
 final class DevGateway implements PortalGatewayClientInterface {
-  public function call(string $route,string $method='GET',array $query=[],array $body=[]): array {
+  public function call(string $route,string $method='GET',array $query=[],array $body=[], ?int $contextClientId = NULL): array {
     $p=match($route){
       'dev_status'=>['success'=>true,'app'=>'MERDPOS beta','branch'=>'namecheap-beta-live','php_version'=>'8.4.0','server_version'=>'8.0','authorization_model'=>'central_permission_loa_v1','actor_loa'=>1000,'tables'=>['employees'=>44,'stores'=>4,'google_sheet_outbox'=>3]],
       'clients'=>['success'=>true,'clients'=>[['name'=>'MERD','client_code'=>'MERD','status'=>'active','store_count'=>4,'employee_count'=>44]]],
@@ -33,7 +33,7 @@ dev_v2_check(count($surface['source_statuses']??[])===6,'DEV source health missi
 dev_v2_check(count($surface['security_rows']??[])===1,'DEV security event missing.');
 dev_v2_check(count($surface['sync_rows']??[])===2,'DEV sync rows missing.');
 dev_v2_check(!empty($surface['read_only'])&&!empty($surface['studio_excluded']),'DEV safety boundary missing.');
-final class DevForbidden implements PortalGatewayClientInterface { public function call(string $route,string $method='GET',array $query=[],array $body=[]): array { return ['status'=>'forbidden','http_status'=>403,'payload'=>['success'=>false],'message'=>'forbidden']; } }
+final class DevForbidden implements PortalGatewayClientInterface { public function call(string $route,string $method='GET',array $query=[],array $body=[], ?int $contextClientId = NULL): array { return ['status'=>'forbidden','http_status'=>403,'payload'=>['success'=>false],'message'=>'forbidden']; } }
 $blocked=(new ParityDataProvider(new DevForbidden(),new DevWorking()))->section('dev');
 dev_v2_check(($blocked['status']??'')==='forbidden','DEV must fail closed.');
 $root=dirname(__DIR__);

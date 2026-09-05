@@ -42,6 +42,10 @@ services:
     class: Drupal\merdpos_core\Controller\OperationsController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
 
+  merdpos_core.administration_controller:
+    class: Drupal\merdpos_core\Controller\AdministrationController
+    arguments: ['@merdpos_core.portal_gateway', '@request_stack', '@csrf_token']
+
   merdpos_core.reports_controller:
     class: Drupal\merdpos_core\Controller\ReportsController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']

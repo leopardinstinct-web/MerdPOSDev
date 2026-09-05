@@ -50,3 +50,16 @@ dev:
   css:
     theme:
       css/dev-v2.css: {}
+
+
+administration:
+  version: 1.x
+  dependencies:
+    - merdpos_core/base
+    - core/drupal
+    - core/once
+  css:
+    theme:
+      css/administration-v1.css: {}
+  js:
+    js/administration-v1.js: {}
