@@ -1,0 +1,28 @@
+version: 1
+id: MERD-20260906-drupal-onboarding-v2
+branch: milestone/drupal-onboarding-v2
+base_head: 1c2b15ab9fa6015a90aa681b1697bbd783a04de5
+last_seen_head: 1c2b15ab9fa6015a90aa681b1697bbd783a04de5
+objective: Deliver Administration & Onboarding v2 with one guided DEV workflow that provisions a client, first store and initial ADMIN through authoritative MERDPOS writes.
+packet_state: WIRED
+lifecycle: WIRED
+scope:
+  - Add Onboard as the first DEV Administration tab at /merdpos/admin.
+  - Provision Client -> first Store -> initial ADMIN from one browser submission.
+  - Reuse clients and admin_directory signed gateway routes only; Drupal must contain no operational SQL.
+  - Resolve the ADMIN role from the newly-created client's authoritative role rows.
+  - Assign the initial ADMIN to the first store and preserve existing pay-rate/credential permission rules.
+  - Allow optional store profile defaults and a full seven-day weekly trading-hours schedule during onboarding.
+  - Add client/store/workforce search and mobile-safe guided onboarding UI.
+  - Preserve recoverable partial progress when a later authoritative step is denied; never fabricate rollback state.
+acceptance:
+  - Onboarding source validator and standalone provisioner sequence test pass.
+  - Existing Administration v1 and five-surface validators remain green.
+  - Namecheap deployment release marker reports onboarding_v2 preconditions OK.
+  - Authenticated browser verifies Onboard, Clients, Stores and Workforce tabs in Light/Dark desktop/mobile with no overflow.
+  - No test client/store/employee is created during verification.
+remaining:
+  - Validate Twig on PHP 8.4 deployment runtime.
+  - Merge to beta/drupal-webapp and deploy through permanent SSH.
+  - Capture authenticated browser regression and archive VERIFIED checkpoint.
+updated_at: "2026-09-06T02:23:00+05:00"
