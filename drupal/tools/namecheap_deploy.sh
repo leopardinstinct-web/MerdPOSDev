@@ -48,6 +48,7 @@ php84 "$DRUPAL/tools/validate_onboarding_provisioner.php"
 php84 "$DRUPAL/tools/validate_attendance_qr_widget_v1.php"
 php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
 php84 "$DRUPAL/tools/validate_disputes_twig.php"
+php84 "$DRUPAL/tools/validate_store_settings_dark_v1.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess

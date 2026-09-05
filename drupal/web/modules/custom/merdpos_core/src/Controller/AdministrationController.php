@@ -61,6 +61,17 @@ final class AdministrationController extends ControllerBase {
       ? $directoryResult['payload'] : [];
     if ($request->isMethod('POST')) return $this->handlePost($request, $selectedClientId, $directory);
 
+    $timingsResult = $this->gateway->call('store_timings', 'GET', [], [], $selectedClientId ?: NULL);
+    $timingsPayload = $timingsResult['status'] === 'ok' && is_array($timingsResult['payload'] ?? null)
+      ? $timingsResult['payload'] : [];
+    $storeTimings = [];
+    foreach (($timingsPayload['timings'] ?? []) as $row) {
+      if (!is_array($row)) continue;
+      $sid = max(0, (int) ($row['store_id'] ?? 0));
+      $day = max(0, (int) ($row['day_of_week'] ?? 0));
+      if ($sid > 0 && $day >= 1 && $day <= 7) $storeTimings[$sid][$day] = $row;
+    }
+
     $clientsResult = $this->gateway->call('clients');
     $clientsPayload = $clientsResult['status'] === 'ok' && is_array($clientsResult['payload'] ?? null)
       ? $clientsResult['payload'] : [];
@@ -87,6 +98,10 @@ final class AdministrationController extends ControllerBase {
       '#selected_client' => $selectedClient,
       '#form_token' => $this->csrf->get(self::TOKEN_ID),
       '#gateway_status' => $directoryResult['status'] ?? 'unavailable',
+      '#store_timings' => $storeTimings,
+      '#timings_available' => $timingsResult['status'] === 'ok',
+      '#timezone_options' => \DateTimeZone::listIdentifiers(),
+      '#currency_options' => $this->currencyOptions(),
       '#attached' => ['library' => ['merdpos_core/administration']],
       '#cache' => ['contexts' => ['user', 'url.query_args:client_id', 'url.query_args:tab'], 'max-age' => 0],
     ];
@@ -159,7 +174,42 @@ final class AdministrationController extends ControllerBase {
       if ($canManageProfile) $body[$name] = trim((string) $request->request->get($name, ''));
       elseif (is_array($existingStore)) $body[$name] = $existingStore[$name] ?? '';
     }
-    return $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
+    if (!empty($directory['permissions']['stores.timings.manage'])) {
+      $rawDays = $request->request->all('days');
+      if (is_array($rawDays) && count($rawDays) === 7) {
+        $days = [];
+        foreach ($rawDays as $day => $row) {
+          if (!is_array($row)) continue;
+          $dayNumber = max(1, min(7, (int) $day));
+          $days[] = ['day_of_week'=>$dayNumber,'start_time'=>trim((string)($row['start_time'] ?? '')),'end_time'=>trim((string)($row['end_time'] ?? '')),'is_closed'=>!empty($row['is_closed']) ? 1 : 0];
+        }
+        if (count($days) === 7) $body['days'] = $days;
+      }
+    }
+    $saveResult = $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
+    if (($saveResult['status'] ?? '') !== 'ok' || empty($saveResult['payload']['success'])) return $saveResult;
+
+    $logo = $request->files->get('logo');
+    if ($body['id'] !== NULL && $logo !== NULL && method_exists($logo, 'isValid') && $logo->isValid()) {
+      if (empty($directory['permissions']['stores.logo.manage'])) return ['status'=>'forbidden','message'=>'Your access level does not permit store logo changes.'];
+      $size = (int) $logo->getSize();
+      if ($size < 1 || $size > 2 * 1024 * 1024) return ['status'=>'invalid','message'=>'Store logo must be 2 MB or smaller.'];
+      $path = (string) $logo->getPathname();
+      $bytes = is_file($path) ? file_get_contents($path) : false;
+      if (!is_string($bytes) || $bytes === '') return ['status'=>'invalid','message'=>'Store logo could not be read.'];
+      $logoResult = $this->gateway->call('store_logo', 'POST', [], [
+        'store_id' => $body['id'],
+        'logo_base64' => base64_encode($bytes),
+        'logo_name' => (string) $logo->getClientOriginalName(),
+      ], $selectedClientId ?: NULL);
+      if (($logoResult['status'] ?? '') !== 'ok' || empty($logoResult['payload']['success'])) return $logoResult;
+      $saveResult['payload']['message'] = 'Store settings and logo saved.';
+    }
+    return $saveResult;
+  }
+
+  private function currencyOptions(): array {
+    return ['AUD','NZD','USD','CAD','GBP','EUR','CHF','JPY','CNY','HKD','SGD','INR','PKR','AED','SAR','QAR','MYR','THB','IDR','PHP','KRW','ZAR'];
   }
 
   private function saveEmployee(Request $request, int $selectedClientId): array {

@@ -35,7 +35,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     if ($contextClientId !== NULL) $envelope['context_client_id'] = $contextClientId;
     try {
       $raw = json_encode($envelope, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-      if (strlen($raw) > 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
+      if (strlen($raw) > 4 * 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
 
       $timestamp = time();
       $context = 'sha256:' . hash('sha256', $raw);
