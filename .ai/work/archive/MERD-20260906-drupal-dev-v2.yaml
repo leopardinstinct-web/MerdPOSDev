@@ -4,8 +4,8 @@ branch: milestone/drupal-dev-v2
 base_head: 1d3cbcaf24c2209cc51727c6add8a4f9fa277b5d
 last_seen_head: 1d3cbcaf24c2209cc51727c6add8a4f9fa277b5d
 objective: Deliver a DEV-only, graphic-rich MERDPOS Drupal Platform Command Centre for diagnostics, authorization, sync, deployment and security telemetry.
-packet_state: VALIDATED
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Use only signed MERDPOS read services plus the local Drupal release marker; no operational DB access from Drupal.
   - Present environment health, service diagnostics, client context, roles/LOA, permission thresholds, sync status, security flags and deployment evidence.
@@ -19,7 +19,14 @@ acceptance:
   - Home, Operations, Reports and Finance remain LIVE after deployment.
 checks:
   - PHP lint, Twig syntax, auth, gateway, Working Now, resource sync, Composer security and continuity gates pass.
-remaining:
-  - Promote through PR/CI, deploy, verify live desktop/mobile and archive.
-next_action: Promote validated DEV v2 through PR/CI, deploy, live-verify and archive.
-updated_at: "2026-09-06T00:20:00+05:00"
+remaining: []
+next_action: Archived after production verification; proceed to controlled write parity.
+updated_at: "2026-09-06T00:50:00+05:00"
+
+verification:
+  - PR 45 merged after CI run 78 and Secret scan run 77 passed.
+  - Namecheap release marker at b1ac216c4dbef0f9b2a8149e6562248f71611c0f reports dev_v2 OK, DEV, LOA 1000, 6 metrics, 4 charts, 6 sources, sync telemetry, read_only=true and studio_excluded=true.
+  - Authenticated MERDPOS DEV session renders Platform command centre, Developer, LOA 1000, LIVE, deployment checkpoint and Studio excluded.
+  - Mobile responsive mode was exercised at a 390x844 Opera window; layout switched to the compact bottom-navigation composition without visible horizontal clipping.
+  - Home, Operations, Reports and Finance remained LIVE in the authenticated regression.
+  - Drupal remains read-only for DEV v2 and contains no operational SQL or Studio route exposure.
