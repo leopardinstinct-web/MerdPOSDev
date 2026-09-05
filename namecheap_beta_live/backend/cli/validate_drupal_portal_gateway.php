@@ -59,7 +59,7 @@ gateway_check(is_string($gatewaySource), 'Gateway source is unreadable.');
 foreach ([
     'beta_state','dashboard_data','dashboard_layout','admin_directory','weeks','timesheet',
     'disputes','financials','dev_status','clients','legacy_migration','defaults',
-    'store_identity','store_timings','role_authority','client_context','check_sheet',
+    'store_identity','store_timings','store_logo','role_authority','client_context','check_sheet',
     'timesheet_google_refresh','change_password','attendance_scan',
 ] as $route) {
     gateway_check(
@@ -68,10 +68,10 @@ foreach ([
     );
 }
 
-foreach (['ui_studio_history','ui_studio_asset','login','logout','store_logo'] as $route) {
+foreach (['ui_studio_history','ui_studio_asset','login','logout'] as $route) {
     gateway_check(
         !str_contains($gatewaySource, "'{$route}' =>"),
-        "Forbidden/non-JSON gateway route exposed: {$route}"
+        "Forbidden gateway route exposed: {$route}"
     );
 }
 
@@ -79,6 +79,7 @@ gateway_check(str_contains($gatewaySource, "route === 'dashboard_layout'"), 'Das
 gateway_check(str_contains($gatewaySource, "'dev_studio'"), 'DevStudio request guard missing.');
 gateway_check(str_contains($gatewaySource, "'/includes/beta_api.php'"), 'Canonical Beta permission/runtime reuse missing.');
 gateway_check(str_contains($gatewaySource, "'client_context' => ['GET', 'POST']"), 'Drupal client-context POST route missing.');
+gateway_check(str_contains($gatewaySource, "'store_logo' => ['POST']"), 'Drupal store-logo POST route missing.');
 gateway_check(str_contains($gatewaySource, '$request[\'context_client_id\']'), 'Explicit Drupal client context envelope missing.');
 gateway_check(str_contains($gatewaySource, "Only DEV may select another client context"), 'Cross-client DEV guard missing.');
 gateway_check(str_contains($gatewaySource, '$_SESSION[\'dev_active_client_id\'] = $contextClientId'), 'Selected client context is not applied before target dispatch.');
