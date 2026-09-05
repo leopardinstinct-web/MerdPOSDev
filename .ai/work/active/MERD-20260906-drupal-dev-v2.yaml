@@ -1,0 +1,25 @@
+version: 1
+id: MERD-20260906-drupal-dev-v2
+branch: milestone/drupal-dev-v2
+base_head: 1d3cbcaf24c2209cc51727c6add8a4f9fa277b5d
+last_seen_head: 1d3cbcaf24c2209cc51727c6add8a4f9fa277b5d
+objective: Deliver a DEV-only, graphic-rich MERDPOS Drupal Platform Command Centre for diagnostics, authorization, sync, deployment and security telemetry.
+packet_state: VALIDATED
+lifecycle: WIRED
+scope:
+  - Use only signed MERDPOS read services plus the local Drupal release marker; no operational DB access from Drupal.
+  - Present environment health, service diagnostics, client context, roles/LOA, permission thresholds, sync status, security flags and deployment evidence.
+  - Keep DevStudio/UI Studio excluded from the Drupal gateway and keep this milestone read-only.
+  - Require the existing DEV-only Drupal permission and fail closed when authoritative services deny access.
+acceptance:
+  - DEV v2 validator and five-surface parity pass, including fail-closed permission simulation.
+  - CI and secret scan pass before merge.
+  - Namecheap release marker reports dev_v2 OK and five-surface parity remains OK.
+  - Authenticated desktop and 390x844 mobile DEV render without horizontal overflow.
+  - Home, Operations, Reports and Finance remain LIVE after deployment.
+checks:
+  - PHP lint, Twig syntax, auth, gateway, Working Now, resource sync, Composer security and continuity gates pass.
+remaining:
+  - Promote through PR/CI, deploy, verify live desktop/mobile and archive.
+next_action: Promote validated DEV v2 through PR/CI, deploy, live-verify and archive.
+updated_at: "2026-09-06T00:20:00+05:00"

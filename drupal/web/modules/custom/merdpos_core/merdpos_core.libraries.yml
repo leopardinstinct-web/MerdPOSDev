@@ -41,3 +41,12 @@ finance:
   css:
     theme:
       css/finance-v2.css: {}
+
+dev:
+  version: 2.x
+  dependencies:
+    - merdpos_core/base
+    - merdpos_core/dashboard
+  css:
+    theme:
+      css/dev-v2.css: {}

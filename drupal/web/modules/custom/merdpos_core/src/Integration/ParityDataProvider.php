@@ -827,74 +827,150 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $clients = $this->call('clients');
     $roles = $this->call('role_authority');
     $context = $this->call('client_context');
-    $statusPayload = $status['payload'];
+    $dashboard = $this->call('dashboard_data');
+    $state = $this->call('beta_state');
+
+    $statusPayload = $this->map($status['payload'] ?? []);
     $clientRows = $this->rows($clients['payload']['clients'] ?? []);
     $roleRows = $this->rows($roles['payload']['roles'] ?? []);
     $permissionRows = $this->rows($roles['payload']['permissions'] ?? []);
+    $clientContext = $this->map($context['payload']['client'] ?? []);
+    $contextPayload = $this->map($context['payload'] ?? []);
+    $dashboardPayload = $this->map($dashboard['payload'] ?? []);
+    $management = $this->map($dashboardPayload['management'] ?? []);
+    $analytics = $this->map($management['analytics'] ?? []);
+    $statePayload = $this->map($state['payload'] ?? []);
     $tables = $this->map($statusPayload['tables'] ?? []);
+
     $healthyTables = count(array_filter($tables, static fn(mixed $v): bool => $v !== null));
+    $missingTables = count($tables) - $healthyTables;
+    $tableRows = [];
+    $tableCounts = [];
+    foreach ($tables as $name => $count) {
+      $tableRows[] = ['table'=>(string)$name, 'rows'=>$count === null ? 'Unavailable' : number_format((int)$count)];
+      if ($count !== null) $tableCounts[(string)$name] = (int)$count;
+    }
+    arsort($tableCounts, SORT_NUMERIC);
+    $topDb = array_slice($tableCounts, 0, 8, true);
+    $topDbLabels = array_keys($topDb);
+    $topDbValues = array_values($topDb);
 
     $clientTable = [];
+    $clientLabels = [];
+    $clientEmployees = [];
+    $totalStores = 0;
+    $totalEmployees = 0;
     foreach ($clientRows as $row) {
+      $stores = (int)($row['store_count'] ?? 0);
+      $employees = (int)($row['employee_count'] ?? 0);
+      $totalStores += $stores;
+      $totalEmployees += $employees;
+      $name = (string)($row['name'] ?? '');
+      $clientLabels[] = $name;
+      $clientEmployees[] = $employees;
       $clientTable[] = [
-        'name' => (string)($row['name'] ?? ''),
-        'code' => (string)($row['client_code'] ?? ''),
-        'status' => strtoupper((string)($row['status'] ?? '')),
-        'stores' => (string)($row['store_count'] ?? 0),
-        'employees' => (string)($row['employee_count'] ?? 0),
+        'name'=>$name, 'code'=>(string)($row['client_code'] ?? ''),
+        'status'=>strtoupper((string)($row['status'] ?? '')), 'stores'=>(string)$stores, 'employees'=>(string)$employees,
       ];
     }
+
     $roleTable = [];
+    $roleLabels = [];
+    $roleLoa = [];
     foreach ($roleRows as $row) {
+      $label = (string)($row['role_label'] ?? '');
+      $loa = (int)($row['authority_level'] ?? 0);
+      $roleLabels[] = $label;
+      $roleLoa[] = $loa;
       $roleTable[] = [
-        'role' => (string)($row['role_label'] ?? ''),
-        'key' => (string)($row['role_key'] ?? ''),
-        'base' => (string)($row['base_role'] ?? ''),
-        'loa' => (string)($row['authority_level'] ?? ''),
-        'employees' => (string)($row['employee_count'] ?? 0),
+        'role'=>$label, 'key'=>(string)($row['role_key'] ?? ''), 'base'=>(string)($row['base_role'] ?? ''),
+        'loa'=>(string)$loa, 'employees'=>(string)($row['employee_count'] ?? 0),
+        'widgets'=>(string)count($this->strings($row['allowed_widgets'] ?? [])),
+        'status'=>strtoupper((string)($row['status'] ?? 'ACTIVE')),
       ];
     }
 
     $permissionTable = [];
+    $permissionCategoryCounts = [];
     foreach ($permissionRows as $row) {
+      $category = (string)($row['category'] ?? 'Other');
+      $permissionCategoryCounts[$category] = ($permissionCategoryCounts[$category] ?? 0) + 1;
       $permissionTable[] = [
-        'permission' => (string)($row['label'] ?? $row['permission_key'] ?? ''),
-        'category' => (string)($row['category'] ?? ''),
-        'loa' => !empty($row['dev_only']) ? 'DEV only' : (string)($row['min_authority_level'] ?? ''),
+        'permission'=>(string)($row['label'] ?? $row['permission_key'] ?? ''),
+        'key'=>(string)($row['permission_key'] ?? ''), 'category'=>$category,
+        'loa'=>!empty($row['dev_only']) ? 'DEV only' : (string)($row['min_authority_level'] ?? ''),
       ];
     }
-    $tableTable = [];
-    foreach ($tables as $name => $count) {
-      $tableTable[] = [
-        'table' => (string)$name,
-        'rows' => $count === null ? 'Unavailable' : (string)$count,
-      ];
-    }
-    $clientContext = $this->map($context['payload']['client'] ?? []);
 
-    return $this->surface(
-      'dev', 'DEV', 'Platform workspace',
-      'Live platform diagnostics and authorization state for the actual MERDPOS DEV service actor. DevStudio/UI Studio is intentionally excluded from the Drupal gateway.',
-      $this->status([$status['status'], $clients['status'], $roles['status'], $context['status']]),
+    $syncRows = [];
+    $syncLabels = [];
+    $syncValues = [];
+    foreach ($this->rows($analytics['sync_statuses'] ?? []) as $row) {
+      $label = strtoupper((string)($row['status'] ?? 'unknown'));
+      $count = (int)($row['count'] ?? 0);
+      $syncRows[] = ['status'=>$label, 'count'=>(string)$count];
+      $syncLabels[] = $label;
+      $syncValues[] = $count;
+    }
+    $syncAttention = array_sum($syncValues);
+
+    $securityRows = [];
+    foreach (array_slice($this->rows($statePayload['attendance_flags'] ?? []), 0, 20) as $row) {
+      $securityRows[] = [
+        'employee'=>(string)($row['full_name'] ?? $row['employee_name'] ?? ''),
+        'store'=>(string)($row['attempted_store'] ?? $row['store_name'] ?? ''),
+        'event'=>(string)($row['reason'] ?? $row['flag_type'] ?? ''),
+        'status'=>strtoupper((string)($row['status'] ?? '')), 'at'=>(string)($row['created_at'] ?? ''),
+      ];
+    }
+
+    $roleKey = (string)($statePayload['role_key'] ?? $statePayload['role'] ?? 'DEV');
+    $roleLabel = (string)($statePayload['role_label'] ?? $roleKey);
+    $actorLoa = (int)($statePayload['authority_level'] ?? $statusPayload['actor_loa'] ?? 0);
+    $crossClient = !empty($contextPayload['cross_client_context']);
+    $sourceStatuses = [
+      'DEV status'=>$status['status'], 'Clients'=>$clients['status'], 'Role authority'=>$roles['status'],
+      'Client context'=>$context['status'], 'Dashboard telemetry'=>$dashboard['status'], 'Actor state'=>$state['status'],
+    ];
+    $chartSpecs = [];
+    if ($roleLabels) $chartSpecs[] = $this->chartSpecValues('dev_role_loa', 'bar', $roleLabels, $roleLoa, 'Authority level', '#1c4587');
+    if ($syncLabels) $chartSpecs[] = $this->chartSpecValues('dev_sync_queue', 'bar', $syncLabels, $syncValues, 'Outbox records', '#23a6a8');
+    if ($topDbLabels) $chartSpecs[] = $this->chartSpecValues('dev_db_rows', 'bar', $topDbLabels, $topDbValues, 'Rows', '#6d5dfc');
+    if ($clientLabels) $chartSpecs[] = $this->chartSpecValues('dev_client_employees', 'bar', $clientLabels, $clientEmployees, 'Employees', '#16865b');
+
+    return array_merge($this->surface(
+      'dev', 'DEV', 'Platform command centre',
+      'Live platform health, authorization, sync and environment telemetry from signed MERDPOS services. DevStudio/UI Studio remains intentionally excluded from the Drupal gateway.',
+      $this->status(array_values($sourceStatuses)),
       [
-        $this->metric('PHP', (string)($statusPayload['php_version'] ?? '—'), 'Authoritative Beta runtime', 'brand'),
-        $this->metric('DB tables', $healthyTables . '/' . count($tables), 'Diagnostic table probes', 'info'),
-        $this->metric('Clients', (string)count($clientRows), 'Visible clients', 'success'),
-        $this->metric('Actor LOA', (string)($statusPayload['actor_loa'] ?? '—'), (string)($statusPayload['authorization_model'] ?? 'Authorization model'), 'warning'),
+        $this->metric('Actor LOA', (string)$actorLoa, $roleLabel, 'brand'),
+        $this->metric('DB probes', $healthyTables . '/' . count($tables), $missingTables ? $missingTables . ' unavailable' : 'All probes available', 'info'),
+        $this->metric('Clients', (string)count($clientRows), $totalStores . ' stores / ' . $totalEmployees . ' employees', 'success'),
+        $this->metric('Sync attention', (string)$syncAttention, 'Pending / failed / processing outbox', $syncAttention > 0 ? 'warning' : 'success'),
+        $this->metric('Security flags', (string)count($securityRows), 'Attendance account flags returned', count($securityRows) ? 'warning' : 'success'),
+        $this->metric('Permissions', (string)count($permissionRows), count($permissionCategoryCounts) . ' policy categories', 'info'),
       ],
       [
         $this->table('Clients', 'Client directory', [['key'=>'name','label'=>'Client'],['key'=>'code','label'=>'Code'],['key'=>'status','label'=>'Status'],['key'=>'stores','label'=>'Stores'],['key'=>'employees','label'=>'Employees']], $clientTable),
-        $this->table('Roles', 'Role and LOA model', [['key'=>'role','label'=>'Role'],['key'=>'key','label'=>'Key'],['key'=>'base','label'=>'Base'],['key'=>'loa','label'=>'LOA'],['key'=>'employees','label'=>'Employees']], $roleTable),
+        $this->table('Roles', 'Role and LOA model', [['key'=>'role','label'=>'Role'],['key'=>'key','label'=>'Key'],['key'=>'base','label'=>'Base'],['key'=>'loa','label'=>'LOA'],['key'=>'employees','label'=>'Employees'],['key'=>'widgets','label'=>'Widgets']], $roleTable),
         $this->table('Permission policy', 'Named permissions', [['key'=>'permission','label'=>'Permission'],['key'=>'category','label'=>'Category'],['key'=>'loa','label'=>'Minimum']], $permissionTable),
-        $this->table('Database diagnostics', 'Table row visibility', [['key'=>'table','label'=>'Table'],['key'=>'rows','label'=>'Rows']], $tableTable),
-        $this->cards('Active client', 'Current gateway context', [[
-          'title'=>(string)($clientContext['name'] ?? 'MERDPOS'),
-          'meta'=>(string)($clientContext['client_code'] ?? ''),
-          'value'=>'DevStudio excluded',
-        ]], 'Client context unavailable.'),
       ],
-      ['source' => 'dev_status + clients + role_authority + client_context'],
-    );
+      ['source'=>'dev_status + clients + role_authority + client_context + dashboard_data + beta_state'],
+    ), [
+      'role'=>['key'=>$roleKey,'label'=>$roleLabel,'loa'=>$actorLoa],
+      'environment'=>[
+        'app'=>(string)($statusPayload['app'] ?? 'MERDPOS beta'), 'branch'=>(string)($statusPayload['branch'] ?? ''),
+        'php'=>(string)($statusPayload['php_version'] ?? ''), 'db_server'=>(string)($statusPayload['server_version'] ?? ''),
+        'authorization'=>(string)($statusPayload['authorization_model'] ?? ''),
+      ],
+      'active_client'=>[
+        'name'=>(string)($clientContext['name'] ?? 'MERDPOS'), 'code'=>(string)($clientContext['client_code'] ?? ''),
+        'scope'=>(string)($contextPayload['scope'] ?? ''), 'cross_client'=>$crossClient,
+      ],
+      'source_statuses'=>$sourceStatuses, 'sync_rows'=>$syncRows, 'security_rows'=>$securityRows,
+      'client_rows'=>$clientTable, 'role_rows'=>$roleTable, 'permission_rows'=>$permissionTable, 'table_rows'=>$tableRows,
+      'chart_specs'=>$chartSpecs, 'read_only'=>true, 'studio_excluded'=>true,
+    ]);
   }
 
   private function call(string $route, array $query = []): array {

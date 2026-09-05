@@ -1,0 +1,120 @@
+<section class="merdpos-dev-v2" aria-label="Platform command centre">
+  <header class="merdpos-dev-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / DEV</p>
+      <h1>{{ surface.title }}</h1>
+      <p>{{ surface.description }}</p>
+      <div class="merdpos-dev-roleline">
+        <span>{{ surface.role.label ?: surface.role.key }}</span>
+        <span>LOA {{ surface.role.loa }}</span>
+        <span>DEV-only</span>
+        <span>Read-only Drupal view</span>
+      </div>
+    </div>
+    <div class="merdpos-dev-live"><i></i><div><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS services</small></div></div>
+  </header>
+
+  <div class="merdpos-dev-kpis">
+    {% for metric in surface.metrics %}
+      <article class="merdpos-dev-kpi merdpos-dev-kpi--{{ metric.tone }}">
+        <small>{{ metric.label }}</small><strong>{{ metric.value }}</strong><span>{{ metric.meta }}</span>
+      </article>
+    {% endfor %}
+  </div>
+
+  <section class="merdpos-dev-grid merdpos-dev-grid--status">
+    <article class="merdpos-dev-card">
+      <header><p>ENVIRONMENT</p><h2>Authoritative Beta runtime</h2></header>
+      <dl class="merdpos-dev-dl">
+        <div><dt>Application</dt><dd>{{ surface.environment.app }}</dd></div>
+        <div><dt>Beta branch</dt><dd><code>{{ surface.environment.branch }}</code></dd></div>
+        <div><dt>Beta PHP</dt><dd>{{ surface.environment.php }}</dd></div>
+        <div><dt>DB server</dt><dd>{{ surface.environment.db_server }}</dd></div>
+        <div><dt>Authorization</dt><dd><code>{{ surface.environment.authorization }}</code></dd></div>
+      </dl>
+    </article>
+
+    <article class="merdpos-dev-card">
+      <header><p>DRUPAL RELEASE</p><h2>Deployment checkpoint</h2></header>
+      {% if release.available %}
+        <dl class="merdpos-dev-dl">
+          <div><dt>Commit</dt><dd><code>{{ release.commit }}</code></dd></div>
+          <div><dt>Branch</dt><dd><code>{{ release.branch }}</code></dd></div>
+          <div><dt>Deployed</dt><dd>{{ release.deployed_at }}</dd></div>
+          <div><dt>Parity</dt><dd><span class="merdpos-dev-chip" data-state="{{ release.parity }}">{{ release.parity|upper }}</span></dd></div>
+          <div><dt>Drupal / PHP</dt><dd>{{ local_runtime.drupal }} / {{ local_runtime.php }}</dd></div>
+        </dl>
+      {% else %}<div class="merdpos-empty">Release marker unavailable.</div>{% endif %}
+    </article>
+
+    <article class="merdpos-dev-card">
+      <header><p>WORKING CONTEXT</p><h2>{{ surface.active_client.name }}</h2></header>
+      <div class="merdpos-dev-context-code">{{ surface.active_client.code }}</div>
+      <p>{{ surface.active_client.scope|replace({'_':' '})|title }}</p>
+      <div class="merdpos-dev-context-flags">
+        <span>{{ surface.active_client.cross_client ? 'Cross-client context' : 'Home client context' }}</span>
+        <span>Studio excluded</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="merdpos-dev-source-card">
+    <header><div><p>SERVICE HEALTH</p><h2>Signed API diagnostics</h2></div><span>Fail-closed</span></header>
+    <div class="merdpos-dev-source-grid">
+      {% for name, status in surface.source_statuses %}
+        <div><i data-state="{{ status }}"></i><span>{{ name }}</span><strong>{{ status|upper }}</strong></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="merdpos-dev-charts">
+    {% if charts.dev_role_loa %}<article class="merdpos-dev-chart-card"><header><p>AUTHORIZATION</p><h2>Role authority levels</h2></header>{{ charts.dev_role_loa }}</article>{% endif %}
+    {% if charts.dev_sync_queue %}<article class="merdpos-dev-chart-card"><header><p>SYNC / OUTBOX</p><h2>Queue status</h2></header>{{ charts.dev_sync_queue }}</article>{% endif %}
+    {% if charts.dev_client_employees %}<article class="merdpos-dev-chart-card"><header><p>CLIENTS</p><h2>Employees by client</h2></header>{{ charts.dev_client_employees }}</article>{% endif %}
+    {% if charts.dev_db_rows %}<article class="merdpos-dev-chart-card merdpos-dev-chart-card--wide"><header><p>DATABASE DIAGNOSTICS</p><h2>Largest probed tables</h2></header>{{ charts.dev_db_rows }}</article>{% endif %}
+  </div>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>SYNC</p><h2>Outbox state</h2></div><span>Backend telemetry</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
+      {% for row in surface.sync_rows %}<tr><td><span class="merdpos-dev-chip">{{ row.status }}</span></td><td>{{ row.count }}</td></tr>{% else %}<tr><td colspan="2">No sync status rows returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>SECURITY</p><h2>Attendance account flags</h2></div><span>Authoritative security events</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Employee</th><th>Store</th><th>Event</th><th>Status</th><th>Time</th></tr></thead><tbody>
+      {% for row in surface.security_rows %}<tr><td>{{ row.employee }}</td><td>{{ row.store }}</td><td>{{ row.event|replace({'_':' '}) }}</td><td><span class="merdpos-dev-chip">{{ row.status }}</span></td><td>{{ row.at }}</td></tr>{% else %}<tr><td colspan="5">No attendance security flags returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>AUTHORIZATION</p><h2>Roles & LOA</h2></div><span>DEV authority fixed at 1000</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Role</th><th>Key</th><th>Base</th><th>LOA</th><th>Employees</th><th>Widgets</th></tr></thead><tbody>
+      {% for row in surface.role_rows %}<tr><td>{{ row.role }}</td><td><code>{{ row.key }}</code></td><td>{{ row.base }}</td><td>{{ row.loa }}</td><td>{{ row.employees }}</td><td>{{ row.widgets }}</td></tr>{% else %}<tr><td colspan="6">No role data returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>PERMISSION POLICY</p><h2>Named permission thresholds</h2></div><span>{{ surface.permission_rows|length }} permissions</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Permission</th><th>Key</th><th>Category</th><th>Minimum</th></tr></thead><tbody>
+      {% for row in surface.permission_rows %}<tr><td>{{ row.permission }}</td><td><code>{{ row.key }}</code></td><td>{{ row.category }}</td><td>{{ row.loa }}</td></tr>{% else %}<tr><td colspan="4">No permission policy returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>CLIENT DIRECTORY</p><h2>Visible MERDPOS clients</h2></div><span>{{ surface.client_rows|length }} clients</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Client</th><th>Code</th><th>Status</th><th>Stores</th><th>Employees</th></tr></thead><tbody>
+      {% for row in surface.client_rows %}<tr><td>{{ row.name }}</td><td><code>{{ row.code }}</code></td><td>{{ row.status }}</td><td>{{ row.stores }}</td><td>{{ row.employees }}</td></tr>{% else %}<tr><td colspan="5">No client data returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-dev-table-card">
+    <header><div><p>DATABASE</p><h2>Diagnostic table probes</h2></div><span>Read through authoritative DEV status only</span></header>
+    <div class="merdpos-dev-table-wrap"><table><thead><tr><th>Table</th><th>Rows</th></tr></thead><tbody>
+      {% for row in surface.table_rows %}<tr><td><code>{{ row.table }}</code></td><td>{{ row.rows }}</td></tr>{% else %}<tr><td colspan="2">No database probes returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <footer class="merdpos-dev-footer"><strong>DEV safety boundary</strong><span>Drupal exposes diagnostics only. DevStudio/UI Studio, operational SQL and write actions are not exposed through this surface.</span></footer>
+</section>

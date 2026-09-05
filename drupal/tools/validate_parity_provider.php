@@ -192,8 +192,16 @@ foreach ($surfaces as $key => $surface) {
     parity_check(!empty($surface['selected_store']['can_cross_store']), 'Finance cross-store authority missing.');
     parity_check(!empty($surface['read_only']), 'Finance Drupal view must remain read-only.');
   }
+  elseif ($key === 'dev') {
+    parity_check(($surface['role']['key'] ?? '') === 'DEV', 'DEV role did not resolve DEV.');
+    parity_check(($surface['role']['loa'] ?? 0) === 1000, 'DEV role LOA mismatch.');
+    parity_check(count($surface['metrics'] ?? []) >= 6, 'DEV rich metrics missing.');
+    parity_check(count($surface['chart_specs'] ?? []) >= 3, 'DEV charts missing.');
+    parity_check(!empty($surface['read_only']), 'DEV Drupal view must remain read-only.');
+    parity_check(!empty($surface['studio_excluded']), 'DEV Studio boundary missing.');
+    parity_check(count($surface['source_statuses'] ?? []) === 6, 'DEV service diagnostics missing.');
+  }
   else {
-    parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
     parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
   }
 }
@@ -217,5 +225,6 @@ final class ForbiddenGateway implements PortalGatewayClientInterface {
 $blocked = new ParityDataProvider(new ForbiddenGateway(), new StubWorkingNow());
 parity_check(($blocked->section('operations')['status'] ?? '') === 'forbidden', 'Forbidden gateway must fail closed.');
 parity_check(($blocked->section('finance')['status'] ?? '') === 'forbidden', 'Forbidden finance gateway must fail closed.');
+parity_check(($blocked->section('dev')['status'] ?? '') === 'forbidden', 'Forbidden DEV gateway must fail closed.');
 
 echo "MERDPOS Drupal five-surface parity provider validated.\n";

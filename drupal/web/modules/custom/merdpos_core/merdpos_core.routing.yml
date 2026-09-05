@@ -40,8 +40,7 @@ merdpos_core.finance:
 merdpos_core.dev:
   path: '/merdpos/dev'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _controller: 'Drupal\merdpos_core\Controller\DevController::dev'
     _title: 'DEV'
-    section: 'dev'
   requirements:
     _permission: 'access merdpos dev tools'

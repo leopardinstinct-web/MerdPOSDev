@@ -40,6 +40,7 @@ php84 "$DRUPAL/tools/validate_parity_provider.php"
 php84 "$DRUPAL/tools/validate_operations_hr_v2.php"
 php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
+php84 "$DRUPAL/tools/validate_dev_v2.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess
@@ -126,10 +127,15 @@ FINANCE_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->section("finance",[]); $role=$r["role"]??[]; $store=$r["selected_store"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"filters"=>count($r["filters"]??[]),"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"accounts"=>count($r["account_cards"]??[]),"ledger"=>count($r["ledger_rows"]??[]),"cross_store"=>!empty($store["can_cross_store"]),"read_only"=>!empty($r["read_only"])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["loa"]??0)!==1000||($p["filters"]??0)!==2||($p["metrics"]??0)<5||($p["charts"]??0)<3||empty($p["cross_store"])||empty($p["read_only"])){fwrite(STDERR,"Finance v2 self-test failed.\n");exit(1);}' "$FINANCE_V2_PROBE"
 
+
+DEV_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$r=\Drupal::service("merdpos_core.parity_provider")->section("dev",[]); $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"sources"=>count($r["source_statuses"]??[]),"sync_rows"=>count($r["sync_rows"]??[]),"security_rows"=>count($r["security_rows"]??[]),"read_only"=>!empty($r["read_only"]),"studio_excluded"=>!empty($r["studio_excluded"])],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["loa"]??0)!==1000||($p["metrics"]??0)<6||($p["charts"]??0)<3||($p["sources"]??0)!==6||empty($p["read_only"])||empty($p["studio_excluded"])){fwrite(STDERR,"DEV v2 self-test failed.\n");exit(1);}' "$DEV_V2_PROBE"
+
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); $x=json_decode($argv[14],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
@@ -140,10 +146,11 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
   "operations_v2"=>$o,
   "reports_v2"=>$r,
   "finance_v2"=>$f,
+  "dev_v2"=>$x,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

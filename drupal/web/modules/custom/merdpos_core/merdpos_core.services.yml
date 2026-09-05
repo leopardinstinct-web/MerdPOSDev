@@ -50,6 +50,10 @@ services:
     class: Drupal\merdpos_core\Controller\FinanceController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
 
+  merdpos_core.dev_controller:
+    class: Drupal\merdpos_core\Controller\DevController
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder']
+
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
     tags:
