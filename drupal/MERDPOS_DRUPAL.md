@@ -165,3 +165,13 @@ The surface composes existing authoritative APIs only: `beta_state`, `dashboard_
 The current Operations v2 presentation includes live open shifts, store staffing, attendance trend, current-week late starts from the existing MERDPOS timesheet result, pending disputes with a Reports drill-down, attendance security flags when permitted, recent attendance, and management-only workforce/store/schedule panels. Drupal does not recalculate payable time, wages, late policy, dispute decisions, attendance security rules, or store authorization.
 
 Deployment writes an `operations_v2` release probe and fails closed unless the DEV service actor resolves at LOA 1000, the surface is live, rich metrics/charts resolve, and the management directory/store slices remain authorized. Five-surface parity is checked again in the same deployment.
+
+## Reports v2
+
+The Drupal Reports surface is a presentation layer over the existing MERDPOS Beta `weeks`, `timesheet`, `disputes`, and dashboard identity services. The existing timesheet reconciliation remains authoritative for pairing, rounding, payable hours, late-start flags, rates, wages, and payroll redaction.
+
+Reports v2 adds week, store, employee, and attendance presentation filters; Drupal Charts views for store hours, employee hours, punctuality, dispute state, and authorized payroll-by-store; a print/PDF browser workflow; and a private no-store CSV export of the currently authorized/filtered shift rows.
+
+The CSV route never queries the operational database. It reuses the signed gateway/provider result for the logged-in MERDPOS actor. Wage fields and payroll charts exist only when the authoritative timesheet payload sets `payroll_visible=true`; USER-scoped output therefore remains payroll-redacted.
+
+Deployment fails closed through `validate_reports_v2.php`, the five-surface parity validator, and the `reports_v2` release-marker probe. Live verification additionally checks desktop/mobile rendering and regression of Home, Operations, Finance, and DEV.

@@ -172,6 +172,15 @@ foreach ($surfaces as $key => $surface) {
     parity_check(!empty($surface['directory_available']), 'Operations management directory should be available.');
     parity_check(count($surface['chart_specs'] ?? []) >= 2, 'Operations charts missing.');
   }
+  elseif ($key === 'reports') {
+    parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Reports role did not resolve DEV.');
+    parity_check(($surface['role']['loa'] ?? 0) === 1000, 'Reports role LOA mismatch.');
+    parity_check(count($surface['metrics'] ?? []) >= 6, 'Reports rich metrics missing.');
+    parity_check(count($surface['filters'] ?? []) === 4, 'Reports filters missing.');
+    parity_check(count($surface['chart_specs'] ?? []) >= 4, 'Reports charts missing.');
+    parity_check(!empty($surface['export_rows']), 'Reports export rows missing.');
+    parity_check(!empty($surface['groups']), 'Reports surface groups missing.');
+  }
   else {
     parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
     parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
@@ -180,7 +189,9 @@ foreach ($surfaces as $key => $surface) {
 
 parity_check(($surfaces['home']['metrics'][6]['value'] ?? '') === 'AUD 123.45', 'Home sales change current value mismatch.');
 parity_check(($surfaces['reports']['meta']['payroll_visible'] ?? '') === 'yes', 'Reports payroll visibility mismatch.');
-parity_check(count($surfaces['reports']['filters'] ?? []) === 1, 'Reports week filter missing.');
+parity_check(count($surfaces['reports']['filters'] ?? []) === 4, 'Reports v2 filters missing.');
+parity_check(($surfaces['reports']['payroll_visible'] ?? false) === true, 'Reports payroll visibility flag mismatch.');
+parity_check(count($surfaces['reports']['chart_specs'] ?? []) >= 4, 'Reports v2 charts missing.');
 parity_check(count($surfaces['finance']['filters'] ?? []) === 2, 'Finance filters missing.');
 $routes = array_map(static fn(array $call): string => (string)$call[0], $gateway->calls);
 foreach (['beta_state','dashboard_data','admin_directory','store_identity','store_timings','weeks','timesheet','disputes','financials','dev_status','clients','role_authority','client_context'] as $route) {

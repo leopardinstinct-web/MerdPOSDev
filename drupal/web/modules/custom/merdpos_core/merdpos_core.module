@@ -26,5 +26,9 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
       'variables' => ['surface' => [], 'charts' => []],
       'template' => 'merdpos-operations',
     ],
+    'merdpos_reports' => [
+      'variables' => ['surface' => [], 'charts' => [], 'export_url' => ''],
+      'template' => 'merdpos-reports',
+    ],
   ];
 }
