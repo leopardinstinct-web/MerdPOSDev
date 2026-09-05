@@ -13,6 +13,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $route_name = (string) \Drupal::routeMatch()->getRouteName();
   $variables['merdpos_is_login'] = $route_name === 'user.login';
   $variables['merdpos_profile'] = NULL;
+  $variables['merdpos_pending_disputes'] = 0;
 
   if ($variables['merdpos_is_login']) {
     $variables['merdpos_user_name'] = '';
@@ -27,6 +28,18 @@ function merdpos_app_preprocess_page(array &$variables): void {
     try {
       $profile = \Drupal::service('merdpos_core.identity_manager')->profile((int) $account->id());
       if (is_array($profile)) $variables['merdpos_profile'] = $profile;
+    }
+    catch (Throwable) {}
+  }
+
+  if ($account->isAuthenticated()) {
+    try {
+      $state = \Drupal::service('merdpos_core.portal_gateway')->call('beta_state', 'GET');
+      $payload = is_array($state['payload'] ?? NULL) ? $state['payload'] : [];
+      foreach (($payload['disputes'] ?? []) as $row) {
+        if (!is_array($row)) continue;
+        if (in_array(strtolower((string) ($row['status'] ?? '')), ['pending','awaiting_employee'], true)) $variables['merdpos_pending_disputes']++;
+      }
     }
     catch (Throwable) {}
   }
@@ -47,9 +60,9 @@ function merdpos_app_preprocess_page(array &$variables): void {
 
   $items = [
     ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
-    ['key' => 'operations', 'label' => 'Operations', 'route' => 'merdpos_core.operations', 'permission' => 'access merdpos portal'],
+    ['key' => 'operations', 'label' => 'Operations', 'route' => 'merdpos_core.operations', 'permission' => 'access merdpos portal', 'badge' => $variables['merdpos_pending_disputes']],
     ['key' => 'admin', 'label' => 'Admin', 'route' => 'merdpos_core.administration', 'permission' => 'manage merdpos operations'],
-    ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal'],
+    ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal', 'badge' => $variables['merdpos_pending_disputes']],
     ['key' => 'finance', 'label' => 'Finance', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
     ['key' => 'dev', 'label' => 'DEV', 'route' => 'merdpos_core.dev', 'permission' => 'access merdpos dev tools'],
   ];
@@ -58,7 +71,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   foreach ($items as $item) {
     if (!$account->hasPermission($item['permission'])) continue;
     $item['url'] = Url::fromRoute($item['route'])->toString();
-    $item['active'] = $route_name === $item['route'];
+    $item['active'] = $route_name === $item['route'] || ($item['key'] === 'operations' && $route_name === 'merdpos_core.disputes');
     $variables['merdpos_nav'][] = $item;
   }
 
@@ -68,6 +81,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   ));
   $variables['merdpos_active_section'] = $active[0]['key'] ?? 'home';
   $variables['merdpos_active_label'] = $active[0]['label'] ?? 'Home';
+  if ($route_name === 'merdpos_core.disputes') $variables['merdpos_active_label'] = 'Disputes';
 }
 
 /**

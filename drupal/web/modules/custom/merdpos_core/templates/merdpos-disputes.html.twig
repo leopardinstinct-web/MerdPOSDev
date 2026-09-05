@@ -1,0 +1,120 @@
+{% macro icon(name) %}
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  {% if name == 'message' %}<path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/><path d="M8 11h8M8 15h5"/>
+  {% elseif name == 'plus' %}<path d="M12 5v14M5 12h14"/>
+  {% elseif name == 'shield' %}<path d="M12 3 4 6v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6Z"/><path d="m9 12 2 2 4-4"/>
+  {% elseif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+  {% elseif name == 'search' %}<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
+  {% else %}<path d="M4 12h16M12 4v16"/>{% endif %}
+</svg>
+{% endmacro %}
+{% import _self as ui %}
+
+<section class="merdpos-disputes-v1" data-disputes-root aria-labelledby="merdpos-disputes-title">
+  <header class="merdpos-disputes-hero">
+    <div>
+      <p class="merdpos-eyebrow">MERDPOS / ATTENDANCE</p>
+      <h1 id="merdpos-disputes-title">Disputes</h1>
+      <p>Attendance corrections stay pending until MERDPOS applies the authorised workflow. Drupal never edits a shift directly.</p>
+      <div class="merdpos-disputes-role"><span>{{ role.label|default('MERDPOS') }}</span><span>LOA {{ role.loa|default(0) }}</span><span>{{ gateway_status == 'ok' ? 'Service connected' : 'Service unavailable' }}</span></div>
+    </div>
+    <a class="merdpos-disputes-back" href="{{ path('merdpos_core.operations') }}">Back to Operations</a>
+  </header>
+
+  <div class="merdpos-disputes-kpis" aria-label="Dispute summary">
+    <article><span>Open</span><strong>{{ counts.open|default(0) }}</strong><small>Pending or awaiting employee</small></article>
+    <article><span>Review queue</span><strong>{{ counts.pending|default(0) }}</strong><small>Ready for authorised decision</small></article>
+    <article><span>Awaiting employee</span><strong>{{ counts.awaiting|default(0) }}</strong><small>Handover confirmation required</small></article>
+    {% if can_resolve_flags %}<article><span>Security flags</span><strong>{{ counts.flags|default(0) }}</strong><small>Open attendance suspensions</small></article>{% endif %}
+  </div>
+
+  {% if can_submit %}
+  <section class="merdpos-disputes-panel merdpos-disputes-create">
+    <header><span class="merdpos-disputes-icon">{{ ui.icon('plus') }}</span><div><h2>Request an attendance correction</h2><p>Submit your own shift correction or propose a missing shift.</p></div></header>
+    <form method="post" action="{{ post_url }}" class="merdpos-dispute-form" data-dispute-create>
+      <input type="hidden" name="form_token" value="{{ form_token }}">
+      <input type="hidden" name="dispute_action" value="create">
+      <label data-dispute-shift><span>Shift</span><select name="shift_id" required>
+        <option value="">Choose a recent shift</option>
+        {% for shift in own_shifts %}<option value="{{ shift.id }}">{{ shift.label }}</option>{% endfor %}
+      </select></label>
+      <label><span>Issue</span><select name="dispute_type" data-dispute-type>
+        <option value="missing_out">Forgot to clock out</option><option value="wrong_in">Clock-in time is wrong</option><option value="wrong_out">Clock-out time is wrong</option>
+        <option value="delete_shift">Delete this shift</option><option value="new_shift">Add missing shift</option><option value="other">Other correction</option>
+      </select></label>
+      <label data-dispute-store hidden><span>Store</span><select name="proposed_store_id"><option value="">Choose store</option>{% for store in stores %}<option value="{{ store.id }}">{{ store.name }}</option>{% endfor %}</select></label>
+      <label data-dispute-in hidden><span>Requested clock-in</span><input type="datetime-local" name="requested_clock_in"></label>
+      <label data-dispute-out><span>Requested clock-out</span><input type="datetime-local" name="requested_clock_out"></label>
+      <label class="is-wide"><span>Reason</span><textarea name="reason" minlength="5" maxlength="1000" required placeholder="Explain what needs correcting and why."></textarea></label>
+      <div class="merdpos-dispute-form-note is-wide"><strong>Approval controls the attendance record.</strong><span>Submitting this form creates a dispute only. Payroll/timesheet rules are unchanged until the authoritative MERDPOS approval service applies the correction.</span></div>
+      <div class="merdpos-dispute-actions is-wide"><button type="submit">Send for approval</button></div>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="merdpos-disputes-panel merdpos-disputes-queue">
+    <header class="merdpos-disputes-queue-head"><span class="merdpos-disputes-icon">{{ ui.icon('message') }}</span><div><h2>{{ can_review ? 'Review queue' : 'My disputes' }}</h2><p>{{ can_review ? 'Approve or reject pending attendance corrections.' : 'Track your submitted attendance corrections.' }}</p></div></header>
+    <div class="merdpos-disputes-toolbar">
+      <label><span class="merdpos-disputes-search-icon">{{ ui.icon('search') }}</span><input type="search" data-dispute-search placeholder="Search employee, store, issue or reason"></label>
+      <div class="merdpos-disputes-filters" role="group" aria-label="Filter disputes">
+        <button type="button" class="is-active" data-dispute-filter="all">All</button><button type="button" data-dispute-filter="open">Open</button><button type="button" data-dispute-filter="approved">Approved</button><button type="button" data-dispute-filter="rejected">Rejected</button>
+      </div>
+    </div>
+    <div class="merdpos-disputes-list" data-dispute-list>
+      {% for dispute in disputes %}
+      <article class="merdpos-dispute-card" data-dispute-card data-status="{{ dispute.status }}">
+        <div class="merdpos-dispute-card-head">
+          <div><strong>{{ dispute.employee }}</strong><span>{{ dispute.store ?: 'Store not set' }} · {{ dispute.type }}</span></div>
+          <span class="merdpos-dispute-status is-{{ dispute.status }}">{{ dispute.status|replace({'_':' '})|title }}</span>
+        </div>
+        <div class="merdpos-dispute-card-grid">
+          <div><span>Requested change</span><strong>{{ dispute.requested }}</strong></div>
+          <div><span>Submitted</span><strong>{{ dispute.submitted }}</strong></div>
+          <div class="is-wide"><span>Reason</span><p>{{ dispute.reason }}</p></div>
+          {% if dispute.decision_note %}<div class="is-wide"><span>Decision note</span><p>{{ dispute.decision_note }}</p></div>{% endif %}
+        </div>
+        {% if can_review and dispute.status == 'pending' %}
+        <form method="post" action="{{ post_url }}" class="merdpos-dispute-decision" data-dispute-decision>
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="decide"><input type="hidden" name="dispute_id" value="{{ dispute.id }}">
+          <label><span>Decision note</span><input name="note" maxlength="1000" placeholder="Optional audit note"></label>
+          <div><button type="submit" name="decision" value="approved" class="is-approve">Approve</button><button type="submit" name="decision" value="rejected" class="is-reject">Reject</button></div>
+        </form>
+        {% elseif can_submit and not can_review and dispute.status == 'pending' %}
+        <form method="post" action="{{ post_url }}" class="merdpos-dispute-inline-action" data-confirm="Cancel this pending dispute?">
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="cancel"><input type="hidden" name="dispute_id" value="{{ dispute.id }}"><button type="submit" class="is-reject">Cancel request</button>
+        </form>
+        {% elseif can_submit and dispute.status == 'awaiting_employee' and dispute.origin == 'pos_handover' %}
+        <div class="merdpos-dispute-handover-actions">
+          <form method="post" action="{{ post_url }}" data-confirm="Confirm this handover correction and send it for review?">
+            <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="confirm_handover"><input type="hidden" name="dispute_id" value="{{ dispute.id }}"><button type="submit" class="is-approve">Confirm & send</button>
+          </form>
+          <form method="post" action="{{ post_url }}" data-confirm="Mark this handover correction as incorrect?">
+            <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="reject_handover"><input type="hidden" name="dispute_id" value="{{ dispute.id }}"><button type="submit" class="is-reject">Not correct</button>
+          </form>
+        </div>
+        {% endif %}
+      </article>
+      {% else %}<div class="merdpos-disputes-empty">No disputes are visible in your authorised queue.</div>{% endfor %}
+    </div>
+  </section>
+
+  {% if can_resolve_flags %}
+  <section class="merdpos-disputes-panel merdpos-disputes-flags">
+    <header><span class="merdpos-disputes-icon">{{ ui.icon('shield') }}</span><div><h2>Attendance security flags</h2><p>Resolving a flag reactivates the suspended employee attendance account.</p></div></header>
+    <div class="merdpos-disputes-flag-list">
+      {% for flag in flags %}
+      <article><div><strong>{{ flag.employee }}</strong><span>{{ flag.store }} · {{ flag.reason }}</span><small>{{ flag.created }}</small></div><span class="merdpos-dispute-status is-{{ flag.status }}">{{ flag.status|title }}</span>
+        {% if flag.status == 'open' %}<form method="post" action="{{ post_url }}" data-confirm="Resolve this attendance security flag and reactivate the employee?">
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="resolve_flag"><input type="hidden" name="flag_id" value="{{ flag.id }}"><input name="note" maxlength="1000" placeholder="Resolution note"><button type="submit" class="is-approve">Reactivate</button>
+        </form>{% endif %}
+      </article>
+      {% else %}<div class="merdpos-disputes-empty">No attendance security flags.</div>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="merdpos-disputes-footer">
+    <div><strong>Authoritative MERDPOS workflow</strong><span>Every create, cancel, handover confirmation, review decision and flag resolution is re-authorised and audited by the existing MERDPOS service.</span></div>
+    <div><a href="{{ path('merdpos_core.operations') }}">Operations</a><a href="{{ path('merdpos_core.reports') }}">Timesheets & reports</a></div>
+  </footer>
+</section>

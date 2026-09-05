@@ -1,0 +1,90 @@
+.merdpos-disputes-v1{display:grid;gap:var(--space-6);max-width:var(--content-max);margin:0 auto;padding:var(--space-6)}
+.merdpos-disputes-hero{display:flex;justify-content:space-between;gap:var(--space-6);align-items:flex-start;padding:var(--space-8);border:1px solid var(--color-border-subtle);border-radius:var(--radius-dialog);background:var(--color-surface-main);box-shadow:var(--shadow-card)}
+.merdpos-disputes-hero h1{margin:var(--space-1) 0 var(--space-2);font:var(--weight-bold) var(--type-4xl)/var(--line-tight) var(--font-display);color:var(--color-text-primary)}
+.merdpos-disputes-hero p{max-width:56rem;margin:0;color:var(--color-text-secondary)}
+.merdpos-disputes-role{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-4)}
+.merdpos-disputes-role span{padding:var(--space-2) var(--space-3);border-radius:var(--radius-pill);background:var(--color-surface-muted);font-size:var(--type-xs);font-weight:var(--weight-semibold);color:var(--color-text-secondary)}
+.merdpos-disputes-back{display:inline-flex;align-items:center;min-height:var(--size-control);padding:0 var(--space-4);border:1px solid var(--color-border-default);border-radius:var(--radius-control);color:var(--color-text-primary);text-decoration:none;font-weight:var(--weight-semibold)}
+.merdpos-disputes-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)}
+.merdpos-disputes-kpis article{padding:var(--space-5);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-main);box-shadow:var(--shadow-card)}
+.merdpos-disputes-kpis span,.merdpos-disputes-kpis small{display:block;color:var(--color-text-muted);font-size:var(--type-sm)}
+.merdpos-disputes-kpis strong{display:block;margin:var(--space-2) 0;font:var(--weight-bold) var(--type-3xl)/1 var(--font-display);color:var(--color-text-primary)}
+.merdpos-disputes-panel{border:1px solid var(--color-border-subtle);border-radius:var(--radius-dialog);background:var(--color-surface-main);box-shadow:var(--shadow-card);overflow:hidden}
+.merdpos-disputes-panel>header{display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-5) var(--space-6);border-bottom:1px solid var(--color-border-subtle)}
+.merdpos-disputes-panel>header h2{margin:0;font:var(--weight-bold) var(--type-xl)/var(--line-heading) var(--font-display);color:var(--color-text-primary)}
+.merdpos-disputes-panel>header p{margin:var(--space-1) 0 0;color:var(--color-text-muted);font-size:var(--type-sm)}
+.merdpos-disputes-icon{display:grid;place-items:center;width:2.5rem;height:2.5rem;flex:0 0 auto;border-radius:var(--radius-control);background:var(--color-surface-selected);color:var(--color-brand-primary)}
+.merdpos-disputes-icon svg,.merdpos-disputes-search-icon svg{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.merdpos-dispute-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4);padding:var(--space-6)}
+.merdpos-dispute-form label,.merdpos-dispute-decision label{display:grid;gap:var(--space-2);font-size:var(--type-sm);font-weight:var(--weight-semibold);color:var(--color-text-secondary)}
+.merdpos-dispute-form input,.merdpos-dispute-form select,.merdpos-dispute-form textarea,.merdpos-dispute-decision input,.merdpos-disputes-toolbar input,.merdpos-disputes-flag-list input{width:100%;min-height:var(--size-control);box-sizing:border-box;padding:0 var(--space-3);border:1px solid var(--color-border-default);border-radius:var(--radius-control);background:var(--color-surface-main);color:var(--color-text-primary);font:inherit}
+.merdpos-dispute-form textarea{min-height:7rem;padding:var(--space-3);resize:vertical}
+.merdpos-dispute-form input:focus,.merdpos-dispute-form select:focus,.merdpos-dispute-form textarea:focus,.merdpos-dispute-decision input:focus,.merdpos-disputes-toolbar input:focus,.merdpos-disputes-flag-list input:focus{outline:3px solid var(--color-focus-soft);border-color:var(--color-focus)}
+.merdpos-dispute-form .is-wide,.merdpos-dispute-card-grid .is-wide{grid-column:1/-1}
+.merdpos-dispute-form-note{display:grid;gap:var(--space-1);padding:var(--space-4);border-radius:var(--radius-control);background:var(--color-info-surface);color:var(--color-text-secondary);font-size:var(--type-sm)}
+.merdpos-dispute-form-note strong{color:var(--color-info)}
+.merdpos-dispute-actions{display:flex;justify-content:flex-end}
+.merdpos-dispute-actions button,.merdpos-dispute-decision button,.merdpos-dispute-inline-action button,.merdpos-dispute-handover-actions button,.merdpos-disputes-flag-list button{min-height:var(--size-control);padding:0 var(--space-4);border:0;border-radius:var(--radius-control);background:var(--color-brand-primary);color:var(--color-brand-on-primary);font-weight:var(--weight-bold);cursor:pointer}
+.merdpos-dispute-actions button:disabled,.merdpos-dispute-decision button:disabled{opacity:.55;cursor:wait}
+.merdpos-dispute-decision button.is-reject,.merdpos-dispute-inline-action button.is-reject,.merdpos-dispute-handover-actions button.is-reject{background:var(--color-danger);color:var(--color-text-inverse)}
+.merdpos-dispute-decision button.is-approve,.merdpos-dispute-handover-actions button.is-approve,.merdpos-disputes-flag-list button.is-approve{background:var(--color-success);color:var(--color-text-inverse)}
+.merdpos-disputes-toolbar{display:flex;gap:var(--space-4);justify-content:space-between;align-items:center;padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--color-border-subtle);background:var(--color-surface-muted)}
+.merdpos-disputes-toolbar>label{position:relative;display:flex;align-items:center;min-width:min(26rem,100%);color:var(--color-text-muted)}
+.merdpos-disputes-search-icon{position:absolute;left:var(--space-3);display:grid;place-items:center;pointer-events:none}
+.merdpos-disputes-toolbar input{padding-left:2.5rem;background:var(--color-surface-main)}
+.merdpos-disputes-filters{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.merdpos-disputes-filters button{min-height:2.25rem;padding:0 var(--space-3);border:1px solid var(--color-border-default);border-radius:var(--radius-pill);background:var(--color-surface-main);color:var(--color-text-secondary);font-weight:var(--weight-semibold);cursor:pointer}
+.merdpos-disputes-filters button.is-active{border-color:var(--color-brand-primary);background:var(--color-surface-selected);color:var(--color-text-primary)}
+.merdpos-disputes-list{display:grid;gap:var(--space-3);padding:var(--space-5) var(--space-6)}
+.merdpos-dispute-card{padding:var(--space-5);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-raised)}
+.merdpos-dispute-card[hidden]{display:none!important}
+.merdpos-dispute-card-head{display:flex;justify-content:space-between;gap:var(--space-4);align-items:flex-start}
+.merdpos-dispute-card-head>div{display:grid;gap:var(--space-1)}
+.merdpos-dispute-card-head strong{font-size:var(--type-lg);color:var(--color-text-primary)}
+.merdpos-dispute-card-head span:not(.merdpos-dispute-status){font-size:var(--type-sm);color:var(--color-text-muted)}
+.merdpos-dispute-status{display:inline-flex;align-items:center;min-height:1.75rem;padding:0 var(--space-3);border-radius:var(--radius-pill);background:var(--color-surface-muted);font-size:var(--type-xs);font-weight:var(--weight-bold);white-space:nowrap}
+.merdpos-dispute-status.is-pending,.merdpos-dispute-status.is-awaiting_employee{background:var(--color-warning-surface);color:var(--color-warning)}
+.merdpos-dispute-status.is-approved,.merdpos-dispute-status.is-resolved{background:var(--color-success-surface);color:var(--color-success)}
+.merdpos-dispute-status.is-rejected,.merdpos-dispute-status.is-cancelled,.merdpos-dispute-status.is-open{background:var(--color-danger-surface);color:var(--color-danger)}
+.merdpos-dispute-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin-top:var(--space-4)}
+.merdpos-dispute-card-grid>div{display:grid;gap:var(--space-1)}
+.merdpos-dispute-card-grid span{font-size:var(--type-xs);font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted)}
+.merdpos-dispute-card-grid strong,.merdpos-dispute-card-grid p{margin:0;color:var(--color-text-primary);font-size:var(--type-sm)}
+.merdpos-dispute-decision{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-3);align-items:end;margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--color-border-subtle)}
+.merdpos-dispute-decision>div,.merdpos-dispute-handover-actions{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.merdpos-dispute-inline-action,.merdpos-dispute-handover-actions{margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--color-border-subtle)}
+.merdpos-dispute-handover-actions form{margin:0}
+.merdpos-disputes-empty{padding:var(--space-8);text-align:center;color:var(--color-text-muted)}
+.merdpos-disputes-flag-list{display:grid;gap:var(--space-3);padding:var(--space-5) var(--space-6)}
+.merdpos-disputes-flag-list article{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-3);align-items:start;padding:var(--space-4);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card)}
+.merdpos-disputes-flag-list article>div{display:grid;gap:var(--space-1)}
+.merdpos-disputes-flag-list article>div span,.merdpos-disputes-flag-list small{color:var(--color-text-muted);font-size:var(--type-sm)}
+.merdpos-disputes-flag-list form{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-3)}
+.merdpos-disputes-footer{display:flex;justify-content:space-between;gap:var(--space-5);align-items:center;padding:var(--space-5) var(--space-6);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-muted)}
+.merdpos-disputes-footer>div:first-child{display:grid;gap:var(--space-1)}
+.merdpos-disputes-footer span{font-size:var(--type-sm);color:var(--color-text-muted)}
+.merdpos-disputes-footer>div:last-child{display:flex;gap:var(--space-3);flex-wrap:wrap}
+.merdpos-disputes-footer a{color:var(--color-text-primary);font-weight:var(--weight-semibold)}
+@media (max-width:65.625rem){
+  .merdpos-disputes-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .merdpos-disputes-toolbar{align-items:stretch;flex-direction:column}
+}
+@media (max-width:51.25rem){
+  .merdpos-disputes-v1{padding:var(--space-4)}
+  .merdpos-disputes-hero{padding:var(--space-5);flex-direction:column}
+  .merdpos-dispute-form,.merdpos-dispute-card-grid{grid-template-columns:1fr}
+  .merdpos-dispute-form .is-wide,.merdpos-dispute-card-grid .is-wide{grid-column:auto}
+  .merdpos-dispute-decision{grid-template-columns:1fr}
+  .merdpos-disputes-footer{align-items:flex-start;flex-direction:column}
+}
+@media (max-width:35rem){
+  .merdpos-disputes-v1{gap:var(--space-4);padding:var(--space-3)}
+  .merdpos-disputes-kpis{grid-template-columns:1fr 1fr;gap:var(--space-2)}
+  .merdpos-disputes-kpis article{padding:var(--space-4)}
+  .merdpos-disputes-panel>header,.merdpos-dispute-form,.merdpos-disputes-list,.merdpos-disputes-flag-list{padding-left:var(--space-4);padding-right:var(--space-4)}
+  .merdpos-dispute-card-head{flex-direction:column}
+  .merdpos-dispute-decision>div,.merdpos-dispute-handover-actions{display:grid;grid-template-columns:1fr}
+  .merdpos-dispute-decision button,.merdpos-dispute-handover-actions button,.merdpos-dispute-inline-action button{width:100%;min-height:var(--size-touch)}
+  .merdpos-disputes-flag-list article{grid-template-columns:1fr}
+  .merdpos-disputes-flag-list form{grid-column:auto;grid-template-columns:1fr}
+}

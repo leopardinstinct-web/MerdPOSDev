@@ -26,6 +26,13 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
       'variables' => ['surface' => [], 'charts' => []],
       'template' => 'merdpos-operations',
     ],
+    'merdpos_disputes' => [
+      'variables' => [
+        'disputes'=>[], 'flags'=>[], 'own_shifts'=>[], 'stores'=>[], 'form_token'=>'', 'post_url'=>'',
+        'can_submit'=>false, 'can_review'=>false, 'can_resolve_flags'=>false, 'role'=>[], 'counts'=>[], 'gateway_status'=>'unavailable',
+      ],
+      'template' => 'merdpos-disputes',
+    ],
     'merdpos_administration' => [
       'variables' => [
         'directory' => [], 'clients' => [], 'can_manage_clients' => false,
