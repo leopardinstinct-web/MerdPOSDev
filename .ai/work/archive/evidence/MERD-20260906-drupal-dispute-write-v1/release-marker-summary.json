@@ -1,0 +1,17 @@
+{
+  "commit": "b3ad2e65743dbe47adfd5a3877f74ae2ae22a0ba",
+  "branch": "beta/drupal-webapp",
+  "deployed_at": "2026-09-05T22:52:29Z",
+  "parity_status": "ok",
+  "drupal": "11.4.6",
+  "php": "8.4.24",
+  "dispute_write_v1": {
+    "status": "ok",
+    "route": "/merdpos/disputes",
+    "submit": true,
+    "review": true,
+    "resolve_flags": true,
+    "total": 0,
+    "open": 0
+  }
+}
