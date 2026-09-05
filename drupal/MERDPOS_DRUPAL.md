@@ -225,3 +225,9 @@ Deployment runs both a static Onboarding v2 contract validator and a standalone 
 ### Administration & Onboarding v2 verified checkpoint
 
 The final live Namecheap Drupal release at `86795de180bfea97a721e27d22413b18a60d1bd3` passed the authenticated Onboarding v2 closure regression. The guided Client → first Store → initial ADMIN flow, optional weekly trading-hours controls, DEV client switching, client search, and desktop/mobile Light/Dark layouts were verified without creating test operational records. Durable evidence is archived under `.ai/work/archive/evidence/MERD-20260906-drupal-onboarding-v2/`.
+
+## Home attendance QR widget v1
+
+Home now includes a permission-scoped attendance scanner whenever the authenticated MERDPOS actor has `attendance.scan` (minimum LOA 1 in the authoritative Beta policy). The widget uses the browser rear camera plus native QR detection when available, with a paste-link/token fallback for unsupported or camera-denied browsers.
+
+The browser never calls the Beta attendance API directly and receives no service credential. It POSTs the scanned QR to Drupal with a Drupal CSRF token; Drupal extracts only the signed attendance token and forwards it through `PortalGatewayClient` to the existing `attendance_scan` route. That canonical API still owns QR signature/expiry validation, store assignment, duplicate protection, cooldown, cross-store suspension, IN/OUT selection, attendance writes and outbox/audit behavior. Drupal contains no attendance SQL.

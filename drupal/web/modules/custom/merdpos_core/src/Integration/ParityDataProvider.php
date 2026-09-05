@@ -13,8 +13,13 @@ final class ParityDataProvider implements ParityDataProviderInterface {
   public function home(array $query = []): array {
     $dashboardQuery = $this->dashboardQuery($query);
     $dashboard = $this->call('dashboard_data', $dashboardQuery);
+    $state = $this->call('beta_state');
     $payload = $dashboard['payload'];
+    $statePayload = $this->map($state['payload'] ?? []);
+    $permissions = $this->strings($statePayload['permissions'] ?? []);
+    $canScanAttendance = in_array('attendance.scan', $permissions, true);
     $allowedKeys = $this->strings($payload['allowed_widgets'] ?? []);
+    if ($canScanAttendance && !in_array('attendance_scan', $allowedKeys, true)) $allowedKeys[] = 'attendance_scan';
     $allowed = array_fill_keys($allowedKeys, true);
     $role = $this->map($payload['role'] ?? []);
     $management = $this->map($payload['management'] ?? []);
@@ -192,7 +197,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['allowed_widgets'] = $allowedKeys;
     $surface['dashboard_widgets'] = $widgets;
     $surface['chart_specs'] = $chartSpecs;
-    $surface['visible_widget_count'] = count($kpis) + count($widgets);
+    $surface['can_scan_attendance'] = $canScanAttendance;
+    $surface['visible_widget_count'] = count($kpis) + count($widgets) + ($canScanAttendance ? 1 : 0);
     $surface['period_label'] = (string)($filterState['period_label'] ?? 'Current period');
     return $surface;
   }

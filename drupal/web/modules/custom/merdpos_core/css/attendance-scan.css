@@ -1,0 +1,35 @@
+.merdpos-attendance-widget[hidden],.merdpos-attendance-panel[hidden],.merdpos-attendance-result[hidden]{display:none!important}
+.merdpos-attendance-widget{margin:var(--space-6) 0;border:1px solid var(--color-border-subtle);border-radius:var(--radius-dialog);background:linear-gradient(135deg,var(--color-surface-main),var(--color-surface-selected));box-shadow:var(--shadow-card);overflow:hidden}
+.merdpos-attendance-widget-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--space-5);padding:var(--space-5) var(--space-6)}
+.merdpos-attendance-widget-icon{display:grid;place-items:center;width:3.5rem;height:3.5rem;border-radius:var(--radius-card);background:var(--gradient-brand);color:var(--color-text-inverse);box-shadow:var(--shadow-action)}
+.merdpos-attendance-widget-icon svg{width:1.65rem;height:1.65rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.merdpos-attendance-widget-copy h2{margin:var(--space-1) 0 var(--space-1);font-size:var(--type-xl);color:var(--color-text-primary)}
+.merdpos-attendance-widget-copy p:last-child{margin:0;max-width:54rem;color:var(--color-text-secondary);line-height:var(--line-body)}
+.merdpos-attendance-open,.merdpos-attendance-manual button,.merdpos-attendance-result button{min-height:var(--size-control);padding:0 var(--space-5);border:0;border-radius:var(--radius-control);background:var(--gradient-brand);color:var(--color-text-inverse);font:inherit;font-weight:var(--weight-bold);cursor:pointer;box-shadow:var(--shadow-action)}
+.merdpos-attendance-open:focus-visible,.merdpos-attendance-manual button:focus-visible,.merdpos-attendance-result button:focus-visible,.merdpos-attendance-stop:focus-visible,.merdpos-attendance-manual input:focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:2px}
+.merdpos-attendance-panel{display:grid;grid-template-columns:minmax(16rem,1fr) minmax(18rem,.8fr);gap:var(--space-5);padding:var(--space-5) var(--space-6) var(--space-6);border-top:1px solid var(--color-border-subtle);background:var(--color-surface-muted)}
+.merdpos-attendance-camera{position:relative;overflow:hidden;min-height:17rem;border-radius:var(--radius-card);background:var(--color-nav-bg)}
+.merdpos-attendance-camera video{display:block;width:100%;height:100%;min-height:17rem;max-height:28rem;object-fit:cover}
+.merdpos-attendance-target{position:absolute;inset:18%;pointer-events:none}
+.merdpos-attendance-target span{position:absolute;width:2.25rem;height:2.25rem;border-color:var(--color-brand-cyan);border-style:solid}
+.merdpos-attendance-target span:nth-child(1){left:0;top:0;border-width:3px 0 0 3px}
+.merdpos-attendance-target span:nth-child(2){right:0;top:0;border-width:3px 3px 0 0}
+.merdpos-attendance-target span:nth-child(3){left:0;bottom:0;border-width:0 0 3px 3px}
+.merdpos-attendance-target span:nth-child(4){right:0;bottom:0;border-width:0 3px 3px 0}
+.merdpos-attendance-controls{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);grid-column:2}
+.merdpos-attendance-status{font-size:var(--type-sm);color:var(--color-text-secondary);line-height:var(--line-body)}
+.merdpos-attendance-status.is-error{color:var(--color-danger)}
+.merdpos-attendance-status.is-success{color:var(--color-success);font-weight:var(--weight-semibold)}
+.merdpos-attendance-stop{min-height:var(--size-control-compact);padding:0 var(--space-3);border:1px solid var(--color-border-default);border-radius:var(--radius-control);background:var(--color-surface-main);color:var(--color-text-primary);font:inherit;font-weight:var(--weight-semibold);cursor:pointer}
+.merdpos-attendance-manual{grid-column:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-3);align-items:end}
+.merdpos-attendance-manual label{display:grid;gap:var(--space-2);font-size:var(--type-sm);font-weight:var(--weight-semibold);color:var(--color-text-secondary)}
+.merdpos-attendance-manual input{width:100%;min-height:var(--size-control);box-sizing:border-box;border:1px solid var(--color-border-default);border-radius:var(--radius-control);background:var(--color-surface-main);color:var(--color-text-primary);padding:0 var(--space-3);font:inherit}
+.merdpos-attendance-result{grid-column:2;display:grid;gap:var(--space-1);padding:var(--space-4);border:1px solid var(--color-border-default);border-radius:var(--radius-card);background:var(--color-surface-main)}
+.merdpos-attendance-result strong{font-size:var(--type-xl);color:var(--color-text-primary)}
+.merdpos-attendance-result.is-in strong{color:var(--color-success)}
+.merdpos-attendance-result.is-out strong{color:var(--color-info)}
+.merdpos-attendance-result span{font-weight:var(--weight-semibold);color:var(--color-text-primary)}
+.merdpos-attendance-result small{color:var(--color-text-muted)}
+.merdpos-attendance-result button{justify-self:start;margin-top:var(--space-3)}
+@media (max-width:51.25rem){.merdpos-attendance-widget-main{grid-template-columns:auto minmax(0,1fr)}.merdpos-attendance-open{grid-column:1/-1;width:100%}.merdpos-attendance-panel{grid-template-columns:1fr}.merdpos-attendance-camera,.merdpos-attendance-controls,.merdpos-attendance-manual,.merdpos-attendance-result{grid-column:1}}
+@media (max-width:35rem){.merdpos-attendance-widget{margin:var(--space-4) 0}.merdpos-attendance-widget-main,.merdpos-attendance-panel{padding:var(--space-4)}.merdpos-attendance-widget-main{gap:var(--space-3)}.merdpos-attendance-widget-icon{width:3rem;height:3rem}.merdpos-attendance-camera,.merdpos-attendance-camera video{min-height:15rem}.merdpos-attendance-controls{align-items:flex-start;flex-direction:column}.merdpos-attendance-stop{width:100%}.merdpos-attendance-manual{grid-template-columns:1fr}.merdpos-attendance-manual button{width:100%}}
