@@ -76,7 +76,7 @@
     {% endif %}
 
     <article class="merdpos-ops-panel merdpos-ops-panel--disputes" id="operations-disputes">
-      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('message') }}</span><div><h2>Pending disputes</h2><p>{{ surface.role.label }}-scoped attendance correction queue.</p></div><a class="merdpos-ops-panel-link" href="{{ path('merdpos_core.reports') }}#merdpos-disputes">Open in Reports</a></header>
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('message') }}</span><div><h2>Pending disputes</h2><p>{{ surface.role.label }}-scoped attendance correction queue.</p></div><a class="merdpos-ops-panel-link" href="{{ path('merdpos_core.disputes') }}">Open dispute workspace</a></header>
       {% if surface.pending_disputes %}
         <div class="merdpos-ops-disputes">
           {% for item in surface.pending_disputes %}

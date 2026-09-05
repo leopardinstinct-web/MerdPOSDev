@@ -235,3 +235,13 @@ The browser never calls the Beta attendance API directly and receives no service
 ### Home attendance QR v1 verified checkpoint
 
 The live Namecheap Drupal release at `535d541555e9beaa2b4964413a087949a2b621cc` passed the Home attendance QR closure regression. The scanner widget is permission-scoped, its Drupal CSRF + signed gateway path was exercised end to end with a deliberately invalid QR, and the authoritative verifier returned `invalid_qr` without creating an attendance mutation. Desktop/mobile Light/Dark layouts passed with no horizontal overflow. The headless browser exposed the documented paste fallback because native camera QR detection was unavailable; real device camera scanning remains the same browser capability path and no fake attendance shift was created for verification. Durable evidence is archived under `.ai/work/archive/evidence/MERD-20260906-drupal-home-attendance-qr-v1/`.
+
+## Dispute Write Parity v1
+
+`/merdpos/disputes` is the governed Drupal attendance-correction workspace. It supports the same authoritative workflow already exposed by MERDPOS Beta: employees can submit their own correction requests, cancel an open request, and confirm/reject POS-handover corrections; authorised reviewers can approve/reject pending disputes; authorised supervisors can resolve attendance security flags.
+
+Drupal does not edit attendance shifts, employees or payroll tables. Every mutation is a signed `PortalGatewayClient` POST to the existing `disputes` route. The canonical Beta endpoint re-resolves the actor, role/LOA and named permission (`disputes.submit_own`, `disputes.review`, or `attendance_flags.resolve`) before applying any change, and the existing workforce service owns validation, transaction boundaries and audit/outbox evidence.
+
+The Drupal controller adds its own CSRF token, strict action/field allowlists, POST/redirect/GET authoritative refresh and destructive confirmations. The current service has no edit-in-place action for an open employee dispute, so Drupal does not fabricate one: a user cancels an open request and submits a replacement correction when necessary.
+
+Operations and Reports navigation show the permission-scoped open-dispute count, and the Operations dispute panel links directly into the new workspace. Frozen timesheet/payroll calculation logic is unchanged.

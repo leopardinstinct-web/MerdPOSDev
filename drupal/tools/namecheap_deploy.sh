@@ -46,6 +46,8 @@ php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
 php84 "$DRUPAL/tools/validate_administration_twig.php"
 php84 "$DRUPAL/tools/validate_onboarding_provisioner.php"
 php84 "$DRUPAL/tools/validate_attendance_qr_widget_v1.php"
+php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
+php84 "$DRUPAL/tools/validate_disputes_twig.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess
@@ -149,10 +151,14 @@ ATTENDANCE_QR_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$p=\Drupal::service("merdpos_core.parity_provider")->home([]); $g=\Drupal::service("merdpos_core.portal_gateway")->call("attendance_scan","POST",[],["token"=>"x.x"]); $gp=$g["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.attendance_scan"); echo json_encode(["status"=>!empty($p["can_scan_attendance"])?"ok":"failed","allowed"=>in_array("attendance_scan",$p["allowed_widgets"]??[],true),"route"=>$route->getPath(),"invalid_probe_status"=>$g["status"]??null,"invalid_probe_http"=>$g["http_status"]??null,"invalid_probe_success"=>$gp["success"]??null,"invalid_probe_error_code"=>$gp["error_code"]??null],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); $h=(int)($p["invalid_probe_http"]??0); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["allowed"])||($p["route"]??"")!=="/merdpos/attendance/scan"||($p["invalid_probe_status"]??"")!=="ok"||$h!==200||($p["invalid_probe_success"]??true)!==false||($p["invalid_probe_error_code"]??"")!=="invalid_qr"){fwrite(STDERR,"Home attendance QR v1 self-test failed.\n");exit(1);}' "$ATTENDANCE_QR_V1_PROBE"
 
+DISPUTE_WRITE_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$g=\Drupal::service("merdpos_core.portal_gateway"); $s=$g->call("beta_state","GET"); $d=$g->call("disputes","GET"); $sp=$s["payload"]??[]; $dp=$d["payload"]??[]; $perms=$sp["permissions"]??[]; $open=0; foreach(($dp["disputes"]??[]) as $row){if(in_array(strtolower((string)($row["status"]??"")),["pending","awaiting_employee"],true))$open++;} $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.disputes"); echo json_encode(["status"=>($s["status"]??"")==="ok"&&($d["status"]??"")==="ok"?"ok":"failed","route"=>$route->getPath(),"submit"=>!empty($perms["disputes.submit_own"]),"review"=>!empty($perms["disputes.review"]),"resolve_flags"=>!empty($perms["attendance_flags.resolve"]),"total"=>count($dp["disputes"]??[]),"open"=>$open],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["route"]??"")!=="/merdpos/disputes"||empty($p["submit"])||empty($p["review"])||empty($p["resolve_flags"])){fwrite(STDERR,"Dispute Write Parity v1 read/permission self-test failed.\n");exit(1);}' "$DISPUTE_WRITE_V1_PROBE"
+
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); $x=json_decode($argv[14],true); $m=json_decode($argv[15],true); $n=json_decode($argv[16],true); $q=json_decode($argv[17],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); $r=json_decode($argv[12],true); $f=json_decode($argv[13],true); $x=json_decode($argv[14],true); $m=json_decode($argv[15],true); $n=json_decode($argv[16],true); $q=json_decode($argv[17],true); $w=json_decode($argv[18],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
@@ -167,10 +173,11 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
   "administration_v1"=>$m,
   "onboarding_v2"=>$n,
   "attendance_qr_v1"=>$q,
+  "dispute_write_v1"=>$w,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" "$ONBOARDING_V2_PROBE" "$ATTENDANCE_QR_V1_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" "$ONBOARDING_V2_PROBE" "$ATTENDANCE_QR_V1_PROBE" "$DISPUTE_WRITE_V1_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

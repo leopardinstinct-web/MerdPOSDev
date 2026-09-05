@@ -978,3 +978,8 @@ body.merdpos-login-route {
     max-width: 5.4rem;
   }
 }
+
+/* Dispute queue count shared by Operations and Reports navigation. */
+.merdpos-bottom-nav-badge{position:absolute;top:.35rem;right:calc(50% - 1.35rem);display:inline-grid;place-items:center;min-width:1.15rem;height:1.15rem;padding:0 .25rem;border-radius:var(--radius-pill);background:var(--color-danger);color:var(--color-text-inverse);font-size:.625rem;font-weight:var(--weight-bold);line-height:1;box-shadow:0 0 0 2px var(--color-nav-bg)}
+.merdpos-bottom-nav-item.is-active .merdpos-bottom-nav-badge{box-shadow:0 0 0 2px var(--color-nav-sub-active)}
+@media (max-width:35rem){.merdpos-bottom-nav-badge{top:.2rem;right:calc(50% - 1.25rem)}}

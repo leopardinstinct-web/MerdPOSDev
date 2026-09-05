@@ -242,7 +242,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       'label' => (string) ($statePayload['role_label'] ?? $dashboardPayload['role']['role_label'] ?? 'MERDPOS'),
       'loa' => (int) ($statePayload['authority_level'] ?? $dashboardPayload['role']['authority_level'] ?? 0),
     ];
-    $permissions = $this->strings($statePayload['permissions'] ?? []);
+    $permissions = $this->permissionKeys($statePayload['permissions'] ?? []);
     $canViewWorkforce = in_array('workforce.view', $permissions, true);
     $canReviewDisputes = in_array('disputes.review', $permissions, true);
     $canResolveFlags = in_array('attendance_flags.resolve', $permissions, true);
@@ -1070,6 +1070,16 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $out['period'] = $period;
     if ($period !== 'current_week') $out['days'] = $period;
     return $out;
+  }
+
+  private function permissionKeys(mixed $value): array {
+    if (!is_array($value)) return [];
+    if (array_is_list($value)) return $this->strings($value);
+    $out = [];
+    foreach ($value as $key => $enabled) {
+      if (is_string($key) && $enabled) $out[] = $key;
+    }
+    return array_values(array_unique($out));
   }
 
   private function strings(mixed $value): array {

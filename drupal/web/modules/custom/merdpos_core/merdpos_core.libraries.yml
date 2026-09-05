@@ -68,3 +68,15 @@ administration:
       css/administration-v1.css: {}
   js:
     js/administration-v1.js: {}
+
+disputes:
+  version: 1.x
+  dependencies:
+    - merdpos_core/base
+    - core/drupal
+    - core/once
+  css:
+    theme:
+      css/disputes-v1.css: {}
+  js:
+    js/disputes-v1.js: {}

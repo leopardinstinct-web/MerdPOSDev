@@ -1,0 +1,29 @@
+version: 1
+id: MERD-20260906-drupal-dispute-write-v1
+branch: milestone/drupal-dispute-write-v1
+base_head: 2d781576745f90196e98fc2f7ee4c0fc04e313b7
+objective: Deliver governed Drupal dispute write parity without changing frozen attendance/payroll rules.
+packet_state: CODED
+lifecycle: CODED
+scope:
+  - Add /merdpos/disputes as the governed attendance-correction workspace.
+  - Support own dispute creation, cancellation and POS-handover confirmation/rejection.
+  - Support authorised approve/reject decisions and attendance security-flag resolution.
+  - Reuse only the signed disputes GET/POST gateway and canonical MERDPOS dispute service.
+  - Re-fetch authoritative state after every mutation through POST/redirect/GET.
+  - Add pending-dispute badges to Operations and Reports navigation.
+  - Link the Operations pending-dispute panel directly to the dispute workspace.
+  - Keep Drupal free of attendance operational SQL and preserve frozen timesheet/payroll logic.
+acceptance:
+  - Static dispute contract validator and Drupal/Twig/PHP/JS validation pass.
+  - Canonical permission gates remain disputes.submit_own, disputes.review and attendance_flags.resolve.
+  - Safe live probes prove create/decide/flag POST branches reject invalid references without mutation.
+  - Release marker reports dispute_write_v1 status OK and existing five-surface parity remains OK.
+  - Authenticated browser verifies Disputes desktop/mobile Light/Dark with no horizontal overflow.
+  - Browser exercises form switching, filtering and confirmation UI without mutating live attendance.
+  - No test dispute, shift or attendance flag is created merely for verification.
+remaining:
+  - Validate on PHP 8.4 runtime and deploy through permanent SSH.
+  - Run safe signed POST probes and authenticated browser regression.
+  - Archive VERIFIED checkpoint and evidence.
+updated_at: "2026-09-06T03:29:00+05:00"
