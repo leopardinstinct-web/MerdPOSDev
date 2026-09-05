@@ -12,6 +12,17 @@
   <head>
     <head-placeholder token="{{ placeholder_token }}">
     <title>{{ head_title|safe_join(' | ') }}</title>
+    <script>
+      (() => {
+        const key = 'merdpos-theme';
+        const saved = localStorage.getItem(key) || 'system';
+        const resolved = saved === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : saved;
+        document.documentElement.dataset.themePreference = saved;
+        document.documentElement.dataset.theme = resolved;
+      })();
+    </script>
     <css-placeholder token="{{ placeholder_token }}">
     <js-placeholder token="{{ placeholder_token }}">
   </head>

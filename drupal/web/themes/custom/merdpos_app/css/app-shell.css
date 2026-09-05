@@ -503,7 +503,7 @@ body.merdpos-login-route {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-brand-blue) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-brand-cyan) 12%, transparent), transparent 34%),
     radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--color-brand-cyan) 9%, transparent), transparent 32%),
     var(--color-surface-muted);
 }
@@ -602,7 +602,7 @@ body.merdpos-login-route {
 }
 
 .merdpos-login-form input:focus {
-  border-color: var(--color-brand-blue);
+  border-color: var(--color-brand-cyan);
   box-shadow: 0 0 0 .2rem var(--color-focus-soft);
 }
 
@@ -675,7 +675,7 @@ body.merdpos-login-route {
   border: 1px solid color-mix(in srgb, var(--color-brand-white) 14%, transparent);
   border-radius: 1.5rem;
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--color-brand-blue) 28%, var(--color-brand-navy)), var(--color-brand-navy) 58%),
+    linear-gradient(145deg, color-mix(in srgb, var(--color-brand-cyan) 28%, var(--color-brand-navy)), var(--color-brand-navy) 58%),
     var(--color-brand-navy);
   color: var(--color-brand-white);
   box-shadow: 0 1.4rem 3.5rem color-mix(in srgb, var(--color-brand-navy) 24%, transparent);
@@ -821,7 +821,7 @@ body.merdpos-login-route {
   height: 20rem;
   bottom: -10rem;
   left: 15%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-blue) 60%, transparent), transparent 68%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-cyan) 60%, transparent), transparent 68%);
 }
 
 @media (max-width: 56rem) {
@@ -859,5 +859,122 @@ body.merdpos-login-route {
 
   .merdpos-login-brand img {
     width: min(13rem, 78%);
+  }
+}
+
+/* MERDPOS brand hierarchy + theme control. */
+.merdpos-shell-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--space-2);
+}
+.merdpos-shell-wordmark {
+  width: clamp(5.8rem, 8vw, 7.2rem);
+  height: auto;
+  display: block;
+}
+.merdpos-theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-control-compact);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-main) 94%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+.merdpos-theme-control select {
+  min-height: 2rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.merdpos-theme-control--login {
+  position: fixed;
+  top: clamp(.75rem, 2vw, 1.25rem);
+  right: clamp(.75rem, 2vw, 1.25rem);
+  z-index: 20;
+  box-shadow: var(--shadow-card);
+}
+:root[data-theme="dark"] .merdpos-shell-wordmark {
+  filter: brightness(0) invert(1);
+  opacity: .96;
+}
+:root[data-theme="dark"] body.merdpos-login-route {
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-brand-violet) 20%, transparent), transparent 34%),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--color-brand-cyan) 15%, transparent), transparent 32%),
+    var(--color-bg-main);
+}
+:root[data-theme="dark"] .merdpos-login-card {
+  background: color-mix(in srgb, var(--color-surface-main) 94%, transparent);
+  box-shadow: var(--shadow-dialog);
+}
+:root[data-theme="dark"] .merdpos-login-submit,
+:root[data-theme="dark"] .merdpos-login-form input[type="submit"] {
+  background: var(--gradient-brand);
+  color: var(--color-brand-white);
+  box-shadow: var(--shadow-action);
+}
+:root[data-theme="dark"] .merdpos-login-visual {
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--color-brand-violet) 30%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--color-brand-cyan) 12%, var(--color-brand-navy)), var(--color-brand-navy));
+}
+
+/* Cross-surface semantic dark treatment. */
+:root[data-theme="dark"] :is(
+  .merdpos-dashboard-hero, .merdpos-dashboard-panel, .merdpos-dashboard-card,
+  .merdpos-ops-hero, .merdpos-ops-filters, .merdpos-ops-kpi, .merdpos-ops-panel,
+  .merdpos-report-hero, .merdpos-reports-filters, .merdpos-reports-kpi, .merdpos-report-chart-card, .merdpos-report-table-card,
+  .merdpos-finance-hero, .merdpos-finance-filters, .merdpos-finance-kpi, .merdpos-finance-chart-card, .merdpos-finance-panel, .merdpos-finance-table-card,
+  .merdpos-dev-hero, .merdpos-dev-live, .merdpos-dev-kpi, .merdpos-dev-card, .merdpos-dev-source-card, .merdpos-dev-chart-card, .merdpos-dev-table-card
+) {
+  background: var(--color-surface-main);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+:root[data-theme="dark"] :is(
+  .merdpos-dashboard-v2, .merdpos-ops-v2, .merdpos-reports-v2, .merdpos-finance-v2, .merdpos-dev-v2
+) :is(h1, h2, h3, strong, td, dd, code) {
+  color: var(--color-text-primary);
+}
+:root[data-theme="dark"] :is(
+  .merdpos-dashboard-v2, .merdpos-ops-v2, .merdpos-reports-v2, .merdpos-finance-v2, .merdpos-dev-v2
+) :is(p, small, span, dt, th) {
+  border-color: var(--color-border-subtle);
+}
+@media (max-width: 51.25rem) {
+  .merdpos-shell-header {
+    grid-template-columns: minmax(0,1fr) auto;
+  }
+  .merdpos-shell-context {
+    display: none;
+  }
+  .merdpos-theme-control > span {
+    display: none;
+  }
+  .merdpos-theme-control {
+    padding-inline: var(--space-2);
+  }
+  .merdpos-shell-wordmark {
+    width: 5.6rem;
+  }
+}
+@media (max-width: 35rem) {
+  .merdpos-shell-brand-copy small,
+  .merdpos-account-copy {
+    display: none;
+  }
+  .merdpos-theme-control select {
+    max-width: 5.4rem;
   }
 }

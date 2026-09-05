@@ -183,3 +183,11 @@ Deployment fails closed through `validate_reports_v2.php`, the five-surface pari
 ## DEV v2 platform command centre
 
 The Drupal DEV surface is a DEV-only, read-only platform command centre. It combines signed `dev_status`, `clients`, `role_authority`, `client_context`, `dashboard_data`, and `beta_state` reads with a whitelisted view of Drupal's local release marker. It renders environment/service health, role and permission policy, sync/outbox telemetry, attendance security flags, client context, database diagnostic probes, and deployment evidence. Drupal performs no operational SQL for this surface. DevStudio/UI Studio and write actions remain excluded from the Drupal gateway.
+
+## MERDPOS brand hierarchy and theme modes
+
+The route-scoped MERDPOS app theme now uses the approved brand assets by context: the full approved lockup remains the login identity, the standalone gradient M is the compact shell mark, and the approved MERDPOS wordmark is the persistent desktop shell identity. The source wordmark and tagline assets are copied unchanged from the canonical Beta brand directory into the Drupal theme so Drupal does not recreate brand artwork.
+
+The application supports `System`, `Light`, and `Dark` theme preferences. Preference is stored only in browser `localStorage` as `merdpos-theme`; an inline pre-paint bootstrap resolves the effective light/dark mode before CSS loads to avoid theme flash. The runtime selector synchronizes across login and authenticated shell controls and tracks operating-system changes while `System` is selected.
+
+Dark mode is semantic-token driven through `design-tokens.css`; the app shell adds cross-surface compatibility treatment for legacy v2 cards that still contain light-only literals. New Drupal surface work must consume semantic tokens directly rather than adding another independent palette.
