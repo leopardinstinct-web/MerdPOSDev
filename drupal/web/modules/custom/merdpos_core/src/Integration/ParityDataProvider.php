@@ -465,103 +465,244 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
   private function reports(array $query): array {
     $dashboard = $this->call('dashboard_data');
-    $currency = (string)($dashboard['payload']['client_defaults']['currency_code'] ?? 'AUD');
     $weeks = $this->call('weeks');
     $weekRows = $this->rows($weeks['payload']['weeks'] ?? []);
     $currentWeek = (string)($weeks['payload']['current_week'] ?? '');
     $allowedWeeks = array_values(array_filter(array_map(static fn(array $r): string => (string)($r['value'] ?? ''), $weekRows)));
     $requestedWeek = trim((string)($query['week_start'] ?? ''));
     $selectedWeek = in_array($requestedWeek, $allowedWeeks, true) ? $requestedWeek : $currentWeek;
-    $timesheet = $selectedWeek !== '' ? $this->call('timesheet', ['week_start' => $selectedWeek]) : $this->emptyCall('unavailable');
+    $timesheet = $selectedWeek !== '' ? $this->call('timesheet', ['week_start'=>$selectedWeek]) : $this->emptyCall('unavailable');
     $disputes = $this->call('disputes');
     $report = $this->map($timesheet['payload']['report'] ?? []);
-    $employeeSummary = $this->rows($report['employee_summary'] ?? []);
-    $storeSummary = $this->rows($report['store_summary'] ?? []);
     $disputeRows = $this->rows($disputes['payload']['disputes'] ?? []);
     $payrollVisible = (bool)($report['payroll_visible'] ?? false);
-    $pendingDisputes = count(array_filter($disputeRows, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'pending'));
+    $currency = (string)($dashboard['payload']['client_defaults']['currency_code'] ?? 'AUD');
+    $role = $this->map($dashboard['payload']['role'] ?? []);
+    $roleKey = strtoupper((string)($role['role_key'] ?? $role['base_role'] ?? 'USER'));
+    $roleLabel = (string)($role['role_label'] ?? $roleKey);
+    $loa = (int)($role['authority_level'] ?? 0);
 
-    $employeesTable = [];
-    foreach ($employeeSummary as $row) {
-      $item = [
-        'employee' => (string)($row['employee_name'] ?? ''),
-        'hours' => $this->number($row['total_hours'] ?? 0),
-      ];
-      if ($payrollVisible) $item['wage'] = $this->money($row['total_wage'] ?? 0, $currency);
-      $employeesTable[] = $item;
-    }
-
-    $storeTable = [];
-    foreach ($storeSummary as $row) {
-      $item = [
-        'store' => (string)($row['store_name'] ?? ''),
-        'employees' => (string)($row['total_employees_worked'] ?? 0),
-        'hours' => $this->number($row['total_hours_worked'] ?? 0),
-      ];
-      if ($payrollVisible) $item['amount'] = $this->money($row['total_amount'] ?? 0, $currency);
-      $storeTable[] = $item;
-    }
-
-    $shiftTable = [];
+    $allShifts = [];
     foreach ($this->rows($report['employees'] ?? []) as $employee) {
+      $employeeName = (string)($employee['employee_name'] ?? '');
       foreach ($this->rows($employee['rows'] ?? []) as $row) {
-        $shiftTable[] = [
-          'employee' => (string)($employee['employee_name'] ?? ''),
-          'store' => (string)($row['store_name'] ?? ''),
-          'date' => (string)($row['in_date'] ?? ''),
-          'in' => $this->clock((string)($row['actual_in_time'] ?? '')),
-          'out' => $this->clock((string)($row['actual_out_time'] ?? '')),
-          'hours' => $this->number($row['total_hours'] ?? 0),
-          'late' => !empty($row['is_late']) ? 'Late' : 'On time',
+        $item = [
+          'employee'=>$employeeName,
+          'store'=>(string)($row['store_name'] ?? ''),
+          'date'=>(string)($row['in_date'] ?? ''),
+          'in'=>$this->clock((string)($row['actual_in_time'] ?? '')),
+          'out'=>$this->clock((string)($row['actual_out_time'] ?? '')),
+          'hours'=>(float)($row['total_hours'] ?? 0),
+          'late'=>!empty($row['is_late']),
+          'start'=>!empty($row['is_late']) ? 'Late' : 'On time',
         ];
-        if (count($shiftTable) >= 200) break 2;
+        if ($payrollVisible && array_key_exists('wage', $row)) $item['wage'] = (float)$row['wage'];
+        $allShifts[] = $item;
       }
     }
 
-    $disputeTable = [];
-    foreach (array_slice($disputeRows, 0, 100) as $row) {
-      $disputeTable[] = [
-        'employee' => (string)($row['full_name'] ?? ''),
-        'store' => (string)($row['store_name'] ?? ''),
-        'type' => str_replace('_', ' ', (string)($row['dispute_type'] ?? '')),
-        'status' => strtoupper((string)($row['status'] ?? '')),
-        'submitted' => (string)($row['submitted_at'] ?? ''),
-      ];
-    }
-    $employeeColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'hours','label'=>'Hours']];
-    $storeColumns = [['key'=>'store','label'=>'Store'],['key'=>'employees','label'=>'Employees'],['key'=>'hours','label'=>'Hours']];
-    if ($payrollVisible) {
-      $employeeColumns[] = ['key'=>'wage','label'=>'Wage'];
-      $storeColumns[] = ['key'=>'amount','label'=>'Amount'];
+    $storeNames = array_values(array_unique(array_filter(array_map(static fn(array $r): string => (string)($r['store'] ?? ''), $allShifts))));
+    $employeeNames = array_values(array_unique(array_filter(array_map(static fn(array $r): string => (string)($r['employee'] ?? ''), $allShifts))));
+    sort($storeNames, SORT_NATURAL | SORT_FLAG_CASE);
+    sort($employeeNames, SORT_NATURAL | SORT_FLAG_CASE);
+    $requestedStore = trim((string)($query['store'] ?? ''));
+    $requestedEmployee = trim((string)($query['employee'] ?? ''));
+    $requestedAttendance = strtolower(trim((string)($query['attendance'] ?? 'all')));
+    $selectedStore = in_array($requestedStore, $storeNames, true) ? $requestedStore : '';
+    $selectedEmployee = in_array($requestedEmployee, $employeeNames, true) ? $requestedEmployee : '';
+    $selectedAttendance = in_array($requestedAttendance, ['all','late','on_time'], true) ? $requestedAttendance : 'all';
+
+    $filteredShifts = array_values(array_filter($allShifts, static function(array $row) use ($selectedStore,$selectedEmployee,$selectedAttendance): bool {
+      if ($selectedStore !== '' && (string)$row['store'] !== $selectedStore) return false;
+      if ($selectedEmployee !== '' && (string)$row['employee'] !== $selectedEmployee) return false;
+      if ($selectedAttendance === 'late' && empty($row['late'])) return false;
+      if ($selectedAttendance === 'on_time' && !empty($row['late'])) return false;
+      return true;
+    }));
+
+    $filteredDisputes = array_values(array_filter($disputeRows, static function(array $row) use ($selectedStore,$selectedEmployee): bool {
+      if ($selectedStore !== '' && (string)($row['store_name'] ?? '') !== $selectedStore) return false;
+      if ($selectedEmployee !== '' && (string)($row['full_name'] ?? '') !== $selectedEmployee) return false;
+      return true;
+    }));
+
+    $storeAgg = [];
+    $employeeAgg = [];
+    $lateCount = 0;
+    $filteredHours = 0.0;
+    $filteredWages = 0.0;
+    foreach ($filteredShifts as $row) {
+      $store = (string)$row['store'];
+      $employee = (string)$row['employee'];
+      $hours = (float)$row['hours'];
+      $wage = $payrollVisible ? (float)($row['wage'] ?? 0) : 0.0;
+      $filteredHours += $hours;
+      $filteredWages += $wage;
+      if (!empty($row['late'])) $lateCount++;
+      if (!isset($storeAgg[$store])) $storeAgg[$store] = ['hours'=>0.0,'wage'=>0.0,'employees'=>[]];
+      $storeAgg[$store]['hours'] += $hours;
+      $storeAgg[$store]['wage'] += $wage;
+      $storeAgg[$store]['employees'][$employee] = true;
+      if (!isset($employeeAgg[$employee])) $employeeAgg[$employee] = ['hours'=>0.0,'wage'=>0.0,'stores'=>[]];
+      $employeeAgg[$employee]['hours'] += $hours;
+      $employeeAgg[$employee]['wage'] += $wage;
+      $employeeAgg[$employee]['stores'][$store] = true;
     }
 
-    return $this->surface(
-      'reports', 'Reports', 'Timesheets and disputes',
-      'The existing MERDPOS reconciliation engine remains authoritative; Drupal renders its permission-scoped report output unchanged.',
-      $this->status([$dashboard['status'], $weeks['status'], $timesheet['status'], $disputes['status']]),
+    $pendingDisputes = count(array_filter($filteredDisputes, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'pending'));
+    $openDisputes = count(array_filter($filteredDisputes, static fn(array $r): bool => in_array(strtolower((string)($r['status'] ?? '')), ['pending','awaiting_employee'], true)));
+    $onTimeCount = max(0, count($filteredShifts) - $lateCount);
+
+    $storeTable = [];
+    foreach ($storeAgg as $store=>$totals) {
+      $item = [
+        'store'=>$store,
+        'employees'=>(string)count($totals['employees']),
+        'hours'=>$this->number($totals['hours']),
+      ];
+      if ($payrollVisible) $item['amount'] = $this->money($totals['wage'], $currency);
+      $storeTable[] = $item;
+    }
+    usort($storeTable, static fn(array $a,array $b): int => strcasecmp((string)$a['store'], (string)$b['store']));
+
+    $employeeTable = [];
+    foreach ($employeeAgg as $employee=>$totals) {
+      $item = [
+        'employee'=>$employee,
+        'stores'=>implode(', ', array_keys($totals['stores'])),
+        'hours'=>$this->number($totals['hours']),
+      ];
+      if ($payrollVisible) $item['wage'] = $this->money($totals['wage'], $currency);
+      $employeeTable[] = $item;
+    }
+    usort($employeeTable, static fn(array $a,array $b): int => ((float)$b['hours'] <=> (float)$a['hours']) ?: strcasecmp((string)$a['employee'], (string)$b['employee']));
+
+    $shiftTable = [];
+    foreach (array_slice($filteredShifts, 0, 250) as $row) {
+      $item = [
+        'employee'=>$row['employee'],'store'=>$row['store'],'date'=>$row['date'],'in'=>$row['in'],'out'=>$row['out'],
+        'hours'=>$this->number($row['hours']),'start'=>$row['start'],
+      ];
+      if ($payrollVisible) $item['wage'] = $this->money($row['wage'] ?? 0, $currency);
+      $shiftTable[] = $item;
+    }
+
+    $disputeTable = [];
+    $disputeCounts = [];
+    foreach (array_slice($filteredDisputes, 0, 150) as $row) {
+      $status = strtolower((string)($row['status'] ?? 'unknown'));
+      $disputeCounts[$status] = ($disputeCounts[$status] ?? 0) + 1;
+      $requested = trim(implode(' → ', array_filter([
+        (string)($row['requested_clock_in_at'] ?? ''),
+        (string)($row['requested_clock_out_at'] ?? ''),
+      ])));
+      $disputeTable[] = [
+        'employee'=>(string)($row['full_name'] ?? ''),
+        'store'=>(string)($row['store_name'] ?? ''),
+        'type'=>ucwords(str_replace('_',' ',(string)($row['dispute_type'] ?? ''))),
+        'requested'=>$requested !== '' ? $requested : '-',
+        'reason'=>(string)($row['reason'] ?? ''),
+        'status'=>strtoupper($status),
+        'submitted'=>(string)($row['submitted_at'] ?? ''),
+      ];
+    }
+
+    $chartSpecs = [];
+    if ($storeAgg) {
+      $labels = array_keys($storeAgg);
+      $values = array_map(static fn(array $v): float => round((float)$v['hours'],2), array_values($storeAgg));
+      $chartSpecs[] = $this->chartSpecValues('reports_store_hours','column',$labels,$values,'Hours','#1c4587');
+    }
+    if ($employeeAgg) {
+      $ranked = $employeeAgg;
+      uasort($ranked, static fn(array $a,array $b): int => ((float)$b['hours'] <=> (float)$a['hours']));
+      $names = array_slice(array_keys($ranked),0,12);
+      $values = array_map(static fn(string $name): float => round((float)$ranked[$name]['hours'],2), $names);
+      $chartSpecs[] = $this->chartSpecValues('reports_employee_hours','column',$names,$values,'Hours','#23a6a8');
+    }
+
+    if ($filteredShifts) {
+      $chartSpecs[] = [
+        'key'=>'reports_punctuality','type'=>'donut','labels'=>['On time','Late'],
+        'values'=>[$onTimeCount,$lateCount],'series_label'=>'Shifts','color'=>'#1c4587',
+        'colors'=>['#23a6a8','#e09b2d'],'height'=>280,
+      ];
+    }
+    if ($disputeCounts) {
+      $labels = array_map(static fn(string $s): string => ucwords(str_replace('_',' ',$s)), array_keys($disputeCounts));
+      $chartSpecs[] = [
+        'key'=>'reports_disputes','type'=>'donut','labels'=>$labels,'values'=>array_values($disputeCounts),
+        'series_label'=>'Disputes','color'=>'#1c4587','colors'=>['#e09b2d','#23a6a8','#c94b5b','#6f42c1','#1c4587'],'height'=>280,
+      ];
+    }
+    if ($payrollVisible && $storeAgg) {
+      $labels = array_keys($storeAgg);
+      $values = array_map(static fn(array $v): float => round((float)$v['wage'],2), array_values($storeAgg));
+      $chartSpecs[] = $this->chartSpecValues('reports_payroll_store','column',$labels,$values,'Payroll','#6f42c1');
+    }
+
+    $storeColumns = [['key'=>'store','label'=>'Store'],['key'=>'employees','label'=>'Employees'],['key'=>'hours','label'=>'Hours']];
+    $employeeColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'stores','label'=>'Store(s)'],['key'=>'hours','label'=>'Hours']];
+    $shiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'hours','label'=>'Hours'],['key'=>'start','label'=>'Start']];
+    if ($payrollVisible) {
+      $storeColumns[] = ['key'=>'amount','label'=>'Payroll'];
+      $employeeColumns[] = ['key'=>'wage','label'=>'Wage'];
+      $shiftColumns[] = ['key'=>'wage','label'=>'Wage'];
+    }
+
+    $metrics = [
+      $this->metric('Week',(string)($report['week_label'] ?? $selectedWeek ?: '-'),'Selected payroll week','brand'),
+      $this->metric('Total hours',$this->number($filteredHours),'Filtered authoritative shift hours','info'),
+      $this->metric('Shifts',(string)count($filteredShifts),'Returned shift rows','success'),
+      $this->metric('Late starts',(string)$lateCount,'Existing MERDPOS >10 minute rule','warning'),
+      $this->metric('Pending disputes',(string)$pendingDisputes,'Awaiting review','warning'),
+      $this->metric('Employees',(string)count($employeeAgg),'Employees in current view','success'),
+    ];
+    if ($payrollVisible) $metrics[] = $this->metric('Payroll',$this->money($filteredWages,$currency),'Visible by authoritative permission','brand');
+
+    $filters = [
+      ['name'=>'week_start','label'=>'Week','type'=>'select','value'=>$selectedWeek,'options'=>array_map(static fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>(string)($row['label'] ?? $row['value'] ?? '')],$weekRows)],
+      ['name'=>'store','label'=>'Store','type'=>'select','value'=>$selectedStore,'options'=>array_merge([['value'=>'','label'=>'All permitted stores']],array_map(static fn(string $name): array => ['value'=>$name,'label'=>$name],$storeNames))],
+      ['name'=>'employee','label'=>'Employee','type'=>'select','value'=>$selectedEmployee,'options'=>array_merge([['value'=>'','label'=>'All permitted employees']],array_map(static fn(string $name): array => ['value'=>$name,'label'=>$name],$employeeNames))],
+      ['name'=>'attendance','label'=>'Attendance','type'=>'select','value'=>$selectedAttendance,'options'=>[
+        ['value'=>'all','label'=>'All shifts'],['value'=>'late','label'=>'Late starts'],['value'=>'on_time','label'=>'On time'],
+      ]],
+    ];
+
+    $surface = $this->surface(
+      'reports','Reports','Timesheets, attendance & disputes',
+      'Role-aware reporting over the existing MERDPOS reconciliation engine. Drupal filters and visualizes returned data without recalculating payroll rules.',
+      $this->status([$dashboard['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
+      $metrics,
       [
-        $this->metric('Week', (string)($report['week_label'] ?? $selectedWeek ?: '—'), 'Selected payroll week', 'brand'),
-        $this->metric('Total hours', $this->number($report['grand_total_hours'] ?? 0), 'Frozen MERDPOS reconciliation', 'info'),
-        $this->metric('Employees', (string)count($employeeSummary), 'Employees with report rows', 'success'),
-        $this->metric('Pending disputes', (string)$pendingDisputes, 'Awaiting review', 'warning'),
+        $this->table('Store summary','Hours by store',$storeColumns,$storeTable),
+        $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable),
+        $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable),
+        $this->table('Disputes','Current dispute queue',[
+          ['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'type','label'=>'Issue'],['key'=>'requested','label'=>'Requested change'],['key'=>'reason','label'=>'Reason'],['key'=>'status','label'=>'Status'],['key'=>'submitted','label'=>'Submitted'],
+        ],$disputeTable),
       ],
-      [
-        $this->table('Store summary', 'Hours by store', $storeColumns, $storeTable),
-        $this->table('Employee summary', $payrollVisible ? 'Hours and wages' : 'Hours', $employeeColumns, $employeesTable),
-        $this->table('Shift detail', 'Up to 200 shifts', [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'hours','label'=>'Hours'],['key'=>'late','label'=>'Start']], $shiftTable),
-        $this->table('Disputes', 'Current dispute queue', [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'type','label'=>'Type'],['key'=>'status','label'=>'Status'],['key'=>'submitted','label'=>'Submitted']], $disputeTable),
-      ],
-      ['source' => 'dashboard_data + weeks + timesheet + disputes', 'payroll_visible' => $payrollVisible ? 'yes' : 'no'],
-      [
-        [
-          'name' => 'week_start',
-          'label' => 'Week',
-          'type' => 'select',
-          'value' => $selectedWeek,
-          'options' => array_map(static fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>(string)($row['label'] ?? $row['value'] ?? '')], $weekRows),
-        ],
-      ],
+      ['source'=>'dashboard_data + weeks + authoritative timesheet + disputes','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
+      $filters,
     );
+
+    $surface['role'] = ['key'=>$roleKey,'label'=>$roleLabel,'loa'=>$loa];
+    $surface['payroll_visible'] = $payrollVisible;
+    $surface['chart_specs'] = $chartSpecs;
+    $surface['pending_disputes'] = $pendingDisputes;
+    $surface['open_disputes'] = $openDisputes;
+    $surface['selected_week'] = $selectedWeek;
+    $surface['selected_store'] = $selectedStore;
+    $surface['selected_employee'] = $selectedEmployee;
+    $surface['selected_attendance'] = $selectedAttendance;
+    $surface['export_rows'] = $shiftTable;
+    $surface['export_columns'] = $shiftColumns;
+    $surface['filter_summary'] = implode(' · ', array_filter([
+      $selectedStore !== '' ? $selectedStore : 'All permitted stores',
+      $selectedEmployee !== '' ? $selectedEmployee : 'All permitted employees',
+      $selectedAttendance === 'all' ? 'All shifts' : ($selectedAttendance === 'late' ? 'Late starts' : 'On time'),
+    ]));
+    return $surface;
   }
 
   private function finance(array $query): array {

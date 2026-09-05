@@ -1,0 +1,76 @@
+{% macro icon(name) %}
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  {% if name == 'chart' %}<path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/>
+  {% elseif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+  {% elseif name == 'users' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  {% elseif name == 'message' %}<path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/><path d="M8 11h8M8 15h5"/>
+  {% elseif name == 'download' %}<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+  {% elseif name == 'print' %}<path d="M7 8V3h10v5"/><rect x="5" y="14" width="14" height="7"/><path d="M5 17H3v-7h18v7h-2"/>
+  {% elseif name == 'wallet' %}<path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/>
+  {% elseif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>
+  {% else %}<path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Z"/><path d="m9 12 2 2 4-5"/>{% endif %}
+</svg>
+{% endmacro %}
+{% import _self as ui %}
+
+<section class="merdpos-app merdpos-reports-v2" aria-labelledby="merdpos-reports-title">
+  <header class="merdpos-reports-hero">
+    <div class="merdpos-reports-copy">
+      <p class="merdpos-eyebrow">MERDPOS / REPORTS</p>
+      <h1 id="merdpos-reports-title">{{ surface.title }}</h1>
+      <p>{{ surface.description }}</p>
+      <div class="merdpos-reports-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.payroll_visible ? 'Payroll visible' : 'Payroll redacted' }}</span></div>
+    </div>
+    <div class="merdpos-reports-actions">
+      <div class="merdpos-reports-live is-{{ surface.status }}"><span></span><strong>{{ surface.status_label }}</strong><small>Authoritative MERDPOS report</small></div>
+      <a class="merdpos-report-action" href="{{ export_url }}">{{ ui.icon('download') }}<span>Export CSV</span></a>
+      <button class="merdpos-report-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
+    </div>
+  </header>
+
+  {% if surface.filters %}
+    <form class="merdpos-reports-filters" method="get" aria-label="Reports filters">
+      <div class="merdpos-reports-filter-intro"><strong>Reporting lens</strong><span>{{ surface.filter_summary }}</span></div>
+      {% for filter in surface.filters %}
+        <label><span>{{ filter.label }}</span><select name="{{ filter.name }}">
+          {% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
+        </select></label>
+      {% endfor %}
+      <button type="submit">Apply view</button>
+    </form>
+  {% endif %}
+
+  <div class="merdpos-reports-kpis" aria-label="Reports summary">
+    {% for metric in surface.metrics %}
+      {% set ml = metric.label|lower %}
+      <article class="merdpos-reports-kpi is-{{ metric.tone }}">
+        <span class="merdpos-reports-kpi-icon">{{ ui.icon('payroll' in ml ? 'wallet' : ('dispute' in ml ? 'message' : ('employee' in ml ? 'users' : ('week' in ml ? 'calendar' : 'clock')))) }}</span>
+        <div><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.meta }}</small></div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="merdpos-reports-note"><span>{{ ui.icon('shield') }}</span><div><strong>Frozen reconciliation preserved</strong><p>Hours, lateness and wages come from the existing MERDPOS timesheet engine. Drupal only scopes, filters, charts and exports the already-authorized result.</p></div></div>
+  <div class="merdpos-reports-charts">
+    {% if attribute(charts, 'reports_store_hours') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('chart') }}</span><div><h2>Hours by store</h2><p>Filtered authoritative hours grouped by store.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_store_hours') }}</div></article>{% endif %}
+    {% if attribute(charts, 'reports_employee_hours') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('users') }}</span><div><h2>Employee hours</h2><p>Top employees in the current reporting view.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_employee_hours') }}</div></article>{% endif %}
+    {% if attribute(charts, 'reports_punctuality') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('clock') }}</span><div><h2>Punctuality</h2><p>On-time versus late starts using the existing MERDPOS late rule.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_punctuality') }}</div></article>{% endif %}
+    {% if attribute(charts, 'reports_disputes') %}<article class="merdpos-report-chart-card" id="merdpos-disputes-chart"><header><span>{{ ui.icon('message') }}</span><div><h2>Dispute status</h2><p>Current authorized dispute queue by state.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_disputes') }}</div></article>{% endif %}
+    {% if surface.payroll_visible and attribute(charts, 'reports_payroll_store') %}<article class="merdpos-report-chart-card merdpos-report-chart-card--payroll"><header><span>{{ ui.icon('wallet') }}</span><div><h2>Payroll by store</h2><p>Shown only because MERDPOS granted payroll visibility.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_payroll_store') }}</div></article>{% endif %}
+  </div>
+
+  <div class="merdpos-reports-groups">
+    {% for group in surface.groups %}
+      <article class="merdpos-report-table-card"{% if group.title == 'Current dispute queue' %} id="merdpos-disputes"{% endif %}>
+        <header><div><p class="merdpos-eyebrow">{{ group.eyebrow }}</p><h2>{{ group.title }}</h2></div><span class="merdpos-report-count">{{ group.rows|length }}</span></header>
+        {% if group.rows %}
+          <div class="merdpos-report-table-wrap" tabindex="0" role="region" aria-label="{{ group.title }} table"><table><thead><tr>{% for column in group.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead><tbody>
+          {% for row in group.rows %}<tr>{% for column in group.columns %}<td>{{ attribute(row, column.key)|default('—') }}</td>{% endfor %}</tr>{% endfor %}
+          </tbody></table></div>
+        {% else %}<p class="merdpos-report-empty">{{ group.empty }}</p>{% endif %}
+      </article>
+    {% endfor %}
+  </div>
+
+  <footer class="merdpos-reports-footer"><div><strong>Authoritative source</strong><span>{{ surface.meta.source }}</span></div><div><span>{{ surface.meta.scope }}</span><span>No direct operational DB access</span></div></footer>
+</section>

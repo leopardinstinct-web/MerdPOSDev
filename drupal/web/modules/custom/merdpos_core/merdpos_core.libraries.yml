@@ -21,3 +21,14 @@ operations:
   css:
     theme:
       css/operations-v2.css: {}
+
+reports:
+  version: 2.x
+  dependencies:
+    - merdpos_core/base
+    - merdpos_core/dashboard
+  css:
+    theme:
+      css/reports-v2.css: {}
+  js:
+    js/reports-v2.js: {}

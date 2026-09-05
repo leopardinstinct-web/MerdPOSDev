@@ -17,9 +17,15 @@ merdpos_core.operations:
 merdpos_core.reports:
   path: '/merdpos/reports'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _controller: 'Drupal\merdpos_core\Controller\ReportsController::reports'
     _title: 'Reports'
-    section: 'reports'
+  requirements:
+    _permission: 'access merdpos portal'
+
+merdpos_core.reports_export:
+  path: '/merdpos/reports/export.csv'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\ReportsController::exportCsv'
   requirements:
     _permission: 'access merdpos portal'
 
