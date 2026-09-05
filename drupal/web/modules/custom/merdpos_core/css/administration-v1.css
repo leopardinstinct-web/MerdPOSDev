@@ -21,3 +21,4 @@
 
 .merdpos-admin-head-actions{display:flex;align-items:flex-end;justify-content:flex-end;gap:.75rem;flex-wrap:wrap}.merdpos-admin-search{display:grid;gap:.25rem;min-width:min(16rem,100%)}.merdpos-admin-search span{font-size:.75rem;font-weight:700;color:var(--color-text-secondary)}.merdpos-admin-search input{width:100%;box-sizing:border-box}.merdpos-admin-editor[hidden]{display:none!important}
 @media (max-width:700px){.merdpos-admin-head-actions{width:100%;align-items:stretch;justify-content:stretch}.merdpos-admin-search{min-width:0;width:100%}}
+.merdpos-onboard-schedule[hidden]{display:none}
