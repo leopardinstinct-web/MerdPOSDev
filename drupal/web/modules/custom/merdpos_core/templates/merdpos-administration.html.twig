@@ -30,7 +30,7 @@
     <label><span>Manage client</span>
       <select name="client_id" onchange="this.form.submit()">
         {% for client in selectable_clients %}
-          <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} · {{ client.client_code }}</option>
+          <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} Â· {{ client.client_code }}</option>
         {% endfor %}
       </select>
     </label>
@@ -47,8 +47,8 @@
   {% if can_manage_clients %}
   <section class="merdpos-admin-section is-active merdpos-onboard-v2" data-admin-panel="onboarding">
     <div class="merdpos-admin-section-head">
-      <div><p>GUIDED PROVISIONING</p><h2>Client → store → admin</h2><span>Provision the minimum working MERDPOS tenant from one governed submission.</span></div>
-      <span class="merdpos-admin-permission">DEV · clients.manage</span>
+      <div><p>GUIDED PROVISIONING</p><h2>Client â†’ store â†’ admin</h2><span>Provision the minimum working MERDPOS tenant from one governed submission.</span></div>
+      <span class="merdpos-admin-permission">DEV Â· clients.manage</span>
     </div>
     <div class="merdpos-onboard-steps" aria-label="Onboarding steps"><span><b>1</b> Client</span><i></i><span><b>2</b> First store</span><i></i><span><b>3</b> Initial admin</span></div>
     <form method="post" action="{{ post_url }}" class="merdpos-onboard-form" data-onboard-form>
@@ -59,7 +59,7 @@
       </div></fieldset>
       <fieldset><legend><b>2</b><span>First store</span></legend><div class="merdpos-onboard-grid">
         <label><span>Store name</span><input name="onboard_store_name" maxlength="150" required placeholder="Example Central"></label>
-        <label><span>Store code</span><input name="onboard_store_code" maxlength="50" placeholder="Optional — generated if blank"></label>
+        <label><span>Store code</span><input name="onboard_store_code" maxlength="50" placeholder="Optional â€” generated if blank"></label>
         <label class="is-wide"><span>Address</span><input name="onboard_store_address" maxlength="1000" placeholder="Optional"></label>
         <label><span>Store email</span><input type="email" name="onboard_store_email" maxlength="255" placeholder="Optional"></label>
         <label><span>Store phone</span><input type="tel" name="onboard_store_phone" maxlength="50" placeholder="Optional"></label>
@@ -90,7 +90,7 @@
   <section class="merdpos-admin-section" data-admin-panel="clients">
     <div class="merdpos-admin-section-head">
       <div><p>PLATFORM</p><h2>Clients</h2><span>Create tenants and maintain their lifecycle.</span></div>
-      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search clients</span><input type="search" data-admin-search="clients" placeholder="Name or code"></label><span class="merdpos-admin-permission">DEV · clients.manage</span></div>
+      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search clients</span><input type="search" data-admin-search="clients" placeholder="Name or code"></label><span class="merdpos-admin-permission">DEV Â· clients.manage</span></div>
     </div>
     <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
       <summary><strong>New client</strong><span>Add a governed MERDPOS tenant</span></summary>
@@ -105,7 +105,7 @@
     <div class="merdpos-admin-list">
       {% for client in clients %}
       <details class="merdpos-admin-editor">
-        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores · {{ client.employee_count }} people</span></div></summary>
+        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores Â· {{ client.employee_count }} people</span></div></summary>
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client"><input type="hidden" name="id" value="{{ client.id }}">
           <label><span>Client name</span><input name="name" maxlength="100" value="{{ client.name }}" required></label>
@@ -127,12 +127,18 @@
     {% if permissions['stores.manage']|default(false) %}
     <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
       <summary><strong>New store</strong><span>Create inside {{ selected_client.name|default('current client') }}</span></summary>
-      <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
+      <form method="post" action="{{ post_url }}" enctype="multipart/form-data" class="merdpos-admin-form merdpos-admin-form--wide">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_store">
         <label><span>Store name</span><input name="store_name" maxlength="150" required></label>
         <label><span>Status</span><select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
-        <label><span>Week starts</span><select name="week_start_day">{% for d in 1..7 %}<option value="{{ d }}"{{ d == 1 ? ' selected' : '' }}>Day {{ d }}</option>{% endfor %}</select></label>
-        {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}"></label>{% endfor %}{% endif %}
+        <label><span>Week starts</span><select name="week_start_day">{% for d,label in {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}<option value="{{ d }}"{{ d == 1 ? ' selected' : '' }}>{{ label }}</option>{% endfor %}</select></label>
+        {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span>{% if field.name == 'timezone' %}<select name="timezone"><option value="">Client default</option>{% for tz in timezone_options %}<option value="{{ tz }}">{{ tz }}</option>{% endfor %}</select>{% elseif field.name == 'currency_code' %}<select name="currency_code"><option value="">Client default</option>{% for code in currency_options %}<option value="{{ code }}">{{ code }}</option>{% endfor %}</select>{% else %}<input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}">{% endif %}</label>{% endfor %}{% endif %}
+        {% if permissions['stores.timings.manage']|default(false) %}
+        <fieldset class="merdpos-store-hours is-wide"><legend>Store hours</legend><p>Opening and closing times for each day.</p>
+          {% set day_names = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}
+          <div class="merdpos-store-hours-grid">{% for d,label in day_names %}<div class="merdpos-store-hour-row"><strong>{{ label }}</strong><label><span>Open</span><input type="time" name="days[{{ d }}][start_time]" value="09:00"></label><label><span>Close</span><input type="time" name="days[{{ d }}][end_time]" value="17:00"></label><label class="merdpos-store-closed"><input type="hidden" name="days[{{ d }}][is_closed]" value="0"><input type="checkbox" name="days[{{ d }}][is_closed]" value="1"><span>Closed</span></label></div>{% endfor %}</div>
+        </fieldset>{% endif %}
+        {% if permissions['stores.logo.manage']|default(false) %}<div class="merdpos-store-logo-note is-wide"><strong>Store logo</strong><span>Create the store first, then upload its PNG, JPEG or WebP logo from the store editor.</span></div>{% endif %}
         <div class="merdpos-admin-form-actions"><button type="submit">Create store</button></div>
       </form>
     </details>
@@ -140,14 +146,20 @@
     <div class="merdpos-admin-list">
       {% for store in stores %}
       <details class="merdpos-admin-editor">
-        <summary><div><strong>{{ store.store_name }}</strong><span>{{ store.store_code|default(store.code|default('')) }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ store.status }}</b><span>Week start {{ store.week_start_day }}</span></div></summary>
+        {% set week_names = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}<summary><div><strong>{{ store.store_name }}</strong><span>{{ store.store_code|default(store.code|default('')) }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ store.status }}</b><span>Week starts {{ week_names[store.week_start_day]|default('Monday') }}</span></div></summary>
         {% if permissions['stores.manage']|default(false) %}
-        <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
+        <form method="post" action="{{ post_url }}" enctype="multipart/form-data" class="merdpos-admin-form merdpos-admin-form--wide">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_store"><input type="hidden" name="id" value="{{ store.id }}">
           <label><span>Store name</span><input name="store_name" maxlength="150" value="{{ store.store_name }}" required></label>
           <label><span>Status</span><select name="status"><option value="active"{{ store.status == 'active' ? ' selected' : '' }}>Active</option><option value="inactive"{{ store.status == 'inactive' ? ' selected' : '' }}>Inactive</option></select></label>
-          <label><span>Week starts</span><select name="week_start_day">{% for d in 1..7 %}<option value="{{ d }}"{{ d == store.week_start_day ? ' selected' : '' }}>Day {{ d }}</option>{% endfor %}</select></label>
-          {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}" value="{{ attribute(store, field.name)|default('') }}"></label>{% endfor %}{% endif %}
+          <label><span>Week starts</span><select name="week_start_day">{% for d,label in {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}<option value="{{ d }}"{{ d == store.week_start_day ? ' selected' : '' }}>{{ label }}</option>{% endfor %}</select></label>
+          {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span>{% if field.name == 'timezone' %}<select name="timezone"><option value="">Client default</option>{% for tz in timezone_options %}<option value="{{ tz }}"{{ tz == attribute(store, field.name)|default('') ? ' selected' : '' }}>{{ tz }}</option>{% endfor %}</select>{% elseif field.name == 'currency_code' %}<select name="currency_code"><option value="">Client default</option>{% for code in currency_options %}<option value="{{ code }}"{{ code == attribute(store, field.name)|default('') ? ' selected' : '' }}>{{ code }}</option>{% endfor %}</select>{% else %}<input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}" value="{{ attribute(store, field.name)|default('') }}">{% endif %}</label>{% endfor %}{% endif %}
+          {% if permissions['stores.timings.manage']|default(false) %}
+          <fieldset class="merdpos-store-hours is-wide"><legend>Store hours</legend><p>Opening and closing times for each day.</p>
+            {% set day_names = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}{% set store_schedule = store_timings[store.id]|default({}) %}
+            <div class="merdpos-store-hours-grid">{% for d,label in day_names %}{% set timing = store_schedule[d]|default({}) %}<div class="merdpos-store-hour-row"><strong>{{ label }}</strong><label><span>Open</span><input type="time" name="days[{{ d }}][start_time]" value="{{ timing.start_time|default('09:00')|slice(0,5) }}"></label><label><span>Close</span><input type="time" name="days[{{ d }}][end_time]" value="{{ timing.end_time|default('17:00')|slice(0,5) }}"></label><label class="merdpos-store-closed"><input type="hidden" name="days[{{ d }}][is_closed]" value="0"><input type="checkbox" name="days[{{ d }}][is_closed]" value="1"{{ timing.is_closed|default(0) ? ' checked' : '' }}><span>Closed</span></label></div>{% endfor %}</div>
+          </fieldset>{% endif %}
+          {% if permissions['stores.logo.manage']|default(false) %}<label class="is-wide merdpos-store-logo-field"><span>Store logo</span><input type="file" name="logo" accept="image/png,image/jpeg,image/webp"><small>PNG, JPEG or WebP - max 2 MB - 32 to 4096 px.</small></label>{% endif %}
           <div class="merdpos-admin-form-actions"><button type="submit">Save store</button></div>
         </form>
         {% endif %}
@@ -168,7 +180,7 @@
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_employee">
         <label><span>Full name</span><input name="full_name" maxlength="190" required></label>
         <label><span>User ID</span><input name="user_id" inputmode="numeric" maxlength="32" pattern="[0-9]+" required></label>
-        <label><span>Role</span><select name="client_role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_label }} · LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
+        <label><span>Role</span><select name="client_role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_label }} Â· LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
         <label><span>Status</span><select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
         <label><span>Store access</span><select name="store_access_mode" data-store-mode><option value="all">All stores</option><option value="selected">Selected stores</option></select></label>
         <label class="is-wide"><span>Allowed stores</span><select name="store_ids[]" multiple size="{{ stores|length > 4 ? 4 : (stores|length > 0 ? stores|length : 1) }}" data-store-list>{% for store in stores %}{% if store.status == 'active' %}<option value="{{ store.id }}">{{ store.store_name }}</option>{% endif %}{% endfor %}</select></label>
@@ -181,13 +193,13 @@
     <div class="merdpos-admin-list">
       {% for employee in employees %}
       <details class="merdpos-admin-editor">
-        <summary><div><strong>{{ employee.full_name }}</strong><span>ID {{ employee.user_id }} · {{ employee.role_label }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ employee.status }}</b><span>{{ employee.store_access_mode == 'selected' ? employee.assigned_store_ids|length ~ ' stores' : 'All stores' }}</span></div></summary>
+        <summary><div><strong>{{ employee.full_name }}</strong><span>ID {{ employee.user_id }} Â· {{ employee.role_label }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ employee.status }}</b><span>{{ employee.store_access_mode == 'selected' ? employee.assigned_store_ids|length ~ ' stores' : 'All stores' }}</span></div></summary>
         {% if employee.editable %}
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_employee"><input type="hidden" name="id" value="{{ employee.id }}">
           <label><span>Full name</span><input name="full_name" maxlength="190" value="{{ employee.full_name }}" required></label>
           <label><span>User ID</span><input name="user_id" inputmode="numeric" maxlength="32" value="{{ employee.user_id }}" required></label>
-          <label><span>Role</span><select name="client_role_id">{% for role in roles %}<option value="{{ role.id }}"{{ role.id == employee.client_role_id ? ' selected' : '' }}>{{ role.role_label }} · LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
+          <label><span>Role</span><select name="client_role_id">{% for role in roles %}<option value="{{ role.id }}"{{ role.id == employee.client_role_id ? ' selected' : '' }}>{{ role.role_label }} Â· LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
           <label><span>Status</span><select name="status"{{ employee.self ? ' disabled' : '' }}><option value="active"{{ employee.status == 'active' ? ' selected' : '' }}>Active</option><option value="inactive"{{ employee.status == 'inactive' ? ' selected' : '' }}>Inactive</option></select>{% if employee.self %}<input type="hidden" name="status" value="active">{% endif %}</label>
           <label><span>Store access</span><select name="store_access_mode" data-store-mode><option value="all"{{ employee.store_access_mode == 'all' ? ' selected' : '' }}>All stores</option><option value="selected"{{ employee.store_access_mode == 'selected' ? ' selected' : '' }}>Selected stores</option></select></label>
           <label class="is-wide"><span>Allowed stores</span><select name="store_ids[]" multiple size="{{ stores|length > 4 ? 4 : (stores|length > 0 ? stores|length : 1) }}" data-store-list>{% for store in stores %}{% if store.status == 'active' %}<option value="{{ store.id }}"{{ store.id in employee.assigned_store_ids|default([]) ? ' selected' : '' }}>{{ store.store_name }}</option>{% endif %}{% endfor %}</select></label>

@@ -1,0 +1,96 @@
+/* MERDPOS app-wide dark-mode normalization. */
+:root[data-theme="dark"] .merdpos-dashboard-v2 {
+  --db-blue: var(--color-brand-cyan);
+  --db-cyan: var(--color-brand-cyan);
+  --db-violet: color-mix(in srgb,var(--color-brand-violet) 78%,var(--color-brand-white));
+  --db-teal: var(--color-success);
+  --db-ink: var(--color-text-primary);
+}
+:root[data-theme="dark"] .merdpos-operations-v2 {
+  --ops-ink: var(--color-text-primary);
+  --ops-muted: var(--color-text-muted);
+  --ops-border: var(--color-border-subtle);
+  --ops-blue: var(--color-brand-cyan);
+  --ops-cyan: var(--color-brand-cyan);
+  --ops-green: var(--color-success);
+  --ops-amber: var(--color-warning);
+  --ops-red: var(--color-danger);
+}
+:root[data-theme="dark"] .merdpos-reports-v2 {
+  --rep-ink: var(--color-text-primary);
+  --rep-muted: var(--color-text-muted);
+  --rep-border: var(--color-border-subtle);
+  --rep-blue: var(--color-brand-cyan);
+  --rep-teal: var(--color-success);
+  --rep-green: var(--color-success);
+  --rep-amber: var(--color-warning);
+  --rep-violet: color-mix(in srgb,var(--color-brand-violet) 78%,var(--color-brand-white));
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-v2,.merdpos-operations-v2,.merdpos-reports-v2,.merdpos-finance-v2,.merdpos-dev-v2,.merdpos-admin-v1,.merdpos-disputes-v1) :is(input,select,textarea) {
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-v2,.merdpos-operations-v2,.merdpos-reports-v2,.merdpos-finance-v2,.merdpos-dev-v2,.merdpos-admin-v1,.merdpos-disputes-v1) :is(table,tbody,tr,td,th) {
+  border-color: var(--color-border-subtle);
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) th {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) td {
+  background: transparent !important;
+  color: var(--color-text-secondary) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) tbody tr:hover {
+  background: var(--color-surface-selected) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-hero,.merdpos-ops-hero,.merdpos-report-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
+  background: radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--color-brand-violet) 18%,transparent),transparent 32%),radial-gradient(circle at 72% 0,color-mix(in srgb,var(--color-brand-cyan) 14%,transparent),transparent 34%),var(--color-surface-main) !important;
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: var(--shadow-raised) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-roleline span,.merdpos-ops-roleline span,.merdpos-reports-roleline span) {
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border-default) !important;
+  color: var(--color-brand-cyan) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-live,.merdpos-ops-live,.merdpos-ops-dispute-bell,.merdpos-reports-live) {
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border-default) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-panel-head,.merdpos-ops-panel>header,.merdpos-report-table-card>header,.merdpos-report-chart-card>header,.merdpos-finance-panel>header,.merdpos-dev-card>header) {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border-subtle) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-person,.merdpos-dashboard-ranking li,.merdpos-ops-person,.merdpos-ops-store-cards>div,.merdpos-admin-editor[open] summary) {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border-subtle) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-kpi-icon,.merdpos-dashboard-panel-icon,.merdpos-ops-kpi-icon,.merdpos-ops-panel-icon) {
+  background: var(--color-surface-selected) !important;
+  color: var(--color-brand-cyan) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-footer-tags span,.merdpos-ops-footer,.merdpos-reports-footer,.merdpos-finance-footer,.merdpos-dev-footer) {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-secondary) !important;
+}
+:root[data-theme="dark"] dialog,
+:root[data-theme="dark"] .merdpos-admin-editor,
+:root[data-theme="dark"] .merdpos-attendance-panel,
+:root[data-theme="dark"] .merdpos-attendance-result {
+  background: var(--color-surface-main);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-subtle);
+}
+
+:root[data-theme="dark"] .merdpos-finance-v2{--fin-ink:var(--color-text-primary);--fin-muted:var(--color-text-muted);--fin-border:var(--color-border-subtle);--fin-blue:var(--color-brand-cyan);--fin-cyan:var(--color-brand-cyan);--fin-green:var(--color-success);--fin-amber:var(--color-warning)}
+:root[data-theme="dark"] :is(.merdpos-finance-roleline span,.merdpos-finance-capabilities span,.merdpos-finance-state,.merdpos-finance-account,.merdpos-finance-account dl div,.merdpos-finance-alerts){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-primary)!important}
+:root[data-theme="dark"] .merdpos-finance-alerts strong,:root[data-theme="dark"] .merdpos-finance-alerts ul{color:var(--color-warning)!important}
+:root[data-theme="dark"] :is(.merdpos-dev-roleline span,.merdpos-dev-context-flags span,.merdpos-dev-live,.merdpos-dev-source-grid>div,.merdpos-dev-chip){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-secondary)!important}
+:root[data-theme="dark"] .merdpos-dev-v2 :is(h1,h2,strong,dd,.merdpos-dev-context-code){color:var(--color-text-primary)!important}
+:root[data-theme="dark"] .merdpos-dev-v2 :is(p,small,span,dt,code){color:var(--color-text-muted)}
+:root[data-theme="dark"] :is(.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card){background:var(--color-surface-main)!important;border-color:var(--color-border-subtle)!important;box-shadow:var(--shadow-card)!important}
+:root[data-theme="dark"] .merdpos-dev-dl div,:root[data-theme="dark"] .merdpos-dev-table-card>header{border-color:var(--color-border-subtle)!important}
