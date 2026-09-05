@@ -175,3 +175,7 @@ Reports v2 adds week, store, employee, and attendance presentation filters; Drup
 The CSV route never queries the operational database. It reuses the signed gateway/provider result for the logged-in MERDPOS actor. Wage fields and payroll charts exist only when the authoritative timesheet payload sets `payroll_visible=true`; USER-scoped output therefore remains payroll-redacted.
 
 Deployment fails closed through `validate_reports_v2.php`, the five-surface parity validator, and the `reports_v2` release-marker probe. Live verification additionally checks desktop/mobile rendering and regression of Home, Operations, Finance, and DEV.
+
+## Finance v2
+
+`/merdpos/finance` is a role-scoped, read-only Drupal command centre backed by the signed MERDPOS `dashboard_data`, `store_identity`, and `financials` services. It renders store/date filters, sales and cash KPIs, Drupal Charts, Register/Petty Cash account status and ledger detail. Drupal does not submit financial transactions or reproduce MERDPOS financial validation rules; future writes require a separately governed write-parity milestone.

@@ -46,6 +46,10 @@ services:
     class: Drupal\merdpos_core\Controller\ReportsController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
 
+  merdpos_core.finance_controller:
+    class: Drupal\merdpos_core\Controller\FinanceController
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
+
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
     tags:

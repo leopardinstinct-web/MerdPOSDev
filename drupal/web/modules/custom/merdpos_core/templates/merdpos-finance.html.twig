@@ -1,0 +1,93 @@
+<section class="merdpos-finance-v2" aria-label="Financial command centre">
+  <header class="merdpos-finance-hero">
+    <div class="merdpos-finance-copy">
+      <p class="merdpos-eyebrow">MERDPOS / FINANCE</p>
+      <h1>{{ surface.title }}</h1>
+      <p>{{ surface.description }}</p>
+      <div class="merdpos-finance-roleline">
+        <span>{{ surface.role.label ?: surface.role.key }}</span>
+        <span>LOA {{ surface.role.loa }}</span>
+        <span>Read-only Drupal view</span>
+      </div>
+    </div>
+    <div class="merdpos-finance-state">
+      <span class="merdpos-finance-live-dot"></span>
+      <div><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS service</small></div>
+    </div>
+  </header>
+
+  <form class="merdpos-finance-filters" method="get" aria-label="Finance filters">
+    <div class="merdpos-finance-filter-intro"><strong>Store & business date</strong><span>Authoritative financial statement selection</span></div>
+    {% for filter in surface.filters %}
+      <label>
+        <span>{{ filter.label }}</span>
+        {% if filter.type == 'select' %}
+          <select name="{{ filter.name }}">
+            {% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
+          </select>
+        {% else %}
+          <input type="{{ filter.type }}" name="{{ filter.name }}" value="{{ filter.value }}">
+        {% endif %}
+      </label>
+    {% endfor %}
+    <button class="merdpos-btn merdpos-btn--primary" type="submit">Apply</button>
+  </form>
+
+  <div class="merdpos-finance-kpis" aria-label="Finance summary">
+    {% for metric in surface.metrics %}
+      <article class="merdpos-finance-kpi merdpos-finance-kpi--{{ metric.tone }}">
+        <span class="merdpos-finance-kpi-icon" aria-hidden="true">{% if loop.index == 1 %}↗{% elseif loop.index == 2 %}▣{% elseif loop.index == 3 %}◫{% elseif loop.index == 4 %}◉{% else %}≡{% endif %}</span>
+        <div><small>{{ metric.label }}</small><strong>{{ metric.value }}</strong><span>{{ metric.meta }}</span></div>
+      </article>
+    {% endfor %}
+  </div>
+
+  {% if surface.exceptions %}
+    <aside class="merdpos-finance-alerts" aria-label="Financial attention">
+      <div><strong>Attention</strong><span>Authoritative status conditions for this view</span></div>
+      <ul>{% for item in surface.exceptions %}<li>{{ item }}</li>{% endfor %}</ul>
+    </aside>
+  {% endif %}
+
+  <div class="merdpos-finance-charts">
+    {% if charts.finance_sales_trend %}<article class="merdpos-finance-chart-card merdpos-finance-chart-card--wide"><header><p>SALES TREND</p><h2>Completed sales</h2></header><div class="merdpos-finance-chart">{{ charts.finance_sales_trend }}</div></article>{% endif %}
+    {% if charts.finance_sales_by_store %}<article class="merdpos-finance-chart-card"><header><p>STORE PERFORMANCE</p><h2>Sales by store</h2></header><div class="merdpos-finance-chart">{{ charts.finance_sales_by_store }}</div></article>{% endif %}
+    {% if charts.finance_cash_mix %}<article class="merdpos-finance-chart-card"><header><p>CASH POSITION</p><h2>Register vs petty cash</h2></header><div class="merdpos-finance-chart">{{ charts.finance_cash_mix }}</div></article>{% endif %}
+    {% if charts.finance_register_by_store %}<article class="merdpos-finance-chart-card"><header><p>REGISTER</p><h2>Register by store</h2></header><div class="merdpos-finance-chart">{{ charts.finance_register_by_store }}</div></article>{% endif %}
+    {% if charts.finance_petty_by_store %}<article class="merdpos-finance-chart-card"><header><p>PETTY CASH</p><h2>Petty cash by store</h2></header><div class="merdpos-finance-chart">{{ charts.finance_petty_by_store }}</div></article>{% endif %}
+  </div>
+
+  <section class="merdpos-finance-panel">
+    <header class="merdpos-finance-panel-head">
+      <div><p>SELECTED STORE</p><h2>{{ surface.selected_store.name ?: 'Financial day accounts' }}</h2></div>
+      <div class="merdpos-finance-capabilities"><span>{{ surface.selected_store.can_cross_store ? 'Cross-store enabled' : 'Store-scoped' }}</span><span>{{ surface.selected_store.can_open_day ? 'Open-day permission' : 'Open-day restricted' }}</span></div>
+    </header>
+    <div class="merdpos-finance-accounts">
+      {% for account in surface.account_cards %}
+        <article class="merdpos-finance-account">
+          <div class="merdpos-finance-account-head"><strong>{{ account.title }}</strong><span data-status="{{ account.status|lower }}">{{ account.status }}</span></div>
+          <div class="merdpos-finance-account-balance"><small>Available</small><strong>{{ account.available }}</strong></div>
+          <dl><div><dt>Opening</dt><dd>{{ account.opening }}</dd></div><div><dt>Cash IN</dt><dd>{{ account.in }}</dd></div><div><dt>Cash OUT</dt><dd>{{ account.out }}</dd></div><div><dt>Closing</dt><dd>{{ account.closing }}</dd></div></dl>
+        </article>
+      {% else %}
+        <div class="merdpos-empty">No account statement returned for this store and date.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="merdpos-finance-table-card">
+    <header><p>CROSS-STORE VIEW</p><h2>Store position</h2><span>Sales and cash balances returned by MERDPOS</span></header>
+    <div class="merdpos-finance-table-wrap"><table><thead><tr><th>Store</th><th>Sales</th><th>Register</th><th>Petty cash</th></tr></thead><tbody>
+      {% for row in surface.store_rows %}<tr><td>{{ row.store }}</td><td>{{ row.sales }}</td><td>{{ row.register }}</td><td>{{ row.petty }}</td></tr>{% else %}<tr><td colspan="4">No cross-store finance summary returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="merdpos-finance-table-card">
+    <header><p>LEDGER</p><h2>Selected store activity</h2><span>Latest {{ surface.ledger_rows|length }} entries for this business date</span></header>
+    <div class="merdpos-finance-table-wrap"><table><thead><tr><th>Account</th><th>Type</th><th>Head</th><th>Amount</th><th>By</th><th>Time</th></tr></thead><tbody>
+      {% for row in surface.ledger_rows %}<tr><td>{{ row.account }}</td><td><span class="merdpos-finance-entry-type">{{ row.type }}</span></td><td>{{ row.head }}</td><td>{{ row.amount }}</td><td>{{ row.by }}</td><td>{{ row.at }}</td></tr>{% else %}<tr><td colspan="6">No ledger entries returned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <footer class="merdpos-finance-footer"><strong>Authoritative MERDPOS finance</strong><span>Drupal is presentation-only here. Financial writes remain disabled until controlled write parity is separately approved and audited.</span></footer>
+</section>

@@ -25,3 +25,7 @@ active:
     path: .ai/work/active/MERD-20260904-drupal-portal-gateway.yaml
     lifecycle: CODED
     packet_state: CODED
+  - id: MERD-20260905-drupal-finance-v2
+    path: .ai/work/active/MERD-20260905-drupal-finance-v2.yaml
+    lifecycle: WIRED
+    packet_state: VALIDATED

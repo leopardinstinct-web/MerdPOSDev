@@ -32,3 +32,12 @@ reports:
       css/reports-v2.css: {}
   js:
     js/reports-v2.js: {}
+
+finance:
+  version: 2.x
+  dependencies:
+    - merdpos_core/base
+    - merdpos_core/dashboard
+  css:
+    theme:
+      css/finance-v2.css: {}

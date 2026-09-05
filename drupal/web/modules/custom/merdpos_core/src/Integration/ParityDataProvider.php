@@ -706,11 +706,15 @@ final class ParityDataProvider implements ParityDataProviderInterface {
   }
 
   private function finance(array $query): array {
-    $dashboard = $this->call('dashboard_data');
+    $dashboard = $this->call('dashboard_data', ['period'=>'7']);
     $identity = $this->call('store_identity');
-    $management = $this->map($dashboard['payload']['management'] ?? []);
-    $stores = $this->rows($identity['payload']['stores'] ?? []);
-    $currency = (string)($management['currency_code'] ?? 'AUD');
+    $payload = $this->map($dashboard['payload'] ?? []);
+    $roleRow = $this->map($payload['role'] ?? []);
+    $management = $this->map($payload['management'] ?? []);
+    $analytics = $this->map($management['analytics'] ?? []);
+    $stores = $this->rows($identity['payload']['stores'] ?? $payload['filter_options']['stores'] ?? []);
+    $currency = strtoupper((string)($management['currency_code'] ?? $payload['client_defaults']['currency_code'] ?? 'AUD'));
+    $timezone = (string)($management['timezone'] ?? $payload['client_defaults']['timezone'] ?? 'Australia/Sydney');
     $businessDate = trim((string)($query['business_date'] ?? $management['business_date'] ?? ''));
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $businessDate)) $businessDate = (string)($management['business_date'] ?? '');
     $storeIds = array_values(array_filter(array_map(static fn(array $r): int => (int)($r['id'] ?? 0), $stores)));
@@ -729,67 +733,93 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $petty = $this->sum($cashRows, 'petty_balance');
 
     $storeTable = [];
+    $salesLabels = $salesValues = $registerValues = $pettyValues = [];
     foreach ($cashRows as $row) {
       $id = (int)($row['store_id'] ?? 0);
+      $name = (string)($row['store_name'] ?? 'Store');
       $rowCurrency = (string)($row['currency_code'] ?? $currency);
-      $storeTable[] = [
-        'store' => (string)($row['store_name'] ?? ''),
-        'sales' => $this->money($salesByStore[$id] ?? 0, $rowCurrency),
-        'register' => $this->money($row['register_balance'] ?? 0, $rowCurrency),
-        'petty' => $this->money($row['petty_balance'] ?? 0, $rowCurrency),
-      ];
+      $sales = (float)($salesByStore[$id] ?? 0);
+      $reg = (float)($row['register_balance'] ?? 0);
+      $pet = (float)($row['petty_balance'] ?? 0);
+      $salesLabels[] = $name; $salesValues[] = $sales; $registerValues[] = $reg; $pettyValues[] = $pet;
+      $storeTable[] = ['store'=>$name,'sales'=>$this->money($sales,$rowCurrency),'register'=>$this->money($reg,$rowCurrency),'petty'=>$this->money($pet,$rowCurrency)];
     }
+
+    $accountCards = [];
     $accountTable = [];
+    $exceptions = [];
     foreach ($this->rows($statement['accounts'] ?? []) as $row) {
-      $accountTable[] = [
-        'account' => (string)($row['account'] ?? ''),
-        'opening' => $this->money($row['opening'] ?? 0, $currency),
-        'in' => $this->money($row['cash_in'] ?? 0, $currency),
-        'out' => $this->money($row['cash_out'] ?? 0, $currency),
-        'available' => $this->money($row['available'] ?? 0, $currency),
-        'closing' => $row['closing'] === null ? '—' : $this->money($row['closing'] ?? 0, $currency),
-        'status' => strtoupper((string)($row['status'] ?? '')),
+      $status = strtolower((string)($row['status'] ?? ''));
+      $closing = ($row['closing'] ?? null) === null ? '-' : $this->money($row['closing'], $currency);
+      $item = [
+        'account'=>(string)($row['account'] ?? ''),'opening'=>$this->money($row['opening'] ?? 0,$currency),
+        'in'=>$this->money($row['cash_in'] ?? 0,$currency),'out'=>$this->money($row['cash_out'] ?? 0,$currency),
+        'available'=>$this->money($row['available'] ?? 0,$currency),'closing'=>$closing,'status'=>strtoupper($status ?: 'unknown'),
       ];
+      $accountTable[] = $item;
+      $accountCards[] = ['title'=>$item['account'],'status'=>$item['status'],'available'=>$item['available'],'opening'=>$item['opening'],'in'=>$item['in'],'out'=>$item['out'],'closing'=>$item['closing']];
+      if ($status !== '' && !in_array($status,['open','closed'],true)) $exceptions[] = $item['account'] . ' returned status ' . strtoupper($status) . '.';
     }
+    $dayStatus = strtolower((string)($statement['day_status'] ?? 'not_open'));
+    if ($dayStatus === 'not_open') $exceptions[] = 'The selected financial day has not been opened.';
+    if (!$accountCards && $financial['status'] === 'ok') $exceptions[] = 'No Register or Petty Cash day accounts were returned.';
 
     $entryTable = [];
-    foreach (array_slice($this->rows($statement['entries'] ?? []), 0, 60) as $row) {
+    foreach (array_slice($this->rows($statement['entries'] ?? []), 0, 80) as $row) {
       $entryTable[] = [
-        'account' => (string)($row['account'] ?? ''),
-        'type' => (string)($row['entry_type'] ?? ''),
-        'head' => (string)($row['head'] ?? ''),
-        'amount' => $this->money($row['amount'] ?? 0, $currency),
-        'by' => (string)($row['full_name'] ?? ''),
-        'at' => (string)($row['created_at'] ?? ''),
+        'account'=>(string)($row['account'] ?? ''),'type'=>strtoupper((string)($row['entry_type'] ?? '')),
+        'head'=>(string)($row['head'] ?? ''),'amount'=>$this->money($row['amount'] ?? 0,$currency),
+        'by'=>(string)($row['full_name'] ?? ''),'at'=>$this->localDateTime($row['created_at'] ?? '', (string)($statement['timezone'] ?? $timezone)),
       ];
     }
+
+    $chartSpecs = [];
+    if ($salesLabels) {
+      $chartSpecs[] = $this->chartSpecValues('finance_sales_by_store','column',$salesLabels,$salesValues,'Sales',$currency === 'AUD' ? '#1c4587' : '#1c4587');
+      $chartSpecs[] = $this->chartSpecValues('finance_register_by_store','column',$salesLabels,$registerValues,'Register','#23a6a8');
+      $chartSpecs[] = $this->chartSpecValues('finance_petty_by_store','column',$salesLabels,$pettyValues,'Petty cash','#7c5ce5');
+    }
+    if (($register + $petty) > 0) {
+      $mix = $this->chartSpecValues('finance_cash_mix','donut',['Register','Petty Cash'],[$register,$petty],'Cash position','#1c4587');
+      $mix['colors'] = ['#1c4587','#23a6a8'];
+      $chartSpecs[] = $mix;
+    }
+    $salesTrend = $this->rows($analytics['sales_period'] ?? []);
+    if ($salesTrend) $chartSpecs[] = $this->chartSpec('finance_sales_trend','line',$salesTrend,'Completed sales','#1c4587');
+
     $statuses = [$dashboard['status'], $identity['status']];
     if ($selectedStore > 0) $statuses[] = $financial['status'];
-
-    return $this->surface(
-      'finance', 'Finance', 'Financial operations',
-      'Store cash, sales and ledger detail come from existing MERDPOS financial services; Drupal performs no financial calculations or writes.',
+    $surface = $this->surface(
+      'finance','Finance','Financial command centre',
+      'Sales, Register, Petty Cash and ledger detail are read from authoritative MERDPOS financial services. Drupal does not submit or alter financial records in this milestone.',
       $this->status($statuses),
       [
-        $this->metric('Sales today', $this->money($totalSales, $currency), $businessDate ?: 'Business date', 'brand'),
-        $this->metric('Register', $this->money($register, $currency), 'All visible stores', 'info'),
-        $this->metric('Petty cash', $this->money($petty, $currency), 'All visible stores', 'success'),
-        $this->metric('Selected day', strtoupper((string)($statement['day_status'] ?? '—')), (string)($statement['store_name'] ?? 'Store detail'), 'warning'),
+        $this->metric('Sales today',$this->money($totalSales,$currency),$businessDate ?: 'Business date','brand'),
+        $this->metric('Register',$this->money($register,$currency),'Visible-store position','info'),
+        $this->metric('Petty cash',$this->money($petty,$currency),'Visible-store position','success'),
+        $this->metric('Day status',strtoupper($dayStatus ?: 'UNKNOWN'),(string)($statement['store_name'] ?? 'Selected store'),'warning'),
+        $this->metric('Ledger entries',(string)count($entryTable),'Selected store / date','brand'),
       ],
       [
-        $this->table('Store position', 'Sales and cash by store', [['key'=>'store','label'=>'Store'],['key'=>'sales','label'=>'Sales'],['key'=>'register','label'=>'Register'],['key'=>'petty','label'=>'Petty cash']], $storeTable),
-        $this->table('Day accounts', (string)($statement['store_name'] ?? 'Selected store'), [['key'=>'account','label'=>'Account'],['key'=>'opening','label'=>'Opening'],['key'=>'in','label'=>'Cash IN'],['key'=>'out','label'=>'Cash OUT'],['key'=>'available','label'=>'Available'],['key'=>'closing','label'=>'Closing'],['key'=>'status','label'=>'Status']], $accountTable),
-        $this->table('Ledger', 'Latest 60 entries', [['key'=>'account','label'=>'Account'],['key'=>'type','label'=>'Type'],['key'=>'head','label'=>'Head'],['key'=>'amount','label'=>'Amount'],['key'=>'by','label'=>'By'],['key'=>'at','label'=>'Time']], $entryTable),
+        $this->table('Store position','Sales and cash by store',[['key'=>'store','label'=>'Store'],['key'=>'sales','label'=>'Sales'],['key'=>'register','label'=>'Register'],['key'=>'petty','label'=>'Petty cash']],$storeTable),
+        $this->table('Day accounts',(string)($statement['store_name'] ?? 'Selected store'),[['key'=>'account','label'=>'Account'],['key'=>'opening','label'=>'Opening'],['key'=>'in','label'=>'Cash IN'],['key'=>'out','label'=>'Cash OUT'],['key'=>'available','label'=>'Available'],['key'=>'closing','label'=>'Closing'],['key'=>'status','label'=>'Status']],$accountTable),
+        $this->table('Ledger','Latest 80 entries',[['key'=>'account','label'=>'Account'],['key'=>'type','label'=>'Type'],['key'=>'head','label'=>'Head'],['key'=>'amount','label'=>'Amount'],['key'=>'by','label'=>'By'],['key'=>'at','label'=>'Time']],$entryTable),
       ],
-      ['source' => 'dashboard_data + store_identity + financials', 'business_date' => $businessDate],
+      ['source'=>'dashboard_data + store_identity + financials','business_date'=>$businessDate,'currency'=>$currency,'timezone'=>$timezone],
       [
-        [
-          'name' => 'store_id', 'label' => 'Store', 'type' => 'select', 'value' => (string)$selectedStore,
-          'options' => array_map(static fn(array $row): array => ['value'=>(string)($row['id'] ?? ''),'label'=>(string)($row['store_name'] ?? '')], $stores),
-        ],
+        ['name'=>'store_id','label'=>'Store','type'=>'select','value'=>(string)$selectedStore,'options'=>array_map(static fn(array $row): array => ['value'=>(string)($row['id'] ?? ''),'label'=>(string)($row['store_name'] ?? '')],$stores)],
         ['name'=>'business_date','label'=>'Business date','type'=>'date','value'=>$businessDate,'options'=>[]],
       ],
     );
+    $surface['role'] = ['key'=>(string)($roleRow['role_key'] ?? ''),'label'=>(string)($roleRow['role_label'] ?? ''),'loa'=>(int)($roleRow['authority_level'] ?? 0)];
+    $surface['chart_specs'] = $chartSpecs;
+    $surface['account_cards'] = $accountCards;
+    $surface['ledger_rows'] = $entryTable;
+    $surface['store_rows'] = $storeTable;
+    $surface['exceptions'] = array_values(array_unique($exceptions));
+    $surface['selected_store'] = ['id'=>$selectedStore,'name'=>(string)($statement['store_name'] ?? ''),'can_cross_store'=>!empty($statement['can_cross_store']),'can_open_day'=>!empty($statement['can_open_day'])];
+    $surface['read_only'] = true;
+    return $surface;
   }
 
   private function dev(): array {
