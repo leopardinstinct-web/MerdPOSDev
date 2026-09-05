@@ -1,0 +1,25 @@
+version: 1
+id: MERD-20260906-drupal-admin-write-v1
+branch: milestone/drupal-admin-write-v1
+base_head: d399e0fb37769c4002c4ab3e6e6f7918514053c0
+last_seen_head: d399e0fb37769c4002c4ab3e6e6f7918514053c0
+objective: Deliver one governed Drupal Administration workspace with write parity for Clients, Stores and Workforce.
+packet_state: WIRED
+lifecycle: WIRED
+scope:
+  - Add /merdpos/admin for ADMIN, SUPER and DEV Drupal roles while authoritative MERDPOS permission checks remain final.
+  - Route every mutation through the signed portal gateway; no direct MERDPOS operational SQL from Drupal.
+  - Support DEV selected-client context in the signed gateway envelope and reject cross-client context for non-DEV actors.
+  - Support client create/update/status, store create/update/status/profile, and workforce create/update/status/role/store-access/payrate/credential fields according to existing permissions.
+  - Preserve payroll/timesheet reconciliation and keep Studio routes excluded.
+acceptance:
+  - Administration source validator, Twig parse, JS syntax and existing parity validators pass.
+  - Authoritative Beta gateway context change is deployed before Drupal rollout.
+  - Namecheap Drupal release marker reports administration_v1 signed read/context OK.
+  - Live authorized no-op writes prove Clients, Stores and Workforce without creating test records.
+  - Desktop/mobile and light/dark Administration render without horizontal overflow.
+remaining:
+  - Merge Drupal implementation to beta/drupal-webapp.
+  - Deploy through permanent SSH and verify writes/UI.
+  - Archive verified checkpoint.
+updated_at: "2026-09-06T01:55:00+05:00"

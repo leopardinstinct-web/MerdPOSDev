@@ -10,6 +10,7 @@ interface PortalGatewayClientInterface {
     string $method = 'GET',
     array $query = [],
     array $body = [],
+    ?int $contextClientId = NULL,
   ): array;
 
 }

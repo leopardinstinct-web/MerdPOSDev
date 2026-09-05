@@ -191,3 +191,17 @@ The route-scoped MERDPOS app theme now uses the approved brand assets by context
 The application supports `System`, `Light`, and `Dark` theme preferences. Preference is stored only in browser `localStorage` as `merdpos-theme`; an inline pre-paint bootstrap resolves the effective light/dark mode before CSS loads to avoid theme flash. The runtime selector synchronizes across login and authenticated shell controls and tracks operating-system changes while `System` is selected.
 
 Dark mode is semantic-token driven through `design-tokens.css`; the app shell adds cross-surface compatibility treatment for legacy v2 cards that still contain light-only literals. New Drupal surface work must consume semantic tokens directly rather than adding another independent palette.
+
+## Administration write parity v1
+
+`/merdpos/admin` is the first governed Drupal write surface. It delivers Clients, Stores and Workforce administration in one workspace while preserving the MERDPOS service boundary.
+
+Drupal never writes MERDPOS operational tables directly. Every mutation is a signed `PortalGatewayClient` POST to an existing authoritative Beta API (`clients` or `admin_directory`). The Beta endpoint re-resolves the active employee, role, LOA, named permission, validation rules, tenant scope and audit write before any mutation.
+
+The Drupal controller applies its own CSRF token and submits only explicit whitelisted fields. Beta CSRF remains internal to the gateway and is injected server-side. No MERDPOS password or service secret is exposed to the browser.
+
+DEV may manage another active client by placing `context_client_id` inside the signed gateway envelope. The gateway accepts cross-client context only for an actual DEV service actor, validates that the target client is active, and applies the selected client before the canonical Beta API runs. ADMIN/SUPER remain bound to their authenticated client.
+
+Clients support create/update/status through `clients.manage`. Stores support create/update/status/profile fields through the existing store/workforce permission model. Workforce supports create/update/status, role/LOA assignment, store access, pay-rate fields where authorised, and credential reset only where `workforce.credentials.reset` permits it.
+
+The deployment contract validates the administration controller/template, proves there is no operational SQL in Drupal, verifies a context-aware signed gateway request, and performs a live signed administration read/context probe before publishing the Drupal release marker.
