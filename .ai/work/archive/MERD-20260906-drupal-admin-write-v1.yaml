@@ -1,0 +1,31 @@
+﻿version: 1
+id: MERD-20260906-drupal-admin-write-v1
+branch: beta/drupal-webapp
+base_head: d399e0fb37769c4002c4ab3e6e6f7918514053c0
+last_seen_head: 04368ce5bc9119dde831d6e3d25cd703d75e365b
+objective: Deliver one governed Drupal Administration workspace with write parity for Clients, Stores and Workforce.
+packet_state: CLOSED
+lifecycle: VERIFIED
+outcome: Clients, Stores and Workforce writes are live through the signed MERDPOS gateway, cross-client DEV context is enforced server-side, and the Administration surface passed authenticated desktop/mobile light/dark regression.
+backend_gateway_commit: 892bd3476d7da5cf9ed25bbd360d9c5c0deb7fa6
+implementation_commit: 04368ce5bc9119dde831d6e3d25cd703d75e365b
+checks:
+  - Authoritative Beta gateway deployed successfully and validates explicit context_client_id only for actual DEV actors.
+  - Namecheap Drupal release marker identifies 04368ce5bc9119dde831d6e3d25cd703d75e365b with Working Now, beta_state, dev_status and five-surface parity all OK.
+  - administration_v1 reports clients_status=ok, directory_status=ok, target client context resolved, stores.manage=true and workforce.manage=true.
+  - Live authorized no-op writes succeeded for Client, Store and Workforce without creating test records.
+  - Authenticated MERDPOS DEV shadow user at LOA 1000 rendered /merdpos/admin with Clients, Stores and Workforce controls.
+  - DEV client switching resolved both active client contexts through the signed gateway.
+  - Browser form save returned successful Client saved feedback and preserved the original client name/code.
+  - Desktop 1440x1000 passed in Light and Dark; mobile 390x844 passed in Light and Dark with no horizontal overflow.
+  - Store profile, pay-rate and credential controls were present only through the existing authoritative permission model.
+  - Drupal contains no direct operational MERDPOS SQL path for Administration writes; payroll/timesheet reconciliation and Studio remain untouched.
+evidence:
+  - .ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/browser-regression.txt
+  - .ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/release-marker.json
+  - .ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/release-marker-summary.json
+  - .ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/visual-evidence-manifest.json
+remaining: []
+next_action: Begin Administration and Onboarding v2 from this verified write-parity baseline.
+updated_at: "2026-09-06T02:10:49+05:00"
+

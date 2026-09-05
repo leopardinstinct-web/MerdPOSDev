@@ -1,0 +1,24 @@
+{
+  "commit": "04368ce5bc9119dde831d6e3d25cd703d75e365b",
+  "branch": "beta/drupal-webapp",
+  "deployed_at": "2026-09-05T20:57:45Z",
+  "working_now_status": "ok",
+  "gateway_status": "ok",
+  "gateway_role": "DEV",
+  "gateway_is_dev": true,
+  "gateway_dev_status": "ok",
+  "login_status": "ok",
+  "administration_v1": {
+    "clients_status": "ok",
+    "clients": 2,
+    "directory_status": "ok",
+    "target_client_id": 2,
+    "active_client_id": 2,
+    "stores_manage": true,
+    "workforce_manage": true,
+    "stores": 5,
+    "employees": 3
+  },
+  "parity_status": "ok",
+  "parity_surfaces": {"home":"ok","operations":"ok","reports":"ok","finance":"ok","dev":"ok"}
+}

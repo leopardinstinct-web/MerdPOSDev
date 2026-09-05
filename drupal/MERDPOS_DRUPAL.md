@@ -205,3 +205,7 @@ DEV may manage another active client by placing `context_client_id` inside the s
 Clients support create/update/status through `clients.manage`. Stores support create/update/status/profile fields through the existing store/workforce permission model. Workforce supports create/update/status, role/LOA assignment, store access, pay-rate fields where authorised, and credential reset only where `workforce.credentials.reset` permits it.
 
 The deployment contract validates the administration controller/template, proves there is no operational SQL in Drupal, verifies a context-aware signed gateway request, and performs a live signed administration read/context probe before publishing the Drupal release marker.
+
+### Administration v1 verified checkpoint
+
+The live Namecheap Drupal release at `04368ce5bc9119dde831d6e3d25cd703d75e365b` completed the authenticated Administration closure regression. DEV client switching, governed Client/Store/Workforce writes, save feedback, 1440x1000 desktop and 390x844 mobile layouts, and both Light/Dark themes were verified with no horizontal overflow. Durable evidence is archived under `.ai/work/archive/evidence/MERD-20260906-drupal-admin-write-v1/`.

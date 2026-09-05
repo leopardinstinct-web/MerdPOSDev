@@ -1,0 +1,2 @@
+﻿ADMIN_CLOSURE_LIVE_OK
+{"client_save_feedback":true,"client_contexts":2,"desktop_light":"ok","desktop_dark":"ok","mobile_light":"ok","mobile_dark":"ok","responsive_overflow":false}

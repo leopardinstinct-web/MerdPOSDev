@@ -1,0 +1,30 @@
+﻿{
+    "capture":  "authenticated /merdpos/admin desktop/mobile light/dark",
+    "local_evidence_path":  "ignored .tools/evidence/admin-write-v1-closure",
+    "files":  [
+                  {
+                      "name":  "admin-desktop-dark.png",
+                      "bytes":  207364,
+                      "sha256":  "94a7f5d9c57c330e421a10b8234fc272b2d23f69107b9ae6474a8d9d6d469c37",
+                      "committed_binary":  false
+                  },
+                  {
+                      "name":  "admin-desktop-light.png",
+                      "bytes":  216134,
+                      "sha256":  "3c5e0e7c03f12fad24ee7bb57bdff4bed90ba5e0b4d65fa00c845ba6ac6dc83f",
+                      "committed_binary":  false
+                  },
+                  {
+                      "name":  "admin-mobile-dark.png",
+                      "bytes":  137560,
+                      "sha256":  "e9c914a0939dda8ff1bf857392e5a10e5f807b451f1d3669b9b08d0402aafae3",
+                      "committed_binary":  false
+                  },
+                  {
+                      "name":  "admin-mobile-light.png",
+                      "bytes":  137875,
+                      "sha256":  "472940662580ca90d534c5a9916be7ea7cceb3fa77954a6477de2227d636cbca",
+                      "committed_binary":  false
+                  }
+              ]
+}

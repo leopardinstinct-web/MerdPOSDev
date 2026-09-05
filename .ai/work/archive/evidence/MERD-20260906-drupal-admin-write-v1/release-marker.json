@@ -1,0 +1,93 @@
+﻿{
+    "commit": "04368ce5bc9119dde831d6e3d25cd703d75e365b",
+    "branch": "beta/drupal-webapp",
+    "deployed_at": "2026-09-05T20:57:45Z",
+    "working_now_status": "ok",
+    "working_now_count": 0,
+    "gateway_status": "ok",
+    "gateway_role": "DEV",
+    "gateway_is_dev": true,
+    "gateway_dev_status": "ok",
+    "login_status": "ok",
+    "free_ui_stack": {
+        "dashboard": "ok",
+        "charts": "ok",
+        "charts_google": "ok",
+        "ui_patterns": "ok",
+        "ui_icons": "ok",
+        "better_exposed_filters": "ok",
+        "gin_toolbar": "ok",
+        "admin_theme": "gin"
+    },
+    "dashboard_v2": {
+        "status": "ok",
+        "role": "DEV",
+        "loa": 1000,
+        "allowed": 18,
+        "visible": 18,
+        "charts": 6
+    },
+    "operations_v2": {
+        "status": "ok",
+        "role": "DEV",
+        "loa": 1000,
+        "metrics": 4,
+        "charts": 2,
+        "directory": true,
+        "store_admin": true
+    },
+    "reports_v2": {
+        "status": "ok",
+        "role": "DEV",
+        "loa": 1000,
+        "filters": 4,
+        "metrics": 7,
+        "charts": 4,
+        "export_columns": 8,
+        "export_rows": 19,
+        "payroll": true
+    },
+    "finance_v2": {
+        "status": "ok",
+        "role": "DEV",
+        "loa": 1000,
+        "filters": 2,
+        "metrics": 5,
+        "charts": 4,
+        "accounts": 0,
+        "ledger": 0,
+        "cross_store": true,
+        "read_only": true
+    },
+    "dev_v2": {
+        "status": "ok",
+        "role": "DEV",
+        "loa": 1000,
+        "metrics": 6,
+        "charts": 4,
+        "sources": 6,
+        "sync_rows": 3,
+        "security_rows": 0,
+        "read_only": true,
+        "studio_excluded": true
+    },
+    "administration_v1": {
+        "clients_status": "ok",
+        "clients": 2,
+        "directory_status": "ok",
+        "target_client_id": 2,
+        "active_client_id": 2,
+        "stores_manage": true,
+        "workforce_manage": true,
+        "stores": 5,
+        "employees": 3
+    },
+    "parity_status": "ok",
+    "parity_surfaces": {
+        "home": "ok",
+        "operations": "ok",
+        "reports": "ok",
+        "finance": "ok",
+        "dev": "ok"
+    }
+}
