@@ -134,11 +134,20 @@ final class AdministrationController extends ControllerBase {
       'status' => (string) $request->request->get('status', 'active'),
       'week_start_day' => max(1, min(7, (int) $request->request->get('week_start_day', 1))),
     ];
+    $canManageProfile = !empty($directory['permissions']['stores.profile.manage']);
+    $existingStore = NULL;
+    if (!$canManageProfile && $body['id'] !== NULL) {
+      foreach (($directory['stores'] ?? []) as $store) {
+        if (is_array($store) && (int) ($store['id'] ?? 0) === $body['id']) { $existingStore = $store; break; }
+      }
+      if ($existingStore === NULL) return ['status'=>'invalid','message'=>'Store context is stale. Refresh and try again.'];
+    }
     foreach (($directory['store_edit_fields'] ?? []) as $field) {
       if (!is_array($field) || empty($field['name'])) continue;
       $name = (string) $field['name'];
       if (!preg_match('/^[a-z][a-z0-9_]{0,63}$/', $name)) continue;
-      $body[$name] = trim((string) $request->request->get($name, ''));
+      if ($canManageProfile) $body[$name] = trim((string) $request->request->get($name, ''));
+      elseif (is_array($existingStore)) $body[$name] = $existingStore[$name] ?? '';
     }
     return $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
   }

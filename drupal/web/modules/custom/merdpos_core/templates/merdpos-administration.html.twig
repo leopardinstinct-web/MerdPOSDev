@@ -90,7 +90,7 @@
         <label><span>Store name</span><input name="store_name" maxlength="150" required></label>
         <label><span>Status</span><select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
         <label><span>Week starts</span><select name="week_start_day">{% for d in 1..7 %}<option value="{{ d }}"{{ d == 1 ? ' selected' : '' }}>Day {{ d }}</option>{% endfor %}</select></label>
-        {% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}"></label>{% endfor %}
+        {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}"></label>{% endfor %}{% endif %}
         <div class="merdpos-admin-form-actions"><button type="submit">Create store</button></div>
       </form>
     </details>
@@ -105,7 +105,7 @@
           <label><span>Store name</span><input name="store_name" maxlength="150" value="{{ store.store_name }}" required></label>
           <label><span>Status</span><select name="status"><option value="active"{{ store.status == 'active' ? ' selected' : '' }}>Active</option><option value="inactive"{{ store.status == 'inactive' ? ' selected' : '' }}>Inactive</option></select></label>
           <label><span>Week starts</span><select name="week_start_day">{% for d in 1..7 %}<option value="{{ d }}"{{ d == store.week_start_day ? ' selected' : '' }}>Day {{ d }}</option>{% endfor %}</select></label>
-          {% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}" value="{{ attribute(store, field.name)|default('') }}"></label>{% endfor %}
+          {% if permissions['stores.profile.manage']|default(false) %}{% for field in store_fields %}<label class="{{ field.wide ? 'is-wide' : '' }}"><span>{{ field.label }}</span><input type="{{ field.type|default('text') }}" name="{{ field.name }}" maxlength="{{ field.max_length|default(255) }}" value="{{ attribute(store, field.name)|default('') }}"></label>{% endfor %}{% endif %}
           <div class="merdpos-admin-form-actions"><button type="submit">Save store</button></div>
         </form>
         {% endif %}
