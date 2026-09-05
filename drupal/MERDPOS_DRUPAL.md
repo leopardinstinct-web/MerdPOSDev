@@ -179,3 +179,7 @@ Deployment fails closed through `validate_reports_v2.php`, the five-surface pari
 ## Finance v2
 
 `/merdpos/finance` is a role-scoped, read-only Drupal command centre backed by the signed MERDPOS `dashboard_data`, `store_identity`, and `financials` services. It renders store/date filters, sales and cash KPIs, Drupal Charts, Register/Petty Cash account status and ledger detail. Drupal does not submit financial transactions or reproduce MERDPOS financial validation rules; future writes require a separately governed write-parity milestone.
+
+## DEV v2 platform command centre
+
+The Drupal DEV surface is a DEV-only, read-only platform command centre. It combines signed `dev_status`, `clients`, `role_authority`, `client_context`, `dashboard_data`, and `beta_state` reads with a whitelisted view of Drupal's local release marker. It renders environment/service health, role and permission policy, sync/outbox telemetry, attendance security flags, client context, database diagnostic probes, and deployment evidence. Drupal performs no operational SQL for this surface. DevStudio/UI Studio and write actions remain excluded from the Drupal gateway.
