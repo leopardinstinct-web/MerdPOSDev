@@ -32,9 +32,8 @@ merdpos_core.reports_export:
 merdpos_core.finance:
   path: '/merdpos/finance'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _controller: 'Drupal\merdpos_core\Controller\FinanceController::finance'
     _title: 'Finance'
-    section: 'finance'
   requirements:
     _permission: 'manage merdpos operations'
 

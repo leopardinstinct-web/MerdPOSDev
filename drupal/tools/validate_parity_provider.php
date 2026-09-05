@@ -105,7 +105,7 @@ final class StubGateway implements PortalGatewayClientInterface {
       'financials' => [
         'success'=>true,
         'statement'=>[
-          'store_id'=>1,'store_name'=>'Test Store','business_date'=>'2026-09-04','day_status'=>'open',
+          'store_id'=>1,'store_name'=>'Test Store','business_date'=>'2026-09-04','day_status'=>'open','currency_code'=>'AUD','timezone'=>'Australia/Sydney','can_cross_store'=>true,'can_open_day'=>true,
           'accounts'=>[
             ['account'=>'Register','opening'=>50,'cash_in'=>60,'cash_out'=>10,'available'=>100,'closing'=>null,'status'=>'open'],
             ['account'=>'Petty Cash','opening'=>20,'cash_in'=>10,'cash_out'=>5,'available'=>25,'closing'=>null,'status'=>'open'],
@@ -181,6 +181,17 @@ foreach ($surfaces as $key => $surface) {
     parity_check(!empty($surface['export_rows']), 'Reports export rows missing.');
     parity_check(!empty($surface['groups']), 'Reports surface groups missing.');
   }
+  elseif ($key === 'finance') {
+    parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Finance role did not resolve DEV.');
+    parity_check(($surface['role']['loa'] ?? 0) === 1000, 'Finance role LOA mismatch.');
+    parity_check(count($surface['metrics'] ?? []) >= 5, 'Finance rich metrics missing.');
+    parity_check(count($surface['filters'] ?? []) === 2, 'Finance filters missing.');
+    parity_check(count($surface['chart_specs'] ?? []) >= 4, 'Finance charts missing.');
+    parity_check(count($surface['account_cards'] ?? []) === 2, 'Finance account cards missing.');
+    parity_check(count($surface['ledger_rows'] ?? []) === 1, 'Finance ledger rows mismatch.');
+    parity_check(!empty($surface['selected_store']['can_cross_store']), 'Finance cross-store authority missing.');
+    parity_check(!empty($surface['read_only']), 'Finance Drupal view must remain read-only.');
+  }
   else {
     parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
     parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
@@ -205,5 +216,6 @@ final class ForbiddenGateway implements PortalGatewayClientInterface {
 }
 $blocked = new ParityDataProvider(new ForbiddenGateway(), new StubWorkingNow());
 parity_check(($blocked->section('operations')['status'] ?? '') === 'forbidden', 'Forbidden gateway must fail closed.');
+parity_check(($blocked->section('finance')['status'] ?? '') === 'forbidden', 'Forbidden finance gateway must fail closed.');
 
 echo "MERDPOS Drupal five-surface parity provider validated.\n";

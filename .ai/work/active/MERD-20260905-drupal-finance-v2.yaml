@@ -1,0 +1,25 @@
+version: 1
+id: MERD-20260905-drupal-finance-v2
+branch: milestone/drupal-finance-v2
+base_head: be576648c873c4ebccfef32cc45518c6770442c6
+last_seen_head: be576648c873c4ebccfef32cc45518c6770442c6
+objective: Deliver a role-aware, graphic-rich MERDPOS Finance v2 over authoritative sales, cash, petty-cash and ledger services.
+packet_state: VALIDATED
+lifecycle: WIRED
+scope:
+  - Keep MERDPOS financial services and validation rules authoritative; Drupal remains read-only in this milestone.
+  - Add store/date filtering, KPI cards, cash/sales charts, account status, ledger detail and financial exception presentation.
+  - Use signed MERDPOS actor permissions and preserve cross-store boundaries.
+  - Do not query operational DB directly or reimplement financial submission/validation rules in Drupal.
+acceptance:
+  - Finance v2 validator and five-surface parity pass, including fail-closed permission simulation.
+  - CI and secret scan pass before merge.
+  - Namecheap release marker reports finance_v2 OK and five-surface parity remains OK.
+  - Authenticated desktop and 390x844 mobile Finance render without horizontal overflow.
+  - Home, Operations, Reports and DEV remain LIVE after deployment.
+checks:
+  - PHP lint, Twig syntax, auth, gateway, Working Now, resource sync and Composer security gates pass.
+remaining:
+  - Promote through PR/CI, deploy to Namecheap, live-verify desktop/mobile and archive.
+next_action: Promote validated Finance v2 through PR/CI, deploy, verify live runtime and archive.
+updated_at: "2026-09-05T23:58:00+05:00"
