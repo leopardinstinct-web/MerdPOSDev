@@ -2,10 +2,10 @@ version: 1
 id: MERD-20260905-drupal-operations-hr-v2
 branch: milestone/drupal-operations-hr-v2
 base_head: 852be87e8f9eed0ff708491ea35fe08648221570
-last_seen_head: 852be87e8f9eed0ff708491ea35fe08648221570
+last_seen_head: 857febd4ab1787425d24d86d7238080e5c4f944f
 objective: Deliver a role-aware, graphic-rich MERDPOS Operations and HR v2 workforce command centre through authoritative signed Beta APIs.
-packet_state: VALIDATED
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Show role-scoped live workforce, open shifts, store staffing, attendance history and late-start exceptions.
   - Surface disputes with a prominent bell/badge and direct Reports drill-down.
@@ -26,7 +26,13 @@ checks:
   - Gateway, Working Now, login/auth, Twig syntax and resource sync checks pass.
   - Composer validate, locked audit and install dry-run pass with no security advisories.
   - Bash syntax, continuity, YAML markers and git diff checks pass.
-remaining:
-  - Promote through PR/CI, deploy to Namecheap, live-verify desktop/mobile and archive.
-next_action: Promote through PR, deploy to Namecheap, verify runtime and archive.
-updated_at: "2026-09-05T21:48:00+05:00"
+remaining: []
+next_action: Archived after successful production and responsive verification.
+updated_at: "2026-09-05T22:15:00+05:00"
+
+evidence:
+  - PR #39 merged after CI run 72 and Secret scan run 71 passed.
+  - Namecheap release marker at 857febd4ab1787425d24d86d7238080e5c4f944f reports operations_v2 status ok, DEV, LOA 1000, metrics 4, charts 2, directory true and store_admin true.
+  - Authenticated MERDPOS DEV desktop session rendered Operations HR v2 LIVE with dispute drill-down, workforce, late-arrival, employee and store panels.
+  - 390x844 mobile verification passed Home, Operations, Reports, Finance and DEV with no horizontal overflow.
+  - Five-surface parity remained LIVE after deployment.
