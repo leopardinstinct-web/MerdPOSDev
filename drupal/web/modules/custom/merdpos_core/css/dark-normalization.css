@@ -45,7 +45,7 @@
 :root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) tbody tr:hover {
   background: var(--color-surface-selected) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-hero,.merdpos-ops-hero,.merdpos-report-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
+:root[data-theme="dark"] :is(.merdpos-dashboard-hero,.merdpos-ops-hero,.merdpos-reports-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
   background: radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--color-brand-violet) 18%,transparent),transparent 32%),radial-gradient(circle at 72% 0,color-mix(in srgb,var(--color-brand-cyan) 14%,transparent),transparent 34%),var(--color-surface-main) !important;
   border-color: var(--color-border-subtle) !important;
   box-shadow: var(--shadow-raised) !important;
@@ -94,3 +94,44 @@
 :root[data-theme="dark"] .merdpos-dev-v2 :is(p,small,span,dt,code){color:var(--color-text-muted)}
 :root[data-theme="dark"] :is(.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card){background:var(--color-surface-main)!important;border-color:var(--color-border-subtle)!important;box-shadow:var(--shadow-card)!important}
 :root[data-theme="dark"] .merdpos-dev-dl div,:root[data-theme="dark"] .merdpos-dev-table-card>header{border-color:var(--color-border-subtle)!important}
+
+/* Dark v2: normalize legacy light-only cards and the Reports hero typo. */
+:root[data-theme="dark"] :is(.merdpos-reports-hero,.merdpos-ops-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
+  background: radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--color-brand-violet) 18%,transparent),transparent 32%),radial-gradient(circle at 72% 0,color-mix(in srgb,var(--color-brand-cyan) 14%,transparent),transparent 34%),var(--color-surface-main) !important;
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: var(--shadow-raised) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-reports-filters,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-ops-filters,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-finance-filters,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card) {
+  background: var(--color-surface-main) !important;
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+:root[data-theme="dark"] .merdpos-reports-note {
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border-default) !important;
+  color: var(--color-text-primary) !important;
+}
+:root[data-theme="dark"] .merdpos-report-action,
+:root[data-theme="dark"] .merdpos-report-action span {
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border-default) !important;
+  color: var(--color-brand-cyan) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-reports-copy h1,.merdpos-reports-kpi strong,.merdpos-report-chart-card h2,.merdpos-report-table-card h2,.merdpos-ops-kpi strong,.merdpos-ops-panel h2,.merdpos-finance-kpi strong,.merdpos-finance-chart-card h2,.merdpos-finance-panel h2,.merdpos-finance-table-card h2) {
+  color: var(--color-text-primary) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-reports-copy>p:not(.merdpos-eyebrow),.merdpos-reports-kpi small,.merdpos-report-chart-card p,.merdpos-ops-kpi small,.merdpos-ops-panel header p,.merdpos-finance-kpi span,.merdpos-finance-filter-intro span) {
+  color: var(--color-text-muted) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-report-chart-card>header,.merdpos-report-table-card>header,.merdpos-ops-panel>header) {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border-subtle) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-report-count,.merdpos-reports-kpi-icon,.merdpos-report-chart-card>header>span,.merdpos-finance-kpi-icon,.merdpos-finance-entry-type) {
+  background: var(--color-surface-selected) !important;
+  color: var(--color-brand-cyan) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-ops-filters button,.merdpos-reports-filters button) {
+  background: var(--color-surface-selected) !important;
+  color: var(--color-text-primary) !important;
+}

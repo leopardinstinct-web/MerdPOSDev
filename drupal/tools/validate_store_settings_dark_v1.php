@@ -36,6 +36,14 @@ if (substr_count($files['libraries'], 'css/dark-normalization.css') < 7) {
   fwrite(STDERR, "Dark normalization is not attached after every MERDPOS surface stylesheet.\n");
   exit(1);
 }
+if (!str_contains($files['dark'], '.merdpos-reports-hero') || str_contains($files['dark'], '.merdpos-report-hero,')) {
+  fwrite(STDERR, "Reports hero dark selector is missing or stale.\n");
+  exit(1);
+}
+if (!str_contains($files['dark'], '.merdpos-report-action span') || !str_contains($files['dark'], '.merdpos-finance-chart-card') || !str_contains($files['dark'], '.merdpos-ops-panel')) {
+  fwrite(STDERR, "Legacy light-only app surfaces are not fully normalized.\n");
+  exit(1);
+}
 if (!str_contains($files['dark'], '.merdpos-dashboard-v2') || !str_contains($files['dark'], '.merdpos-operations-v2') || !str_contains($files['dark'], '.merdpos-reports-v2')) {
   fwrite(STDERR, "Primary app surfaces are missing dark-mode normalization.\n");
   exit(1);
