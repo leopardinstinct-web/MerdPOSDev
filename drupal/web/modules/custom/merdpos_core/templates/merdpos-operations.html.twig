@@ -1,0 +1,136 @@
+{% macro icon(name) %}
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  {% if name == 'users' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  {% elseif name == 'bell' %}<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>
+  {% elseif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+  {% elseif name == 'store' %}<path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>
+  {% elseif name == 'shield' %}<path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Z"/><path d="m9 12 2 2 4-5"/>
+  {% elseif name == 'message' %}<path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/><path d="M8 11h8M8 15h5"/>
+  {% elseif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>
+  {% else %}<path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/>{% endif %}
+</svg>
+{% endmacro %}
+{% import _self as ui %}
+
+<section class="merdpos-app merdpos-operations-v2" aria-labelledby="merdpos-operations-title">
+  <header class="merdpos-ops-hero">
+    <div class="merdpos-ops-hero-copy">
+      <p class="merdpos-eyebrow">MERDPOS / OPERATIONS / HR</p>
+      <h1 id="merdpos-operations-title">{{ surface.title }}</h1>
+      <p>{{ surface.description }}</p>
+      <div class="merdpos-ops-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.period_label }}</span></div>
+    </div>
+    <div class="merdpos-ops-hero-actions">
+      <div class="merdpos-ops-live is-{{ surface.status }}"><span></span><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS service</small></div>
+      <a class="merdpos-ops-dispute-bell" href="{{ path('merdpos_core.reports') }}#merdpos-disputes">
+        <span class="merdpos-ops-bell-icon">{{ ui.icon('bell') }}</span>
+        <span><strong>{{ surface.pending_dispute_count }}</strong><small>Open disputes</small></span>
+      </a>
+    </div>
+  </header>
+
+  {% if surface.filters %}
+    <form class="merdpos-ops-filters" method="get" aria-label="Operations filters">
+      <div><strong>Operational lens</strong><span>{{ surface.week_label }}</span></div>
+      {% for filter in surface.filters %}
+        <label><span>{{ filter.label }}</span><select name="{{ filter.name }}">
+          {% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
+        </select></label>
+      {% endfor %}
+      <button type="submit">Apply view</button>
+    </form>
+  {% endif %}
+
+  <div class="merdpos-ops-kpis" aria-label="Operations summary">
+    {% for metric in surface.metrics %}
+      {% set ml = metric.label|lower %}
+      <article class="merdpos-ops-kpi is-{{ metric.tone }}">
+        <span class="merdpos-ops-kpi-icon">{{ ui.icon('dispute' in ml ? 'bell' : ('late' in ml or 'shift' in ml ? 'clock' : ('flag' in ml ? 'shield' : 'users'))) }}</span>
+        <div><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.meta }}</small></div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="merdpos-ops-grid">
+    <article class="merdpos-ops-panel merdpos-ops-panel--workforce">
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('users') }}</span><div><h2>Who is working now</h2><p>Live open shifts in your authorized scope.</p></div><span class="merdpos-ops-live-chip">LIVE</span></header>
+      {% if surface.working_people %}
+        <div class="merdpos-ops-people">
+          {% for person in surface.working_people %}
+            <div class="merdpos-ops-person"><span class="avatar">{{ person.name|first|upper }}</span><div><strong>{{ person.name }}</strong><span>{{ person.store }}</span></div><div class="shift"><b>{{ person.duration }}</b><small>In {{ person.clock_in }}</small></div></div>
+          {% endfor %}
+        </div>
+      {% else %}<p class="merdpos-ops-empty">Nobody is currently clocked in within this scope.</p>{% endif %}
+    </article>
+
+    {% if attribute(charts, 'operations_workforce_by_store') %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--chart"><header><span class="merdpos-ops-panel-icon">{{ ui.icon('store') }}</span><div><h2>Store staffing</h2><p>Open shifts grouped by store.</p></div></header><div class="merdpos-ops-chart">{{ attribute(charts, 'operations_workforce_by_store') }}</div></article>
+    {% endif %}
+
+    {% if attribute(charts, 'operations_attendance_trend') %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--chart"><header><span class="merdpos-ops-panel-icon">{{ ui.icon('chart') }}</span><div><h2>Attendance trend</h2><p>Clock-ins across {{ surface.period_label }}.</p></div></header><div class="merdpos-ops-chart">{{ attribute(charts, 'operations_attendance_trend') }}</div></article>
+    {% endif %}
+
+    {% if attribute(charts, 'operations_late_by_store') %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--chart"><header><span class="merdpos-ops-panel-icon">{{ ui.icon('clock') }}</span><div><h2>Late starts by store</h2><p>Authoritative current-week late-start flags.</p></div></header><div class="merdpos-ops-chart">{{ attribute(charts, 'operations_late_by_store') }}</div></article>
+    {% endif %}
+
+    <article class="merdpos-ops-panel merdpos-ops-panel--disputes" id="operations-disputes">
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('message') }}</span><div><h2>Pending disputes</h2><p>{{ surface.role.label }}-scoped attendance correction queue.</p></div><a class="merdpos-ops-panel-link" href="{{ path('merdpos_core.reports') }}#merdpos-disputes">Open in Reports</a></header>
+      {% if surface.pending_disputes %}
+        <div class="merdpos-ops-disputes">
+          {% for item in surface.pending_disputes %}
+            <div class="merdpos-ops-dispute"><span class="status is-{{ item.status|lower }}"></span><div><strong>{{ item.employee }}</strong><span>{{ item.type }} · {{ item.store }}</span>{% if item.reason %}<small>{{ item.reason }}</small>{% endif %}</div><time>{{ item.submitted }}</time></div>
+          {% endfor %}
+        </div>
+      {% else %}<p class="merdpos-ops-empty">No open disputes in your authorized queue.</p>{% endif %}
+    </article>
+
+    {% if surface.attendance_flags or 'attendance_flags.resolve' in surface.permissions %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--flags">
+        <header><span class="merdpos-ops-panel-icon">{{ ui.icon('shield') }}</span><div><h2>Attendance security flags</h2><p>Exceptions returned only to roles allowed to resolve them.</p></div><span class="merdpos-ops-count">{{ surface.attendance_flags|length }}</span></header>
+        {% if surface.attendance_flags %}<div class="merdpos-ops-flags">
+          {% for item in surface.attendance_flags %}<div><span class="flag-dot"></span><strong>{{ item.employee }}</strong><span>{{ item.reason }}</span><small>{{ item.store }} · {{ item.created }}</small></div>{% endfor %}
+        </div>{% else %}<p class="merdpos-ops-empty">No open attendance security flags.</p>{% endif %}
+      </article>
+    {% endif %}
+
+    <article class="merdpos-ops-panel merdpos-ops-panel--table">
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('clock') }}</span><div><h2>Late arrivals</h2><p>{{ surface.week_label }} · calculated by the existing MERDPOS timesheet engine.</p></div><span class="merdpos-ops-count">{{ surface.late_arrivals|length }}</span></header>
+      {% if surface.late_arrivals %}<div class="merdpos-ops-table-wrap" tabindex="0"><table><thead><tr><th>Employee</th><th>Store</th><th>Date</th><th>Actual</th><th>Scheduled</th></tr></thead><tbody>
+        {% for row in surface.late_arrivals %}<tr><td>{{ row.employee }}</td><td>{{ row.store }}</td><td>{{ row.date }}</td><td><strong class="late">{{ row.actual }}</strong></td><td>{{ row.scheduled }}</td></tr>{% endfor %}
+      </tbody></table></div>{% else %}<p class="merdpos-ops-empty">No late starts in the visible current-week report.</p>{% endif %}
+    </article>
+
+    <article class="merdpos-ops-panel merdpos-ops-panel--table">
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('calendar') }}</span><div><h2>Recent attendance</h2><p>Latest shifts returned for your MERDPOS permissions.</p></div><span class="merdpos-ops-count">{{ surface.recent_attendance|length }}</span></header>
+      {% if surface.recent_attendance %}<div class="merdpos-ops-table-wrap" tabindex="0"><table><thead><tr><th>Employee</th><th>Store</th><th>In</th><th>Out</th><th>Status</th></tr></thead><tbody>
+        {% for row in surface.recent_attendance %}<tr><td>{{ row.employee }}</td><td>{{ row.store }}</td><td>{{ row.in }}</td><td>{{ row.out }}</td><td><span class="merdpos-ops-status">{{ row.status }}</span></td></tr>{% endfor %}
+      </tbody></table></div>{% else %}<p class="merdpos-ops-empty">No recent attendance in this scope.</p>{% endif %}
+    </article>
+
+    {% if surface.directory_available %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--table merdpos-ops-panel--directory">
+        <header><span class="merdpos-ops-panel-icon">{{ ui.icon('users') }}</span><div><h2>Employee directory</h2><p>Management-only workforce directory from MERDPOS.</p></div><span class="merdpos-ops-count">{{ surface.employees|length }}</span></header>
+        {% if surface.employees %}<div class="merdpos-ops-table-wrap" tabindex="0"><table><thead><tr><th>Employee</th><th>Role</th><th>Store</th><th>Status</th></tr></thead><tbody>
+          {% for row in surface.employees %}<tr><td><strong>{{ row.name }}</strong></td><td>{{ row.role }}</td><td>{{ row.store }}</td><td><span class="merdpos-ops-status">{{ row.status }}</span></td></tr>{% endfor %}
+        </tbody></table></div>{% else %}<p class="merdpos-ops-empty">No workforce records returned.</p>{% endif %}
+      </article>
+    {% endif %}
+
+    {% if surface.store_admin_available %}
+      <article class="merdpos-ops-panel merdpos-ops-panel--stores">
+        <header><span class="merdpos-ops-panel-icon">{{ ui.icon('store') }}</span><div><h2>Store operations</h2><p>Canonical store identity and operating schedule.</p></div><span class="merdpos-ops-count">{{ surface.stores|length }}</span></header>
+        <div class="merdpos-ops-store-cards">{% for store in surface.stores %}<div><span class="store-code">{{ store.code }}</span><strong>{{ store.name }}</strong><small>{{ store.timezone }}</small><b>{{ store.status }}</b></div>{% endfor %}</div>
+        {% if surface.store_timings %}<div class="merdpos-ops-table-wrap merdpos-ops-hours" tabindex="0"><table><thead><tr><th>Store</th><th>Day</th><th>Hours</th></tr></thead><tbody>
+          {% for row in surface.store_timings %}<tr><td>{{ row.store }}</td><td>{{ row.day }}</td><td>{{ row.hours }}</td></tr>{% endfor %}
+        </tbody></table></div>{% endif %}
+      </article>
+    {% endif %}
+  </div>
+
+  <footer class="merdpos-ops-footer">
+    <div><strong>MERDPOS authorization remains authoritative</strong><span>Privileged HR/store panels disappear when their signed APIs return forbidden.</span></div>
+    <div><span>{{ surface.meta.source }}</span><span>No direct operational DB access</span></div>
+  </footer>
+</section>

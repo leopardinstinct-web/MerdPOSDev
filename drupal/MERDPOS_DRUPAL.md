@@ -155,3 +155,13 @@ Anonymous access to `merdpos_core.*` routes redirects to the MERDPOS login scree
 The reviewed free/open-source Drupal UI stack is documented in `drupal/FREE_UI_STACK.md`. The selected Composer-managed projects are Dashboard, Charts, UI Patterns, UI Icons, Gin, Gin Toolbar and Better Exposed Filters. Gin is administration-only; the Git-owned `merdpos_app` theme remains the operational application shell and the canonical MERDPOS SVG icon set remains the primary visual language.
 
 Namecheap deployment enables and probes the selected runtime modules, sets Gin as the Drupal admin theme, and refuses the release marker when the expected free UI stack or authoritative MERDPOS login health check is missing.
+
+## Operations & HR v2
+
+`/merdpos/operations` is a role-aware read surface for every authenticated MERDPOS role. Drupal's local route requires only `access merdpos portal`; the signed MERDPOS actor remains the authority for every dataset shown inside the page.
+
+The surface composes existing authoritative APIs only: `beta_state`, `dashboard_data`, `disputes`, `weeks`, `timesheet`, and permission-scoped management APIs (`admin_directory`, `store_identity`, `store_timings`). A forbidden management response removes that panel instead of being converted into broader Drupal access.
+
+The current Operations v2 presentation includes live open shifts, store staffing, attendance trend, current-week late starts from the existing MERDPOS timesheet result, pending disputes with a Reports drill-down, attendance security flags when permitted, recent attendance, and management-only workforce/store/schedule panels. Drupal does not recalculate payable time, wages, late policy, dispute decisions, attendance security rules, or store authorization.
+
+Deployment writes an `operations_v2` release probe and fails closed unless the DEV service actor resolves at LOA 1000, the surface is live, rich metrics/charts resolve, and the management directory/store slices remain authorized. Five-surface parity is checked again in the same deployment.

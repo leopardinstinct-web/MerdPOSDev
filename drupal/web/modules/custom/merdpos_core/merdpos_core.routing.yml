@@ -9,11 +9,10 @@ merdpos_core.dashboard:
 merdpos_core.operations:
   path: '/merdpos/operations'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\SectionController::section'
+    _controller: 'Drupal\merdpos_core\Controller\OperationsController::operations'
     _title: 'Operations'
-    section: 'operations'
   requirements:
-    _permission: 'manage merdpos operations'
+    _permission: 'access merdpos portal'
 
 merdpos_core.reports:
   path: '/merdpos/reports'

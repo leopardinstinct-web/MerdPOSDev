@@ -199,7 +199,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
   public function section(string $section, array $query = []): array {
     return match ($section) {
-      'operations' => $this->operations(),
+      'operations' => $this->operations($query),
       'reports' => $this->reports($query),
       'finance' => $this->finance($query),
       'dev' => $this->dev(),
@@ -207,67 +207,260 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     };
   }
 
-  private function operations(): array {
+  private function operations(array $query = []): array {
+    $state = $this->call('beta_state');
+    $dashboard = $this->call('dashboard_data', $this->dashboardQuery($query));
+    $disputes = $this->call('disputes');
+    $weeks = $this->call('weeks');
+    $statePayload = $this->map($state['payload'] ?? []);
+    $dashboardPayload = $this->map($dashboard['payload'] ?? []);
+    $disputeRows = $this->rows($disputes['payload']['disputes'] ?? $statePayload['disputes'] ?? []);
+    $weekRows = $this->rows($weeks['payload']['weeks'] ?? []);
+    $currentWeek = (string) ($weeks['payload']['current_week'] ?? '');
+    $timesheet = $currentWeek !== '' ? $this->call('timesheet', ['week_start' => $currentWeek]) : $this->emptyCall('unavailable');
+    $report = $this->map($timesheet['payload']['report'] ?? []);
+
+    // These management APIs remain optional. A forbidden response is treated as
+    // an authoritative instruction to omit that privileged slice, not as a page failure.
     $directory = $this->call('admin_directory');
     $identity = $this->call('store_identity');
     $timings = $this->call('store_timings');
-    $directoryPayload = $directory['payload'];
-    $employees = $this->rows($directoryPayload['employees'] ?? []);
-    $stores = $this->rows($identity['payload']['stores'] ?? $directoryPayload['stores'] ?? []);
-    $timingRows = $this->rows($timings['payload']['timings'] ?? []);
-    $storeNames = [];
-    foreach ($stores as $store) $storeNames[(int)($store['id'] ?? 0)] = (string)($store['store_name'] ?? '');
+    $directoryAllowed = ($directory['status'] ?? '') === 'ok';
+    $identityAllowed = ($identity['status'] ?? '') === 'ok';
+    $timingsAllowed = ($timings['status'] ?? '') === 'ok';
 
-    $employeeTable = [];
-    foreach (array_slice($employees, 0, 120) as $row) {
-      $employeeTable[] = [
-        'name' => (string)($row['full_name'] ?? ''),
-        'role' => (string)($row['role_label'] ?? $row['role_name'] ?? $row['employee_type'] ?? ''),
-        'store' => (string)($row['store_name'] ?? '—'),
-        'status' => strtoupper((string)($row['status'] ?? '')),
+    $role = [
+      'key' => (string) ($statePayload['role_key'] ?? $dashboardPayload['role']['role_key'] ?? 'USER'),
+      'label' => (string) ($statePayload['role_label'] ?? $dashboardPayload['role']['role_label'] ?? 'MERDPOS'),
+      'loa' => (int) ($statePayload['authority_level'] ?? $dashboardPayload['role']['authority_level'] ?? 0),
+    ];
+    $permissions = $this->strings($statePayload['permissions'] ?? []);
+    $canViewWorkforce = in_array('workforce.view', $permissions, true);
+    $canReviewDisputes = in_array('disputes.review', $permissions, true);
+    $canResolveFlags = in_array('attendance_flags.resolve', $permissions, true);
+    $timezone = (string) ($dashboardPayload['client_defaults']['timezone'] ?? $statePayload['client_defaults']['timezone'] ?? 'Australia/Sydney');
+    $filterState = $this->map($dashboardPayload['filters'] ?? []);
+    $filterOptions = $this->map($dashboardPayload['filter_options'] ?? []);
+    $selectedStoreId = (int) ($filterState['store_id'] ?? 0);
+    $selectedStoreName = '';
+    foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
+      if ((int) ($store['id'] ?? 0) === $selectedStoreId) {
+        $selectedStoreName = (string) ($store['store_name'] ?? '');
+        break;
+      }
+    }
+
+    $working = $this->rows($dashboardPayload['working'] ?? []);
+    if (!$working) {
+      $working = $this->rows($statePayload['working'] ?? []);
+      if ($selectedStoreId > 0) {
+        $working = array_values(array_filter($working, static fn(array $row): bool => (int) ($row['store_id'] ?? 0) === $selectedStoreId));
+      }
+    }
+    $workingPeople = [];
+    foreach (array_slice($working, 0, 40) as $row) {
+      $minutes = max(0, (int) ($row['working_minutes'] ?? 0));
+      $duration = intdiv($minutes, 60) . 'h ' . str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT) . 'm';
+      $workingPeople[] = [
+        'name' => (string) ($row['full_name'] ?? ''),
+        'store' => (string) ($row['store_name'] ?? ''),
+        'clock_in' => $this->localDateTime($row['clock_in_at'] ?? '', $timezone),
+        'duration' => $duration,
       ];
     }
-    $storeTable = [];
-    foreach ($stores as $row) {
-      $storeTable[] = [
-        'name' => (string)($row['store_name'] ?? ''),
-        'code' => (string)($row['store_code'] ?? ''),
-        'status' => strtoupper((string)($row['status'] ?? '')),
-        'timezone' => (string)($row['timezone'] ?? ''),
+
+    $pendingDisputes = array_values(array_filter($disputeRows, static fn(array $row): bool => in_array(strtolower((string) ($row['status'] ?? '')), ['pending', 'awaiting_employee'], true)));
+    $disputeItems = [];
+    foreach (array_slice($pendingDisputes, 0, 12) as $row) {
+      $disputeItems[] = [
+        'employee' => (string) ($row['full_name'] ?? ''),
+        'store' => (string) ($row['store_name'] ?? ''),
+        'type' => ucwords(str_replace('_', ' ', (string) ($row['dispute_type'] ?? 'other'))),
+        'status' => strtoupper((string) ($row['status'] ?? '')),
+        'submitted' => (string) ($row['submitted_at'] ?? ''),
+        'reason' => trim((string) ($row['reason'] ?? '')),
       ];
     }
 
-    $timingTable = [];
-    foreach ($timingRows as $row) {
-      $day = (int)($row['day_of_week'] ?? 0);
-      $timingTable[] = [
-        'store' => $storeNames[(int)($row['store_id'] ?? 0)] ?? ('Store ' . (string)($row['store_id'] ?? '')),
-        'day' => $this->dayName($day),
-        'hours' => (int)($row['is_closed'] ?? 0) === 1
-          ? 'Closed'
-          : $this->clock((string)($row['start_time'] ?? '')) . ' – ' . $this->clock((string)($row['end_time'] ?? '')),
+    $flagRows = $this->rows($statePayload['attendance_flags'] ?? []);
+    $openFlags = array_values(array_filter($flagRows, static fn(array $row): bool => strtolower((string) ($row['status'] ?? '')) === 'open'));
+    $flagItems = [];
+    foreach (array_slice($openFlags, 0, 12) as $row) {
+      $flagItems[] = [
+        'employee' => (string) ($row['full_name'] ?? ''),
+        'store' => (string) ($row['attempted_store'] ?? ''),
+        'reason' => ucwords(str_replace('_', ' ', (string) ($row['reason'] ?? ''))),
+        'created' => (string) ($row['created_at'] ?? ''),
       ];
     }
-    $activeEmployees = count(array_filter($employees, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'active'));
-    $roles = array_unique(array_filter(array_map(static fn(array $r): string => (string)($r['role_label'] ?? $r['role_name'] ?? ''), $employees)));
 
-    return $this->surface(
-      'operations', 'Operations', 'Workforce and stores',
-      'Permission-scoped workforce, store identity and operating hours from authoritative MERDPOS Beta.',
-      $this->status([$directory['status'], $identity['status'], $timings['status']]),
-      [
-        $this->metric('Active employees', (string)$activeEmployees, 'Current client workforce', 'info'),
-        $this->metric('Stores', (string)count($stores), 'Client-scoped locations', 'brand'),
-        $this->metric('Roles in use', (string)count($roles), 'Current workforce role labels', 'success'),
-        $this->metric('Weekly timing rows', (string)count($timingRows), 'Store operating schedule', 'warning'),
+    $lateRows = [];
+    $lateByStore = [];
+    foreach ($this->rows($report['employees'] ?? []) as $employee) {
+      foreach ($this->rows($employee['rows'] ?? []) as $row) {
+        if (empty($row['is_late'])) continue;
+        $storeName = (string) ($row['store_name'] ?? '');
+        if ($selectedStoreName !== '' && $storeName !== $selectedStoreName) continue;
+        $lateRows[] = [
+          'employee' => (string) ($employee['employee_name'] ?? ''),
+          'store' => $storeName,
+          'date' => (string) ($row['in_date'] ?? ''),
+          'actual' => $this->clock((string) ($row['actual_in_time'] ?? '')),
+          'scheduled' => $this->clock((string) ($row['scheduled_start_time'] ?? '')),
+        ];
+        $lateByStore[$storeName] = ($lateByStore[$storeName] ?? 0) + 1;
+      }
+    }
+    $lateRows = array_slice($lateRows, 0, 30);
+
+    $recentRows = [];
+    foreach (array_slice($this->rows($dashboardPayload['recent_shifts'] ?? $statePayload['recent_shifts'] ?? []), 0, 40) as $row) {
+      $rowTimezone = (string) ($row['timezone'] ?? $timezone);
+      $recentRows[] = [
+        'employee' => (string) ($row['full_name'] ?? ''),
+        'store' => (string) ($row['store_name'] ?? ''),
+        'in' => $this->localDateTime($row['clock_in_at'] ?? '', $rowTimezone),
+        'out' => $this->localDateTime($row['clock_out_at'] ?? '', $rowTimezone),
+        'status' => strtoupper((string) ($row['status'] ?? '')),
+      ];
+    }
+
+    $employees = [];
+    if ($directoryAllowed) {
+      foreach (array_slice($this->rows($directory['payload']['employees'] ?? []), 0, 160) as $row) {
+        $employees[] = [
+          'name' => (string) ($row['full_name'] ?? ''),
+          'role' => (string) ($row['role_label'] ?? $row['role_name'] ?? $row['employee_type'] ?? ''),
+          'store' => (string) ($row['store_name'] ?? '-'),
+          'status' => strtoupper((string) ($row['status'] ?? '')),
+        ];
+      }
+    }
+
+    $stores = [];
+    if ($identityAllowed) {
+      foreach ($this->rows($identity['payload']['stores'] ?? []) as $row) {
+        $stores[] = [
+          'id' => (int) ($row['id'] ?? 0),
+          'name' => (string) ($row['store_name'] ?? ''),
+          'code' => (string) ($row['store_code'] ?? ''),
+          'status' => strtoupper((string) ($row['status'] ?? '')),
+          'timezone' => (string) ($row['timezone'] ?? ''),
+        ];
+      }
+    }
+
+    $storeNameById = [];
+    foreach ($stores as $store) $storeNameById[(int) $store['id']] = (string) $store['name'];
+    $timingRows = [];
+    if ($timingsAllowed) {
+      foreach ($this->rows($timings['payload']['timings'] ?? []) as $row) {
+        $timingRows[] = [
+          'store' => $storeNameById[(int) ($row['store_id'] ?? 0)] ?? ('Store ' . (string) ($row['store_id'] ?? '')),
+          'day' => $this->dayName((int) ($row['day_of_week'] ?? 0)),
+          'hours' => (int) ($row['is_closed'] ?? 0) === 1
+            ? 'Closed'
+            : $this->clock((string) ($row['start_time'] ?? '')) . ' - ' . $this->clock((string) ($row['end_time'] ?? '')),
+        ];
+      }
+    }
+
+    $staffing = [];
+    foreach ($working as $row) {
+      $name = (string) ($row['store_name'] ?? '');
+      if ($name === '') continue;
+      $staffing[$name] = ($staffing[$name] ?? 0) + 1;
+    }
+    if ($canViewWorkforce) {
+      foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
+        $name = (string) ($store['store_name'] ?? '');
+        if ($name !== '' && !isset($staffing[$name])) $staffing[$name] = 0;
+      }
+    }
+    ksort($staffing);
+
+    $chartSpecs = [];
+    if ($staffing) {
+      $chartSpecs[] = $this->chartSpecValues(
+        'operations_workforce_by_store', 'column', array_keys($staffing), array_values($staffing), 'Working now', '#1c4587'
+      );
+    }
+    $analytics = $this->map($dashboardPayload['management']['analytics'] ?? []);
+    $attendanceSeries = $this->rows($analytics['attendance_period'] ?? []);
+    if ($attendanceSeries) {
+      $chartSpecs[] = $this->chartSpec('operations_attendance_trend', 'line', $attendanceSeries, 'Clock-ins', '#23a6a8');
+    }
+    if ($lateByStore) {
+      ksort($lateByStore);
+      $chartSpecs[] = $this->chartSpecValues(
+        'operations_late_by_store', 'column', array_keys($lateByStore), array_values($lateByStore), 'Late starts', '#d97706'
+      );
+    }
+
+    $metrics = [
+      $this->metric('Working now', (string) count($workingPeople), $canViewWorkforce ? 'Open shifts in selected scope' : 'Your current open shift', 'info'),
+      $this->metric('Pending disputes', (string) count($pendingDisputes), $canReviewDisputes ? 'Awaiting management review' : 'Your open requests', 'warning'),
+      $this->metric('Late starts', (string) count($lateRows), (string) ($report['week_label'] ?? $currentWeek ?: 'Current week'), count($lateRows) > 0 ? 'warning' : 'success'),
+    ];
+    if ($canResolveFlags || $flagRows) {
+      $metrics[] = $this->metric('Attendance flags', (string) count($openFlags), 'Open security exceptions', count($openFlags) > 0 ? 'danger' : 'success');
+    }
+    else {
+      $metrics[] = $this->metric('Recent shifts', (string) count($recentRows), 'Permission-scoped attendance history', 'success');
+    }
+    $activeEmployees = $dashboardPayload['management']['active_employees'] ?? $statePayload['management']['active_employees'] ?? NULL;
+    if ($canViewWorkforce && $activeEmployees !== NULL) {
+      $metrics[] = $this->metric('Active employees', (string) (int) $activeEmployees, 'Current client workforce', 'brand');
+    }
+
+    $filters = [];
+    $storeOptions = [['value' => '0', 'label' => 'All permitted stores']];
+    foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
+      $storeOptions[] = ['value' => (string) ($store['id'] ?? ''), 'label' => (string) ($store['store_name'] ?? '')];
+    }
+    if (count($storeOptions) > 1) {
+      $filters[] = ['name' => 'store_id', 'label' => 'Store', 'type' => 'select', 'value' => (string) $selectedStoreId, 'options' => $storeOptions];
+    }
+    $filters[] = [
+      'name' => 'period', 'label' => 'Attendance period', 'type' => 'select',
+      'value' => (string) ($filterState['period'] ?? '7'),
+      'options' => [
+        ['value' => 'current_week', 'label' => 'Current week'],
+        ['value' => '7', 'label' => '7 days'],
+        ['value' => '14', 'label' => '14 days'],
+        ['value' => '30', 'label' => '30 days'],
       ],
+    ];
+
+    $surface = $this->surface(
+      'operations', 'Operations', 'Operations & HR command centre',
+      'Role-aware workforce, attendance, disputes and store operations from authoritative MERDPOS Beta services.',
+      $this->status([$state['status'], $dashboard['status'], $disputes['status']]),
+      $metrics, [],
       [
-        $this->table('Workforce', 'Employees', [['key'=>'name','label'=>'Employee'],['key'=>'role','label'=>'Role'],['key'=>'store','label'=>'Store'],['key'=>'status','label'=>'Status']], $employeeTable),
-        $this->table('Stores', 'Store directory', [['key'=>'name','label'=>'Store'],['key'=>'code','label'=>'Code'],['key'=>'status','label'=>'Status'],['key'=>'timezone','label'=>'Timezone']], $storeTable),
-        $this->table('Store timings', 'Weekly schedule', [['key'=>'store','label'=>'Store'],['key'=>'day','label'=>'Day'],['key'=>'hours','label'=>'Hours']], $timingTable),
+        'source' => 'beta_state + dashboard_data + disputes + authoritative timesheet + permission-scoped management APIs',
+        'week' => (string) ($report['week_label'] ?? $currentWeek),
       ],
-      ['source' => 'admin_directory + store_identity + store_timings'],
+      $filters,
     );
+    $surface['role'] = $role;
+    $surface['permissions'] = $permissions;
+    $surface['working_people'] = $workingPeople;
+    $surface['staffing'] = $staffing;
+    $surface['pending_disputes'] = $disputeItems;
+    $surface['pending_dispute_count'] = count($pendingDisputes);
+    $surface['attendance_flags'] = $flagItems;
+    $surface['late_arrivals'] = $lateRows;
+    $surface['recent_attendance'] = $recentRows;
+    $surface['employees'] = $employees;
+    $surface['stores'] = $stores;
+    $surface['store_timings'] = $timingRows;
+    $surface['directory_available'] = $directoryAllowed;
+    $surface['store_admin_available'] = $identityAllowed && $timingsAllowed;
+    $surface['chart_specs'] = $chartSpecs;
+    $surface['week_label'] = (string) ($report['week_label'] ?? $currentWeek ?: 'Current week');
+    $surface['period_label'] = (string) ($filterState['period_label'] ?? '7 days');
+    return $surface;
   }
 
   private function reports(array $query): array {

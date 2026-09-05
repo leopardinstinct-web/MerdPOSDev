@@ -12,3 +12,12 @@ dashboard:
     theme:
       css/dashboard.css: {}
       css/dashboard-v2.css: {}
+
+operations:
+  version: 2.x
+  dependencies:
+    - merdpos_core/base
+    - merdpos_core/dashboard
+  css:
+    theme:
+      css/operations-v2.css: {}

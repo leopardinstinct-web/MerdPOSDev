@@ -59,7 +59,7 @@
 
   <div class="merdpos-parity-groups">
     {% for group in surface.groups %}
-      <section class="merdpos-data-panel merdpos-data-panel--{{ group.kind }}">
+      <section class="merdpos-data-panel merdpos-data-panel--{{ group.kind }}"{% if group.title == 'Disputes' %} id="merdpos-disputes"{% endif %}>
         <div class="merdpos-data-panel-head">
           <div>
             <p class="merdpos-eyebrow">{{ group.eyebrow }}</p>

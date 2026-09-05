@@ -37,6 +37,7 @@ php84 "$DRUPAL/tools/validate_portal_gateway_client.php"
 php84 "$DRUPAL/tools/validate_merdpos_authenticator.php"
 php84 "$DRUPAL/tools/validate_login_rich_ui.php"
 php84 "$DRUPAL/tools/validate_parity_provider.php"
+php84 "$DRUPAL/tools/validate_operations_hr_v2.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess
@@ -110,10 +111,14 @@ DASHBOARD_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->home(["period"=>"7"]); $a=$r["allowed_widgets"]??[]; $c=$r["chart_specs"]??[]; $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"allowed"=>is_array($a)?count($a):-1,"visible"=>$r["visible_widget_count"]??-1,"charts"=>is_array($c)?count($c):-1],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["allowed"]??0)<1||($p["visible"]??-1)!==($p["allowed"]??-2)||($p["charts"]??0)<1){fwrite(STDERR,"Rich dashboard v2 self-test failed.\n");exit(1);}' "$DASHBOARD_V2_PROBE"
 
+OPERATIONS_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$r=\Drupal::service("merdpos_core.parity_provider")->section("operations",["period"=>"7"]); $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"directory"=>!empty($r["directory_available"]),"store_admin"=>!empty($r["store_admin_available"])],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["loa"]??0)!==1000||($p["metrics"]??0)<4||($p["charts"]??0)<1||empty($p["directory"])||empty($p["store_admin"])){fwrite(STDERR,"Operations HR v2 self-test failed.\n");exit(1);}' "$OPERATIONS_V2_PROBE"
+
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
 STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); echo json_encode([
+php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_decode($argv[6],true); $a=json_decode($argv[7],true); $l=json_decode($argv[8],true); $u=json_decode($argv[9],true); $v=json_decode($argv[10],true); $o=json_decode($argv[11],true); echo json_encode([
   "commit"=>$argv[1],"branch"=>$argv[2],"deployed_at"=>$argv[3],
   "working_now_status"=>$p["status"]??null,"working_now_count"=>$p["count"]??null,
   "gateway_status"=>$g["status"]??null,"gateway_role"=>$g["role"]??null,"gateway_is_dev"=>$g["is_dev"]??null,
@@ -121,10 +126,11 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
   "login_status"=>$l["status"]??null,
   "free_ui_stack"=>$u,
   "dashboard_v2"=>$v,
+  "operations_v2"=>$o,
   "parity_status"=>(is_array($a)&&count(array_filter($a,static fn($v)=>$v!=="ok"))===0)?"ok":"failed",
   "parity_surfaces"=>$a
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
-  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
+  "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

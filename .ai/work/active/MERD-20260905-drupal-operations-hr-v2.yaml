@@ -1,0 +1,32 @@
+version: 1
+id: MERD-20260905-drupal-operations-hr-v2
+branch: milestone/drupal-operations-hr-v2
+base_head: 852be87e8f9eed0ff708491ea35fe08648221570
+last_seen_head: 852be87e8f9eed0ff708491ea35fe08648221570
+objective: Deliver a role-aware, graphic-rich MERDPOS Operations and HR v2 workforce command centre through authoritative signed Beta APIs.
+packet_state: VALIDATED
+lifecycle: WIRED
+scope:
+  - Show role-scoped live workforce, open shifts, store staffing, attendance history and late-start exceptions.
+  - Surface disputes with a prominent bell/badge and direct Reports drill-down.
+  - Surface attendance security flags only when authoritative permissions return them.
+  - Show employee directory, stores and operating hours only when corresponding MERDPOS APIs authorize them.
+  - Support USER, ADMIN, SUPER and DEV access without broadening backend permissions.
+  - Reuse Drupal Charts and the Rich Dashboard v2 visual system.
+  - Preserve frozen timesheet/payroll reconciliation and prohibit direct operational DB access.
+acceptance:
+  - Local operations-v2, parity, auth, gateway, Working Now, Composer, resource and continuity gates pass.
+  - CI and secret scan pass before merge to beta/drupal-webapp.
+  - Namecheap release marker reports operations_v2 OK and five-surface parity remains OK.
+  - Authenticated desktop and mobile Operations render with no horizontal overflow.
+  - Home, Reports, Finance and DEV remain LIVE after deployment.
+checks:
+  - PHP lint, Operations v2 validator and five-surface parity pass.
+  - USER fail-closed role simulation omits privileged directory/store/flag data.
+  - Gateway, Working Now, login/auth, Twig syntax and resource sync checks pass.
+  - Composer validate, locked audit and install dry-run pass with no security advisories.
+  - Bash syntax, continuity, YAML markers and git diff checks pass.
+remaining:
+  - Promote through PR/CI, deploy to Namecheap, live-verify desktop/mobile and archive.
+next_action: Promote through PR, deploy to Namecheap, verify runtime and archive.
+updated_at: "2026-09-05T21:48:00+05:00"

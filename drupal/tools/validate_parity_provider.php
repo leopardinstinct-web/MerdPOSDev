@@ -30,6 +30,16 @@ final class StubGateway implements PortalGatewayClientInterface {
   public function call(string $route, string $method = 'GET', array $query = [], array $body = []): array {
     $this->calls[] = [$route, $method, $query, $body];
     $payload = match ($route) {
+      'beta_state' => [
+        'success'=>true,'role'=>'DEV','role_key'=>'DEV','role_label'=>'Developer','authority_level'=>1000,
+        'permissions'=>['dashboard.view','workforce.view','workforce.manage','stores.view','stores.profile.manage','stores.timings.manage','timesheets.view_own','timesheets.view_all','disputes.view_own','disputes.review','attendance_flags.resolve'],
+        'client_defaults'=>['currency_code'=>'AUD','timezone'=>'Australia/Sydney'],
+        'working'=>[['full_name'=>'Test Employee','user_id'=>'999','store_id'=>1,'store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','working_minutes'=>91]],
+        'disputes'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','dispute_type'=>'edit_shift','status'=>'pending','submitted_at'=>'2026-09-04 00:00:00']],
+        'attendance_flags'=>[['full_name'=>'Test Employee','attempted_store'=>'Test Store','reason'=>'simultaneous_qr_at_different_store','created_at'=>'2026-09-04 00:10:00','status'=>'open']],
+        'recent_shifts'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>'2026-09-04 09:00:00','status'=>'closed','timezone'=>'Australia/Sydney']],
+        'management'=>['active_employees'=>44],
+      ],
       'dashboard_data' => [
         'success'=>true,
         'role'=>['role_key'=>'DEV','role_label'=>'Developer','base_role'=>'DEV','authority_level'=>1000],
@@ -42,7 +52,7 @@ final class StubGateway implements PortalGatewayClientInterface {
         'filters'=>['store_id'=>0,'days'=>7,'period'=>'7','period_label'=>'7 days'],
         'filter_options'=>['stores'=>[['id'=>1,'store_name'=>'Test Store']],'periods'=>['current_week',7,14,30]],
         'working_count'=>1,
-        'working'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','timezone'=>'Australia/Sydney']],
+        'working'=>[['full_name'=>'Test Employee','user_id'=>'999','store_id'=>1,'store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','working_minutes'=>91,'timezone'=>'Australia/Sydney']],
         'my_working'=>[['full_name'=>'Test Employee','store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','timezone'=>'Australia/Sydney']],
         'disputes'=>[['status'=>'pending']],
         'pending_disputes_count'=>2,
@@ -84,7 +94,7 @@ final class StubGateway implements PortalGatewayClientInterface {
           'store_summary'=>[['store_name'=>'Test Store','total_employees_worked'=>1,'total_hours_worked'=>8,'total_amount'=>200]],
           'employees'=>[[
             'employee_name'=>'Test Employee',
-            'rows'=>[['store_name'=>'Test Store','in_date'=>'2026-09-01','actual_in_time'=>'07:00:00','actual_out_time'=>'15:00:00','total_hours'=>8,'is_late'=>false]],
+            'rows'=>[['store_name'=>'Test Store','in_date'=>'2026-09-01','actual_in_time'=>'07:00:00','actual_out_time'=>'15:00:00','total_hours'=>8,'is_late'=>true,'scheduled_start_time'=>'06:30:00']],
           ]],
         ],
       ],
@@ -152,6 +162,16 @@ foreach ($surfaces as $key => $surface) {
     parity_check(count($surface['chart_specs'] ?? []) === 6, 'Home chart spec count mismatch.');
     parity_check(count($surface['filters'] ?? []) === 2, 'Home dashboard filters missing.');
   }
+  elseif ($key === 'operations') {
+    parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Operations role did not resolve DEV.');
+    parity_check(($surface['role']['loa'] ?? 0) === 1000, 'Operations role LOA mismatch.');
+    parity_check(count($surface['metrics'] ?? []) >= 4, 'Operations rich metrics missing.');
+    parity_check(count($surface['working_people'] ?? []) === 1, 'Operations live workforce mismatch.');
+    parity_check(($surface['pending_dispute_count'] ?? -1) === 1, 'Operations dispute count mismatch.');
+    parity_check(count($surface['late_arrivals'] ?? []) === 1, 'Operations late arrivals mismatch.');
+    parity_check(!empty($surface['directory_available']), 'Operations management directory should be available.');
+    parity_check(count($surface['chart_specs'] ?? []) >= 2, 'Operations charts missing.');
+  }
   else {
     parity_check(count($surface['metrics'] ?? []) === 4, $key . ' surface requires four metrics.');
     parity_check(!empty($surface['groups']), $key . ' surface groups missing.');
@@ -163,7 +183,7 @@ parity_check(($surfaces['reports']['meta']['payroll_visible'] ?? '') === 'yes', 
 parity_check(count($surfaces['reports']['filters'] ?? []) === 1, 'Reports week filter missing.');
 parity_check(count($surfaces['finance']['filters'] ?? []) === 2, 'Finance filters missing.');
 $routes = array_map(static fn(array $call): string => (string)$call[0], $gateway->calls);
-foreach (['dashboard_data','admin_directory','store_identity','store_timings','weeks','timesheet','disputes','financials','dev_status','clients','role_authority','client_context'] as $route) {
+foreach (['beta_state','dashboard_data','admin_directory','store_identity','store_timings','weeks','timesheet','disputes','financials','dev_status','clients','role_authority','client_context'] as $route) {
   parity_check(in_array($route, $routes, true), 'Expected gateway route was not exercised: ' . $route);
 }
 
