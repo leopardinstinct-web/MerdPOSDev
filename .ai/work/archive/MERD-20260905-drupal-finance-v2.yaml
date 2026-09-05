@@ -2,10 +2,10 @@ version: 1
 id: MERD-20260905-drupal-finance-v2
 branch: milestone/drupal-finance-v2
 base_head: be576648c873c4ebccfef32cc45518c6770442c6
-last_seen_head: be576648c873c4ebccfef32cc45518c6770442c6
+last_seen_head: 5734c213ad53c5a8865c63922cbcaea20cfc4c13
 objective: Deliver a role-aware, graphic-rich MERDPOS Finance v2 over authoritative sales, cash, petty-cash and ledger services.
-packet_state: VALIDATED
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Keep MERDPOS financial services and validation rules authoritative; Drupal remains read-only in this milestone.
   - Add store/date filtering, KPI cards, cash/sales charts, account status, ledger detail and financial exception presentation.
@@ -19,7 +19,13 @@ acceptance:
   - Home, Operations, Reports and DEV remain LIVE after deployment.
 checks:
   - PHP lint, Twig syntax, auth, gateway, Working Now, resource sync and Composer security gates pass.
-remaining:
-  - Promote through PR/CI, deploy to Namecheap, live-verify desktop/mobile and archive.
-next_action: Promote validated Finance v2 through PR/CI, deploy, verify live runtime and archive.
-updated_at: "2026-09-05T23:58:00+05:00"
+remaining: []
+next_action: Archive verified Finance v2 milestone and continue to DEV v2.
+updated_at: "2026-09-06T00:09:48+05:00"
+verification:
+  - PR 43 merged after CI run 76 and Secret scan run 75 passed.
+  - Namecheap release marker at 5734c213ad53c5a8865c63922cbcaea20cfc4c13 reports finance_v2 status OK, DEV, LOA 1000, 2 filters, 5 metrics, charts, cross-store authority and read_only=true.
+  - Authenticated MERDPOS DEV desktop and 390x844 mobile Finance render shows Financial command centre, Developer, LOA 1000, LIVE signed service and read-only contract without visible horizontal clipping.
+  - Home, Operations, Reports and DEV each remain LIVE in the authenticated mobile regression.
+  - Finance fail-closed validator confirms authoritative access denial exposes no fabricated account or ledger data.
+  - Drupal remains read-only for finance and contains no direct operational DB query or duplicated financial submission rules.
