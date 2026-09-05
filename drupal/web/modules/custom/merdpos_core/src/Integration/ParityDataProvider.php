@@ -16,8 +16,10 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $state = $this->call('beta_state');
     $payload = $dashboard['payload'];
     $statePayload = $this->map($state['payload'] ?? []);
-    $permissions = $this->strings($statePayload['permissions'] ?? []);
-    $canScanAttendance = in_array('attendance.scan', $permissions, true);
+    $permissionValue = $statePayload['permissions'] ?? [];
+    $permissions = $this->strings($permissionValue);
+    $permissionMap = is_array($permissionValue) && !array_is_list($permissionValue) ? $permissionValue : [];
+    $canScanAttendance = !empty($permissionMap['attendance.scan']) || in_array('attendance.scan', $permissions, true);
     $allowedKeys = $this->strings($payload['allowed_widgets'] ?? []);
     if ($canScanAttendance && !in_array('attendance_scan', $allowedKeys, true)) $allowedKeys[] = 'attendance_scan';
     $allowed = array_fill_keys($allowedKeys, true);
