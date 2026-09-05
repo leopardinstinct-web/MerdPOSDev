@@ -1,5 +1,13 @@
 {% if merdpos_is_login %}
 <div class="merdpos-login-scene">
+  <label class="merdpos-theme-control merdpos-theme-control--login">
+    <span>Theme</span>
+    <select data-merdpos-theme aria-label="Color theme">
+      <option value="system">System</option>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </label>
   <main id="main-content" class="merdpos-login-layout" tabindex="-1">
     <section class="merdpos-login-card" aria-labelledby="merdpos-login-title">
       <div class="merdpos-login-brand">
@@ -34,9 +42,9 @@
 <div class="merdpos-shell-frame" data-active-section="{{ merdpos_active_section }}">
   <header class="merdpos-shell-header">
     <a class="merdpos-shell-brand" href="{{ path('merdpos_core.dashboard') }}" aria-label="MERDPOS Home">
-      <img src="{{ base_path ~ directory ~ '/assets/M_Icon_v2.svg' }}" alt="" width="36" height="36">
+      <img class="merdpos-shell-mark" src="{{ base_path ~ directory ~ '/assets/M_Icon_v2.svg' }}" alt="" width="36" height="36">
       <span class="merdpos-shell-brand-copy">
-        <strong>MERDPOS</strong>
+        <img class="merdpos-shell-wordmark" src="{{ base_path ~ directory ~ '/assets/merdpos-wordmark.png' }}" alt="MERDPOS">
         <small>Drupal Beta</small>
       </span>
     </a>
@@ -46,7 +54,17 @@
       <span>{{ merdpos_active_label }}</span>
     </div>
 
-    <div class="merdpos-account">
+    <div class="merdpos-shell-actions">
+      <label class="merdpos-theme-control">
+        <span>Theme</span>
+        <select data-merdpos-theme aria-label="Color theme">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+
+      <div class="merdpos-account">
       <button class="merdpos-account-trigger" type="button" data-merdpos-account-toggle aria-expanded="false">
         <span class="merdpos-account-avatar" aria-hidden="true">{{ merdpos_user_name|first|upper }}</span>
         <span class="merdpos-account-copy">
@@ -62,6 +80,7 @@
         </div>
         {% if merdpos_profile %}<span class="merdpos-account-id">MERDPOS ID {{ merdpos_profile.user_id }}</span>{% endif %}
         <a href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">Log out</a>
+      </div>
       </div>
     </div>
   </header>
