@@ -1,0 +1,9 @@
+ATTENDANCE_QR_V1_LIVE_OK
+endpoint=/merdpos/attendance/scan
+camera_or_fallback_status=Live QR scanning is not supported by this browser. Paste the MERDPOS QR link below.
+invalid_qr_status=This attendance QR is invalid.
+desktop_light_overflow=false
+desktop_dark_overflow=false
+mobile_light_overflow=false
+mobile_dark_overflow=false
+valid_attendance_mutation_exercised=false

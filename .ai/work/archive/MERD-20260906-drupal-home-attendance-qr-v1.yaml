@@ -1,0 +1,28 @@
+version: 1
+id: MERD-20260906-drupal-home-attendance-qr-v1
+branch: milestone/drupal-home-attendance-qr-v1
+base_head: d2229510c62334952a873a1d0c4001087720bc2f
+verified_release: 535d541555e9beaa2b4964413a087949a2b621cc
+objective: Add a permission-scoped Home widget that lets an authenticated MERDPOS user scan the current POS QR and record attendance through the existing authoritative attendance service.
+packet_state: VERIFIED
+lifecycle: VERIFIED
+scope:
+  - Render the scanner only when authoritative MERDPOS permission attendance.scan is present.
+  - Use the rear camera and browser QR detection where supported, with paste fallback.
+  - Protect the Drupal scan endpoint with Drupal CSRF.
+  - Forward only the extracted QR token through the signed PortalGatewayClient attendance_scan route.
+  - Preserve existing store assignment, duplicate, cooldown, cross-store suspension, IN/OUT and audit/outbox behavior.
+  - Never write attendance operational tables directly from Drupal.
+acceptance:
+  - PHP 8.4 deployment validators passed, including attendance QR contract and existing surface regressions.
+  - Release marker reports attendance_qr_v1 status ok, allowed true and /merdpos/attendance/scan.
+  - Deliberately invalid QR reached the authoritative attendance verifier and returned invalid_qr without attendance mutation.
+  - Authenticated Home regression passed on desktop and 390x844 mobile in Light and Dark with no horizontal overflow.
+  - Browser exercised the unsupported-camera fallback and manual QR submission path.
+  - No real attendance QR was submitted during verification; no test shift was created.
+evidence:
+  browser: .ai/work/archive/evidence/MERD-20260906-drupal-home-attendance-qr-v1/browser-regression.txt
+  release: .ai/work/archive/evidence/MERD-20260906-drupal-home-attendance-qr-v1/release-marker-summary.json
+  visuals: .ai/work/archive/evidence/MERD-20260906-drupal-home-attendance-qr-v1/visual-evidence-manifest.json
+remaining: []
+verified_at: "2026-09-06T03:20:00+05:00"

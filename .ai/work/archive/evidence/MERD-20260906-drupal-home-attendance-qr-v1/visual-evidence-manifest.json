@@ -1,0 +1,9 @@
+{
+  "note": "Screenshots contain live operational UI/data and are intentionally not committed; hashes prove the captured evidence set.",
+  "captures": {
+    "attendance-home-desktop-dark.png": "78a2b33b803e4133ff1c7222108b338e7f107ba4beb65759ca4ca8f2ec176ed8",
+    "attendance-home-desktop-light.png": "83901f4e551a7f8b7cbe43fe23f7884a0edec0a2b09f6f84fc05c28fc2c7d057",
+    "attendance-home-mobile-dark.png": "767af4a25e6219481d5679adbe6bb72decd5a1728310a8877a7e802948dbcbc9",
+    "attendance-home-mobile-light.png": "292c06df7794924b68f19a848fa4dc8fe5b65a13b71c1ad76f778c541febdb87"
+  }
+}

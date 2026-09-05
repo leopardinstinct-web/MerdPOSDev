@@ -1,0 +1,21 @@
+{
+  "commit": "535d541555e9beaa2b4964413a087949a2b621cc",
+  "branch": "beta/drupal-webapp",
+  "deployed_at": "2026-09-05T22:16:19Z",
+  "working_now_status": "ok",
+  "gateway_status": "ok",
+  "gateway_role": "DEV",
+  "login_status": "ok",
+  "dashboard_v2": {"status":"ok","allowed":19,"visible":19,"charts":6},
+  "attendance_qr_v1": {
+    "status": "ok",
+    "allowed": true,
+    "route": "/merdpos/attendance/scan",
+    "invalid_probe_status": "ok",
+    "invalid_probe_http": 200,
+    "invalid_probe_success": false,
+    "invalid_probe_error_code": "invalid_qr"
+  },
+  "onboarding_v2_status": "ok",
+  "parity_status": "ok"
+}
