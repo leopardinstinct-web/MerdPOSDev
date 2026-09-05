@@ -28,6 +28,7 @@ function merd_drupal_gateway_routes(): array
         'defaults' => ['GET', 'POST'],
         'store_identity' => ['GET', 'POST'],
         'store_timings' => ['GET', 'POST'],
+        'store_logo' => ['POST'],
         'role_authority' => ['GET', 'POST'],
         'client_context' => ['GET', 'POST'],
         'check_sheet' => ['GET'],
@@ -75,7 +76,7 @@ try {
     merd_request_require_method($_SERVER, 'POST');
     merd_request_require_json_content_type($_SERVER);
     $raw = file_get_contents('php://input');
-    if (!is_string($raw) || $raw === '' || strlen($raw) > 1024 * 1024) {
+    if (!is_string($raw) || $raw === '' || strlen($raw) > 4 * 1024 * 1024) {
         throw new MerdRequestException('invalid_request', 400, 'Invalid request.');
     }
     $context = 'sha256:' . hash('sha256', $raw);
