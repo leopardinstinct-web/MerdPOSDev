@@ -2536,8 +2536,71 @@
                     "extra": ""
                 },
                 {
-                    "name": "status",
+                    "name": "token_hash",
                     "position": 7,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "previous_token_hash",
+                    "position": 8,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "token_expires_at",
+                    "position": 9,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "previous_token_valid_until",
+                    "position": 10,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "token_rotated_at",
+                    "position": 11,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "revoked_at",
+                    "position": 12,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "activated_at",
+                    "position": 13,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 14,
                     "data_type": "enum",
                     "column_type": "enum('active','inactive')",
                     "nullable": true,
@@ -2546,7 +2609,7 @@
                 },
                 {
                     "name": "last_sync",
-                    "position": 8,
+                    "position": 15,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": true,
@@ -2555,7 +2618,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 9,
+                    "position": 16,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": true,
