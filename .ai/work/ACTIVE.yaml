@@ -1,7 +1,12 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-05T22:39:00+05:00"
+updated_at: "2026-09-06T15:02:00+05:00"
 active:
+  - id: MERD-20260906-attendance-qr-e2e
+    path: .ai/work/active/MERD-20260906-attendance-qr-e2e.yaml
+    lifecycle: DOCUMENTED
+    packet_state: DOCUMENTED
+
   - id: MERD-20260901-ds-revision-79
     path: .ai/work/active/MERD-20260901-ds-revision-79.yaml
     lifecycle: WIRED

@@ -22,6 +22,12 @@ These rules are binding for MERDPOS Beta unless the product owner explicitly cha
 
 Do not silently switch to `main`, the older production portal, archived implementations or the Flutter roadmap when working on Beta.
 
+### Beta scope boundary
+
+- `.ai/BETA_SCOPE.md` is the binding current-scope queue for Beta planning.
+- `docs/pos_latest/`, Flutter/full-POS M3.x, barcode POS and **M3.3 Checkout & Tender** are a separate historical/full-POS track, not current Beta work.
+- Never use that separate track to answer `what next?` for Beta unless the product owner explicitly reopens it.
+
 ## State language
 
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`

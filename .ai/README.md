@@ -24,11 +24,12 @@ A work packet records execution state; it never overrides current code, binding 
 1. `AGENTS.md`
 2. `.ai/README.md` (this file)
 3. `.ai/invariants.md`
-4. `.ai/task-gates.md`
-5. `.ai/work/ACTIVE.yaml`
-6. If the task matches an active packet, read that packet.
-7. Load the task-specific material below.
-8. Read targeted sections of `.ai/memory.md`, `.ai/decisions.md`, `.ai/playbook.md` and regression docs only when they are relevant to the affected area, provenance question, deployment step, or packet.
+4. `.ai/BETA_SCOPE.md`
+5. `.ai/task-gates.md`
+6. `.ai/work/ACTIVE.yaml`
+7. If the task matches an active packet, read that packet.
+8. Load the task-specific material below.
+9. Read targeted sections of `.ai/memory.md`, `.ai/decisions.md`, `.ai/playbook.md` and regression docs only when they are relevant to the affected area, provenance question, deployment step, or packet.
 
 Do not eagerly read every durable file into active context. Discoverability is mandatory; context saturation is not. Prefer narrow reads/searches over whole-file loading when only one section is relevant.
 
