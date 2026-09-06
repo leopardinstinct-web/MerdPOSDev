@@ -106,6 +106,32 @@ function merd_sheet_outbox(PDO $pdo, int $clientId, string $type, string $aggreg
     return $eventId;
 }
 
+function merd_sync_attendance_shift_employee_logs(PDO $pdo, int $clientId, string $shiftPublicId): void
+{
+    $stmt = $pdo->prepare(
+        "SELECT s.public_id,s.store_id,s.employee_id,s.clock_in_at,s.clock_out_at,s.status,"
+        . "e.full_name,st.store_name,COALESCE(d.device_uuid,'merdpos-authoritative') AS device_uuid "
+        . "FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id AND e.client_id=s.client_id "
+        . "INNER JOIN stores st ON st.id=s.store_id AND st.client_id=s.client_id LEFT JOIN devices d ON d.id=s.device_id "
+        . "WHERE s.client_id=? AND s.public_id=? LIMIT 1"
+    );
+    $stmt->execute([$clientId,$shiftPublicId]);
+    $shift=$stmt->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($shift)) throw new MerdWorkforceException('shift_not_found','Shift not found for timesheet reconciliation.');
+    $inId='attendance:'.$shiftPublicId.':IN'; $outId='attendance:'.$shiftPublicId.':OUT';
+    $delete=$pdo->prepare('DELETE FROM employee_logs WHERE client_id=? AND local_log_id IN (?,?)');
+    if((string)$shift['status']==='void'){ $delete->execute([$clientId,$inId,$outId]); return; }
+    $upsert=$pdo->prepare("INSERT INTO employee_logs (client_id,store_id,employee_id,user_name,store_name,log_type,log_date,log_time,log_datetime,device_uuid,local_log_id) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE store_id=VALUES(store_id),employee_id=VALUES(employee_id),user_name=VALUES(user_name),store_name=VALUES(store_name),log_type=VALUES(log_type),log_date=VALUES(log_date),log_time=VALUES(log_time),log_datetime=VALUES(log_datetime),synced_at=CURRENT_TIMESTAMP");
+    $in=(string)$shift['clock_in_at'];
+    $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'IN',substr($in,0,10),substr($in,11,8),$in,(string)$shift['device_uuid'],$inId]);
+    $out=trim((string)($shift['clock_out_at'] ?? ''));
+    if($out!==''){
+        $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'OUT',substr($out,0,10),substr($out,11,8),$out,(string)$shift['device_uuid'],$outId]);
+    } else {
+        $pdo->prepare('DELETE FROM employee_logs WHERE client_id=? AND local_log_id=?')->execute([$clientId,$outId]);
+    }
+}
+
 function merd_attendance_scan(PDO $pdo, array $employee, string $token, ?DateTimeImmutable $now = null): array
 {
     $clientId = (int)$employee['client_id'];
@@ -179,6 +205,7 @@ function merd_attendance_scan(PDO $pdo, array $employee, string $token, ?DateTim
         }
         $use = $pdo->prepare('INSERT INTO attendance_qr_uses (token_hash,employee_id,shift_id,action,used_at) VALUES (?,?,?,?,?)');
         $use->execute([$qr['token_hash'], $employeeId, $shiftId, $action, $stamp]);
+        merd_sync_attendance_shift_employee_logs($pdo, $clientId, $publicId);
         merd_sheet_outbox($pdo, $clientId, 'attendance_event', 'attendance_shift', $publicId . ':' . $action, [
             'employee_name' => (string)$employeeRow['full_name'], 'store_name' => $qr['store_name'],
             'log_type' => $action, 'occurred_at_utc' => $stamp, 'shift_id' => $publicId,
@@ -432,6 +459,9 @@ function merd_decide_dispute(PDO $pdo, array $super, string $disputePublicId, st
                     merd_sheet_outbox($pdo,(int)$super['client_id'],'employee_log_store','employee',(string)$row['employee_id'],['employee_name'=>$row['full_name'],'log_store'=>'','shift_id'=>$row['shift_public_id']]);
                 }else merd_sheet_outbox($pdo,(int)$super['client_id'],'attendance_correction','attendance_shift',$row['shift_public_id'],['employee_name'=>$row['full_name'],'store_name'=>$row['store_name'],'old_clock_in_at_utc'=>$row['clock_in_at'],'old_clock_out_at_utc'=>$row['clock_out_at'],'new_clock_in_at_utc'=>$newIn,'new_clock_out_at_utc'=>$newOut,'dispute_id'=>$disputePublicId]);
             }
+        }
+        if ($decision === 'approved' && !empty($row['shift_public_id'])) {
+            merd_sync_attendance_shift_employee_logs($pdo, (int)$super['client_id'], (string)$row['shift_public_id']);
         }
         $updateDispute = $pdo->prepare(
             'UPDATE attendance_disputes SET status=?,decided_by_employee_id=?,decided_at=?,decision_note=?,applied_at=?,after_snapshot=? WHERE id=?'
