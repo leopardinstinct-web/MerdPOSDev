@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+$_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
 require_once dirname(__DIR__) . '/api/config.php';
 require_once dirname(__DIR__) . '/api/includes/device_auth.php';
 
@@ -128,7 +129,21 @@ function att_cleanup(PDO $pdo,string $run): void {
     echo "ATTENDANCE_E2E_FIXTURE_CLEAN run={$run} employees=".count($employeeIds)." stores=".count($storeIds)." devices=".count($deviceIds)."\n";
 }
 
+
+function att_audit(PDO $pdo): void {
+    $client=att_client($pdo); $clientId=(int)$client['id'];
+    $stmt=$pdo->prepare('SELECT store_name FROM stores WHERE client_id=? AND store_name LIKE ? ORDER BY store_name');
+    $stmt->execute([$clientId,MERD_ATT_E2E_PREFIX.' %']); $runs=[];
+    foreach($stmt->fetchAll(PDO::FETCH_COLUMN) as $name) if(preg_match('/^AUTOTEST Attendance E2E (\d{14}-[a-f0-9]{6}) /',(string)$name,$m)) $runs[$m[1]]=true;
+    if(!$runs){echo "ATTENDANCE_E2E_AUDIT none\n";return;}
+    foreach(array_keys($runs) as $run){$prefix=MERD_ATT_E2E_PREFIX.' '.$run;
+        $count=function(string $table,string $column,string $like) use($pdo,$clientId): int {$q=$pdo->prepare("SELECT COUNT(*) FROM {$table} WHERE client_id=? AND {$column} LIKE ?");$q->execute([$clientId,$like]);return (int)$q->fetchColumn();};
+        echo "ATTENDANCE_E2E_AUDIT run={$run} stores=".$count('stores','store_name',$prefix.'%')." employees=".$count('employees','full_name',$prefix.'%')." devices=".$count('devices','device_uuid','autotest-attendance-%-'.$run)."\n";
+    }
+}
+
 $action=$argv[1]??'';
+if($action==='audit') { att_audit($pdo); exit(0); }
 if($action==='prepare') { $output=$argv[2]??''; if($output==='') att_fail('prepare needs private output path'); att_prepare($pdo,$output); exit(0); }
 if($action==='cleanup') { $run=$argv[2]??''; att_cleanup($pdo,$run); exit(0); }
-att_fail('usage: attendance_e2e_fixture.php prepare <private-output> | cleanup <run>');
+att_fail('usage: attendance_e2e_fixture.php audit | prepare <private-output> | cleanup <run>');

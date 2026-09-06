@@ -121,6 +121,7 @@ if(strlen($secret)<32){fwrite(STDERR,"Drupal Working Now service secret is not c
 echo "Drupal Working Now service secret configured.\n";
 ' "$SERVICE_CONFIG"
 
+php "$LIVE/backend/cli/apply_014_device_token_security.php"
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
 php "$LIVE/backend/cli/validate_drupal_portal_gateway.php"
 
