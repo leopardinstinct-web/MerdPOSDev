@@ -338,3 +338,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - The full Google Time Sheet snapshot must parse and validate before SQL mutation. Replacement is one transaction scoped to `employee_logs.client_id`; malformed rows, unknown/ambiguous stores or any insert/audit failure leave the prior SQL snapshot intact.
 - Missing employee identity is retained as a named attendance event with `employee_id = NULL`, matching the historical importer, so source attendance is not silently discarded merely because Workforce setup lags behind the Sheet.
 - The account-sheet Sync control is actual-DEV-only, CSRF-protected, confirms the destructive replacement, and is positioned after the Working client selector. It refuses to run once SQL attendance authority or active formal attendance lineage exists, so this pre-live shortcut cannot invalidate a completed migration. Reassess/retire it at attendance cutover.
+
+## 2026-09-06 - Full POS M3 roadmap is outside current Beta scope
+
+- The current MERDPOS Beta roadmap is the Drupal/web operations, attendance, disputes, timesheets/reports, administration, approved finance, migration/reconciliation and release-readiness track.
+- `docs/pos_latest/` and the older Flutter/full-POS M3.x roadmap remain valid historical/separate-product-track records, but they are not active Beta sequencing authority.
+- M3.3 Checkout & Tender must not be proposed as a Beta next step unless the product owner explicitly reopens full-POS work.
+- Current Beta sequencing is maintained in `.ai/BETA_SCOPE.md`; active work packets refine execution within that queue.
