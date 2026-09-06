@@ -21,7 +21,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $permissionMap = is_array($permissionValue) && !array_is_list($permissionValue) ? $permissionValue : [];
     $canScanAttendance = !empty($permissionMap['attendance.scan']) || in_array('attendance.scan', $permissions, true);
     $allowedKeys = $this->strings($payload['allowed_widgets'] ?? []);
-    if ($canScanAttendance && !in_array('attendance_scan', $allowedKeys, true)) $allowedKeys[] = 'attendance_scan';
+    $allowedKeys = array_values(array_filter($allowedKeys, static fn(string $key): bool => $key !== 'attendance_scan'));
+    if ($canScanAttendance && !in_array('my_shift', $allowedKeys, true)) $allowedKeys[] = 'my_shift';
     $allowed = array_fill_keys($allowedKeys, true);
     $role = $this->map($payload['role'] ?? []);
     $management = $this->map($payload['management'] ?? []);
@@ -49,11 +50,14 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     }    if (isset($allowed['my_shift'])) {
       $mine = $this->rows($payload['my_working'] ?? []);
       $shift = $mine[0] ?? NULL;
-      $kpis[] = $this->dashboardKpi(
+      $myShift = $this->dashboardKpi(
         'my_shift', 'My current shift', $shift ? 'Clocked in' : 'Off shift',
-        $shift ? ((string)($shift['store_name'] ?? '') . ' · since ' . $this->localDateTime($shift['clock_in_at'] ?? '', (string)($shift['timezone'] ?? $timezone))) : 'Not clocked in',
+        $shift ? ((string)($shift['store_name'] ?? '') . ' - since ' . $this->localDateTime($shift['clock_in_at'] ?? '', (string)($shift['timezone'] ?? $timezone))) : 'Not clocked in',
         $shift ? 'success' : 'info', 'clock'
       );
+      $myShift['clocked_in'] = $shift !== NULL;
+      $myShift['store_name'] = $shift ? (string)($shift['store_name'] ?? 'Current store') : 'Scan store QR';
+      $kpis[] = $myShift;
     }
     if (isset($allowed['my_disputes'])) {
       $open = count(array_filter($this->rows($payload['disputes'] ?? []), static fn(array $row): bool => in_array((string)($row['status'] ?? ''), ['pending','awaiting_employee'], true)));
@@ -200,7 +204,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['dashboard_widgets'] = $widgets;
     $surface['chart_specs'] = $chartSpecs;
     $surface['can_scan_attendance'] = $canScanAttendance;
-    $surface['visible_widget_count'] = count($kpis) + count($widgets) + ($canScanAttendance ? 1 : 0);
+    $surface['visible_widget_count'] = count($kpis) + count($widgets);
     $surface['period_label'] = (string)($filterState['period_label'] ?? 'Current period');
     return $surface;
   }

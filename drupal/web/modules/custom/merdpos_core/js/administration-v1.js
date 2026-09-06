@@ -2,14 +2,10 @@
   Drupal.behaviors.merdposAdministration = {
     attach(context) {
       once('merdpos-admin', '[data-merdpos-admin]', context).forEach((root) => {
-        const tabs = [...root.querySelectorAll('[data-admin-tab]')];
         const panels = [...root.querySelectorAll('[data-admin-panel]')];
         const activate = (key) => {
-          tabs.forEach((tab) => tab.classList.toggle('is-active', tab.dataset.adminTab === key));
           panels.forEach((panel) => panel.classList.toggle('is-active', panel.dataset.adminPanel === key));
-          try { sessionStorage.setItem('merdpos-admin-tab', key); } catch (_) {}
         };
-        tabs.forEach((tab) => tab.addEventListener('click', () => activate(tab.dataset.adminTab)));
         root.querySelectorAll('[data-admin-search]').forEach((input) => {
           const panel = root.querySelector(`[data-admin-panel="${input.dataset.adminSearch}"]`);
           const items = [...(panel?.querySelectorAll('.merdpos-admin-list > .merdpos-admin-editor') || [])];
@@ -19,12 +15,9 @@
           };
           input.addEventListener('input', apply);
         });
-        let saved = '';
-        try {
-          const requested = new URLSearchParams(window.location.search).get('tab') || '';
-          saved = requested || sessionStorage.getItem('merdpos-admin-tab') || '';
-        } catch (_) {}
-        if (saved && tabs.some((tab) => tab.dataset.adminTab === saved)) activate(saved);
+        let requested = '';
+        try { requested = new URLSearchParams(window.location.search).get('tab') || ''; } catch (_) {}
+        if (requested && panels.some((panel) => panel.dataset.adminPanel === requested)) activate(requested);
 
         root.querySelectorAll('[data-onboard-form]').forEach((form) => {
           const scheduleToggle = form.querySelector('[data-onboard-schedule-toggle]');

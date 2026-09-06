@@ -1,10 +1,4 @@
 .merdpos-attendance-widget[hidden],.merdpos-attendance-panel[hidden],.merdpos-attendance-result[hidden]{display:none!important}
-.merdpos-attendance-widget{margin:var(--space-6) 0;border:1px solid var(--color-border-subtle);border-radius:var(--radius-dialog);background:linear-gradient(135deg,var(--color-surface-main),var(--color-surface-selected));box-shadow:var(--shadow-card);overflow:hidden}
-.merdpos-attendance-widget-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--space-5);padding:var(--space-5) var(--space-6)}
-.merdpos-attendance-widget-icon{display:grid;place-items:center;width:3.5rem;height:3.5rem;border-radius:var(--radius-card);background:var(--gradient-brand);color:var(--color-text-inverse);box-shadow:var(--shadow-action)}
-.merdpos-attendance-widget-icon svg{width:1.65rem;height:1.65rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.merdpos-attendance-widget-copy h2{margin:var(--space-1) 0 var(--space-1);font-size:var(--type-xl);color:var(--color-text-primary)}
-.merdpos-attendance-widget-copy p:last-child{margin:0;max-width:54rem;color:var(--color-text-secondary);line-height:var(--line-body)}
 .merdpos-attendance-open,.merdpos-attendance-manual button,.merdpos-attendance-result button{min-height:var(--size-control);padding:0 var(--space-5);border:0;border-radius:var(--radius-control);background:var(--gradient-brand);color:var(--color-text-inverse);font:inherit;font-weight:var(--weight-bold);cursor:pointer;box-shadow:var(--shadow-action)}
 .merdpos-attendance-open:focus-visible,.merdpos-attendance-manual button:focus-visible,.merdpos-attendance-result button:focus-visible,.merdpos-attendance-stop:focus-visible,.merdpos-attendance-manual input:focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:2px}
 .merdpos-attendance-panel{display:grid;grid-template-columns:minmax(16rem,1fr) minmax(18rem,.8fr);gap:var(--space-5);padding:var(--space-5) var(--space-6) var(--space-6);border-top:1px solid var(--color-border-subtle);background:var(--color-surface-muted)}
@@ -31,5 +25,18 @@
 .merdpos-attendance-result span{font-weight:var(--weight-semibold);color:var(--color-text-primary)}
 .merdpos-attendance-result small{color:var(--color-text-muted)}
 .merdpos-attendance-result button{justify-self:start;margin-top:var(--space-3)}
-@media (max-width:51.25rem){.merdpos-attendance-widget-main{grid-template-columns:auto minmax(0,1fr)}.merdpos-attendance-open{grid-column:1/-1;width:100%}.merdpos-attendance-panel{grid-template-columns:1fr}.merdpos-attendance-camera,.merdpos-attendance-controls,.merdpos-attendance-manual,.merdpos-attendance-result{grid-column:1}}
-@media (max-width:35rem){.merdpos-attendance-widget{margin:var(--space-4) 0}.merdpos-attendance-widget-main,.merdpos-attendance-panel{padding:var(--space-4)}.merdpos-attendance-widget-main{gap:var(--space-3)}.merdpos-attendance-widget-icon{width:3rem;height:3rem}.merdpos-attendance-camera,.merdpos-attendance-camera video{min-height:15rem}.merdpos-attendance-controls{align-items:flex-start;flex-direction:column}.merdpos-attendance-stop{width:100%}.merdpos-attendance-manual{grid-template-columns:1fr}.merdpos-attendance-manual button{width:100%}}
+
+.merdpos-dashboard-kpi--my-shift{grid-column:span 2;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.85rem;align-items:start;overflow:visible}
+.merdpos-dashboard-kpi--my-shift>.merdpos-dashboard-kpi-icon,.merdpos-dashboard-kpi--my-shift>.merdpos-dashboard-kpi-copy,.merdpos-dashboard-kpi--my-shift>.merdpos-current-shift-action{position:relative;z-index:1}
+.merdpos-dashboard-kpi--my-shift>.merdpos-dashboard-kpi-copy{margin-top:0}
+.merdpos-current-shift-action{display:flex;align-items:center;gap:.7rem;justify-self:end}
+.merdpos-current-shift-action>div{display:grid;gap:.1rem;text-align:right}
+.merdpos-current-shift-action span{color:var(--color-text-muted);font-size:.65rem;font-weight:var(--weight-bold);letter-spacing:.06em}
+.merdpos-current-shift-action strong{max-width:11rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-primary);font-size:.82rem}
+.merdpos-attendance-open--icon{width:2.8rem;height:2.8rem;min-height:2.8rem;padding:0;display:grid;place-items:center;border-radius:var(--radius-circle)}
+.merdpos-attendance-open--icon svg{width:1.35rem;height:1.35rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.merdpos-dashboard-kpi--my-shift .merdpos-attendance-panel{grid-column:1/-1;margin:.2rem -1.15rem -1.15rem;padding:var(--space-4);border-radius:0 0 1.2rem 1.2rem;position:relative;z-index:2}
+.merdpos-dashboard-kpi--my-shift .merdpos-attendance-panel[hidden]{display:none!important}
+@media(max-width:72rem){.merdpos-dashboard-kpi--my-shift{grid-column:1/-1}}
+@media(max-width:51.25rem){.merdpos-dashboard-kpi--my-shift{grid-column:1;grid-template-columns:auto minmax(0,1fr)}.merdpos-current-shift-action{grid-column:1/-1;width:100%;justify-content:space-between;justify-self:stretch}.merdpos-current-shift-action>div{text-align:left}.merdpos-dashboard-kpi--my-shift .merdpos-attendance-panel{grid-template-columns:1fr}.merdpos-dashboard-kpi--my-shift .merdpos-attendance-camera,.merdpos-dashboard-kpi--my-shift .merdpos-attendance-controls,.merdpos-dashboard-kpi--my-shift .merdpos-attendance-manual,.merdpos-dashboard-kpi--my-shift .merdpos-attendance-result{grid-column:1}}
+@media(max-width:35rem){.merdpos-dashboard-kpi--my-shift .merdpos-attendance-panel{padding:var(--space-3)}.merdpos-attendance-camera,.merdpos-attendance-camera video{min-height:15rem}.merdpos-attendance-controls{align-items:flex-start;flex-direction:column}.merdpos-attendance-stop{width:100%}.merdpos-attendance-manual{grid-template-columns:1fr}.merdpos-attendance-manual button{width:100%}}

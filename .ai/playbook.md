@@ -306,3 +306,7 @@ When a task discovers a workstation/server access fact that would materially cha
 3. a repo-owned executable/helper or validator when the workflow can be encoded without secrets.
 
 For Namecheap on the current Windows toolchain, the binding path is `drupal/tools/namecheap_remote_deploy.py`; plain Windows `ssh` is not a valid first attempt.
+
+## UI mojibake incident rule
+
+When a browser shows artifacts such as `Â·`, corrupted arrows/dashes, or replacement glyphs, inspect the tracked source before blaming fonts or the browser. Correct the source encoding/text, then run `drupal/tools/validate_source_encoding.php`. Do not fix only the rendered instance; keep the deployment guard so the defect cannot recur elsewhere.
