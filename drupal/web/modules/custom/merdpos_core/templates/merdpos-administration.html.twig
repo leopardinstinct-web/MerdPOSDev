@@ -4,7 +4,7 @@
 {% set employees = directory.employees|default([]) %}
 {% set store_fields = directory.store_edit_fields|default([]) %}
 {% set roles = actor.roles|default([]) %}
-{% set post_url = path('merdpos_core.administration', {}, {'query': {'client_id': selected_client_id}}) %}
+{% set post_url = path('merdpos_core.administration', {}, {'query': {'client_id': selected_client_id, 'tab': current_tab}}) %}
 
 <section class="merdpos-admin-v1" data-merdpos-admin>
   <header class="merdpos-admin-hero">
@@ -18,25 +18,28 @@
         <span>Authoritative writes</span>
       </div>
     </div>
-    <div class="merdpos-admin-context-card">
-      <small>Working client</small>
-      <strong>{{ selected_client.name|default('MERDPOS client') }}</strong>
-      <span>{{ selected_client.client_code|default('') }}</span>
-    </div>
+    {% if current_tab in ['stores', 'workforce'] %}
+      {% if can_select_client %}
+      <form class="merdpos-admin-client-switch merdpos-admin-client-switch--hero" method="get">
+        <input type="hidden" name="tab" value="{{ current_tab }}">
+        <label><span>Working client</span>
+          <select name="client_id" onchange="this.form.submit()">
+            {% for client in selectable_clients %}
+              <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} &middot; {{ client.client_code }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <noscript><button type="submit">Switch</button></noscript>
+      </form>
+      {% else %}
+      <div class="merdpos-admin-context-card">
+        <small>Working client</small>
+        <strong>{{ selected_client.name|default('MERDPOS client') }}</strong>
+        <span>{{ selected_client.client_code|default('') }}</span>
+      </div>
+      {% endif %}
+    {% endif %}
   </header>
-
-  {% if can_select_client %}
-  <form class="merdpos-admin-client-switch" method="get">
-    <label><span>Manage client</span>
-      <select name="client_id" onchange="this.form.submit()">
-        {% for client in selectable_clients %}
-          <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} &middot; {{ client.client_code }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <noscript><button type="submit">Switch</button></noscript>
-  </form>
-  {% endif %}
 
 
   {% if can_manage_clients %}

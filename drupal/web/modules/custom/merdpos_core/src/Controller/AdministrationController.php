@@ -59,7 +59,8 @@ final class AdministrationController extends ControllerBase {
     $directoryResult = $this->gateway->call('admin_directory', 'GET', [], [], $selectedClientId ?: NULL);
     $directory = $directoryResult['status'] === 'ok' && is_array($directoryResult['payload'] ?? null)
       ? $directoryResult['payload'] : [];
-    if ($request->isMethod('POST')) return $this->handlePost($request, $selectedClientId, $directory);
+    $requestedTab = $this->requestedTab($request);
+    if ($request->isMethod('POST')) return $this->handlePost($request, $selectedClientId, $directory, $requestedTab);
 
     $timingsResult = $this->gateway->call('store_timings', 'GET', [], [], $selectedClientId ?: NULL);
     $timingsPayload = $timingsResult['status'] === 'ok' && is_array($timingsResult['payload'] ?? null)
@@ -87,15 +88,20 @@ final class AdministrationController extends ControllerBase {
       $selectedClient = $contextPayload['client'];
     }
 
+    $canManageClients = $clientsResult['status'] === 'ok';
+    $currentTab = $requestedTab ?? ($canManageClients ? 'onboarding' : 'stores');
+    if (!$canManageClients && in_array($currentTab, ['onboarding', 'clients'], true)) $currentTab = 'stores';
+
     return [
       '#theme' => 'merdpos_administration',
       '#directory' => $directory,
       '#clients' => is_array($clientsPayload['clients'] ?? null) ? $clientsPayload['clients'] : [],
-      '#can_manage_clients' => $clientsResult['status'] === 'ok',
+      '#can_manage_clients' => $canManageClients,
       '#can_select_client' => $canSelectClient,
       '#selectable_clients' => $selectableClients,
       '#selected_client_id' => $selectedClientId,
       '#selected_client' => $selectedClient,
+      '#current_tab' => $currentTab,
       '#form_token' => $this->csrf->get(self::TOKEN_ID),
       '#gateway_status' => $directoryResult['status'] ?? 'unavailable',
       '#store_timings' => $storeTimings,
@@ -107,11 +113,11 @@ final class AdministrationController extends ControllerBase {
     ];
   }
 
-  private function handlePost(Request $request, int $selectedClientId, array $directory): RedirectResponse {
+  private function handlePost(Request $request, int $selectedClientId, array $directory, ?string $requestedTab): RedirectResponse {
     $token = (string) $request->request->get('form_token', '');
     if (!$this->csrf->validate($token, self::TOKEN_ID)) {
       $this->messenger()->addError($this->t('Your form session expired. Refresh and try again.'));
-      return $this->redirectBack($selectedClientId);
+      return $this->redirectBack($selectedClientId, $requestedTab);
     }
 
     $action = (string) $request->request->get('entity_action', '');
@@ -125,7 +131,7 @@ final class AdministrationController extends ControllerBase {
 
     $payload = is_array($result['payload'] ?? null) ? $result['payload'] : [];
     $redirectClientId = max(0, (int) ($payload['redirect_client_id'] ?? $selectedClientId));
-    $redirectTab = isset($payload['redirect_tab']) ? (string) $payload['redirect_tab'] : NULL;
+    $redirectTab = isset($payload['redirect_tab']) ? (string) $payload['redirect_tab'] : $requestedTab;
     if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) {
       $message = trim((string) ($payload['message'] ?? 'Saved.')) ?: 'Saved.';
       $this->messenger()->addStatus($message);
@@ -239,6 +245,11 @@ final class AdministrationController extends ControllerBase {
     if ($value === null || $value === '') return NULL;
     $parsed = filter_var($value, FILTER_VALIDATE_INT);
     return $parsed !== false && $parsed > 0 ? (int) $parsed : NULL;
+  }
+
+  private function requestedTab(Request $request): ?string {
+    $tab = strtolower(trim((string) $request->query->get('tab', '')));
+    return in_array($tab, ['onboarding', 'clients', 'stores', 'workforce'], true) ? $tab : NULL;
   }
 
   private function redirectBack(int $clientId, ?string $tab = NULL): RedirectResponse {
