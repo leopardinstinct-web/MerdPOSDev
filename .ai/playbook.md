@@ -309,4 +309,4 @@ For Namecheap on the current Windows toolchain, the binding path is `drupal/tool
 
 ## UI mojibake incident rule
 
-When a browser shows artifacts such as `Â·`, corrupted arrows/dashes, or replacement glyphs, inspect the tracked source before blaming fonts or the browser. Correct the source encoding/text, then run `drupal/tools/validate_source_encoding.php`. Do not fix only the rendered instance; keep the deployment guard so the defect cannot recur elsewhere.
+When a browser shows artifacts such as `U+00C2 followed by U+00B7`, corrupted arrows/dashes, or replacement glyphs, inspect the tracked source before blaming fonts or the browser. Correct the source encoding/text, then run `drupal/tools/validate_source_encoding.php`. Do not fix only the rendered instance; keep the deployment guard so the defect cannot recur elsewhere.

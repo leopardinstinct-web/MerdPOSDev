@@ -17,6 +17,10 @@ Read `AGENTS.md` and the bootstrap files from the current `namecheap-beta-live` 
 
 The default branch may contain a discovery pointer for Beta, but it is not authoritative Beta source.
 
+## Gate 0.25 — Current Beta scope before roadmap decisions
+
+Before proposing a milestone, priority or `what next?`, read `.ai/BETA_SCOPE.md`. The old Flutter/full-POS track under `docs/pos_latest/` and its M3.x/Checkout & Tender milestones are excluded from the current Beta queue unless the product owner explicitly reopens them. A historical roadmap cannot become active merely because it is detailed or newer than another historical file.
+
 ## Gate 0.5 — Resumable work packet + concurrency guard
 
 Use `.ai/work/` for non-trivial work that spans multiple meaningful checkpoints, tools/environments, deployment/verification stages, a real blocker, or likely continuation across chats. A small isolated change completed and evidenced safely in one continuous turn may remain packetless.

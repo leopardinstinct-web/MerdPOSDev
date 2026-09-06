@@ -33,6 +33,7 @@ function continuity_forbid(string $content, string $needle, string $label, array
 $agents = continuity_read($repo . '/AGENTS.md', $errors);
 $bootstrap = continuity_read($repo . '/.ai/README.md', $errors);
 $invariants = continuity_read($repo . '/.ai/invariants.md', $errors);
+$betaScope = continuity_read($repo . '/.ai/BETA_SCOPE.md', $errors);
 $memory = continuity_read($repo . '/.ai/memory.md', $errors);
 $activeIndex = continuity_read($repo . '/.ai/work/ACTIVE.yaml', $errors);
 $decisions = continuity_read($repo . '/.ai/decisions.md', $errors);
@@ -40,15 +41,24 @@ $regressions = continuity_read($repo . '/.ai/regression-inventory.md', $errors);
 $studioDoc = continuity_read($repo . '/namecheap_beta_live/timesheet_portal/UI_STUDIO.md', $errors);
 $portalReadme = continuity_read($repo . '/namecheap_beta_live/timesheet_portal/README.md', $errors);
 $backendReadme = continuity_read($repo . '/namecheap_beta_live/backend/README.md', $errors);
+$posRoadmap = continuity_read($repo . '/docs/pos_latest/PRODUCT_ROADMAP_DRAFT.md', $errors);
 
 continuity_require($agents, 'namecheap-beta-live', 'canonical branch bootstrap', $errors);
+continuity_require($bootstrap, '.ai/BETA_SCOPE.md', 'Beta-scope bootstrap', $errors);
 continuity_require($bootstrap, '.ai/work/ACTIVE.yaml', 'work-packet bootstrap', $errors);
-continuity_require($memory, '**Updated:** 2026-09-01', 'current memory date', $errors);
+continuity_require($memory, '**Updated:** 2026-09-06', 'current memory date', $errors);
 continuity_require($memory, 'Current DevStudio checkpoint', 'current DevStudio memory', $errors);
 continuity_require($memory, 'Studio29', 'Studio29 memory marker', $errors);
 continuity_require($memory, 'migration 035', 'migration 035 memory marker', $errors);
 continuity_require($memory, 'migration 036:', 'migration 036 memory marker', $errors);
 continuity_require($memory, 'Current analytics/dashboard checkpoint', 'analytics memory marker', $errors);
+continuity_require($agents, '.ai/BETA_SCOPE.md', 'AGENTS Beta-scope pointer', $errors);
+continuity_require($invariants, 'Beta scope boundary', 'binding Beta scope boundary', $errors);
+continuity_require($betaScope, 'Explicitly outside the current Beta queue', 'Beta out-of-scope boundary', $errors);
+continuity_require($betaScope, 'M3.3 Checkout & Tender', 'M3.3 exclusion marker', $errors);
+continuity_require($betaScope, 'Attendance QR end-to-end', 'current Beta first milestone', $errors);
+continuity_require($memory, 'Do not suggest them as the next Beta step', 'memory Beta-scope guard', $errors);
+continuity_require($posRoadmap, 'Scope boundary (2026-09-06)', 'historical POS roadmap boundary banner', $errors);
 
 continuity_require($invariants, 'dedicated client-scoped Studio state/audit subsystem', 'current Studio persistence invariant', $errors);
 continuity_require($invariants, 'Palette-standard escalation', 'palette escalation invariant', $errors);
@@ -75,6 +85,7 @@ continuity_require($backendReadme, 'AI continuity release guard', 'backend conti
 $durableDocs = [
     '.ai/decisions.md' => $decisions,
     '.ai/invariants.md' => $invariants,
+    '.ai/BETA_SCOPE.md' => $betaScope,
     '.ai/memory.md' => $memory,
     '.ai/playbook.md' => continuity_read($repo . '/.ai/playbook.md', $errors),
     '.ai/regression-inventory.md' => $regressions,
@@ -92,6 +103,7 @@ foreach ($durableDocs as $label => $content) {
 
 continuity_require($activeIndex, 'authoritative_branch: namecheap-beta-live', 'ACTIVE canonical branch', $errors);
 continuity_require($activeIndex, 'updated_at:', 'ACTIVE update timestamp', $errors);
+continuity_require($activeIndex, 'MERD-20260906-attendance-qr-e2e', 'current Beta attendance E2E packet', $errors);
 
 preg_match_all('/^\s+path:\s+(.ai\/work\/active\/[^\s]+\.yaml)\s*$/m', $activeIndex, $matches);
 $indexedPaths = $matches[1] ?? [];

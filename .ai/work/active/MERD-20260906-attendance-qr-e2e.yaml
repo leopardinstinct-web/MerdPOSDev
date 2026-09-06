@@ -1,0 +1,30 @@
+id: MERD-20260906-attendance-qr-e2e
+branch: milestone/drupal-beta-scope-fix-v1
+base_head: 935d88cb96812963edef934e18f9b781ac07a08a
+last_seen_head: 935d88cb96812963edef934e18f9b781ac07a08a
+objective: Prove the current Beta attendance QR workflow end-to-end using disposable DUMMY context, without mutating production staff attendance.
+packet_state: DOCUMENTED
+lifecycle: DOCUMENTED
+scope:
+  - Generate/use a valid MERDPOS attendance QR in an exact DUMMY employee/store/device context.
+  - Verify Home My current shift QR action clocks IN and OUT through the authoritative attendance service.
+  - Verify Working Now and Timesheet/Reports reflect the attendance lifecycle.
+  - Verify duplicate/cooldown, invalid/expired QR, wrong-store and unauthorized paths.
+  - Verify forgot-previous-user/POS handover creates the expected governed dispute.
+  - Verify dispute review resolution preserves frozen payroll/timesheet reconciliation rules.
+constraints:
+  - DUMMY-only destructive/attendance mutation testing; abort if exact DUMMY identity/context is not proven.
+  - No direct Drupal writes to operational attendance tables.
+  - No Flutter/full-POS M3.x, Checkout & Tender or retail-sale scope in this Beta milestone.
+acceptance:
+  - Valid DUMMY clock IN and OUT observed end-to-end.
+  - Current Shift, Working Now and Timesheet/Reports agree with authoritative backend state.
+  - Protection/error paths are exercised without production mutations.
+  - Handover/dispute path is exercised and resolved through canonical services.
+  - DUMMY test evidence/data is cleaned or explicitly retained as labelled evidence.
+remaining:
+  - Execute the DUMMY end-to-end acceptance sequence.
+next_action: Resolve or create an exact disposable DUMMY employee/store/device context and generate one valid attendance QR; abort before mutation if DUMMY identity cannot be proven.
+blocked: false
+blocker: null
+updated_at: "2026-09-06T15:02:00+05:00"

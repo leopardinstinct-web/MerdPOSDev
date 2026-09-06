@@ -103,11 +103,17 @@ Do not reconstruct current implementation state from old Studio version notes or
 
 ## Current priority
 
-1. Keep the Beta product moving.
-2. Preserve authorization, tenant isolation, frozen payroll logic and deployment safety.
-3. Keep GitHub continuity state truthful after substantive work.
-4. Close/archive completed work packets promptly.
-5. Promote reusable lessons into decisions/playbook/regression guards instead of leaving them only in chat.
+The active Beta queue is defined in `.ai/BETA_SCOPE.md`. The immediate acceptance milestone is **Attendance QR end-to-end**. Ordered Beta work is:
+
+1. Attendance QR end-to-end.
+2. Attendance → Dispute end-to-end.
+3. Timesheet reconciliation with frozen payroll rules unchanged.
+4. Administration acceptance for Clients, Stores and Workforce.
+5. Approved Finance Beta workflows/validations only.
+6. Legacy/Google migration reconciliation and production readiness.
+7. Role-by-role Beta acceptance and scope freeze.
+
+The old Flutter/full-POS roadmap, `docs/pos_latest/`, M3.x and **M3.3 Checkout & Tender** are explicitly outside the current Beta queue unless the product owner reopens that track. Do not suggest them as the next Beta step.
 
 ## Repository governance
 

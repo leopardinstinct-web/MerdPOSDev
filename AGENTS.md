@@ -73,6 +73,8 @@ Small bounded changes that can be safely completed and evidenced in one continuo
 
 Do not silently switch to `main`, an older portal tree, archived implementations or the Flutter app when the task is about Beta.
 
+The historical/full-POS track under `docs/pos_latest/` is **not** the current Beta roadmap. M3.x, barcode POS, Checkout & Tender, receipts and retail sale-sync work must never be proposed as the next Beta milestone unless the product owner explicitly reopens that separate track. For current Beta sequencing, read `.ai/BETA_SCOPE.md`.
+
 ## Required state language
 
 `REQUESTED → DOCUMENTED → CODED → WIRED → DEPLOYED → VERIFIED`
