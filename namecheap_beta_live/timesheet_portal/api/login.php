@@ -31,26 +31,40 @@ try {
     $fingerprint = 'portal-' . hash('sha256', (string)($_SERVER['REMOTE_ADDR'] ?? '') . '|' . (string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
     $lockout = new MerdAuthLockoutService(new MerdPdoAuthLockoutStore($pdo));
     $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    // Before the tenant is known, rate-limit this numeric login identity in the canonical portal namespace.
     $lockout->assertNotLocked(PORTAL_CLIENT_ID, $userId, $fingerprint, 'portal_login', $now);
-
     $stmt = $pdo->prepare(
         "SELECT id,client_id,store_id,full_name,user_id,login_password,pin_code,employee_type,role_name,client_role_id,status "
-        . "FROM employees WHERE client_id=? AND user_id=? AND status='active' LIMIT 1"
+        . "FROM employees WHERE user_id=? AND status='active' ORDER BY client_id,id LIMIT 21"
     );
-    $stmt->execute([PORTAL_CLIENT_ID, $userId]);
-    $employee = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->execute([$userId]);
+    $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (count($candidates) > 20) {
+        throw new RuntimeException('Ambiguous MERDPOS login identity.');
+    }
 
-    if (!is_array($employee) || !merd_employee_authenticates($employee, $password)) {
-        $lockout->recordFailure(PORTAL_CLIENT_ID, is_array($employee) ? (int)$employee['id'] : null, $userId, $fingerprint, 'portal_login', $now);
+    $matched = [];
+    foreach ($candidates as $candidate) {
+        if (is_array($candidate) && merd_employee_authenticates($candidate, $password)) $matched[] = $candidate;
+    }
+    if (count($matched) !== 1) {
+        // Do not increment every tenant that happens to reuse this User ID; that would create a cross-tenant lockout vector.
+        $lockout->recordFailure(PORTAL_CLIENT_ID, null, $userId, $fingerprint, 'portal_login', $now);
         json_response(['success' => false, 'error' => 'Invalid User ID or Password.'], 200);
+    }
+    $employee = $matched[0];
+    $authClientId = (int)$employee['client_id'];
+    if ($authClientId !== PORTAL_CLIENT_ID) {
+        $lockout->assertNotLocked($authClientId, $userId, $fingerprint, 'portal_login', $now);
     }
 
     if (merd_employee_needs_hash_upgrade($employee)) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $upgrade = $pdo->prepare('UPDATE employees SET login_password=?,pin_code=? WHERE id=?');
-        $upgrade->execute([$hash, $hash, (int)$employee['id']]);
+        $upgrade = $pdo->prepare('UPDATE employees SET login_password=?,pin_code=? WHERE id=? AND client_id=?');
+        $upgrade->execute([$hash, $hash, (int)$employee['id'], $authClientId]);
     }
-    $lockout->recordSuccess(PORTAL_CLIENT_ID, (int)$employee['id'], $userId, $fingerprint, 'portal_login', $now);
+    $lockout->recordSuccess(PORTAL_CLIENT_ID, $authClientId === PORTAL_CLIENT_ID ? (int)$employee['id'] : null, $userId, $fingerprint, 'portal_login', $now);
+    if ($authClientId !== PORTAL_CLIENT_ID) $lockout->recordSuccess($authClientId, (int)$employee['id'], $userId, $fingerprint, 'portal_login', $now);
 
     $actualRole = strtoupper(trim((string)$employee['employee_type']));
     if ($actualRole === '') $actualRole = 'USER';
