@@ -1,10 +1,10 @@
 id: MERD-20260906-attendance-qr-e2e
-branch: milestone/beta-scope-fix-v1
-base_head: b6f06e2a880dcb5c077256a0d292c09448842e2a
-last_seen_head: b6f06e2a880dcb5c077256a0d292c09448842e2a
+branch: milestone/attendance-qr-e2e-v1
+base_head: 97be696366fd7fb2da9c078fcd34c79513983088
+last_seen_head: 97be696366fd7fb2da9c078fcd34c79513983088
 objective: Prove the current Beta attendance QR workflow end-to-end using disposable DUMMY context, without mutating production staff attendance.
-packet_state: DOCUMENTED
-lifecycle: DOCUMENTED
+packet_state: CODED
+lifecycle: CODED
 scope:
   - Generate/use a valid MERDPOS attendance QR in an exact DUMMY employee/store/device context.
   - Verify Home My current shift QR action clocks IN and OUT through the authoritative attendance service.
@@ -22,9 +22,13 @@ acceptance:
   - Protection/error paths are exercised without production mutations.
   - Handover/dispute path is exercised and resolved through canonical services.
   - DUMMY test evidence/data is cleaned or explicitly retained as labelled evidence.
+checks:
+  - name: Fixture/browser harness syntax
+    result: PASS
+    evidence: PHP lint, Node syntax and git diff check pass locally.
 remaining:
-  - Execute the DUMMY end-to-end acceptance sequence.
-next_action: Resolve or create an exact disposable DUMMY employee/store/device context and generate one valid attendance QR; abort before mutation if DUMMY identity cannot be proven.
+  - Deploy the DUMMY-only fixture/browser harness and execute the live acceptance sequence.
+next_action: Deploy the DUMMY-only attendance fixture/test harness, prepare an exact DUMMY run, then execute the live Drupal IN/OUT and handover acceptance sequence.
 blocked: false
 blocker: null
-updated_at: "2026-09-06T15:02:00+05:00"
+updated_at: "2026-09-06T16:35:00+05:00"
