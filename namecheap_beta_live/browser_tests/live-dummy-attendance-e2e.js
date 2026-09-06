@@ -10,6 +10,7 @@ if (!String(fx.run || '').match(/^\d{14}-[a-f0-9]{6}$/)) throw new Error('Invali
 
 const DRUPAL = 'https://drupal-beta.merdpos.com';
 const BACKEND = 'https://app.merdpos.com/beta/backend/api/';
+const PORTAL_LOGIN = 'https://app.merdpos.com/beta/timesheet_portal/api/login.php';
 const results = [];
 const pass = (name, detail='') => { results.push({name,ok:true,detail}); console.log('PASS', name, detail); };
 const fail = (name, detail='') => { throw new Error(`${name}: ${detail}`); };
@@ -34,6 +35,15 @@ async function jsonResponse(response, label, expectSuccess=true) {
   if (expectSuccess && (!response.ok() || !data.success)) fail(label, `${response.status()} ${JSON.stringify(data).slice(0,400)}`);
   return { response, data };
 }
+async function preflightLogin(request, employee, label) {
+  const { data } = await jsonResponse(await request.post(PORTAL_LOGIN, {
+    headers: { 'Accept':'application/json' }, form: { user_id:String(employee.user_id), password:String(employee.password) }
+  }), label);
+  if (Number(data.user?.client_id || 0) !== Number(fx.client.id)) fail(label, 'authoritative login resolved wrong client');
+  if (Number(data.user?.id || 0) !== Number(employee.id)) fail(label, 'authoritative login resolved wrong employee');
+  pass(label, `client=${data.user.client_id} employee=${data.user.id}`);
+}
+
 async function registerKey(request, device, kp) {
   const { data } = await jsonResponse(await request.post(BACKEND+'register_attendance_key.php', {
     headers: { 'Accept':'application/json', 'Content-Type':'application/json', 'Authorization':`Bearer ${device.token}` },
@@ -91,6 +101,8 @@ async function main() {
   const browser=await chromium.launch({channel:'chrome',headless:true});
   const apiContext=await browser.newContext(); const request=apiContext.request;
   const keyA=keyPair(), keyB=keyPair();
+  await preflightLogin(request,fx.employees.user,'DUMMY USER authoritative login preflight');
+  await preflightLogin(request,fx.employees.super,'DUMMY SUPER authoritative login preflight');
   await registerKey(request,fx.devices.a,keyA); await registerKey(request,fx.devices.b,keyB);
   pass('Register DUMMY POS attendance keys', `devices=${fx.devices.a.id},${fx.devices.b.id}`);
 
