@@ -61,7 +61,8 @@ async function login(context, employee) {
   await page.goto(DRUPAL+'/login', {waitUntil:'domcontentloaded', timeout:20000});
   await page.locator('input[name="user_id"]').fill(String(employee.user_id));
   await page.locator('input[name="password"]').fill(String(employee.password));
-  await Promise.all([page.waitForURL(/\/merdpos(?:\/|$)/,{timeout:20000}), page.locator('input[type="submit"],button[type="submit"]').click()]);
+  await page.locator('input[type="submit"],button[type="submit"]').click();
+  try { await page.waitForURL((url) => url.pathname === '/merdpos' || url.pathname.startsWith('/merdpos/'),{timeout:20000}); } catch (error) { console.error('LOGIN_DIAG', employee.name, page.url(), (await page.locator('body').innerText()).replace(/\s+/g,' ').slice(0,2500)); throw error; }
   return page;
 }
 
@@ -96,6 +97,13 @@ async function pageContains(page, text, label) {
   if (!body.includes(text)) fail(label, `missing ${text}`);
   pass(label, text);
 }
+async function workingNowContains(page, text, expected, label) {
+  const panel=page.locator('.merdpos-dashboard-panel--working_now');
+  await panel.waitFor({state:'visible',timeout:15000});
+  const body=(await panel.innerText()).replace(/\s+/g,' ');
+  if (body.includes(text) !== expected) fail(label, expected ? `missing ${text}` : `still contains ${text}`);
+  pass(label, expected ? text : 'cleared');
+}
 
 async function main() {
   const browser=await chromium.launch({channel:'chrome',headless:true});
@@ -127,7 +135,7 @@ async function main() {
   await pageContains(userPage,'Clocked in','My current shift reflects IN');
   await pageContains(userPage,fx.stores.a.name,'My current shift shows correct store');
   await superPage.goto(DRUPAL+'/merdpos',{waitUntil:'domcontentloaded'});
-  await pageContains(superPage,fx.employees.user.name,'Working Now reflects DUMMY IN');
+  await workingNowContains(superPage,fx.employees.user.name,true,'Working Now reflects DUMMY IN');
 
   console.log('WAIT cooldown window 61s');
   await userPage.waitForTimeout(61000);
@@ -135,9 +143,7 @@ async function main() {
   await userPage.reload({waitUntil:'domcontentloaded'});
   await pageContains(userPage,'Off shift','My current shift reflects OUT');
   await superPage.goto(DRUPAL+'/merdpos',{waitUntil:'domcontentloaded'});
-  const superHome=(await superPage.locator('body').innerText()).replace(/\s+/g,' ');
-  if (superHome.includes(fx.employees.user.name)) fail('Working Now clears after OUT',fx.employees.user.name);
-  pass('Working Now clears after OUT');
+  await workingNowContains(superPage,fx.employees.user.name,false,'Working Now clears after OUT');
 
   await superPage.goto(DRUPAL+'/merdpos/reports',{waitUntil:'domcontentloaded'});
   await pageContains(superPage,fx.employees.user.name,'Reports include completed DUMMY shift');

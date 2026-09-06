@@ -116,6 +116,8 @@ function att_cleanup(PDO $pdo,string $run): void {
     try {
         if($employeeIds){$marks=implode(',',array_fill(0,count($employeeIds),'?')); $args=array_merge([$clientId],$employeeIds);
             foreach(['attendance_qr_uses','attendance_disputes','attendance_account_flags'] as $table){$col=$table==='attendance_qr_uses'?'employee_id':'employee_id';$pdo->prepare("DELETE FROM {$table} WHERE {$col} IN ({$marks})")->execute($employeeIds);}
+            $pdo->prepare("DELETE FROM employee_logs WHERE client_id=? AND employee_id IN ({$marks})")->execute($args);
+            $pdo->prepare("DELETE FROM google_sheet_outbox WHERE client_id=? AND payload LIKE ?")->execute([$clientId,'%'.$prefix.'%']);
             $pdo->prepare("DELETE FROM attendance_shifts WHERE client_id=? AND employee_id IN ({$marks})")->execute($args);
             $pdo->prepare("DELETE FROM employee_store_assignments WHERE client_id=? AND employee_id IN ({$marks})")->execute($args);
             $pdo->prepare("DELETE FROM employee_store_access WHERE client_id=? AND employee_id IN ({$marks})")->execute($args);
