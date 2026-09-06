@@ -13,6 +13,7 @@ function rich_read(string $path): string {
 
 $twig = rich_read($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
 $theme = rich_read($root . '/web/themes/custom/merdpos_app/merdpos_app.theme');
+$shellCss = rich_read($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
 $services = rich_read($root . '/web/modules/custom/merdpos_core/merdpos_core.services.yml');
 $route = rich_read($root . '/web/modules/custom/merdpos_core/src/Routing/MerdposRouteSubscriber.php');
 $denied = rich_read($root . '/web/modules/custom/merdpos_core/src/Routing/MerdposAccessDeniedSubscriber.php');
@@ -24,6 +25,11 @@ rich_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-logo-a
 rich_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-mark.png'), 'Approved MERDPOS mark missing.');
 rich_check(str_contains($twig, 'Welcome back.'), 'Previous MERDPOS login heading missing.');
 rich_check(str_contains($twig, 'merdpos-logo-approved.png'), 'Approved MERDPOS login logo not rendered.');
+rich_check(str_contains($twig, '/assets/merdpos-mark.png'), 'Approved MERDPOS shell mark not rendered.');
+rich_check(str_contains($twig, '/assets/merdpos-wordmark.png'), 'Approved MERDPOS shell wordmark not rendered.');
+rich_check(str_contains($shellCss, '.merdpos-shell-mark {') && !str_contains($shellCss, '.merdpos-shell-brand img {'), 'Shell mark/wordmark sizing is not isolated.');
+rich_check(!str_contains($shellCss, 'filter: brightness(0) invert(1)'), 'Dark mode still destroys approved wordmark colors.');
+rich_check(str_contains($shellCss, ':root[data-theme="dark"] .merdpos-shell-brand {'), 'Dark-mode brand lockup surface missing.');
 rich_check(str_contains($twig, 'Operations') && str_contains($twig, 'Reports') && str_contains($twig, 'Finance') && str_contains($twig, 'DEV'), 'Rich capability graphics missing.');
 rich_check(str_contains($theme, 'merdpos_core.identity_manager'), 'MERDPOS profile-aware shell missing.');
 rich_check(str_contains($route, 'MerdposLoginForm'), 'Drupal login route is not replaced.');
