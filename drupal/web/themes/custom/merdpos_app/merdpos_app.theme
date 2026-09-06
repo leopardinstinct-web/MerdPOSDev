@@ -14,6 +14,8 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_is_login'] = $route_name === 'user.login';
   $variables['merdpos_profile'] = NULL;
   $variables['merdpos_pending_disputes'] = 0;
+  $variables['merdpos_permission_map'] = [];
+  $variables['merdpos_section_tabs'] = [];
 
   if ($variables['merdpos_is_login']) {
     $variables['merdpos_user_name'] = '';
@@ -36,6 +38,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
     try {
       $state = \Drupal::service('merdpos_core.portal_gateway')->call('beta_state', 'GET');
       $payload = is_array($state['payload'] ?? NULL) ? $state['payload'] : [];
+      $variables['merdpos_permission_map'] = is_array($payload['permissions'] ?? NULL) ? $payload['permissions'] : [];
       foreach (($payload['disputes'] ?? []) as $row) {
         if (!is_array($row)) continue;
         if (in_array(strtolower((string) ($row['status'] ?? '')), ['pending','awaiting_employee'], true)) $variables['merdpos_pending_disputes']++;
@@ -82,6 +85,44 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_active_section'] = $active[0]['key'] ?? 'home';
   $variables['merdpos_active_label'] = $active[0]['label'] ?? 'Home';
   if ($route_name === 'merdpos_core.disputes') $variables['merdpos_active_label'] = 'Disputes';
+
+  $perms = $variables['merdpos_permission_map'];
+  $requested_tab = trim((string) (\Drupal::request()->query->get('tab') ?? ''));
+  if ($route_name === 'merdpos_core.administration') {
+    $tabs = [];
+    if (!empty($perms['clients.manage'])) {
+      $tabs[] = ['key'=>'onboarding','label'=>'Onboard'];
+      $tabs[] = ['key'=>'clients','label'=>'Clients'];
+    }
+    if (!empty($perms['stores.manage'])) $tabs[] = ['key'=>'stores','label'=>'Stores'];
+    if (!empty($perms['workforce.manage'])) $tabs[] = ['key'=>'workforce','label'=>'Workforce'];
+    $keys = array_column($tabs, 'key');
+    $active_tab = in_array($requested_tab, $keys, true) ? $requested_tab : ($keys[0] ?? '');
+    foreach ($tabs as $tab) {
+      $tab['url'] = Url::fromRoute('merdpos_core.administration', [], ['query'=>['tab'=>$tab['key']]])->toString();
+      $tab['active'] = $tab['key'] === $active_tab;
+      $variables['merdpos_section_tabs'][] = $tab;
+    }
+  }
+  elseif ($route_name === 'merdpos_core.operations') {
+    $variables['merdpos_section_tabs'] = [
+      ['label'=>'Operations','url'=>Url::fromRoute('merdpos_core.operations')->toString(),'active'=>true],
+      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>false],
+    ];
+  }
+  elseif ($route_name === 'merdpos_core.reports') {
+    $variables['merdpos_section_tabs'] = [
+      ['label'=>'Reports','url'=>Url::fromRoute('merdpos_core.reports')->toString(),'active'=>true],
+      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>false],
+    ];
+  }
+  elseif ($route_name === 'merdpos_core.disputes') {
+    $variables['merdpos_section_tabs'] = [
+      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>true],
+      ['label'=>'Operations','url'=>Url::fromRoute('merdpos_core.operations')->toString(),'active'=>false],
+      ['label'=>'Reports','url'=>Url::fromRoute('merdpos_core.reports')->toString(),'active'=>false],
+    ];
+  }
 }
 
 /**

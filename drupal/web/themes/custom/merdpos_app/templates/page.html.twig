@@ -49,10 +49,6 @@
       </span>
     </a>
 
-    <div class="merdpos-shell-context" aria-label="Current section">
-      <span class="merdpos-shell-context-dot" aria-hidden="true"></span>
-      <span>{{ merdpos_active_label }}</span>
-    </div>
 
     <div class="merdpos-shell-actions">
       <label class="merdpos-theme-control">
@@ -85,38 +81,13 @@
     </div>
   </header>
 
-  <div class="merdpos-context-strip" aria-label="Section context">
-    {% if merdpos_active_label == 'Disputes' %}
-      <span class="merdpos-context-item is-current">Disputes</span>
-      <span class="merdpos-context-item is-live">Operations</span>
-      <span class="merdpos-context-item is-live">Timesheets</span>
-    {% elseif merdpos_active_section == 'operations' %}
-      <span class="merdpos-context-item is-current">Operations</span>
-      <span class="merdpos-context-item is-live">Workforce</span>
-      <span class="merdpos-context-item is-live">Stores</span>
-      <span class="merdpos-context-item is-live">Disputes</span>
-    {% elseif merdpos_active_section == 'admin' %}
-      <span class="merdpos-context-item is-current">Administration</span>
-      <span class="merdpos-context-item is-live">Clients</span>
-      <span class="merdpos-context-item is-live">Stores</span>
-      <span class="merdpos-context-item is-live">Workforce</span>
-    {% elseif merdpos_active_section == 'reports' %}
-      <span class="merdpos-context-item is-current">Reports</span>
-      <span class="merdpos-context-item is-live">Timesheets</span>
-      <span class="merdpos-context-item is-live">Disputes</span>
-    {% elseif merdpos_active_section == 'finance' %}
-      <span class="merdpos-context-item is-current">Finance</span>
-      <span class="merdpos-context-item is-live">Store cash</span>
-      <span class="merdpos-context-item is-live">Ledger</span>
-    {% elseif merdpos_active_section == 'dev' %}
-      <span class="merdpos-context-item is-current">DEV</span>
-      <span class="merdpos-context-item is-live">Platform</span>
-      <span class="merdpos-context-item is-live">Clients</span>
-    {% else %}
-      <span class="merdpos-context-item is-current">Dashboard</span>
-    {% endif %}
-    <span class="merdpos-context-state">Signed MERDPOS data</span>
-  </div>
+  {% if merdpos_section_tabs|default([]) %}
+  <nav class="merdpos-section-tabs merdpos-shell-section-tabs{{ merdpos_active_section == 'admin' ? ' merdpos-admin-tabs' : '' }}" aria-label="{{ merdpos_active_label }} sections">
+    {% for tab in merdpos_section_tabs %}
+      <a href="{{ tab.url }}" class="{{ tab.active ? 'is-active' : '' }}"{{ tab.active ? ' aria-current="page"' : '' }}>{{ tab.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 
   <main id="main-content" class="merdpos-shell-workspace" tabindex="-1">
     {{ page.content }}

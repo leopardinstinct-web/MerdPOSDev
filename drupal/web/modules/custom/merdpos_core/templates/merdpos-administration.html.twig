@@ -30,7 +30,7 @@
     <label><span>Manage client</span>
       <select name="client_id" onchange="this.form.submit()">
         {% for client in selectable_clients %}
-          <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} Â· {{ client.client_code }}</option>
+          <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} &middot; {{ client.client_code }}</option>
         {% endfor %}
       </select>
     </label>
@@ -38,17 +38,12 @@
   </form>
   {% endif %}
 
-  <div class="merdpos-admin-tabs" role="tablist" aria-label="Administration areas">
-    {% if can_manage_clients %}<button type="button" class="is-active" data-admin-tab="onboarding">Onboard <b>3 steps</b></button><button type="button" data-admin-tab="clients">Clients <b>{{ clients|length }}</b></button>{% endif %}
-    <button type="button" class="{{ can_manage_clients ? '' : 'is-active' }}" data-admin-tab="stores">Stores <b>{{ stores|length }}</b></button>
-    <button type="button" data-admin-tab="workforce">Workforce <b>{{ employees|length }}</b></button>
-  </div>
 
   {% if can_manage_clients %}
   <section class="merdpos-admin-section is-active merdpos-onboard-v2" data-admin-panel="onboarding">
     <div class="merdpos-admin-section-head">
-      <div><p>GUIDED PROVISIONING</p><h2>Client â†’ store â†’ admin</h2><span>Provision the minimum working MERDPOS tenant from one governed submission.</span></div>
-      <span class="merdpos-admin-permission">DEV Â· clients.manage</span>
+      <div><p>GUIDED PROVISIONING</p><h2>Client &rarr; store &rarr; admin</h2><span>Provision the minimum working MERDPOS tenant from one governed submission.</span></div>
+      <span class="merdpos-admin-permission">DEV &middot; clients.manage</span>
     </div>
     <div class="merdpos-onboard-steps" aria-label="Onboarding steps"><span><b>1</b> Client</span><i></i><span><b>2</b> First store</span><i></i><span><b>3</b> Initial admin</span></div>
     <form method="post" action="{{ post_url }}" class="merdpos-onboard-form" data-onboard-form>
@@ -59,7 +54,7 @@
       </div></fieldset>
       <fieldset><legend><b>2</b><span>First store</span></legend><div class="merdpos-onboard-grid">
         <label><span>Store name</span><input name="onboard_store_name" maxlength="150" required placeholder="Example Central"></label>
-        <label><span>Store code</span><input name="onboard_store_code" maxlength="50" placeholder="Optional â€” generated if blank"></label>
+        <label><span>Store code</span><input name="onboard_store_code" maxlength="50" placeholder="Optional &mdash; generated if blank"></label>
         <label class="is-wide"><span>Address</span><input name="onboard_store_address" maxlength="1000" placeholder="Optional"></label>
         <label><span>Store email</span><input type="email" name="onboard_store_email" maxlength="255" placeholder="Optional"></label>
         <label><span>Store phone</span><input type="tel" name="onboard_store_phone" maxlength="50" placeholder="Optional"></label>
@@ -90,9 +85,9 @@
   <section class="merdpos-admin-section" data-admin-panel="clients">
     <div class="merdpos-admin-section-head">
       <div><p>PLATFORM</p><h2>Clients</h2><span>Create tenants and maintain their lifecycle.</span></div>
-      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search clients</span><input type="search" data-admin-search="clients" placeholder="Name or code"></label><span class="merdpos-admin-permission">DEV Â· clients.manage</span></div>
+      <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search clients</span><input type="search" data-admin-search="clients" placeholder="Name or code"></label><span class="merdpos-admin-permission">DEV &middot; clients.manage</span></div>
     </div>
-    <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
+    <details class="merdpos-admin-editor merdpos-admin-editor--new">
       <summary><strong>New client</strong><span>Add a governed MERDPOS tenant</span></summary>
       <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client">
@@ -105,7 +100,7 @@
     <div class="merdpos-admin-list">
       {% for client in clients %}
       <details class="merdpos-admin-editor">
-        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores Â· {{ client.employee_count }} people</span></div></summary>
+        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span></div></summary>
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client"><input type="hidden" name="id" value="{{ client.id }}">
           <label><span>Client name</span><input name="name" maxlength="100" value="{{ client.name }}" required></label>
@@ -125,7 +120,7 @@
       <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search stores</span><input type="search" data-admin-search="stores" placeholder="Name or code"></label><span class="merdpos-admin-permission">stores.manage</span></div>
     </div>
     {% if permissions['stores.manage']|default(false) %}
-    <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
+    <details class="merdpos-admin-editor merdpos-admin-editor--new">
       <summary><strong>New store</strong><span>Create inside {{ selected_client.name|default('current client') }}</span></summary>
       <form method="post" action="{{ post_url }}" enctype="multipart/form-data" class="merdpos-admin-form merdpos-admin-form--wide">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_store">
@@ -174,13 +169,13 @@
       <div class="merdpos-admin-head-actions"><label class="merdpos-admin-search"><span>Search workforce</span><input type="search" data-admin-search="workforce" placeholder="Name, ID or role"></label><span class="merdpos-admin-permission">workforce.manage</span></div>
     </div>
     {% if permissions['workforce.manage']|default(false) %}
-    <details class="merdpos-admin-editor merdpos-admin-editor--new" open>
+    <details class="merdpos-admin-editor merdpos-admin-editor--new">
       <summary><strong>New employee</strong><span>Add to {{ selected_client.name|default('current client') }}</span></summary>
       <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_employee">
         <label><span>Full name</span><input name="full_name" maxlength="190" required></label>
         <label><span>User ID</span><input name="user_id" inputmode="numeric" maxlength="32" pattern="[0-9]+" required></label>
-        <label><span>Role</span><select name="client_role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_label }} Â· LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
+        <label><span>Role</span><select name="client_role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_label }} &middot; LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
         <label><span>Status</span><select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
         <label><span>Store access</span><select name="store_access_mode" data-store-mode><option value="all">All stores</option><option value="selected">Selected stores</option></select></label>
         <label class="is-wide"><span>Allowed stores</span><select name="store_ids[]" multiple size="{{ stores|length > 4 ? 4 : (stores|length > 0 ? stores|length : 1) }}" data-store-list>{% for store in stores %}{% if store.status == 'active' %}<option value="{{ store.id }}">{{ store.store_name }}</option>{% endif %}{% endfor %}</select></label>
@@ -193,13 +188,13 @@
     <div class="merdpos-admin-list">
       {% for employee in employees %}
       <details class="merdpos-admin-editor">
-        <summary><div><strong>{{ employee.full_name }}</strong><span>ID {{ employee.user_id }} Â· {{ employee.role_label }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ employee.status }}</b><span>{{ employee.store_access_mode == 'selected' ? employee.assigned_store_ids|length ~ ' stores' : 'All stores' }}</span></div></summary>
+        <summary><div><strong>{{ employee.full_name }}</strong><span>ID {{ employee.user_id }} &middot; {{ employee.role_label }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ employee.status }}</b><span>{{ employee.store_access_mode == 'selected' ? employee.assigned_store_ids|length ~ ' stores' : 'All stores' }}</span></div></summary>
         {% if employee.editable %}
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_employee"><input type="hidden" name="id" value="{{ employee.id }}">
           <label><span>Full name</span><input name="full_name" maxlength="190" value="{{ employee.full_name }}" required></label>
           <label><span>User ID</span><input name="user_id" inputmode="numeric" maxlength="32" value="{{ employee.user_id }}" required></label>
-          <label><span>Role</span><select name="client_role_id">{% for role in roles %}<option value="{{ role.id }}"{{ role.id == employee.client_role_id ? ' selected' : '' }}>{{ role.role_label }} Â· LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
+          <label><span>Role</span><select name="client_role_id">{% for role in roles %}<option value="{{ role.id }}"{{ role.id == employee.client_role_id ? ' selected' : '' }}>{{ role.role_label }} &middot; LOA {{ role.authority_level }}</option>{% endfor %}</select></label>
           <label><span>Status</span><select name="status"{{ employee.self ? ' disabled' : '' }}><option value="active"{{ employee.status == 'active' ? ' selected' : '' }}>Active</option><option value="inactive"{{ employee.status == 'inactive' ? ' selected' : '' }}>Inactive</option></select>{% if employee.self %}<input type="hidden" name="status" value="active">{% endif %}</label>
           <label><span>Store access</span><select name="store_access_mode" data-store-mode><option value="all"{{ employee.store_access_mode == 'all' ? ' selected' : '' }}>All stores</option><option value="selected"{{ employee.store_access_mode == 'selected' ? ' selected' : '' }}>Selected stores</option></select></label>
           <label class="is-wide"><span>Allowed stores</span><select name="store_ids[]" multiple size="{{ stores|length > 4 ? 4 : (stores|length > 0 ? stores|length : 1) }}" data-store-list>{% for store in stores %}{% if store.status == 'active' %}<option value="{{ store.id }}"{{ store.id in employee.assigned_store_ids|default([]) ? ' selected' : '' }}>{{ store.store_name }}</option>{% endif %}{% endfor %}</select></label>

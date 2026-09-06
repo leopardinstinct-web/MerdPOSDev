@@ -49,6 +49,8 @@ php84 "$DRUPAL/tools/validate_attendance_qr_widget_v1.php"
 php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
 php84 "$DRUPAL/tools/validate_disputes_twig.php"
 php84 "$DRUPAL/tools/validate_store_settings_dark_v1.php"
+php84 "$DRUPAL/tools/validate_source_encoding.php"
+php84 "$DRUPAL/tools/validate_shell_declutter_v1.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 # Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
 git -C "$REPO" checkout -- drupal/web/.htaccess
@@ -149,7 +151,7 @@ ONBOARDING_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["can_select_client"])||empty($p["admin_role_available"])||empty($p["stores_manage"])||empty($p["workforce_manage"])){fwrite(STDERR,"Administration & Onboarding v2 precondition self-test failed.\n");exit(1);}' "$ONBOARDING_V2_PROBE"
 
 ATTENDANCE_QR_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
-  '$p=\Drupal::service("merdpos_core.parity_provider")->home([]); $g=\Drupal::service("merdpos_core.portal_gateway")->call("attendance_scan","POST",[],["token"=>"x.x"]); $gp=$g["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.attendance_scan"); echo json_encode(["status"=>!empty($p["can_scan_attendance"])?"ok":"failed","allowed"=>in_array("attendance_scan",$p["allowed_widgets"]??[],true),"route"=>$route->getPath(),"invalid_probe_status"=>$g["status"]??null,"invalid_probe_http"=>$g["http_status"]??null,"invalid_probe_success"=>$gp["success"]??null,"invalid_probe_error_code"=>$gp["error_code"]??null],JSON_UNESCAPED_SLASHES);')"
+  '$p=\Drupal::service("merdpos_core.parity_provider")->home([]); $g=\Drupal::service("merdpos_core.portal_gateway")->call("attendance_scan","POST",[],["token"=>"x.x"]); $gp=$g["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.attendance_scan"); echo json_encode(["status"=>!empty($p["can_scan_attendance"])?"ok":"failed","allowed"=>in_array("my_shift",$p["allowed_widgets"]??[],true),"route"=>$route->getPath(),"invalid_probe_status"=>$g["status"]??null,"invalid_probe_http"=>$g["http_status"]??null,"invalid_probe_success"=>$gp["success"]??null,"invalid_probe_error_code"=>$gp["error_code"]??null],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); $h=(int)($p["invalid_probe_http"]??0); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["allowed"])||($p["route"]??"")!=="/merdpos/attendance/scan"||($p["invalid_probe_status"]??"")!=="ok"||$h!==200||($p["invalid_probe_success"]??true)!==false||($p["invalid_probe_error_code"]??"")!=="invalid_qr"){fwrite(STDERR,"Home attendance QR v1 self-test failed.\n");exit(1);}' "$ATTENDANCE_QR_V1_PROBE"
 
 DISPUTE_WRITE_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \

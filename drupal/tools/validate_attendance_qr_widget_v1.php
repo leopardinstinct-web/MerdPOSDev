@@ -27,8 +27,11 @@ foreach (['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) {
   attendance_widget_check(!str_contains($controller, $forbidden), "Dashboard attendance scan must not contain operational SQL: {$forbidden}");
 }
 attendance_widget_check(str_contains($provider, "in_array('attendance.scan', \$permissions, true)"), 'Attendance widget permission gate missing.');
-attendance_widget_check(str_contains($provider, "'attendance_scan'"), 'Attendance scan system widget key missing.');
-attendance_widget_check(str_contains($template, 'data-attendance-scan'), 'Attendance scanner widget markup missing.');
+attendance_widget_check(str_contains($provider, "!in_array('my_shift', \$allowedKeys, true)"), 'Attendance scan must be integrated into My current shift.');
+attendance_widget_check(str_contains($template, 'data-attendance-scan'), 'Attendance scanner markup missing from My current shift.');
+attendance_widget_check(str_contains($template, 'LOG IN STORE'), 'Current shift store label missing.');
+attendance_widget_check(str_contains($template, 'merdpos-attendance-open--icon'), 'Current shift QR icon action missing.');
+attendance_widget_check(!str_contains($template, 'merdpos-attendance-widget-main'), 'Standalone attendance widget must remain retired.');
 attendance_widget_check(str_contains($template, 'data-attendance-video'), 'Attendance camera preview missing.');
 attendance_widget_check(str_contains($template, 'data-attendance-manual'), 'Attendance QR fallback input missing.');
 attendance_widget_check(!str_contains($template, '|raw'), 'Attendance widget must preserve Twig escaping.');
@@ -38,7 +41,7 @@ attendance_widget_check(str_contains($js, "'X-MERDPOS-CSRF': csrf"), 'Attendance
 attendance_widget_check(str_contains($js, 'data-attendance-manual'), 'Attendance manual fallback behavior missing.');
 attendance_widget_check(!str_contains($js, 'innerHTML'), 'Attendance result rendering must not use innerHTML.');
 attendance_widget_check(str_contains($css, '.merdpos-attendance-panel[hidden]'), 'Attendance hidden-state CSS guard missing.');
-attendance_widget_check(str_contains($css, '@media (max-width:35rem)'), 'Attendance phone layout CSS missing.');
+attendance_widget_check(str_contains($css, 'max-width:35rem'), 'Attendance phone layout CSS missing.');
 attendance_widget_check(str_contains($libraries, 'js/attendance-scan.js'), 'Attendance scanner JS is not attached to Home.');
 attendance_widget_check(str_contains($libraries, 'css/attendance-scan.css'), 'Attendance scanner CSS is not attached to Home.');
 

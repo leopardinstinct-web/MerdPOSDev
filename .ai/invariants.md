@@ -99,6 +99,13 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 - DevStudio must never directly modify canonical repository source, payroll/finance/workforce operational data, or ordinary product authorization state.
 - Browser-local settings may persist locally; global unresolved patches are server-backed and revisioned.
 - A DevStudio patch becomes real product behavior only after canonical source implementation, tests, deployment, real runtime verification and receipt confirmation.
+## Text encoding and UI copy
+
+- Git-owned MERDPOS UI/source text must remain valid UTF-8.
+- Mojibake markers such as double-decoded middle dots, arrows, dashes or replacement characters are release-blocking defects.
+- Prefer plain ASCII or HTML entities for decorative separators in Twig when the glyph is not semantically important.
+- `drupal/tools/validate_source_encoding.php` is a mandatory Drupal deployment guard and must not be bypassed to ship corrupted text.
+
 ## Security
 
 - Never commit secrets or private backend config.

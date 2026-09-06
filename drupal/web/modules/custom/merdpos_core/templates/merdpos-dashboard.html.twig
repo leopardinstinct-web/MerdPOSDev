@@ -46,12 +46,23 @@
   {% if surface.metrics %}
     <div class="merdpos-dashboard-kpis" aria-label="Role dashboard summary">
       {% for metric in surface.metrics %}
-        <article class="merdpos-dashboard-kpi is-{{ metric.tone }}">
+        <article class="merdpos-dashboard-kpi is-{{ metric.tone }}{{ metric.key == 'my_shift' ? ' merdpos-dashboard-kpi--my-shift' : '' }}"{% if metric.key == 'my_shift' and surface.can_scan_attendance and surface.attendance_scan %} data-attendance-scan data-endpoint="{{ surface.attendance_scan.endpoint }}" data-csrf="{{ surface.attendance_scan.csrf }}"{% endif %}>
           <span class="merdpos-dashboard-kpi-icon">{{ ui.icon(metric.icon) }}</span>
           <div class="merdpos-dashboard-kpi-copy">
             <span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.meta }}</small>
           </div>
-          {% if metric.kind == 'change' %}
+          {% if metric.key == 'my_shift' and surface.can_scan_attendance and surface.attendance_scan %}
+            <div class="merdpos-current-shift-action">
+              <div><span>LOG IN STORE</span><strong>{{ metric.store_name }}</strong></div>
+              <button type="button" class="merdpos-attendance-open merdpos-attendance-open--icon" data-attendance-open aria-label="Scan attendance QR" title="Scan attendance QR">{{ ui.icon('qr') }}</button>
+            </div>
+            <div class="merdpos-attendance-panel" data-attendance-panel hidden>
+              <div class="merdpos-attendance-camera"><video data-attendance-video playsinline muted aria-label="Attendance QR camera preview"></video><div class="merdpos-attendance-target" aria-hidden="true"><span></span><span></span><span></span><span></span></div></div>
+              <div class="merdpos-attendance-controls"><div class="merdpos-attendance-status" data-attendance-status role="status" aria-live="polite">Camera is ready when you are.</div><button type="button" class="merdpos-attendance-stop" data-attendance-stop>Close camera</button></div>
+              <form class="merdpos-attendance-manual" data-attendance-manual><label><span>QR link or token fallback</span><input type="text" data-attendance-input maxlength="1800" autocomplete="off" spellcheck="false" placeholder="Paste the scanned MERDPOS QR link"></label><button type="submit">Submit QR</button></form>
+              <div class="merdpos-attendance-result" data-attendance-result hidden><strong data-attendance-result-action></strong><span data-attendance-result-store></span><small data-attendance-result-time></small><button type="button" data-attendance-refresh>Refresh Home</button></div>
+            </div>
+          {% elseif metric.kind == 'change' %}
             <div class="merdpos-dashboard-delta is-{{ metric.direction }}"><b>{{ metric.change }}</b><span>{{ metric.detail }}</span></div>
           {% else %}
             <span class="merdpos-dashboard-kpi-spark" aria-hidden="true"></span>
@@ -59,39 +70,6 @@
         </article>
       {% endfor %}
     </div>
-  {% endif %}
-  {% if surface.can_scan_attendance and surface.attendance_scan %}
-    <article class="merdpos-attendance-widget" data-attendance-scan data-endpoint="{{ surface.attendance_scan.endpoint }}" data-csrf="{{ surface.attendance_scan.csrf }}">
-      <div class="merdpos-attendance-widget-main">
-        <span class="merdpos-attendance-widget-icon">{{ ui.icon('qr') }}</span>
-        <div class="merdpos-attendance-widget-copy">
-          <p class="merdpos-eyebrow">ATTENDANCE</p>
-          <h2>Scan the POS QR</h2>
-          <p>Use the current QR at your store to clock in or clock out. MERDPOS validates your account, store assignment and the live QR before changing attendance.</p>
-        </div>
-        <button type="button" class="merdpos-attendance-open" data-attendance-open>Scan attendance QR</button>
-      </div>
-      <div class="merdpos-attendance-panel" data-attendance-panel hidden>
-        <div class="merdpos-attendance-camera">
-          <video data-attendance-video playsinline muted aria-label="Attendance QR camera preview"></video>
-          <div class="merdpos-attendance-target" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        </div>
-        <div class="merdpos-attendance-controls">
-          <div class="merdpos-attendance-status" data-attendance-status role="status" aria-live="polite">Camera is ready when you are.</div>
-          <button type="button" class="merdpos-attendance-stop" data-attendance-stop>Close camera</button>
-        </div>
-        <form class="merdpos-attendance-manual" data-attendance-manual>
-          <label><span>QR link or token fallback</span><input type="text" data-attendance-input maxlength="1800" autocomplete="off" spellcheck="false" placeholder="Paste the scanned MERDPOS QR link"></label>
-          <button type="submit">Submit QR</button>
-        </form>
-        <div class="merdpos-attendance-result" data-attendance-result hidden>
-          <strong data-attendance-result-action></strong>
-          <span data-attendance-result-store></span>
-          <small data-attendance-result-time></small>
-          <button type="button" data-attendance-refresh>Refresh Home</button>
-        </div>
-      </div>
-    </article>
   {% endif %}
   <div class="merdpos-dashboard-grid">
     {% for widget in surface.dashboard_widgets %}
