@@ -110,9 +110,11 @@ function merd_sync_attendance_shift_employee_logs(PDO $pdo, int $clientId, strin
 {
     $stmt = $pdo->prepare(
         "SELECT s.public_id,s.store_id,s.employee_id,s.clock_in_at,s.clock_out_at,s.status,"
-        . "e.full_name,st.store_name,COALESCE(d.device_uuid,'merdpos-authoritative') AS device_uuid "
+        . "e.full_name,st.store_name,COALESCE(NULLIF(st.timezone,''),NULLIF(c.default_timezone,''),'Australia/Sydney') AS timezone,"
+        . "COALESCE(d.device_uuid,'merdpos-authoritative') AS device_uuid "
         . "FROM attendance_shifts s INNER JOIN employees e ON e.id=s.employee_id AND e.client_id=s.client_id "
-        . "INNER JOIN stores st ON st.id=s.store_id AND st.client_id=s.client_id LEFT JOIN devices d ON d.id=s.device_id "
+        . "INNER JOIN stores st ON st.id=s.store_id AND st.client_id=s.client_id INNER JOIN clients c ON c.id=s.client_id "
+        . "LEFT JOIN devices d ON d.id=s.device_id "
         . "WHERE s.client_id=? AND s.public_id=? LIMIT 1"
     );
     $stmt->execute([$clientId,$shiftPublicId]);
@@ -122,11 +124,19 @@ function merd_sync_attendance_shift_employee_logs(PDO $pdo, int $clientId, strin
     $delete=$pdo->prepare('DELETE FROM employee_logs WHERE client_id=? AND local_log_id IN (?,?)');
     if((string)$shift['status']==='void'){ $delete->execute([$clientId,$inId,$outId]); return; }
     $upsert=$pdo->prepare("INSERT INTO employee_logs (client_id,store_id,employee_id,user_name,store_name,log_type,log_date,log_time,log_datetime,device_uuid,local_log_id) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE store_id=VALUES(store_id),employee_id=VALUES(employee_id),user_name=VALUES(user_name),store_name=VALUES(store_name),log_type=VALUES(log_type),log_date=VALUES(log_date),log_time=VALUES(log_time),log_datetime=VALUES(log_datetime),synced_at=CURRENT_TIMESTAMP");
-    $in=(string)$shift['clock_in_at'];
-    $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'IN',substr($in,0,10),substr($in,11,8),$in,(string)$shift['device_uuid'],$inId]);
-    $out=trim((string)($shift['clock_out_at'] ?? ''));
-    if($out!==''){
-        $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'OUT',substr($out,0,10),substr($out,11,8),$out,(string)$shift['device_uuid'],$outId]);
+    $tzName=(string)($shift['timezone'] ?? 'Australia/Sydney');
+    try{$tz=new DateTimeZone($tzName);}catch(Throwable){$tz=new DateTimeZone('Australia/Sydney');}
+    $utc=new DateTimeZone('UTC');
+    $localParts=static function(string $stamp) use($tz,$utc): array {
+        $local=(new DateTimeImmutable($stamp,$utc))->setTimezone($tz);
+        return ['date'=>$local->format('Y-m-d'),'time'=>$local->format('H:i:s'),'datetime'=>$local->format('Y-m-d H:i:s')];
+    };
+    $in=$localParts((string)$shift['clock_in_at']);
+    $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'IN',$in['date'],$in['time'],$in['datetime'],(string)$shift['device_uuid'],$inId]);
+    $outUtc=trim((string)($shift['clock_out_at'] ?? ''));
+    if($outUtc!==''){
+        $out=$localParts($outUtc);
+        $upsert->execute([$clientId,(int)$shift['store_id'],(int)$shift['employee_id'],(string)$shift['full_name'],(string)$shift['store_name'],'OUT',$out['date'],$out['time'],$out['datetime'],(string)$shift['device_uuid'],$outId]);
     } else {
         $pdo->prepare('DELETE FROM employee_logs WHERE client_id=? AND local_log_id=?')->execute([$clientId,$outId]);
     }
