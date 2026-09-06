@@ -89,8 +89,11 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_drupal_working_now_service.p
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Drupal generalized portal gateway contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_drupal_portal_gateway.php"
 
-echo "[$(date -u '%Y-%m-%dT%H:%M:%SZ')] validating portal multi-tenant login + DUMMY preflight contract"
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal multi-tenant login + DUMMY preflight contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_multitenant_login.php"
+
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating attendance-to-timesheet timezone reconciliation"
+php "$REPO/namecheap_beta_live/backend/cli/validate_attendance_timesheet_reconciliation.php"
 
 rsync -az \
   --exclude='config.php' \
