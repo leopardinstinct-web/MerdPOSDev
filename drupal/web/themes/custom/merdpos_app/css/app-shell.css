@@ -71,9 +71,10 @@ body.merd-drupal-shell {
   text-decoration: none;
 }
 
-.merdpos-shell-brand img {
+.merdpos-shell-mark {
   width: 2.25rem;
   height: 2.25rem;
+  object-fit: contain;
   flex: 0 0 2.25rem;
 }
 
@@ -870,7 +871,7 @@ body.merdpos-login-route {
   gap: var(--space-2);
 }
 .merdpos-shell-wordmark {
-  width: clamp(5.8rem, 8vw, 7.2rem);
+  width: clamp(6.6rem, 9vw, 8.4rem);
   height: auto;
   display: block;
 }
@@ -903,9 +904,20 @@ body.merdpos-login-route {
   z-index: 20;
   box-shadow: var(--shadow-card);
 }
+:root[data-theme="dark"] .merdpos-shell-brand {
+  padding: .34rem .62rem .34rem .42rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-white) 24%, transparent);
+  border-radius: .9rem;
+  background: color-mix(in srgb, var(--color-brand-white) 94%, transparent);
+  box-shadow: 0 .25rem .8rem color-mix(in srgb, var(--color-brand-navy) 24%, transparent);
+}
+:root[data-theme="dark"] .merdpos-shell-mark,
 :root[data-theme="dark"] .merdpos-shell-wordmark {
-  filter: brightness(0) invert(1);
-  opacity: .96;
+  filter: none;
+  opacity: 1;
+}
+:root[data-theme="dark"] .merdpos-shell-brand-copy small {
+  color: color-mix(in srgb, var(--color-brand-navy) 66%, var(--color-brand-white));
 }
 :root[data-theme="dark"] body.merdpos-login-route {
   background:
