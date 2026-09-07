@@ -1,10 +1,10 @@
 id: MERD-20260906-attendance-qr-e2e
 branch: milestone/attendance-qr-e2e-v1
 base_head: 97be696366fd7fb2da9c078fcd34c79513983088
-last_seen_head: 97be696366fd7fb2da9c078fcd34c79513983088
+last_seen_head: ddecc4a6d14b8e52a7c3869e1a5235a4eb7628db
 objective: Prove the current Beta attendance QR workflow end-to-end using disposable DUMMY context, without mutating production staff attendance.
-packet_state: CODED
-lifecycle: CODED
+packet_state: CLOSED
+lifecycle: VERIFIED
 scope:
   - Generate/use a valid MERDPOS attendance QR in an exact DUMMY employee/store/device context.
   - Verify Home My current shift QR action clocks IN and OUT through the authoritative attendance service.
@@ -26,9 +26,15 @@ checks:
   - name: Fixture/browser harness syntax
     result: PASS
     evidence: PHP lint, Node syntax and git diff check pass locally.
-remaining:
-  - Deploy the DUMMY-only fixture/browser harness and execute the live acceptance sequence.
-next_action: Deploy the DUMMY-only attendance fixture/test harness, prepare an exact DUMMY run, then execute the live Drupal IN/OUT and handover acceptance sequence.
+completed:
+  - Live DUMMY Attendance QR E2E passed 26/26 on run 20260907012215-6803a2.
+  - Covered invalid, expired, wrong-signature and wrong-store QR rejection, real IN/OUT, duplicate protection, cooldown, Current Shift, Working Now and Reports.
+  - Covered POS forgot-logout handover, employee confirmation, SUPER approval, authoritative shift closure and Reports reconciliation.
+  - Fixed UTC-to-store-local employee_logs reconciliation at the Sydney week boundary; backend live ddecc4a6d14b8e52a7c3869e1a5235a4eb7628db.
+  - Fixed Drupal decision submitter payload loss; Drupal live 31425f660e4e6a212c4d1fc4801bb7772a37f3ae.
+  - Final DUMMY cleanup succeeded; ATTENDANCE_E2E_AUDIT none.
+remaining: []
+next_action: None - Attendance QR E2E is verified and closed.
 blocked: false
 blocker: null
-updated_at: "2026-09-06T16:35:00+05:00"
+updated_at: "2026-09-07T06:25:00+05:00"

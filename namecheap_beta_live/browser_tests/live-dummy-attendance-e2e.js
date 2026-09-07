@@ -53,7 +53,7 @@ async function registerKey(request, device, kp) {
 }
 async function backendPost(request, api, device, body) {
   return jsonResponse(await request.post(BACKEND+api, {
-    headers: { 'Accept':'application/json', 'Content-Type':'application/json', 'Authorization':`Bearer ${device.token}` }, data:body
+    headers: { 'Accept':'application/json', 'Content-Type':'application/json', 'Authorization':`Bearer ${device.token}` }, data:{ client_id:fx.client.id, store_id:device.store_id, device_uuid:device.uuid, ...body }
   }), api);
 }
 async function login(context, employee) {
@@ -158,16 +158,22 @@ async function main() {
 
   await userPage.goto(DRUPAL+'/merdpos/disputes',{waitUntil:'domcontentloaded'});
   await pageContains(userPage,'Confirm & send','DUMMY employee sees handover confirmation');
-  await userPage.getByRole('button',{name:'Confirm & send'}).click();
-  await userPage.waitForLoadState('domcontentloaded');
-  await pageContains(userPage,'pending','Confirmed handover moves to pending review');
+  userPage.once('dialog', (dialog) => dialog.accept());
+  await Promise.all([userPage.waitForNavigation({waitUntil:'domcontentloaded'}), userPage.getByRole('button',{name:'Confirm & send'}).click()]);
+  const employeeCard=userPage.locator('[data-dispute-card]').filter({hasText:fx.employees.user.name}).first();
+  await employeeCard.waitFor({state:'visible',timeout:15000});
+  if ((await employeeCard.getAttribute('data-status')) !== 'pending') fail('Confirmed handover moves to pending review',await employeeCard.innerText());
+  pass('Confirmed handover moves to pending review','pending');
 
   await superPage.goto(DRUPAL+'/merdpos/disputes',{waitUntil:'domcontentloaded'});
-  const card=superPage.locator('.merdpos-dispute-card,.merdpos-disputes-item,article').filter({hasText:fx.employees.user.name}).first();
+  const card=superPage.locator('[data-dispute-card]').filter({hasText:fx.employees.user.name}).first();
   await card.waitFor({state:'visible',timeout:15000});
-  await card.getByRole('button',{name:'Approve'}).click();
-  await superPage.waitForLoadState('domcontentloaded');
-  await pageContains(superPage,'approved','SUPER approves handover correction');
+  superPage.once('dialog', (dialog) => dialog.accept());
+  await Promise.all([superPage.waitForNavigation({waitUntil:'domcontentloaded'}), card.getByRole('button',{name:'Approve'}).click()]);
+  const approvedCard=superPage.locator('[data-dispute-card]').filter({hasText:fx.employees.user.name}).first();
+  await approvedCard.waitFor({state:'visible',timeout:15000});
+  if ((await approvedCard.getAttribute('data-status')) !== 'approved') fail('SUPER approves handover correction',await approvedCard.innerText());
+  pass('SUPER approves handover correction','approved');
 
   await userPage.goto(DRUPAL+'/merdpos',{waitUntil:'domcontentloaded'});
   await pageContains(userPage,'Off shift','Approved handover closes current shift');
