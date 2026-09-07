@@ -58,3 +58,13 @@ Mutation coverage belongs only in the disposable DUMMY tenant/store. Attendance 
 The runner registers real Ed25519 POS attendance keys, signs short-lived QR claims, logs into the live Drupal app as the DUMMY employee/SUPER, and verifies unassigned-store, invalid, expired, wrong-signature, IN, idempotent duplicate, cooldown, Working Now, OUT, Reports, POS handover, employee confirmation and SUPER approval paths.
 
 This supersedes the earlier attendance exclusion below: destructive attendance is permitted only through this exact DUMMY-native fixture/run boundary. Production employees, stores and devices remain forbidden test targets.
+
+## DUMMY Administration acceptance
+
+`live-dummy-administration-e2e.js` is the destructive Administration acceptance runner. `backend/cli/administration_e2e_fixture.php` resolves the exact active DUMMY client at runtime and creates disposable DUMMY DEV/SUPER/USER identities plus an anchor store. All credentials remain in `/home/dridsheikh/.merdpos-test/` and an external local fixture file; never commit them.
+
+Operational Store/Workforce writes remain inside the exact DUMMY tenant. Client CRUD uses one explicitly disposable `DUMMYADM...` tenant because a client record cannot be nested inside DUMMY; bounded cleanup refuses deletion if that temporary tenant owns operational rows.
+
+Required sequence: run fixture `audit`, `prepare` a private JSON file, copy that private file outside the repository, execute `MERDPOS_ADMIN_FIXTURE=/absolute/private/path.json node namecheap_beta_live/browser_tests/live-dummy-administration-e2e.js`, then run fixture `cleanup <run>` followed by `audit`. Final acceptance requires zero AUTOTEST stores/employees and zero `DUMMYADM` clients.
+
+The matrix covers Client create/edit/inactivate, Store profile/timezone/currency/week-start/seven-day hours/logo/lifecycle, Workforce role/pay/store-access/credentials/lifecycle, USER/SUPER/DEV authority boundaries, collapsed new-record editors, working-client selector placement, encoding, light/dark desktop and mobile overflow.

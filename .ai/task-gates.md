@@ -128,6 +128,18 @@ After an implementation request, the response and (for packeted work) the latest
 
 Keep the visible report concise. The packet, not the conversation, carries detailed resumable execution state.
 
+## Gate 4.5 - Git writeback before handoff
+
+No chat-only continuity is allowed. Before ending a substantive implementation turn or handing work to another chat/session:
+
+- write the latest meaningful packet checkpoint and any changed durable rule/decision back to Git;
+- ensure the commit/PR is pushed to GitHub, not only present in a local worktree;
+- if the task is merged, ensure the authoritative `namecheap-beta-live` branch contains the checkpoint or archive state;
+- if work remains on a feature branch, the authoritative active packet must identify the exact branch/commit/PR and one next action;
+- uncommitted local files, terminal output and chat summaries do not qualify as resumable project state.
+
+If Git writeback is blocked, report the task as not handoff-ready and do not imply a future chat can safely resume from conversation memory.
+
 ## Gate 5 — Repository knowledge + packet closure
 
 When a failure teaches a reusable operating lesson, update the appropriate GitHub knowledge layer in the same workstream. A fresh session should inherit the prevention mechanism from GitHub rather than needing the conversation that discovered it.
