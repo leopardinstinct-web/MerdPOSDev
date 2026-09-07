@@ -16,10 +16,10 @@ Do not use those documents to answer "what is next?" for the current Beta, and d
 
 ## Current ordered Beta queue
 
-1. **Attendance QR end-to-end:** valid DUMMY QR clock IN/OUT, Current Shift, Working Now and protections.
-2. **Attendance → Dispute end-to-end:** forgot-logout/POS handover and governed review/resolution.
-3. **Timesheet reconciliation:** prove attendance lands in Timesheets/Reports with frozen payroll rules unchanged.
-4. **Administration acceptance:** Clients, Stores and Workforce CRUD, store profile/hours/logo, role/LOA boundaries and UI regressions.
+1. **Attendance QR end-to-end — VERIFIED 2026-09-07:** DUMMY QR IN/OUT, Current Shift, Working Now and protections passed live.
+2. **Attendance → Dispute end-to-end — VERIFIED 2026-09-07:** POS handover, employee confirmation and SUPER approval passed live.
+3. **Timesheet reconciliation — VERIFIED 2026-09-07:** attendance reached Reports with frozen payroll rules unchanged, including Sydney/UTC week-boundary reconciliation.
+4. **Administration acceptance — CURRENT:** Clients, Stores and Workforce CRUD, store profile/hours/logo, role/LOA boundaries and UI regressions.
 5. **Finance Beta acceptance:** only approved Beta finance workflows and validations; no retail checkout/tender expansion.
 6. **Migration / production readiness:** Google/legacy reconciliation, audit, permissions, DUMMY cleanup and deployment checks.
 7. **Beta acceptance/freeze:** role-by-role USER/SUPER/ADMIN/DEV acceptance and feature-scope freeze.

@@ -55,11 +55,7 @@ Backend audit/history is retained. Never confirm or remove unrelated/unverified 
 
 ## Current deployment discipline
 
-Namecheap uses server-side Git checkouts and Git-owned deploy scripts. On the current Windows toolchain, remote command execution uses the persistent Paramiko RSA identity; plain Windows `ssh` is not the project deployment path.
-
-Canonical remote access: `198.187.29.30:21098`, user `dridsheikh`, ignored local key `.tools/namecheap_drupal_deploy`, loaded explicitly with `paramiko.RSAKey.from_private_key_file(...)`. Always require `SSH_OK` before mutation. Backend deploys from `/home/dridsheikh/git/MerdPOSDev-beta-mirror` / `namecheap-beta-live`; Drupal deploys from `/home/dridsheikh/merdpos-drupal` / `beta/drupal-webapp`. If Drupal depends on a newly exposed backend route, backend goes first.
-
-Use `drupal/tools/namecheap_remote_deploy.py` instead of rediscovering this connection contract.
+Namecheap uses the established server-side pull/mirror process and `scripts/deploy_namecheap_beta.sh`.
 
 A commit on GitHub is not deployment evidence. DEPLOYED requires the intended commit in the Namecheap deployed marker/process. VERIFIED additionally requires the affected real runtime behavior to be exercised and observed.
 
@@ -103,12 +99,12 @@ Do not reconstruct current implementation state from old Studio version notes or
 
 ## Current priority
 
-The active Beta queue is defined in `.ai/BETA_SCOPE.md`. The immediate acceptance milestone is **Attendance QR end-to-end**. Ordered Beta work is:
+The active Beta queue is defined in `.ai/BETA_SCOPE.md`. Attendance QR, Attendance → Dispute, and Timesheet reconciliation were **VERIFIED live on 2026-09-07** with a 26/26 DUMMY E2E run and final `ATTENDANCE_E2E_AUDIT none`. The immediate acceptance milestone is now **Administration acceptance**. Ordered Beta work is:
 
-1. Attendance QR end-to-end.
-2. Attendance → Dispute end-to-end.
-3. Timesheet reconciliation with frozen payroll rules unchanged.
-4. Administration acceptance for Clients, Stores and Workforce.
+1. Attendance QR end-to-end — VERIFIED.
+2. Attendance → Dispute end-to-end — VERIFIED.
+3. Timesheet reconciliation with frozen payroll rules unchanged — VERIFIED.
+4. Administration acceptance for Clients, Stores and Workforce — CURRENT.
 5. Approved Finance Beta workflows/validations only.
 6. Legacy/Google migration reconciliation and production readiness.
 7. Role-by-role Beta acceptance and scope freeze.
