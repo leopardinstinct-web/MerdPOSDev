@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-07T12:28:48+05:00"
+updated_at: "2026-09-07T12:42:06+05:00"
 active:
   - id: MERD-20260907-administration-acceptance
     path: .ai/work/active/MERD-20260907-administration-acceptance.yaml

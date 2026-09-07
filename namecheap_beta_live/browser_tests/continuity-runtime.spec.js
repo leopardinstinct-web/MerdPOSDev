@@ -6,14 +6,18 @@ const repo = process.env.GITHUB_WORKSPACE || path.resolve(__dirname, '..', '..')
 const read = rel => fs.readFileSync(path.join(repo, rel), 'utf8');
 
 test('repository continuity layer describes current DevStudio truth', () => {
+  const agents = read('AGENTS.md');
+  const gates = read('.ai/task-gates.md');
   const invariants = read('.ai/invariants.md');
   const memory = read('.ai/memory.md');
   const studio = read('namecheap_beta_live/timesheet_portal/UI_STUDIO.md');
-  expect(memory).toContain('**Updated:** 2026-09-01');
+  expect(memory).toContain('**Updated:** 2026-09-07');
   expect(memory).toContain('Current DevStudio checkpoint');
   expect(memory).toContain('Studio29');
   expect(memory).toContain('migration 035');
   expect(memory).toContain('migration 036:');
+  expect(agents).toContain('No chat-only continuity');
+  expect(gates).toContain('Gate 4.5 - Git writeback before handoff');
   expect(invariants).toContain('dedicated client-scoped Studio state/audit subsystem');
   expect(invariants).not.toContain('Draft UI changes may persist only as local browser preview state');
   expect(studio).toContain('# MERDPOS DevStudio — Current Contract');
