@@ -2,7 +2,8 @@ id: MERD-20260907-administration-acceptance
 branch: namecheap-beta-live
 runtime_branch: beta/drupal-webapp
 base_head: 1b96b28f10face3f059843dfd0786d84794d291d
-last_seen_head: 1b96b28f10face3f059843dfd0786d84794d291d
+last_seen_head: 818741a024c31f7ce879459b43c0654b30b709e8
+deployed_backend_head: 818741a024c31f7ce879459b43c0654b30b709e8
 drupal_base_head: f69977b49dd75284d4ba65ef88e1041b1bd439a3
 drupal_last_seen_head: c4d529e3084bc480d2b35afb493bb957cf8fdb87
 objective: Complete Beta Administration acceptance for Clients, Stores and Workforce without expanding into full-POS scope.
@@ -24,7 +25,9 @@ completed:
   - Live Opera verification confirmed Workforce and Stores preserve their child tab while switching between MRG and DUMMY.
   - Live Opera verification confirmed the selector is labelled Working client in the hero on Stores/Workforce and is absent from Clients/Onboarding.
   - Current backend and Drupal source/history were rechecked before the acceptance harness was authored; no overlapping Admin runtime changes occurred after Drupal 31425f6.
-  - DUMMY Administration fixture, cleanup/audit helper, contract validator and live Drupal E2E runner are coded on milestone/admin-acceptance-v1 pending merge/deploy.
+  - DUMMY Administration fixture, cleanup/audit helper, contract validator and live Drupal E2E runner were added and merged by PR #64.
+  - PR #64 passed CI, Secret scan and Beta Guardrails after stale continuity-date and cross-platform newline guards were corrected.
+  - Namecheap backend deployment completed successfully at 818741a024c31f7ce879459b43c0654b30b709e8 and passed the Administration DUMMY fixture contract plus the existing release validators.
 checks:
   - name: Administration client-context deploy guard
     result: PASS
@@ -36,10 +39,15 @@ checks:
     result: PASS
   - name: Full local Beta Chromium regression suite
     result: PASS 91/91 after refreshing stale continuity-date expectation and cross-platform newline normalization in revision130 guard
+  - name: PR 64 GitHub CI / Secret scan / Beta Guardrails
+    result: PASS
+  - name: Namecheap backend deployment
+    result: PASS at 818741a024c31f7ce879459b43c0654b30b709e8
 remaining:
-  - Complete DUMMY CRUD and authority acceptance across Clients, Stores and Workforce.
-  - Recheck store profile/timezone/currency/hours/logo and light/dark regressions.
-next_action: Merge and deploy the Administration DUMMY E2E harness, prepare a private fixture, run the live Drupal CRUD/authority/visual matrix, then bounded-clean and audit zero residue.
-blocked: false
-blocker: null
-updated_at: "2026-09-07T12:42:06+05:00"
+  - Prepare a fresh private DUMMY Administration fixture on Namecheap and execute the live Drupal CRUD/authority/visual matrix.
+  - Bounded-clean the disposable DUMMY stores/employees and DUMMYADM client, then prove zero AUTOTEST/DUMMYADM residue.
+  - If every live check passes, archive this packet as VERIFIED and advance the Beta queue to Finance acceptance.
+next_action: Reconnect the authorized desktop execution relay, run Administration fixture audit then prepare, execute live-dummy-administration-e2e.js against the private fixture, run bounded cleanup and final audit, and close only on a clean pass.
+blocked: true
+blocker: Authorized Remote Desktop Commander device is currently offline; live DUMMY execution requires that relay for the governed Namecheap SSH/private-fixture path. No Administration acceptance mutation has started in this blocked session.
+updated_at: "2026-09-07T16:11:00+05:00"
