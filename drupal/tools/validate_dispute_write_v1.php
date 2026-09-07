@@ -38,6 +38,8 @@ dispute_v1_check(str_contains($template, "dispute_action\" value=\"resolve_flag"
 dispute_v1_check(!str_contains($template, '|raw'), 'Dispute template must preserve Twig escaping.');
 dispute_v1_check(str_contains($js, 'data-dispute-filter'), 'Dispute filters missing.');
 dispute_v1_check(str_contains($js, 'window.confirm'), 'Destructive dispute confirmations missing.');
+dispute_v1_check(str_contains($js, 'data-dispute-decision-value'), 'Dispute decision submitter value preservation missing.');
+dispute_v1_check(str_contains($js, "decisionValue.name = 'decision'"), 'Approved/rejected decision payload can be lost when submit buttons are disabled.');
 dispute_v1_check(!str_contains($js, 'fetch('), 'Dispute browser must not bypass server forms with direct API fetches.');
 dispute_v1_check(str_contains($css, '@media (max-width:35rem)'), 'Dispute mobile layout missing.');
 dispute_v1_check(str_contains($libraries, 'js/disputes-v1.js'), 'Dispute JS library is not wired.');
