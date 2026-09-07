@@ -16,5 +16,6 @@ admin_context_check(str_contains($template,'<input type="hidden" name="tab" valu
 admin_context_check(str_contains($template,'merdpos-admin-client-switch--hero'),'Client switch is not placed in the hero context position.');
 admin_context_check(str_contains($template,'<label><span>Working client</span>'),'Client switch still uses ambiguous Manage client labeling.');
 admin_context_check(str_contains($module,"'current_tab' => 'stores'"),'Administration Twig contract is missing current_tab.');
+admin_context_check(str_contains($module,"'timezone_options' => []") && str_contains($module,"'currency_options' => []"),'Administration Twig contract drops store timezone/currency options.');
 admin_context_check(str_contains($css,'.merdpos-admin-client-switch--hero'),'Hero client-switch styling missing.');
 echo "MERDPOS Administration client-context navigation v1 validated.\n";
