@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path');
 test.use({channel:'chrome'});
 const repoRoot=process.env.GITHUB_WORKSPACE||path.resolve(__dirname,'..','..');
 const portal=rel=>path.join(repoRoot,'namecheap_beta_live','timesheet_portal',rel);
-const source=rel=>fs.readFileSync(portal(rel),'utf8');
+const source=rel=>fs.readFileSync(portal(rel),'utf8').replace(/\r\n/g,'\n');
 
 test('revision 130 restores cyan as the semantic MERDPOS product accent without changing five masters',()=>{
   const tokens=source('assets/design-tokens.css');

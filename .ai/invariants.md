@@ -7,6 +7,7 @@ These rules are binding for MERDPOS Beta unless the product owner explicitly cha
 - The authoritative GitHub beta branch must be sufficient to bootstrap a fresh AI/chat/coding session without prior conversation history.
 - Root `AGENTS.md`, `.ai/README.md` and `.ai/task-gates.md` define the mandatory bootstrap/task-execution path.
 - Chat/project memory is optional context, not required project state.
+- No chat-only continuity: any checkpoint, decision, blocker or next action required by a future session must be written back to GitHub.
 - Local workstation files, browser state and temporary outputs are not canonical.
 - Durable new knowledge must be written back to the repository in the appropriate `.ai` or component documentation.
 - Secrets, credentials, cookies and private storage-state must never be stored in the repository knowledge layer.

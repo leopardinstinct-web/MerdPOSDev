@@ -33,6 +33,7 @@ function continuity_forbid(string $content, string $needle, string $label, array
 $agents = continuity_read($repo . '/AGENTS.md', $errors);
 $bootstrap = continuity_read($repo . '/.ai/README.md', $errors);
 $invariants = continuity_read($repo . '/.ai/invariants.md', $errors);
+$taskGates = continuity_read($repo . '/.ai/task-gates.md', $errors);
 $betaScope = continuity_read($repo . '/.ai/BETA_SCOPE.md', $errors);
 $memory = continuity_read($repo . '/.ai/memory.md', $errors);
 $activeIndex = continuity_read($repo . '/.ai/work/ACTIVE.yaml', $errors);
@@ -44,9 +45,15 @@ $backendReadme = continuity_read($repo . '/namecheap_beta_live/backend/README.md
 $posRoadmap = continuity_read($repo . '/docs/pos_latest/PRODUCT_ROADMAP_DRAFT.md', $errors);
 
 continuity_require($agents, 'namecheap-beta-live', 'canonical branch bootstrap', $errors);
+continuity_require($agents, 'No chat-only continuity', 'AGENTS Git writeback rule', $errors);
+continuity_require($invariants, 'No chat-only continuity', 'binding Git writeback invariant', $errors);
+continuity_require($taskGates, 'Gate 4.5 - Git writeback before handoff', 'Git writeback task gate', $errors);
+continuity_require($bootstrap, 'No chat-only continuity', 'bootstrap Git writeback rule', $errors);
+continuity_require($memory, 'No chat-only continuity', 'memory Git writeback rule', $errors);
+continuity_require($decisions, 'Git writeback is mandatory continuity', 'durable Git writeback decision', $errors);
 continuity_require($bootstrap, '.ai/BETA_SCOPE.md', 'Beta-scope bootstrap', $errors);
 continuity_require($bootstrap, '.ai/work/ACTIVE.yaml', 'work-packet bootstrap', $errors);
-continuity_require($memory, '**Updated:** 2026-09-06', 'current memory date', $errors);
+continuity_require($memory, '**Updated:** 2026-09-07', 'current memory date', $errors);
 continuity_require($memory, 'Current DevStudio checkpoint', 'current DevStudio memory', $errors);
 continuity_require($memory, 'Studio29', 'Studio29 memory marker', $errors);
 continuity_require($memory, 'migration 035', 'migration 035 memory marker', $errors);
@@ -102,6 +109,7 @@ foreach ($durableDocs as $label => $content) {
 }
 
 continuity_require($activeIndex, 'authoritative_branch: namecheap-beta-live', 'ACTIVE canonical branch', $errors);
+continuity_require($activeIndex, 'MERD-20260907-administration-acceptance', 'active Administration acceptance packet', $errors);
 continuity_require($activeIndex, 'updated_at:', 'ACTIVE update timestamp', $errors);
 continuity_require(continuity_read($repo . '/.ai/work/archive/MERD-20260906-attendance-qr-e2e.yaml', $errors), 'lifecycle: VERIFIED', 'archived verified Attendance QR E2E packet', $errors);
 

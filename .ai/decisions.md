@@ -345,3 +345,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - `docs/pos_latest/` and the older Flutter/full-POS M3.x roadmap remain valid historical/separate-product-track records, but they are not active Beta sequencing authority.
 - M3.3 Checkout & Tender must not be proposed as a Beta next step unless the product owner explicitly reopens full-POS work.
 - Current Beta sequencing is maintained in `.ai/BETA_SCOPE.md`; active work packets refine execution within that queue.
+
+## 2026-09-07 - Git writeback is mandatory continuity
+
+- GitHub, not chat history or a local worktree, is the project handoff boundary.
+- Any checkpoint, blocker, next action or durable implementation fact required by another session must be committed and pushed.
+- Active work packets are the canonical mid-task resume layer; after merge/closure the authoritative branch must contain the final checkpoint/archive and curated durable state.
+- A substantive turn with unpushed continuity state is not handoff-ready.

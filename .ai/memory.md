@@ -1,6 +1,6 @@
 # MERDPOS Beta AI State
 
-**Updated:** 2026-09-06
+**Updated:** 2026-09-07
 **Authoritative repository:** `leopardinstinct-web/MerdPOSDev`
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
@@ -96,6 +96,8 @@ A fresh session must follow `AGENTS.md` → `.ai/README.md` → `.ai/invariants.
 Current code outranks documentation. Current binding invariants outrank memory. Historical decisions remain provenance unless explicitly current/superseding.
 
 Do not reconstruct current implementation state from old Studio version notes or chat history. Use current source, current `ACTIVE.yaml`, current tests/validators, recent commits and deployment evidence.
+
+No chat-only continuity: before a substantive handoff, the current packet/checkpoint and durable changes must be pushed to GitHub so a future session can resume without this conversation.
 
 ## Current priority
 

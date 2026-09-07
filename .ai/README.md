@@ -19,6 +19,8 @@ When sources disagree, use this order:
 
 A work packet records execution state; it never overrides current code, binding invariants, task gates, or a newer durable decision. A historical document never overrides newer code plus a newer recorded decision.
 
+No chat-only continuity is allowed. If another session would need a fact, checkpoint, blocker, or next action to continue safely, that state must be written to GitHub before handoff.
+
 ## Mandatory lean reading order for a fresh session
 
 1. `AGENTS.md`

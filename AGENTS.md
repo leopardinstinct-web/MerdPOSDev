@@ -57,6 +57,7 @@ Small bounded changes that can be safely completed and evidenced in one continuo
 ## Source-of-truth rule
 
 - GitHub on the authoritative beta branch is primary.
+- No chat-only continuity: any state a future session needs must be committed to GitHub in canonical source/docs or a committed active work packet.
 - Chat history is optional context, never required state.
 - Local PC files, browser state, credentials and temporary test outputs are not canonical.
 - Historical handovers/recovery notes are evidence only when they conflict with current `.ai` state, current code or later decisions.
