@@ -2,10 +2,11 @@ id: MERD-20260907-administration-acceptance
 branch: namecheap-beta-live
 runtime_branch: beta/drupal-webapp
 base_head: 1b96b28f10face3f059843dfd0786d84794d291d
-last_seen_head: 818741a024c31f7ce879459b43c0654b30b709e8
+last_seen_head: 9bc1bf63053d59de37238ee99d4ebbf8def25b44
 deployed_backend_head: 818741a024c31f7ce879459b43c0654b30b709e8
 drupal_base_head: f69977b49dd75284d4ba65ef88e1041b1bd439a3
-drupal_last_seen_head: c4d529e3084bc480d2b35afb493bb957cf8fdb87
+drupal_last_seen_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+deployed_drupal_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
 objective: Complete Beta Administration acceptance for Clients, Stores and Workforce without expanding into full-POS scope.
 packet_state: DEPLOYED
 lifecycle: DEPLOYED
@@ -18,36 +19,35 @@ constraints:
   - No M3.x Checkout/Tender or retail-sale work.
   - Use DUMMY-only data for destructive acceptance writes.
 completed:
-  - Admin client selector moved into the hero context position on Stores and Workforce only.
-  - Duplicate Manage client selector removed from Onboarding and Clients.
-  - Working client switch and Admin POST redirects preserve the active child tab.
-  - Drupal deployment validators passed at 31425f660e4e6a212c4d1fc4801bb7772a37f3ae.
-  - Live Opera verification confirmed Workforce and Stores preserve their child tab while switching between MRG and DUMMY.
-  - Live Opera verification confirmed the selector is labelled Working client in the hero on Stores/Workforce and is absent from Clients/Onboarding.
-  - Current backend and Drupal source/history were rechecked before the acceptance harness was authored; no overlapping Admin runtime changes occurred after Drupal 31425f6.
-  - DUMMY Administration fixture, cleanup/audit helper, contract validator and live Drupal E2E runner were added and merged by PR #64.
-  - PR #64 passed CI, Secret scan and Beta Guardrails after stale continuity-date and cross-platform newline guards were corrected.
-  - Namecheap backend deployment completed successfully at 818741a024c31f7ce879459b43c0654b30b709e8 and passed the Administration DUMMY fixture contract plus the existing release validators.
+  - Admin Working client selector is scoped to Stores/Workforce and preserves child tabs.
+  - DUMMY Administration fixture, cleanup/audit helper, contract validator and live Drupal E2E runner merged by PR #64.
+  - Backend deployed at 818741a024c31f7ce879459b43c0654b30b709e8 with Administration fixture validation passing.
+  - Administration theme contract defect fixed by PR #65; timezone/currency/store timing variables are now declared to Twig.
+  - Drupal deployed at 8a48b7f99eaa492a9ee5d02d02d287c00612730d with Administration navigation/theme guard passing.
+  - Live DUMMY acceptance has passed client create/edit/inactivate and child-tab persistence.
+  - Live DUMMY acceptance has passed store create/edit, IANA timezone, currency, week start, seven-day hours and logo_path verification.
+  - Live DUMMY acceptance has passed workforce create, role/pay/store assignment and newly-created employee Drupal authentication.
+  - Targeted live reproduction proved Workforce edit can return HTTP 200 + Saved and render the edited employee.
 checks:
-  - name: Administration client-context deploy guard
+  - name: Administration client-context/theme deploy guard
+    result: PASS at Drupal 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+  - name: Administration DUMMY fixture contract
     result: PASS
-  - name: Administration DUMMY fixture PHP lint
+  - name: PR 65 CI / Secret scan
     result: PASS
-  - name: Administration DUMMY fixture contract validator
-    result: PASS
-  - name: Administration live E2E JavaScript syntax
-    result: PASS
-  - name: Full local Beta Chromium regression suite
-    result: PASS 91/91 after refreshing stale continuity-date expectation and cross-platform newline normalization in revision130 guard
-  - name: PR 64 GitHub CI / Secret scan / Beta Guardrails
-    result: PASS
-  - name: Namecheap backend deployment
-    result: PASS at 818741a024c31f7ce879459b43c0654b30b709e8
+  - name: Partial live DUMMY CRUD matrix
+    result: PASS through Workforce create; full runner currently stops at first Workforce edit verification
+current_fixture:
+  run: 20260907130723-31d873
+  state: active_bounded_dummy_fixture
+  note: Must be bounded-cleaned before any new prepare/run.
 remaining:
-  - Prepare a fresh private DUMMY Administration fixture on Namecheap and execute the live Drupal CRUD/authority/visual matrix.
+  - Capture the original full-run Workforce edit POST HTTP/flash outcome and identify why it differs from the successful targeted reproduction.
+  - Fix the product only if the original POST proves a product defect; otherwise correct the harness.
+  - Run one fresh full DUMMY matrix through Workforce edit/inactivate, SUPER/USER authority, UI regressions and store lifecycle.
   - Bounded-clean the disposable DUMMY stores/employees and DUMMYADM client, then prove zero AUTOTEST/DUMMYADM residue.
-  - If every live check passes, archive this packet as VERIFIED and advance the Beta queue to Finance acceptance.
-next_action: Reconnect the authorized desktop execution relay, run Administration fixture audit then prepare, execute live-dummy-administration-e2e.js against the private fixture, run bounded cleanup and final audit, and close only on a clean pass.
-blocked: true
-blocker: Authorized Remote Desktop Commander device is currently offline; live DUMMY execution requires that relay for the governed Namecheap SSH/private-fixture path. No Administration acceptance mutation has started in this blocked session.
-updated_at: "2026-09-07T16:11:00+05:00"
+  - Archive this packet as VERIFIED only after the full clean pass; then advance the Beta queue to Finance acceptance.
+next_action: Commit this Git checkpoint, clean run 20260907130723-31d873 to zero residue, instrument the full-run Workforce edit POST with safe HTTP/flash diagnostics, then execute a fresh full DUMMY matrix and close only on clean verification.
+blocked: false
+blocker: null
+updated_at: "2026-09-07T18:40:00+05:00"
