@@ -77,6 +77,15 @@
               event.preventDefault();
               return;
             }
+            let decisionValue = form.querySelector('input[type="hidden"][name="decision"][data-dispute-decision-value]');
+            if (!decisionValue) {
+              decisionValue = document.createElement('input');
+              decisionValue.type = 'hidden';
+              decisionValue.name = 'decision';
+              decisionValue.dataset.disputeDecisionValue = '';
+              form.append(decisionValue);
+            }
+            decisionValue.value = decision;
             form.querySelectorAll('button[type="submit"]').forEach((button) => { button.disabled = true; });
           });
         });
