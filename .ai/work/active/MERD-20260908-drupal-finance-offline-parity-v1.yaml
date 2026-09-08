@@ -1,10 +1,10 @@
 id: MERD-20260908-drupal-finance-offline-parity-v1
 branch: milestone/drupal-finance-offline-parity-v1
 base_head: f9937f1b7a761b964aa2cc7b68136a8d8180637a
-last_seen_head: 84a93d2e2a2379f8b16d9bf65ca96d6f52238380
+last_seen_head: d1edc1ad066102e5316b4e2d9f7f1cb7ad797c14
 objective: Close Beta Finance offline queue and reconnect-flush parity in Drupal while preserving authoritative MERDPOS financial writes.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Reuse canonical browser queue key merdpos_financial_queue_v1.
   - Generate UUIDv4 submission IDs in the browser before first send and preserve them across retries.
@@ -16,11 +16,18 @@ constraints:
   - MERDPOS remains authoritative for finance permissions, attendance/store scope, balance rules, idempotency, ledger, audit and outbox writes.
   - Drupal must contain no operational financial SQL.
   - Retry only connectivity/unavailable failures; authoritative server rejections must not loop forever.
-  - DevStudio/UI Studio remains excluded.validation:
+  - DevStudio/UI Studio remains excluded.
+validation:
   - Finance Offline Queue v1 validator passes under PHP 8.4.
   - Existing Finance v2 and Finance Write v1 validators remain green.
   - Complete deliberate Drupal validator chain, Twig parsing, JavaScript syntax and UTF-8/mojibake validation pass on this branch.
   - Canonical Beta queue contract was audited from timesheet_portal/assets/beta.js, including queue key, UUID-before-send, same-day guards, effective balances, online flush and retry semantics.
   - The unrelated design-tokens change caused by an accidental resource-sync helper run was restored before promotion.
-next_action: Promote through PR/CI, deploy to Namecheap, then perform non-mutating DUMMY browser offline/reconnect closure before marking EXACT.
-updated_at: "2026-09-08T18:52:23+05:00"
+  - PR #90 merged and Namecheap release 39f4007e56dd passed the complete Drupal deployment gate.
+  - PR #91 corrected authoritative success:false response normalization; final canonical release d1edc1ad0661 passed the full deployment gate.
+  - DUMMY DEV Playwright queued four offline financial submissions with zero network writes, then intercepted reconnect flush of all four in original UUID order.
+  - The signed non-mutating invalid-store probe returned HTTP 422, error Store not found., retryable=false; no financial mutation was created.
+  - Desktop Light/Dark measured 1440/1440 and mobile Light/Dark measured 390/390.
+  - Account/dark and Dashboard Layout signed no-op regressions remained green on final release d1edc1ad0661.
+next_action: Audit and close legacy_migration, then remaining defaults/settings exactness; keep DevStudio/UI Studio excluded.
+updated_at: "2026-09-08T19:27:29+05:00"
