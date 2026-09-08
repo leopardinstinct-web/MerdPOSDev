@@ -170,6 +170,16 @@ Drupal does not persist the submitted password fields. The return target is rest
 
 PR #82 delivered the account-password and approved Dark-mode brand treatment, and PR #83 closed the mobile Home overflow found by the established acceptance kit. Namecheap release 53b518c7be00 passed the complete Drupal deployment gate. A clean source-only run from C:\Dev\.merdpos-test logged in through the normal MERDPOS Drupal login with bounded DUMMY DEV credentials, confirmed Dark mode, the canonical multicolor tagline, the canonical full lockup on contrast-preserving glass, the permission-scoped Change password action, the modal and all three Beta-equivalent fields. No password was submitted or changed. Desktop had no horizontal overflow; mobile at 390x844 measured document width 390/390 while the dashboard table retained intentional internal scrolling (overflow-x:auto, 759/295).
 
+## Working client + Google Time Sheet Sync v1
+
+The authenticated Drupal account shell now mirrors Beta's global **Working client** context for actual DEV identities. Client selection is submitted through Drupal CSRF to the signed `client_context` route and persisted in the Drupal session so subsequent signed Home/Admin/Reports/Finance/DEV calls share the same tenant context. The backend still rejects cross-client context for non-DEV actors.
+
+The Beta-equivalent **Sync** row uses the canonical restart icon, `Sync Time Sheet from Google` accessible label and `Replace SQL Time Sheet from Google` tooltip. After the exact destructive confirmation, Drupal submits only `{action: refresh_timesheet, client_id}` through the signed `timesheet_google_refresh` route. Google source validation, row mapping, SQL replacement, transaction rollback and admin audit remain entirely in MERDPOS Beta; Drupal owns no `employee_logs` replacement SQL.
+
+Backend prerequisite PR #87 was deployed at `48ca08b`. Drupal PR #88 was deployed at `8648325634aa`; the PHP 8.4 deployment gate passed the Working-client probe and full regression suite. DUMMY DEV Playwright closure verified desktop/mobile Light/Dark, selected Working client `DUMMY`, exact Sync icon/labels/confirmation and 390/390 mobile containment. The confirmation was deliberately cancelled in every browser case; the Drupal sync endpoint request count remained zero, so no attendance data was replaced merely for verification.
+
+The separate `check_sheet` route was audited and has no Beta button, menu item, page or browser caller. It remains an internal DEV diagnostic rather than an invented Drupal surface.
+
 ## Free UI capability stack
 
 The reviewed free/open-source Drupal UI stack is documented in `drupal/FREE_UI_STACK.md`. The selected Composer-managed projects are Dashboard, Charts, UI Patterns, UI Icons, Gin, Gin Toolbar and Better Exposed Filters. Gin is administration-only; the Git-owned `merdpos_app` theme remains the operational application shell and the canonical MERDPOS SVG icon set remains the primary visual language.
