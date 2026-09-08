@@ -2,6 +2,10 @@ version: 1
 authoritative_branch: namecheap-beta-live
 updated_at: '2026-09-08T15:44:00+05:00'
 active:
+- id: MERD-20260908-drupal-dashboard-mobile-overflow-v1
+  path: .ai/work/active/MERD-20260908-drupal-dashboard-mobile-overflow-v1.yaml
+  lifecycle: VALIDATED
+  packet_state: VALIDATED
 - id: MERD-20260908-drupal-account-password-parity-v1
   path: .ai/work/active/MERD-20260908-drupal-account-password-parity-v1.yaml
   lifecycle: VALIDATED
