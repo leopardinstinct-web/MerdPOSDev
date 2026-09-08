@@ -146,6 +146,14 @@ Drupal owns only presentation, its own CSRF boundary and a fresh authoritative C
 
 Implementation head `f08f0691050f` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, JavaScript syntax, UTF-8/mojibake and diff checks before promotion. PR #93 then merged and Namecheap release `7ba0bf509213` passed the complete deployment gate, including the signed GET-only Legacy Migration probe. DUMMY DEV Playwright used the real authoritative GET state on desktop/mobile Light/Dark, intercepted Preview before Drupal, cancelled Sync with zero POST, observed Final Sync correctly disabled without a Financial source, and verified the Drupal-side Final guard returned HTTP 422 for a deliberately mismatched Client Code. No preview batch, migration sync or SQL cutover was created; desktop/mobile closed at 1440/1440 and 390/390 with Migration history retaining internal scrolling. Account/dark and Dashboard Layout regressions remained green on the same release.
 
+## Defaults parity v1
+
+Drupal Administration now reproduces Beta's DEV-only **Defaults** workflow after Stores and before Workforce. The page reads authoritative client defaults, per-store overrides and effective values through signed `defaults` GET, then submits only the canonical `save_client_defaults` and `save_store_defaults` actions through Drupal CSRF and the signed gateway.
+
+Client currency/timezone values are required. Store currency/timezone values are optional and blank means **Use client default**, preserving Beta inheritance semantics. MERDPOS remains authoritative for `defaults.manage`, currency/IANA-timezone validation, SQL persistence, effective values and audit. Drupal contains no Defaults persistence SQL and never exposes Beta CSRF.
+
+Implementation head `5fdd64a0a155` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, synchronized-resource checks, UTF-8/mojibake, AI continuity and diff checks. The Namecheap release probe is intentionally signed GET-only; browser closure must intercept writes so DUMMY defaults are not changed merely for verification.
+
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
