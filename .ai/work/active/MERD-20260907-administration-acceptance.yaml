@@ -2,7 +2,7 @@ id: MERD-20260907-administration-acceptance
 branch: namecheap-beta-live
 runtime_branch: beta/drupal-webapp
 base_head: 1b96b28f10face3f059843dfd0786d84794d291d
-last_seen_head: 922a75110f12b5829085b3c2e0ad137fdad41b82
+last_seen_head: 028cf3f0b1c5ed6c6d702dcb964770373a98c72b
 deployed_backend_head: 818741a024c31f7ce879459b43c0654b30b709e8
 drupal_base_head: f69977b49dd75284d4ba65ef88e1041b1bd439a3
 drupal_last_seen_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
@@ -31,6 +31,8 @@ completed:
   - PR #66 wrote the live Administration checkpoint/harness continuity back to Git; CI, Secret scan and Beta guardrails passed.
   - PR #67 added safe Workforce edit diagnostics; CI, Secret scan and Beta guardrails passed.
   - Full live run 20260907135943-5f27c2 proved the Workforce payload is correct but the sixth rapid Admin POST is rejected by the hosting layer with HTTP 429 Too Many Requests.
+  - PR #68 merged the 13-second paced-write harness and the hosting-throttle diagnosis; CI, Secret scan and Beta guardrails passed.
+  - Paced run 20260908061553-19827d cleared the Admin write throttle and passed through Workforce create, then timed out on the newly-created employee Drupal login while the harness was still creating redundant fresh DEV API login sessions for readback.
 checks:
   - name: Administration client-context/theme deploy guard
     result: PASS at Drupal 8a48b7f99eaa492a9ee5d02d02d287c00612730d
@@ -41,16 +43,17 @@ checks:
   - name: Partial live DUMMY CRUD matrix
     result: PASS through Workforce create; full runner currently stops at first Workforce edit verification
 current_fixture:
-  run: 20260907135943-5f27c2
+  run: 20260908061553-19827d
   state: active_bounded_dummy_fixture
   note: Must be bounded-cleaned before any new prepare/run.
 remaining:
-  - Pace Administration acceptance writes to a human-realistic cadence so the test does not trip the hosting-layer burst limiter.
-  - Clean the currently active bounded DUMMY fixture before preparing the final run.
+  - Reuse the single authenticated DEV API session for cache-busted authoritative readback instead of creating a new DEV login session after every write.
+  - Improve Drupal login diagnostics without logging credentials.
+  - Clean the currently active bounded DUMMY fixture before preparing the next final run.
   - Run one fresh full DUMMY matrix through Workforce edit/inactivate, SUPER/USER authority, UI regressions and store lifecycle.
   - Bounded-clean the disposable DUMMY stores/employees and DUMMYADM client, then prove zero AUTOTEST/DUMMYADM residue.
   - Archive this packet as VERIFIED only after the full clean pass; then advance the Beta queue to Finance acceptance.
-next_action: Merge the paced-write harness, clean run 20260907135943-5f27c2 to zero residue, execute one fresh full DUMMY Administration matrix, then bounded-clean/audit and archive only on a complete pass.
+next_action: Merge the single-session readback/login-diagnostic harness, clean run 20260908061553-19827d to zero residue, execute one fresh full DUMMY Administration matrix, then bounded-clean/audit and archive only on a complete pass.
 blocked: false
 blocker: null
-updated_at: "2026-09-08T11:11:13+05:00"
+updated_at: "2026-09-08T11:23:22+05:00"
