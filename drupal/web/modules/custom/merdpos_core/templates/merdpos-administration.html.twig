@@ -22,7 +22,7 @@
         <span>Authoritative writes</span>
       </div>
     </div>
-    {% if current_tab in ['stores', 'workforce', 'roles'] %}
+    {% if current_tab in ['stores', 'defaults', 'workforce', 'roles'] %}
       {% if can_select_client %}
       <form class="merdpos-admin-client-switch merdpos-admin-client-switch--hero" method="get">
         <input type="hidden" name="tab" value="{{ current_tab }}">
@@ -169,6 +169,44 @@
       {% else %}<div class="merdpos-admin-empty">No stores are available in this client context.</div>{% endfor %}
     </div>
   </section>
+
+  {% if can_manage_defaults %}
+  {% set defaults_client = defaults_state.client|default({}) %}
+  {% set defaults_stores = defaults_state.stores|default([]) %}
+  {% set defaults_currencies = defaults_state.currencies|default([]) %}
+  {% set defaults_timezones = defaults_state.timezones|default([]) %}
+  <section class="merdpos-admin-section merdpos-defaults" data-admin-panel="defaults">
+    <div class="merdpos-admin-section-head">
+      <div><p>OPERATIONS</p><h2>Defaults</h2><span>Set client defaults and optional per-store overrides for currency and timezone.</span></div>
+      <span class="merdpos-admin-permission">DEV &middot; defaults.manage</span>
+    </div>
+    <div class="merdpos-defaults-section">
+      <div class="merdpos-defaults-section-head"><div><h3>Client defaults</h3><p>Stores inherit these values unless you set an override below.</p></div></div>
+      <form method="post" action="{{ post_url }}" class="merdpos-defaults-form">
+        <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client_defaults">
+        <label><span>Currency</span><select name="default_currency" required>{% for code in defaults_currencies %}<option value="{{ code }}"{{ code == defaults_client.default_currency ? ' selected' : '' }}>{{ code }}</option>{% endfor %}</select></label>
+        <label><span>Timezone</span><select name="default_timezone" required>{% for tz in defaults_timezones %}<option value="{{ tz }}"{{ tz == defaults_client.default_timezone ? ' selected' : '' }}>{{ tz }}</option>{% endfor %}</select></label>
+        <button type="submit">Save client defaults</button>
+      </form>
+    </div>
+    <div class="merdpos-defaults-section">
+      <div class="merdpos-defaults-section-head"><div><h3>Store overrides</h3><p>Leave a field on “Use client default” to inherit automatically.</p></div></div>
+      <div class="merdpos-defaults-store-list">
+        {% for store in defaults_stores %}
+        <article class="merdpos-defaults-store-row{{ store.status == 'inactive' ? ' is-muted' : '' }}" data-store-default-row="{{ store.id }}">
+          <div class="merdpos-defaults-store-copy"><strong>{{ store.store_name }}</strong><small>Code {{ store.store_code }} &middot; ID {{ store.id }} &middot; {{ store.status }}</small><div class="merdpos-defaults-effective"><span>Effective {{ store.effective_currency }}</span><span>{{ store.effective_timezone }}</span></div></div>
+          <form method="post" action="{{ post_url }}" class="merdpos-defaults-store-form">
+            <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_store_defaults"><input type="hidden" name="store_id" value="{{ store.id }}">
+            <label><span>Currency</span><select name="currency_code"><option value="">Use client default ({{ defaults_client.default_currency }})</option>{% for code in defaults_currencies %}<option value="{{ code }}"{{ code == store.currency_code ? ' selected' : '' }}>{{ code }}</option>{% endfor %}{% if store.currency_code and store.currency_code not in defaults_currencies %}<option value="{{ store.currency_code }}" selected>{{ store.currency_code }}</option>{% endif %}</select></label>
+            <label><span>Timezone</span><select name="timezone"><option value="">Use client default ({{ defaults_client.default_timezone }})</option>{% for tz in defaults_timezones %}<option value="{{ tz }}"{{ tz == store.timezone ? ' selected' : '' }}>{{ tz }}</option>{% endfor %}</select></label>
+            <button type="submit">Save</button>
+          </form>
+        </article>
+        {% else %}<div class="merdpos-admin-empty">No stores exist for this client.</div>{% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   <section class="merdpos-admin-section" data-admin-panel="workforce">
     <div class="merdpos-admin-section-head">

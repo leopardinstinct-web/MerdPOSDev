@@ -138,6 +138,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
       $tabs[] = ['key'=>'clients','label'=>'Clients'];
     }
     if (!empty($perms['stores.manage'])) $tabs[] = ['key'=>'stores','label'=>'Stores'];
+    if (!empty($perms['defaults.manage'])) $tabs[] = ['key'=>'defaults','label'=>'Defaults'];
     if (!empty($perms['workforce.manage'])) $tabs[] = ['key'=>'workforce','label'=>'Workforce'];
     if (!empty($perms['roles.manage'])) $tabs[] = ['key'=>'roles','label'=>'Roles'];
     $keys = array_column($tabs, 'key');
