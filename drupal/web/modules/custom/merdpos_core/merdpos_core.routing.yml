@@ -61,7 +61,7 @@ merdpos_core.finance:
     _controller: 'Drupal\merdpos_core\Controller\FinanceController::finance'
     _title: 'Financials'
   requirements:
-    _permission: 'manage merdpos operations'
+    _permission: 'access merdpos portal'
 
 merdpos_core.dev:
   path: '/merdpos/dev'

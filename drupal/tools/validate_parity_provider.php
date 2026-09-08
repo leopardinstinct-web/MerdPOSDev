@@ -190,7 +190,7 @@ foreach ($surfaces as $key => $surface) {
     parity_check(count($surface['account_cards'] ?? []) === 2, 'Finance account cards missing.');
     parity_check(count($surface['ledger_rows'] ?? []) === 1, 'Finance ledger rows mismatch.');
     parity_check(!empty($surface['selected_store']['can_cross_store']), 'Finance cross-store authority missing.');
-    parity_check(!empty($surface['read_only']), 'Finance Drupal view must remain read-only.');
+    parity_check(empty($surface['read_only']), 'Finance Drupal view should expose governed write parity.');
   }
   elseif ($key === 'dev') {
     parity_check(($surface['role']['key'] ?? '') === 'DEV', 'DEV role did not resolve DEV.');

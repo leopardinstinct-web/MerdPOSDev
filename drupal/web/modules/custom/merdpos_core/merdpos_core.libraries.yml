@@ -42,14 +42,17 @@ reports:
     js/reports-v2.js: {}
 
 finance:
-  version: 2.x
+  version: 3.x
   dependencies:
+    - core/drupal
     - merdpos_core/base
     - merdpos_core/dashboard
   css:
     theme:
       css/finance-v2.css: {}
       css/dark-normalization.css: {}
+  js:
+    js/finance-v3.js: {}
 
 dev:
   version: 2.x

@@ -33,7 +33,7 @@ finance_v2_check(count($surface['chart_specs']??[])===5,'Finance v2 chart count 
 finance_v2_check(count($surface['account_cards']??[])===2,'Finance account cards missing.');
 finance_v2_check(count($surface['ledger_rows']??[])===1,'Finance ledger missing.');
 finance_v2_check(!empty($surface['selected_store']['can_cross_store']),'Finance cross-store authority missing.');
-finance_v2_check(!empty($surface['read_only']),'Finance view must remain read-only.');
+finance_v2_check(empty($surface['read_only']),'Finance v2 should expose governed write parity.');
 finance_v2_check(empty($surface['exceptions']),'Open healthy day should not produce exceptions.');
 
 final class FinanceForbiddenGateway implements PortalGatewayClientInterface { public function call(string $route,string $method='GET',array $query=[],array $body=[], ?int $contextClientId = NULL): array { return ['status'=>'forbidden','http_status'=>403,'payload'=>['success'=>false],'message'=>'forbidden']; } }
@@ -47,7 +47,7 @@ $routing=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/merdp
 finance_v2_check(str_contains($routing,'FinanceController::finance'),'Finance route is not wired to FinanceController.');
 $template=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/templates/merdpos-finance.html.twig');
 finance_v2_check(str_contains($template,'Financial command centre'),'Finance rich template missing.');
-finance_v2_check(str_contains($template,'Read-only Drupal view'),'Finance read-only contract missing.');
+finance_v2_check(str_contains($template,'Signed write parity'),'Finance signed write parity marker missing.');
 finance_v2_check(str_contains($template,'Register vs petty cash'),'Finance cash-mix chart missing.');
 $css=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/css/finance-v2.css');
 finance_v2_check(str_contains($css,'.merdpos-finance-charts'),'Finance chart layout CSS missing.');
