@@ -1,6 +1,6 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 18:52 +05:00
+Updated: 2026-09-08 19:27 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
@@ -17,7 +17,7 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Administration: roles | EXACT | Signed `role_authority` workflow is implemented; role/permission thresholds remain backend-owned. |
 | Finance read | EXACT | Signed `financials` statement, store/date filters, charts, accounts and ledger detail. |
 | Finance writes: open day / Cash IN / Cash OUT / Z report | EXACT | PR #81 merged and Namecheap release `1d30d1aaf810` passed the signed/live deployment gate. MERDPOS remains authoritative for finance permissions, balances, attendance/store scope, idempotency, ledger and outbox behavior. |
-| Finance offline queue / reconnect flush | PARTIAL / VALIDATED | Drupal now implements the canonical `merdpos_financial_queue_v1` browser queue, browser-generated UUIDv4 idempotency keys, queued effective balances, same-day Open Day/Z-report guards and reconnect flush through a Drupal-CSRF signed Finance JSON bridge. Static/PHP 8.4 validation is green; live offline/reconnect browser closure remains required before `EXACT`. |
+| Finance offline queue / reconnect flush | EXACT | Canonical `merdpos_financial_queue_v1` browser queue parity is live: browser UUIDv4 IDs are created before first send and preserved across retries, queued entries affect effective balances, Open Day/Z-report same-day guards are enforced, and reconnect flushes in order through the Drupal-CSRF signed Finance JSON bridge. PR #90 deployed at `39f4007e56dd`; PR #91 refined authoritative rejection HTTP semantics and final release `d1edc1ad0661` passed the full deployment gate. DUMMY DEV Playwright queued four offline submissions with zero network writes, intercepted all four reconnect sends in original UUID order, verified signed invalid-store rejection `422 / Store not found. / retryable=false` with no mutation, and closed desktop/mobile Light/Dark at 1440/1440 and 390/390. |
 | Account: Log out | EXACT | Drupal account menu provides logout and returns to MERDPOS login. |
 | Dark-theme approved brand assets | EXACT | Canonical full lockup is contrast-preserved on light glass in dark account/login surfaces; canonical multicolor tagline replaces the plain shell subline in dark mode. Source-only Playwright closure passed desktop/mobile Dark on release `53b518c7be00`; assets are not recolored or duplicated into new binaries. |
 | Account: Change password (`change_password`) | EXACT | Permission-scoped account-menu modal sends current/new/confirm fields through Drupal CSRF + signed `change_password`; backend password verification/storage/audit stays authoritative. Source-only Playwright closure passed desktop/mobile without submitting or changing a password. |

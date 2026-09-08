@@ -1,11 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-08T18:52:23+05:00'
+updated_at: '2026-09-08T19:27:29+05:00'
 active:
 - id: MERD-20260908-drupal-finance-offline-parity-v1
   path: .ai/work/active/MERD-20260908-drupal-finance-offline-parity-v1.yaml
-  lifecycle: VALIDATED
-  packet_state: VALIDATED
+  lifecycle: VERIFIED
+  packet_state: VERIFIED
 - id: MERD-20260908-drupal-timesheet-google-sync-v1
   path: .ai/work/active/MERD-20260908-drupal-timesheet-google-sync-v1.yaml
   lifecycle: VERIFIED
