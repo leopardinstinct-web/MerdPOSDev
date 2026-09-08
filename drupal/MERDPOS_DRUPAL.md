@@ -134,6 +134,10 @@ Normal Beta dashboard personalization is exposed in Drupal through the signed `d
 
 Actors with canonical `dashboard.configure` can select a dashboard role and use **Edit dashboard**, **Add widget**, widget search, the Store operations / Finance / Workforce quick templates, remove, clear/reset, desktop drag/resize and mobile Move up / Move down controls. Drupal validates its own CSRF token and forwards save/reset requests through the signed gateway; MERDPOS remains authoritative for role selection, allowed widgets, duplicate/geometry checks and persistence. Drupal explicitly rejects a `dev_studio` flag and the frontend never emits one.
 
+### Dashboard layout verified checkpoint
+
+PR #85 merged to `beta/drupal-webapp` and Namecheap release `f4bb37b3ca24` passed the complete deployment gate, including the signed `dashboard_layout` live probe. The established Playwright DUMMY DEV fixture loaded 12 saved widgets and completed signed no-op saves on desktop and mobile in both Light and Dark themes; reloading confirmed the saved layout was unchanged. Desktop had no horizontal overflow and mobile measured 390/390 document width. The existing account/dark acceptance suite also remained green.
+
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.

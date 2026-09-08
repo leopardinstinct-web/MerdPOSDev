@@ -2,10 +2,10 @@ version: 1
 id: MERD-20260908-drupal-dashboard-layout-parity-v1
 branch: milestone/drupal-dashboard-layout-parity-v1
 base_head: fbc70f1db992ea1f42ce0510bd7ed0de64ea6e07
-last_seen_head: 92b110e1df759509f0f0453ee91df82ba37262bb
+last_seen_head: f4bb37b3ca24d4e5cacb74a222d03835bedc5f85
 objective: Close normal Beta dashboard-layout personalization parity in Drupal while keeping DevStudio/UI Studio excluded.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Read authoritative dashboard_layout before dashboard_data and render only saved widgets.
   - Preserve role selection, 12-column geometry, add/remove, desktop drag/resize, mobile up/down ordering, widget search, quick templates and clear/reset.
@@ -16,9 +16,11 @@ constraints:
   - MERDPOS owns dashboard.configure, role selection, widget allowlists and layout validation.
   - Empty saved dashboards remain empty; no fallback repopulation when layout service is healthy.
 validation:
-  - Commit 92b110e passed PHP lint, Node syntax, diff-check and UTF-8/mojibake validation locally.
-  - Exact branch passed bash syntax and the complete Drupal validator chain under Namecheap PHP 8.4.
-  - Dashboard Layout v1 validator proves authorized-vs-saved separation, empty-layout authority and Twig syntax.
-  - All existing gateway/auth/Finance/account/Admin/attendance/disputes/dark/shell/resource validators remained green.
-next_action: Open PR, require CI and secret scan, merge to beta/drupal-webapp, deploy canonical merge, then Playwright-verify desktop/mobile Light/Dark and bounded non-destructive layout editing.
-updated_at: "2026-09-08T16:58:48+05:00"
+  - Exact implementation commit 92b110e passed the complete PHP 8.4 validator/Twig/resource suite.
+  - PR #85 CI and secret scan passed; canonical merge deployed at f4bb37b3ca24.
+  - Live release probe passed signed dashboard_layout GET, editable/selectable DEV role, authoritative allowlist, 12-column grid and POST-only Drupal route.
+  - Playwright DUMMY DEV closure found 12 saved widgets and completed signed no-op saves with unchanged layout on desktop/mobile Light/Dark.
+  - Mobile Light/Dark measured 390/390 document width; desktop Light/Dark had no horizontal overflow.
+  - Existing account/dark source regression remained green, including 390/390 mobile and internal table scrolling.
+next_action: Continue Beta-to-Drupal parity audit with check_sheet, timesheet_google_refresh, legacy_migration and remaining defaults/settings exactness; keep DevStudio/UI Studio excluded.
+updated_at: "2026-09-08T17:08:50+05:00"
