@@ -406,3 +406,17 @@
   .merdpos-dashboard-person { grid-template-columns: auto minmax(0,1fr); }
   .merdpos-dashboard-person time { grid-column: 2; }
 }
+/* Mobile containment: keep intrinsic labels/options inside the dashboard viewport. */
+@media (max-width: 51.25rem) {
+  .merdpos-dashboard-v2 { overflow-x: clip; }
+  .merdpos-dashboard-filters select {
+    width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+  }
+  .merdpos-dashboard-kpis,
+  .merdpos-dashboard-kpi--my-shift,
+  .merdpos-current-shift-action,
+  .merdpos-current-shift-action > div {
+    min-width: 0; max-width: 100%; box-sizing: border-box;
+  }
+  .merdpos-current-shift-action strong { max-width: min(11rem, 58vw); }
+}
