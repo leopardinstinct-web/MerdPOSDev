@@ -1,13 +1,13 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 15:29 +05:00
+Updated: 2026-09-08 15:57 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
 | Area / authoritative Beta capability | Drupal status | Evidence / remaining delta |
 | --- | --- | --- |
 | Login / identity | EXACT | Drupal `/login` delegates credential verification to authoritative Beta and stores only shadow session identity. |
-| Home / role dashboard | EXACT | Signed dashboard data, role/LOA widget filtering, charts, Working Now and attendance QR are implemented and deployment-gated. |
+| Home / role dashboard | EXACT | Signed dashboard data, role/LOA widget filtering, charts, Working Now and attendance QR are implemented and deployment-gated. Mobile containment is live-verified at 390/390 document width while table regions retain internal scrolling. |
 | Attendance QR scan | EXACT | Signed `attendance_scan` path with Drupal CSRF; invalid-QR live closure verified without mutation. |
 | Operations / HR read surface | EXACT | Signed role-aware operations, staffing, attendance, schedules and management slices are implemented. |
 | Disputes | EXACT | Create/cancel/handover/review/flag resolution use signed `disputes` writes and authoritative permissions. |
@@ -19,8 +19,8 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Finance writes: open day / Cash IN / Cash OUT / Z report | EXACT | PR #81 merged and Namecheap release `1d30d1aaf810` passed the signed/live deployment gate. MERDPOS remains authoritative for finance permissions, balances, attendance/store scope, idempotency, ledger and outbox behavior. |
 | Finance offline queue / reconnect flush | PARTIAL | Beta queues financial submissions in browser localStorage while offline; Drupal write forms are synchronous. Must be added before claiming exact offline Finance parity. |
 | Account: Log out | EXACT | Drupal account menu provides logout and returns to MERDPOS login. |
-| Dark-theme approved brand assets | VALIDATED | Canonical full lockup is contrast-preserved on light glass in dark account/login surfaces; canonical multicolor tagline replaces the plain shell subline in dark mode. Assets are not recolored or duplicated into new binaries. Pending browser closure. |
-| Account: Change password (`change_password`) | VALIDATED | Permission-scoped account-menu modal now sends current/new/confirm fields through Drupal CSRF + signed `change_password`; backend password verification/storage/audit stays authoritative. Pending PR/deploy/browser closure; no real password will be changed for verification. |
+| Dark-theme approved brand assets | EXACT | Canonical full lockup is contrast-preserved on light glass in dark account/login surfaces; canonical multicolor tagline replaces the plain shell subline in dark mode. Source-only Playwright closure passed desktop/mobile Dark on release `53b518c7be00`; assets are not recolored or duplicated into new binaries. |
+| Account: Change password (`change_password`) | EXACT | Permission-scoped account-menu modal sends current/new/confirm fields through Drupal CSRF + signed `change_password`; backend password verification/storage/audit stays authoritative. Source-only Playwright closure passed desktop/mobile without submitting or changing a password. |
 | Dashboard layout (`dashboard_layout`, non-DevStudio) | MISSING / NEEDS AUDIT | Gateway supports GET/POST and blocks `dev_studio`; Drupal does not yet expose the normal role dashboard-layout workflow. Must distinguish normal layout personalization from excluded Studio behavior. |
 | Sheet health (`check_sheet`) | MISSING / NEEDS AUDIT | Gateway supports GET; no Drupal action/surface currently references it. Audit Beta visibility/permission and reproduce only user-facing behavior. |
 | Timesheet Google refresh (`timesheet_google_refresh`) | MISSING / NEEDS AUDIT | Gateway supports POST; no Drupal equivalent currently references it. Audit Beta UI/permission before implementation. |

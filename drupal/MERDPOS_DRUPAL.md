@@ -152,9 +152,13 @@ Anonymous access to `merdpos_core.*` routes redirects to the MERDPOS login scree
 
 ## Account password parity v1
 
-The authenticated account menu now exposes Beta-equivalent **Change password** only when the signed actor has `password.change_own`. The modal preserves the Beta field names and labels: Current password, New password, and Confirm new password. Drupal validates its own CSRF token and forwards only those values through the signed `change_password` gateway route; MERDPOS Beta remains authoritative for current-password verification, the 6?20 digit rule, password storage, session-security behavior, and security audit evidence.
+The authenticated account menu now exposes Beta-equivalent **Change password** only when the signed actor has `password.change_own`. The modal preserves the Beta field names and labels: Current password, New password, and Confirm new password. Drupal validates its own CSRF token and forwards only those values through the signed `change_password` gateway route; MERDPOS Beta remains authoritative for current-password verification, the 6-20 digit rule, password storage, session-security behavior, and security audit evidence.
 
 Drupal does not persist the submitted password fields. The return target is restricted to `/merdpos` paths, and deployment verifies the route is POST-only plus the authoritative permission is present before publishing the release marker. Browser closure must not change a real password merely to prove the boundary.
+
+### Account password + dark-brand verified checkpoint
+
+PR #82 delivered the account-password and approved Dark-mode brand treatment, and PR #83 closed the mobile Home overflow found by the established acceptance kit. Namecheap release 53b518c7be00 passed the complete Drupal deployment gate. A clean source-only run from C:\Dev\.merdpos-test logged in through the normal MERDPOS Drupal login with bounded DUMMY DEV credentials, confirmed Dark mode, the canonical multicolor tagline, the canonical full lockup on contrast-preserving glass, the permission-scoped Change password action, the modal and all three Beta-equivalent fields. No password was submitted or changed. Desktop had no horizontal overflow; mobile at 390x844 measured document width 390/390 while the dashboard table retained intentional internal scrolling (overflow-x:auto, 759/295).
 
 ## Free UI capability stack
 
