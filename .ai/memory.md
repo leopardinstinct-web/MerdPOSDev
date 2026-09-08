@@ -99,13 +99,13 @@ Do not reconstruct current implementation state from old Studio version notes or
 
 ## Current priority
 
-The active Beta queue is defined in `.ai/BETA_SCOPE.md`. Attendance QR, Attendance → Dispute, and Timesheet reconciliation were **VERIFIED live on 2026-09-07** with a 26/26 DUMMY E2E run and final `ATTENDANCE_E2E_AUDIT none`. The immediate acceptance milestone is now **Administration acceptance**. Ordered Beta work is:
+The active Beta queue is defined in `.ai/BETA_SCOPE.md`. Attendance QR, Attendance → Dispute, and Timesheet reconciliation were **VERIFIED live on 2026-09-07** with a 26/26 DUMMY E2E run and final `ATTENDANCE_E2E_AUDIT none`. Administration acceptance and the Admin Roles/shell follow-up are **VERIFIED live on 2026-09-08**. The immediate acceptance milestone is now **Finance Beta acceptance**. Ordered Beta work is:
 
 1. Attendance QR end-to-end — VERIFIED.
 2. Attendance → Dispute end-to-end — VERIFIED.
 3. Timesheet reconciliation with frozen payroll rules unchanged — VERIFIED.
-4. Administration acceptance for Clients, Stores and Workforce — CURRENT.
-5. Approved Finance Beta workflows/validations only.
+4. Administration acceptance for Clients, Stores, Workforce and Roles — VERIFIED.
+5. Approved Finance Beta workflows/validations only — CURRENT.
 6. Legacy/Google migration reconciliation and production readiness.
 7. Role-by-role Beta acceptance and scope freeze.
 

@@ -1,0 +1,64 @@
+version: 1
+id: MERD-20260908-admin-roles-shell
+objective: Put governed role management inside Drupal Admin and simplify the primary
+  shell to Home, Admin, Finance, Reports with DEV in the account menu.
+acceptance:
+- Admin exposes a Roles child page when roles.manage is granted and preserves Working
+  client context.
+- ADMIN may create/edit/delete only custom roles at or below their own LOA; system
+  roles and permission thresholds remain DEV-governed.
+- Workforce continues to assign only roles at or below the acting user's authority
+  and self-role changes remain blocked.
+- Bottom navigation is exactly Home, Admin, Finance, Reports; Operations and DEV are
+  absent.
+- DEV appears in the authenticated user menu for users permitted to access DEV tools.
+- Backend and Drupal deploy guards pass and the live Beta UI is verified.
+packet_state: CLOSED
+lifecycle: VERIFIED
+base_head: 8e6c5fe6b0bc89b1399acd7b4850ba8f41511692
+last_seen_head: 45be83dc08cab7344dde31382932bc59405015b4
+drupal_base_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+drupal_last_seen_head: 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c
+affected_paths:
+- namecheap_beta_live/backend/api/includes/portal_permissions.php
+- namecheap_beta_live/timesheet_portal/api/role_authority.php
+- namecheap_beta_live/backend/cli/apply_037_admin_role_delegation.php
+- drupal/web/modules/custom/merdpos_core/Administration
+- drupal/web/themes/custom/merdpos_app
+constraints:
+- DEV stays fixed at LOA 1000.
+- permissions.manage remains DEV-only to prevent threshold-based self escalation.
+- No destructive writes against production MERD data; live role CRUD uses bounded
+  DUMMY resources only.
+completed:
+- roles.manage catalog changed from DEV-only LOA 1000 to delegable LOA 50.
+- role_authority now enforces non-DEV custom-role <= actor LOA and blocks non-DEV
+  system-role changes.
+- Drupal Administration wires Roles reads/writes through the signed portal gateway.
+- Roles panel and Working client context are implemented in Admin.
+- Primary shell source is reordered Home, Admin, Finance, Reports and DEV is moved
+  to account menu.
+- Backend delegation validator and Drupal roles/shell validator pass locally.
+- Backend live at 45be83dc08cab7344dde31382932bc59405015b4; Drupal live at 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c.
+- Live DUMMY run 20260908074645-78ef05 verified Roles delegation, exact four-item
+  shell, DEV account-menu placement and non-DEV anti-escalation.
+- Final bounded cleanup/audit proved stores=0 employees=0 clients=0.
+checks:
+- name: validate_admin_role_delegation_v1.php
+  result: PASS
+  evidence: ADMIN custom-role delegation bounded by own authority; system roles and
+    permission thresholds DEV-governed.
+- name: validate_admin_roles_shell_v1.php
+  result: PASS
+  evidence: Roles gateway/panel and four-item shell contract present.
+- name: validate_source_encoding.php
+  result: PASS
+  evidence: UTF-8/mojibake source validation passed.
+- name: Admin Roles + shell live acceptance
+  result: PASS
+  evidence: DUMMY run 20260908074645-78ef05; zero residue
+remaining: []
+next_action: Archived VERIFIED; Finance Beta acceptance is current.
+blocked: false
+blocker: null
+updated_at: '2026-09-08T12:50:00+05:00'

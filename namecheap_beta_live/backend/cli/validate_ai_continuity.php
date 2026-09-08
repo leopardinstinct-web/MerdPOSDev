@@ -56,7 +56,7 @@ continuity_require($agents, '.ai/BETA_SCOPE.md', 'AGENTS Beta-scope pointer', $e
 continuity_require($invariants, 'Beta scope boundary', 'binding Beta scope boundary', $errors);
 continuity_require($betaScope, 'Explicitly outside the current Beta queue', 'Beta out-of-scope boundary', $errors);
 continuity_require($betaScope, 'M3.3 Checkout & Tender', 'M3.3 exclusion marker', $errors);
-continuity_require($betaScope, 'Administration acceptance — CURRENT', 'current Beta milestone', $errors);
+continuity_require($betaScope, 'Finance Beta acceptance — CURRENT', 'current Beta milestone', $errors);
 continuity_require($memory, 'Do not suggest them as the next Beta step', 'memory Beta-scope guard', $errors);
 continuity_require($posRoadmap, 'Scope boundary (2026-09-06)', 'historical POS roadmap boundary banner', $errors);
 
