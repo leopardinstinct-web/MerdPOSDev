@@ -106,6 +106,15 @@ try {
     $employee = $actor['employee'];
     $role = $actor['role'];
     $baseRole = strtoupper((string)$role['base_role']);
+    if ($contextClientId === null && $baseRole === 'DEV') {
+        $prefStmt = $pdo->prepare(
+            "SELECT p.selected_client_id FROM dev_client_preferences p JOIN clients c ON c.id=p.selected_client_id AND c.status='active' "
+            . 'WHERE p.employee_id=? AND p.auth_client_id=? LIMIT 1'
+        );
+        $prefStmt->execute([(int)$employee['id'], (int)$service['client_id']]);
+        $preferredClientId = (int)($prefStmt->fetchColumn() ?: 0);
+        if ($preferredClientId > 0) $contextClientId = $preferredClientId;
+    }
     if ($contextClientId !== null && $contextClientId !== (int)$service['client_id']) {
         if ($baseRole !== 'DEV') throw new MerdRequestException('forbidden', 403, 'Only DEV may select another client context.');
         $clientStmt = $pdo->prepare("SELECT id FROM clients WHERE id=? AND status='active' LIMIT 1");
