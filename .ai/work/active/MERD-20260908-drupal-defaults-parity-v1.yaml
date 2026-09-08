@@ -1,10 +1,10 @@
 id: MERD-20260908-drupal-defaults-parity-v1
 branch: milestone/drupal-defaults-exactness-v1
 base_head: 7cfea4c3741d62b0ba6d0c40e480e719aa55fdca
-last_seen_head: 5fdd64a0a1559b426dcea281433a2fbd90ee2df5
+last_seen_head: c9ee8c3d2029851d9a33ea3e41c6f64bb2620849
 objective: Close Beta Defaults client/store currency and timezone parity in Drupal while keeping persistence, validation, inheritance and audit authoritative in MERDPOS.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - DEV-only Defaults Administration tab after Stores and before Workforce.
   - Signed defaults GET for client defaults, store overrides and effective values.
@@ -20,6 +20,10 @@ validation:
   - Beta general Store profile also exposes currency/timezone, so the dedicated Defaults tab is intentionally additive rather than replacing Store profile fields.
   - Dedicated Defaults v1 validator passes under PHP 8.4 and cross-checks Beta actions, labels, inheritance and no-SQL boundaries.
   - Complete Drupal PHP 8.4 validator suite, Twig parsing, resources, UTF-8/mojibake, AI continuity and git diff checks are green at implementation head 5fdd64a0a155.
-  - Namecheap deploy probe is signed GET-only and will verify Defaults state without changing currency or timezone.
-next_action: Promote through PR, deploy canonical Drupal, then run DUMMY desktop/mobile Light/Dark non-mutating browser closure before marking EXACT.
-updated_at: "2026-09-08T21:25:56+05:00"
+  - PR #95 merged and canonical Namecheap Drupal release c9ee8c3d2029 passed the complete deployment gate, including the signed GET-only Defaults probe.
+  - DUMMY DEV Playwright verified client defaults AUD / Australia/Sydney, blank store overrides inheriting those values, and correct effective values on desktop/mobile Light/Dark.
+  - Both real Defaults Save buttons produced the expected FormData while submit interception kept server POST count at 0, so no DUMMY default value was changed.
+  - Desktop Light/Dark measured 1440/1440; mobile Light/Dark measured 390/390.
+  - Account/dark regression and Dashboard Layout signed no-op regression both passed on release c9ee8c3d2029.
+next_action: Run a final whole-app parity sweep for any remaining non-EXACT user-facing capability; keep DevStudio/UI Studio excluded.
+updated_at: "2026-09-08T21:53:03+05:00"
