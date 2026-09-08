@@ -37,11 +37,17 @@ async function portalLogin(employee) {
 async function drupalLogin(browser,employee) {
   const context=await browser.newContext();
   const page=await context.newPage();
+  let lastDocument={status:0,url:''};
+  page.on('response',response=>{ if (response.request().resourceType()==='document') lastDocument={status:response.status(),url:response.url()}; });
   await page.goto(DRUPAL+'/login',{waitUntil:'domcontentloaded',timeout:20000});
   await page.locator('input[name="user_id"]').fill(String(employee.user_id));
   await page.locator('input[name="password"]').fill(String(employee.password));
   await page.locator('input[type="submit"],button[type="submit"]').click();
-  await page.waitForURL(url=>url.pathname.startsWith('/merdpos'),{timeout:20000});
+  try { await page.waitForURL(url=>url.pathname.startsWith('/merdpos'),{timeout:20000}); }
+  catch {
+    const body=await page.locator('body').innerText().catch(()=> '');
+    fail('Drupal login',`${lastDocument.status} ${lastDocument.url} ${body.slice(0,240)}`);
+  }
   return {context,page};
 }
 
@@ -78,11 +84,6 @@ async function portalGet(api,name) {
   return (await jsonResponse(await api.get(url,{headers:{'Cache-Control':'no-cache'}}),name)).data;
 }
 
-async function freshDevGet(name) {
-  const api=await portalLogin(fx.employees.dev);
-  try { return await portalGet(api,name); }
-  finally { await api.dispose(); }
-}
 
 function findByName(rows,name,key='name') {
   return (rows||[]).find(row=>String(row[key]||'')===name);
@@ -105,7 +106,7 @@ async function main() {
   await cf.locator('input[name="client_code"]').fill(fx.temp_client.code);
   await submitForm(dev.page,cf,'Create client');
   if (!dev.page.url().includes('tab=clients')) fail('Client create preserves child tab',dev.page.url());
-  let clients=await freshDevGet('clients.php');
+  let clients=await portalGet(devApi,'clients.php');
   let created=findByName(clients.clients,clientName);
   if (!created || String(created.client_code)!==String(fx.temp_client.code)) fail('Client create authoritative',JSON.stringify(clients.clients));
   pass('Client create + child-tab persistence',`${created.id} ${created.client_code}`);
@@ -116,7 +117,7 @@ async function main() {
   await editClient.locator('input[name="name"]').fill(clientName+' Edited');
   await editClient.locator('select[name="status"]').selectOption('inactive');
   await submitForm(dev.page,editClient,'Save client');
-  clients=await freshDevGet('clients.php');
+  clients=await portalGet(devApi,'clients.php');
   created=findByName(clients.clients,clientName+' Edited');
   if (!created || created.status!=='inactive') fail('Client update authoritative',JSON.stringify(created));
   pass('Client update/inactivate authoritative',String(created.id));
@@ -141,11 +142,11 @@ async function main() {
   await sf.locator('input[name="days[7][is_closed]"][type="checkbox"]').check();
   await submitForm(dev.page,sf,'Create store');
   if (!dev.page.url().includes('tab=stores') || !dev.page.url().includes(`client_id=${fx.client.id}`)) fail('Store create preserves context',dev.page.url());
-  let directory=await freshDevGet('admin_directory.php');
+  let directory=await portalGet(devApi,'admin_directory.php');
   let store=(directory.stores||[]).find(row=>row.store_name===storeName);
   if (!store || String(store.timezone)!==String(storeTimezone) || String(store.currency_code)!=='USD' || Number(store.week_start_day)!==7) fail('Store create/profile authoritative',JSON.stringify(store));
   const storeId=Number(store.id);
-  const timings=await freshDevGet('store_timings.php');
+  const timings=await portalGet(devApi,'store_timings.php');
   const rows=(timings.timings||[]).filter(row=>Number(row.store_id)===storeId);
   const mon=rows.find(row=>Number(row.day_of_week)===1), sun=rows.find(row=>Number(row.day_of_week)===7);
   if (rows.length!==7 || !mon || String(mon.start_time).slice(0,5)!=='08:15' || !sun || Number(sun.is_closed)!==1) fail('Store seven-day timings authoritative',JSON.stringify(rows));
@@ -157,10 +158,10 @@ async function main() {
   const png=await dev.page.screenshot({type:'png'});
   await editStore.locator('input[name="logo"]').setInputFiles({name:'acceptance.png',mimeType:'image/png',buffer:png});
   await submitForm(dev.page,editStore,'Save store');
-  directory=await freshDevGet('admin_directory.php');
+  directory=await portalGet(devApi,'admin_directory.php');
   store=(directory.stores||[]).find(row=>Number(row.id)===storeId);
   if (!store || store.store_name!==storeName+' Edited') fail('Store edit authoritative',JSON.stringify(store));
-  const identity=await freshDevGet('store_identity.php');
+  const identity=await portalGet(devApi,'store_identity.php');
   const identityRow=(identity.stores||[]).find(row=>Number(row.id)===storeId);
   if (!identityRow || !String(identityRow.logo_path||'').startsWith('uploads/store_logos/')) fail('Store logo authoritative',JSON.stringify(identityRow));
   pass('Store edit + logo authoritative',String(identityRow.logo_path));
@@ -184,7 +185,7 @@ async function main() {
   await ef.locator('input[name="new_password"]').fill(employeePassword);
   await submitForm(dev.page,ef,'Create employee');
   if (!dev.page.url().includes('tab=workforce') || !dev.page.url().includes(`client_id=${fx.client.id}`)) fail('Employee create preserves context',dev.page.url());
-  directory=await freshDevGet('admin_directory.php');
+  directory=await portalGet(devApi,'admin_directory.php');
   let employee=(directory.employees||[]).find(row=>row.full_name===employeeName);
   if (!employee || String(employee.user_id)!==employeeUserId || String(employee.store_access_mode)!=='selected' || !(employee.assigned_store_ids||[]).map(Number).includes(storeId)) fail('Employee create authoritative',JSON.stringify(employee));
   if (Math.abs(Number(employee.hourly_rate)-31.25)>0.001) fail('Employee pay rate authoritative',JSON.stringify(employee));
@@ -203,7 +204,7 @@ async function main() {
   if (await editEmployee.locator('input[name="rate_effective_date"]').count()) await editEmployee.locator('input[name="rate_effective_date"]').fill(String(directory.today));
   await editEmployee.locator('input[name="new_password"]').fill('76543210');
   await submitForm(dev.page,editEmployee,'Save employee');
-  directory=await freshDevGet('admin_directory.php');
+  directory=await portalGet(devApi,'admin_directory.php');
   employee=(directory.employees||[]).find(row=>Number(row.id)===employeeId);
   if (!employee || employee.full_name!==employeeName+' Edited' || Math.abs(Number(employee.hourly_rate)-32.50)>0.001) fail('Employee update authoritative',JSON.stringify(employee));
   pass('Workforce edit authoritative',String(employeeId));
@@ -213,7 +214,7 @@ async function main() {
   const deactivate=editedCard.locator('form');
   await deactivate.locator('select[name="status"]').selectOption('inactive');
   await submitForm(dev.page,deactivate,'Save employee');
-  directory=await freshDevGet('admin_directory.php');
+  directory=await portalGet(devApi,'admin_directory.php');
   employee=(directory.employees||[]).find(row=>Number(row.id)===employeeId);
   if (!employee || employee.status!=='inactive') fail('Employee inactive state authoritative',JSON.stringify(employee));
   pass('Workforce lifecycle state authoritative');
@@ -273,7 +274,7 @@ async function main() {
   const finalStoreForm=finalStoreCard.locator('form');
   await finalStoreForm.locator('select[name="status"]').selectOption('inactive');
   await submitForm(dev.page,finalStoreForm,'Save store');
-  directory=await freshDevGet('admin_directory.php');
+  directory=await portalGet(devApi,'admin_directory.php');
   store=(directory.stores||[]).find(row=>Number(row.id)===storeId);
   if (!store || store.status!=='inactive') fail('Store inactive state authoritative',JSON.stringify(store));
   pass('Store lifecycle state authoritative');
