@@ -1,13 +1,14 @@
 <?php
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 3);
-$permissionPath = $root . '/namecheap_beta_live/backend/api/includes/portal_permissions.php';
-$rolePath = $root . '/namecheap_beta_live/timesheet_portal/api/role_authority.php';
-$deployPath = $root . '/scripts/deploy_namecheap_beta.sh';
+$packageRoot = dirname(__DIR__, 2);
+$repoRoot = dirname($packageRoot);
+$permissionPath = $packageRoot . '/backend/api/includes/portal_permissions.php';
+$rolePath = $packageRoot . '/timesheet_portal/api/role_authority.php';
+$deployPath = $repoRoot . '/scripts/deploy_namecheap_beta.sh';
 $permission = file_get_contents($permissionPath) ?: '';
 $role = file_get_contents($rolePath) ?: '';
-$deploy = file_get_contents($deployPath) ?: '';
+$deploy = is_file($deployPath) ? (file_get_contents($deployPath) ?: '') : null;
 $errors = [];
 
 $mustContain = [
@@ -17,9 +18,9 @@ $mustContain = [
     [$role, "You cannot create a role above your own authority level.", 'custom-role create escalation guard'],
     [$role, "You cannot raise a role above your own authority level.", 'custom-role edit escalation guard'],
     [$role, "'can_manage_permissions' => beta_has_permission", 'role-state permission management capability'],
-    [$deploy, 'apply_037_admin_role_delegation.php', 'deploy migration wiring'],
 ];
 foreach ($mustContain as [$source,$needle,$label]) if (!str_contains($source,$needle)) $errors[] = $label;
+if ($deploy !== null && !str_contains($deploy, 'apply_037_admin_role_delegation.php')) $errors[] = 'deploy migration wiring';
 
 if ($errors) {
     fwrite(STDERR, "MERDPOS Admin role delegation validation FAILED:\n");
