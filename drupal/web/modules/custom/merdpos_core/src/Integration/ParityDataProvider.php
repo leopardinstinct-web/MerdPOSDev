@@ -12,6 +12,14 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
   public function home(array $query = []): array {
     $dashboardQuery = $this->dashboardQuery($query);
+    $layoutQuery = [];
+    if (!empty($dashboardQuery['role_id'])) $layoutQuery['role_id'] = $dashboardQuery['role_id'];
+    $layoutResult = $this->call('dashboard_layout', $layoutQuery);
+    $layoutPayload = $this->map($layoutResult['payload'] ?? []);
+    $layoutAvailable = ($layoutResult['status'] ?? '') === 'ok' && !empty($layoutPayload['success']);
+    $selectedLayoutRole = $this->map($layoutPayload['selected_role'] ?? []);
+    $selectedRoleId = (int) ($selectedLayoutRole['id'] ?? 0);
+    if ($layoutAvailable && $selectedRoleId > 0) $dashboardQuery['role_id'] = (string) $selectedRoleId;
     $dashboard = $this->call('dashboard_data', $dashboardQuery);
     $state = $this->call('beta_state');
     $payload = $dashboard['payload'];
@@ -20,11 +28,13 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $permissions = $this->strings($permissionValue);
     $permissionMap = is_array($permissionValue) && !array_is_list($permissionValue) ? $permissionValue : [];
     $canScanAttendance = !empty($permissionMap['attendance.scan']) || in_array('attendance.scan', $permissions, true);
-    $allowedKeys = $this->strings($payload['allowed_widgets'] ?? []);
+    $authoritativeLayoutAllowed = $this->strings($layoutPayload['allowed_widgets'] ?? []);
+    $authoritativeLayoutAllowed = array_values(array_filter($authoritativeLayoutAllowed, static fn(string $key): bool => $key !== 'attendance_scan'));
+    $allowedKeys = $layoutAvailable ? $authoritativeLayoutAllowed : $this->strings($payload['allowed_widgets'] ?? []);
     $allowedKeys = array_values(array_filter($allowedKeys, static fn(string $key): bool => $key !== 'attendance_scan'));
     if ($canScanAttendance && !in_array('my_shift', $allowedKeys, true)) $allowedKeys[] = 'my_shift';
     $allowed = array_fill_keys($allowedKeys, true);
-    $role = $this->map($payload['role'] ?? []);
+    $role = $layoutAvailable && $selectedLayoutRole ? $selectedLayoutRole : $this->map($payload['role'] ?? []);
     $management = $this->map($payload['management'] ?? []);
     $analytics = $this->map($management['analytics'] ?? []);
     $currency = (string)($management['currency_code'] ?? $payload['client_defaults']['currency_code'] ?? 'AUD');
@@ -165,17 +175,20 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       $widgets[] = $this->dashboardWidget('sync_status_table', 'status', 'Sync status', 'Outbox exceptions grouped by current status.', 'sync', ['items'=>$statusRows]);
     }
 
+    $configuredKeys = $layoutAvailable
+      ? array_values(array_filter(array_map(static fn(array $row): string => (string) ($row['widget_key'] ?? ''), $this->rows($layoutPayload['layout'] ?? []))))
+      : $allowedKeys;
     $filterOptions = $this->map($payload['filter_options'] ?? []);
     $filterState = $this->map($payload['filters'] ?? []);
     $filters = [];
-    $filterable = array_intersect($allowedKeys, ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales']);
+    $filterable = array_intersect($configuredKeys, ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales']);
     if ($filterable) {
       $storeOptions = [['value'=>'0','label'=>'All stores']];
       foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
         $storeOptions[] = ['value'=>(string)($store['id'] ?? ''),'label'=>(string)($store['store_name'] ?? '')];
       }
       $filters[] = ['name'=>'store_id','label'=>'Store','type'=>'select','value'=>(string)($filterState['store_id'] ?? 0),'options'=>$storeOptions];
-    }    if (array_intersect($allowedKeys, ['sales_trend_7d','attendance_trend_7d'])) {
+    }    if (array_intersect($configuredKeys, ['sales_trend_7d','attendance_trend_7d'])) {
       $filters[] = [
         'name'=>'period', 'label'=>'Period', 'type'=>'select',
         'value'=>(string)($filterState['period'] ?? '7'),
@@ -200,11 +213,43 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       'label'=>(string)($role['role_label'] ?? $role['base_role'] ?? 'MERDPOS'),
       'loa'=>(int)($role['authority_level'] ?? 0),
     ];
+    $metricMap = [];
+    foreach ($kpis as $item) if (!empty($item['key'])) $metricMap[(string) $item['key']] = $item;
+    $widgetMap = [];
+    foreach ($widgets as $item) if (!empty($item['key'])) $widgetMap[(string) $item['key']] = $item;
+    $layoutItems = [];
+    if ($layoutAvailable) {
+      foreach ($this->rows($layoutPayload['layout'] ?? []) as $row) {
+        $key = (string) ($row['widget_key'] ?? '');
+        $content = $metricMap[$key] ?? $widgetMap[$key] ?? NULL;
+        if (!is_array($content)) continue;
+        $layoutItems[] = [
+          'widget_key'=>$key, 'content_type'=>isset($metricMap[$key]) ? 'metric' : 'widget', 'content'=>$content,
+          'grid_x'=>(int) ($row['grid_x'] ?? 0), 'grid_y'=>(int) ($row['grid_y'] ?? 0),
+          'grid_w'=>(int) ($row['grid_w'] ?? 1), 'grid_h'=>(int) ($row['grid_h'] ?? 1),
+        ];
+      }
+    }
+    $roles = [];
+    foreach ($this->rows($layoutPayload['roles'] ?? []) as $candidate) {
+      $id = (int) ($candidate['id'] ?? 0);
+      if ($id < 1) continue;
+      $roles[] = ['id'=>$id, 'role_key'=>(string) ($candidate['role_key'] ?? ''), 'role_label'=>(string) ($candidate['role_label'] ?? $candidate['role_key'] ?? 'Role'), 'authority_level'=>(int) ($candidate['authority_level'] ?? 0), 'allowed_widget_count'=>(int) ($candidate['allowed_widget_count'] ?? 0)];
+    }
     $surface['allowed_widgets'] = $allowedKeys;
     $surface['dashboard_widgets'] = $widgets;
+    $surface['layout_available'] = $layoutAvailable;
+    $surface['layout_items'] = $layoutItems;
+    $surface['dashboard_layout'] = [
+      'can_edit'=>$layoutAvailable && !empty($layoutPayload['can_edit']),
+      'can_select_role'=>$layoutAvailable && !empty($layoutPayload['can_select_role']),
+      'selected_role_id'=>$selectedRoleId, 'roles'=>$roles,
+      'allowed_widgets'=>$layoutAvailable ? $authoritativeLayoutAllowed : $allowedKeys,
+      'grid'=>$this->map($layoutPayload['grid'] ?? []),
+    ];
     $surface['chart_specs'] = $chartSpecs;
     $surface['can_scan_attendance'] = $canScanAttendance;
-    $surface['visible_widget_count'] = count($kpis) + count($widgets);
+    $surface['visible_widget_count'] = $layoutAvailable ? count($layoutItems) : count($kpis) + count($widgets);
     $surface['period_label'] = (string)($filterState['period_label'] ?? 'Current period');
     return $surface;
   }
@@ -1070,6 +1115,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
   private function dashboardQuery(array $query): array {
     $out = [];
+    $roleId = filter_var($query['role_id'] ?? 0, FILTER_VALIDATE_INT);
+    if ($roleId !== false && $roleId > 0) $out['role_id'] = (string) $roleId;
     $storeId = filter_var($query['store_id'] ?? 0, FILTER_VALIDATE_INT);
     if ($storeId !== false && $storeId > 0) $out['store_id'] = (string)$storeId;
     $period = strtolower(trim((string)($query['period'] ?? '7')));

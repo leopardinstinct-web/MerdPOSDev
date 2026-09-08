@@ -14,10 +14,12 @@ dashboard:
     theme:
       css/dashboard.css: {}
       css/dashboard-v2.css: {}
+      css/dashboard-layout-v1.css: {}
       css/attendance-scan.css: {}
       css/dark-normalization.css: {}
   js:
     js/attendance-scan.js: {}
+    js/dashboard-layout-v1.js: {}
 
 operations:
   version: 2.x

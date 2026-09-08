@@ -22,7 +22,7 @@
       <div class="merdpos-dashboard-roleline">
         <span>{{ surface.role.label|default('MERDPOS') }}</span>
         <span>LOA {{ surface.role.loa|default(0) }}</span>
-        <span>{{ surface.visible_widget_count|default(0) }} authorized widgets</span>
+        <span>{{ surface.visible_widget_count|default(0) }} {{ surface.layout_available ? 'widgets on dashboard' : 'authorized widgets' }}</span>
       </div>
     </div>
     <div class="merdpos-dashboard-live merdpos-dashboard-live--{{ surface.status }}">
@@ -43,6 +43,87 @@
     </form>
   {% endif %}
 
+  {% if surface.layout_available %}
+    <section class="merdpos-dashboard-layout-shell" data-dashboard-layout data-endpoint="{{ surface.dashboard_layout.endpoint }}" data-csrf="{{ surface.dashboard_layout.csrf }}" data-role-id="{{ surface.dashboard_layout.selected_role_id }}" data-allowed-widgets="{{ surface.dashboard_layout.allowed_widgets|join(',') }}">
+      <div class="merdpos-dashboard-layout-bar">
+        {% if surface.dashboard_layout.can_select_role %}
+          <label class="merdpos-dashboard-role-select"><span>Dashboard role</span><select data-dashboard-role>
+            {% for role in surface.dashboard_layout.roles %}<option value="{{ role.id }}"{{ role.id == surface.dashboard_layout.selected_role_id ? ' selected' : '' }}>{{ role.role_label }}</option>{% endfor %}
+          </select></label>
+        {% else %}
+          <div class="merdpos-dashboard-role-static"><span>Dashboard role</span><strong>{{ surface.role.label }}</strong></div>
+        {% endif %}
+        <div class="merdpos-dashboard-layout-actions">
+          {% if surface.dashboard_layout.can_edit %}
+            <button type="button" class="merdpos-dashboard-edit-toggle" data-dashboard-edit aria-pressed="false">Edit dashboard</button>
+            <button type="button" class="merdpos-dashboard-add-widget" data-dashboard-add aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button>
+          {% endif %}
+          <span class="merdpos-dashboard-save-state" data-dashboard-save-state aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="merdpos-dashboard-layout-grid" data-dashboard-grid aria-label="Role dashboard">
+        {% for layout_item in surface.layout_items %}
+          <article class="merdpos-dashboard-layout-item" data-dashboard-item data-widget="{{ layout_item.widget_key }}" data-grid-x="{{ layout_item.grid_x }}" data-grid-y="{{ layout_item.grid_y }}" data-grid-w="{{ layout_item.grid_w }}" data-grid-h="{{ layout_item.grid_h }}" style="grid-column: {{ layout_item.grid_x + 1 }} / span {{ layout_item.grid_w }}; grid-row: {{ layout_item.grid_y + 1 }} / span {{ layout_item.grid_h }};">
+            {% if surface.dashboard_layout.can_edit %}
+              <div class="merdpos-dashboard-item-actions" data-dashboard-item-actions>
+                <button type="button" data-dashboard-drag aria-label="Move widget" title="Move widget">&#8942;&#8942;</button>
+                <button type="button" data-dashboard-up aria-label="Move widget up">&#8593;</button>
+                <button type="button" data-dashboard-down aria-label="Move widget down">&#8595;</button>
+                <button type="button" data-dashboard-remove aria-label="Remove widget">&times;</button>
+              </div>
+              <span class="merdpos-dashboard-resize" data-dashboard-resize aria-hidden="true"></span>
+            {% endif %}
+            {% if layout_item.content_type == 'metric' %}
+              {% set metric = layout_item.content %}
+              <div class="merdpos-dashboard-kpi is-{{ metric.tone }}{{ metric.key == 'my_shift' ? ' merdpos-dashboard-kpi--my-shift' : '' }}"{% if metric.key == 'my_shift' and surface.can_scan_attendance and surface.attendance_scan %} data-attendance-scan data-endpoint="{{ surface.attendance_scan.endpoint }}" data-csrf="{{ surface.attendance_scan.csrf }}"{% endif %}>
+                <span class="merdpos-dashboard-kpi-icon">{{ ui.icon(metric.icon) }}</span>
+                <div class="merdpos-dashboard-kpi-copy"><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.meta }}</small></div>
+                {% if metric.key == 'my_shift' and surface.can_scan_attendance and surface.attendance_scan %}
+                  <div class="merdpos-current-shift-action"><div><span>LOG IN STORE</span><strong>{{ metric.store_name }}</strong></div><button type="button" class="merdpos-attendance-open merdpos-attendance-open--icon" data-attendance-open aria-label="Scan attendance QR" title="Scan attendance QR">{{ ui.icon('qr') }}</button></div>
+                  <div class="merdpos-attendance-panel" data-attendance-panel hidden>
+                    <div class="merdpos-attendance-camera"><video data-attendance-video playsinline muted aria-label="Attendance QR camera preview"></video><div class="merdpos-attendance-target" aria-hidden="true"><span></span><span></span><span></span><span></span></div></div>
+                    <div class="merdpos-attendance-controls"><div class="merdpos-attendance-status" data-attendance-status role="status" aria-live="polite">Camera is ready when you are.</div><button type="button" class="merdpos-attendance-stop" data-attendance-stop>Close camera</button></div>
+                    <form class="merdpos-attendance-manual" data-attendance-manual><label><span>QR link or token fallback</span><input type="text" data-attendance-input maxlength="1800" autocomplete="off" spellcheck="false" placeholder="Paste the scanned MERDPOS QR link"></label><button type="submit">Submit QR</button></form>
+                    <div class="merdpos-attendance-result" data-attendance-result hidden><strong data-attendance-result-action></strong><span data-attendance-result-store></span><small data-attendance-result-time></small><button type="button" data-attendance-refresh>Refresh Home</button></div>
+                  </div>
+                {% elseif metric.kind == 'change' %}
+                  <div class="merdpos-dashboard-delta is-{{ metric.direction }}"><b>{{ metric.change }}</b><span>{{ metric.detail }}</span></div>
+                {% else %}
+                  <span class="merdpos-dashboard-kpi-spark" aria-hidden="true"></span>
+                {% endif %}
+              </div>
+            {% else %}
+              {% set widget = layout_item.content %}
+              <div class="merdpos-dashboard-panel merdpos-dashboard-panel--{{ widget.kind }} merdpos-dashboard-panel--{{ widget.key }}">
+                <header class="merdpos-dashboard-panel-head"><span class="merdpos-dashboard-panel-icon">{{ ui.icon(widget.icon) }}</span><div><h2>{{ widget.title }}</h2><p>{{ widget.description }}</p></div><span class="merdpos-dashboard-panel-live">LIVE</span></header>
+                <div class="merdpos-dashboard-panel-body">
+                  {% if widget.kind == 'chart' %}<div class="merdpos-dashboard-chart" role="img" aria-label="{{ widget.title }} chart">{{ attribute(charts, widget.chart_key) }}</div>
+                  {% elseif widget.kind == 'list' %}{% if widget.items %}<div class="merdpos-dashboard-people">{% for item in widget.items %}<div class="merdpos-dashboard-person"><span class="merdpos-dashboard-person-avatar">{{ item.title|first|upper }}</span><div><strong>{{ item.title }}</strong><span>{{ item.meta }}</span></div><time>{{ item.value }}</time></div>{% endfor %}</div>{% else %}<p class="merdpos-dashboard-empty">{{ widget.empty }}</p>{% endif %}
+                  {% elseif widget.kind == 'ranking' %}{% if widget.items %}<ol class="merdpos-dashboard-ranking">{% for item in widget.items %}<li><span class="rank">{{ item.rank }}</span><strong>{{ item.title }}</strong><b>{{ item.value }}</b></li>{% endfor %}</ol>{% else %}<p class="merdpos-dashboard-empty">No ranked sales data yet.</p>{% endif %}
+                  {% elseif widget.kind == 'status' %}<div class="merdpos-dashboard-statuses">{% for item in widget.items %}<div class="is-{{ item.tone }}"><span></span><strong>{{ item.status }}</strong><b>{{ item.count }}</b></div>{% endfor %}</div>
+                  {% elseif widget.kind == 'table' %}{% if widget.rows %}<div class="merdpos-dashboard-table-wrap" tabindex="0" role="region" aria-label="{{ widget.title }} table"><table><thead><tr>{% for column in widget.columns %}<th>{{ column.label }}</th>{% endfor %}</tr></thead><tbody>{% for row in widget.rows %}<tr>{% for column in widget.columns %}{% set cell = attribute(row, column.key)|default('') %}<td>{% if cell is same as('') %}&mdash;{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>{% else %}<p class="merdpos-dashboard-empty">{{ widget.empty }}</p>{% endif %}{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          </article>
+        {% else %}
+          <div class="merdpos-dashboard-empty merdpos-dashboard-layout-empty">No widgets on this role dashboard.</div>
+        {% endfor %}
+      </div>
+
+      {% if surface.dashboard_layout.can_edit %}
+        <div class="merdpos-dashboard-drawer-backdrop" data-dashboard-backdrop hidden></div>
+        <aside class="merdpos-dashboard-widget-drawer" data-dashboard-drawer aria-label="Add widgets" aria-hidden="true">
+          <div class="merdpos-dashboard-drawer-head"><div><h2>Add widget</h2><p>Only widgets available to the selected role are shown.</p></div><button type="button" data-dashboard-close aria-label="Close widget picker">&times;</button></div>
+          <label class="merdpos-dashboard-widget-search"><span aria-hidden="true">&#8981;</span><input type="search" data-dashboard-search placeholder="Search widgets"></label>
+          <section class="merdpos-dashboard-widget-templates" data-dashboard-templates aria-label="Quick dashboard templates"><span>Quick templates</span><div data-dashboard-template-list></div></section>
+          <div class="merdpos-dashboard-widget-catalog" data-dashboard-catalog></div>
+          <div class="merdpos-dashboard-drawer-foot"><button type="button" data-dashboard-reset>Clear this role dashboard</button></div>
+        </aside>
+      {% endif %}
+    </section>
+  {% else %}
   {% if surface.metrics %}
     <div class="merdpos-dashboard-kpis" aria-label="Role dashboard summary">
       {% for metric in surface.metrics %}
@@ -111,6 +192,7 @@
       </article>
     {% endfor %}
   </div>
+  {% endif %}
   <footer class="merdpos-dashboard-footer">
     <div><strong>MERDPOS policy is authoritative</strong><span>Only dashboard widgets allowed for {{ surface.role.label|default('this role') }} are rendered.</span></div>
     <div class="merdpos-dashboard-footer-tags"><span>{{ surface.meta.source }}</span><span>No direct operational DB access</span></div>
