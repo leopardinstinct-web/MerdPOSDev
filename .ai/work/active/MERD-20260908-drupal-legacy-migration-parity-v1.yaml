@@ -1,10 +1,10 @@
 id: MERD-20260908-drupal-legacy-migration-parity-v1
 branch: milestone/drupal-legacy-migration-parity-v1
 base_head: e94a97dea99802aab6bc5b63509da8666b08210a
-last_seen_head: f08f0691050f4a0e0b36717effece872f4332442
+last_seen_head: 7ba0bf50921365e2f0533070c7bb59b70622564f
 objective: Close Beta Legacy Migration user-facing parity in Drupal while keeping Google fetch, staging, reconciliation, cutover, SQL mutation and audit authoritative in MERDPOS.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Client-row Legacy Sync action and Legacy migration dialog.
   - Signed legacy_migration GET plus save_sources, preview, sync and final POST actions.
@@ -20,5 +20,11 @@ validation:
   - Complete deliberate Drupal validator suite, JavaScript syntax, UTF-8/mojibake and git diff checks are green at implementation head f08f0691050f.
   - Signed deploy probe is GET-only and verifies google_public_csv, preview-before-sync, post-cutover apply=false and the Drupal GET/POST route without creating a batch.
   - Existing Finance offline, Working-client Time Sheet sync, Dashboard Layout, Administration, Attendance, Disputes and account regressions remain green statically.
-next_action: Promote through PR/CI, deploy canonical Drupal release, then run DUMMY desktop/mobile Light/Dark browser closure with migration POSTs intercepted/cancelled so no preview batch, sync or final cutover is created.
-updated_at: "2026-09-08T20:19:56+05:00"
+  - PR #93 merged and canonical Namecheap Drupal release 7ba0bf509213 passed the complete deployment gate, including the signed GET-only Legacy Migration probe.
+  - DUMMY DEV Playwright used real authoritative Legacy Migration GET state on desktop/mobile Light/Dark; DUMMY remained google_legacy for attendance and finance.
+  - Preview POSTs were intercepted before Drupal, Sync confirmation was cancelled with zero POST, and Final Sync stayed disabled because DUMMY has no Financial source. No preview batch, sync, or cutover was created.
+  - A real Drupal Final Sync request with a deliberately wrong Client Code returned HTTP 422 Final cutover cancelled: Client Code did not match.; the controller stopped before the signed final POST.
+  - Desktop Light/Dark measured 1440/1440; mobile Light/Dark measured 390/390 while Migration history retained intentional internal overflow-x:auto.
+  - Account/dark and Dashboard Layout signed no-op regressions remained green on release 7ba0bf509213.
+next_action: Audit and close remaining client/default settings exactness; keep DevStudio/UI Studio excluded.
+updated_at: "2026-09-08T20:35:22+05:00"
