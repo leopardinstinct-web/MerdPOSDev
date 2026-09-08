@@ -1,10 +1,10 @@
 id: MERD-20260908-drupal-store-identity-parity-v1
 branch: milestone/drupal-final-parity-sweep-v1
 base_head: 1475bfb8736b63d69c8feaedddba58107268f58a
-last_seen_head: 62aeb41a0486cc6588ce33697df62f13ceff064d
+last_seen_head: 822003d90f520aec762583ccae950324f3b19e68
 objective: Close Beta Store Identity parity in Drupal while preserving MERDPOS authority for validation, persistence, audit and store logo handling.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - DEV Store Identity enrichment inside Administration Stores.
   - Signed store_identity GET for ID/code/address/maps/logo state and rules.
@@ -22,6 +22,11 @@ validation:
   - Beta Store Identity contract includes Internal Store ID, Store Code, Shop address, Google Maps URL, Store logo, row address/map link and HTTPS-Google-only validation.
   - Dedicated Store Identity v1 validator passes under PHP 8.4, including Beta source markers, Twig parsing and signed store_identity envelope checks.
   - Complete Drupal PHP 8.4 validator suite, synchronized resources, UTF-8/mojibake and AI continuity are green at implementation head 62aeb41a0486.
-  - Namecheap deploy gate now includes the Store Identity validator and a signed GET-only rules/state probe.
-next_action: Promote through PR, deploy canonical Drupal, then close with DUMMY desktop/mobile Light/Dark non-mutating browser verification and authoritative invalid-Maps rejection evidence.
-updated_at: "2026-09-08T22:39:53+05:00"
+  - Namecheap deploy gate includes the Store Identity validator and a signed GET-only rules/state probe.
+  - PR #97 merged and canonical Namecheap Drupal release 822003d90f52 passed the complete deployment gate.
+  - DUMMY DEV Playwright verified Store Identity on desktop/mobile Light/Dark, safe real Save-button payload capture with 0 browser POSTs, and mobile containment at 390/390.
+  - A real invalid Google Maps URL submission returned the authoritative error Use an HTTPS Google Maps link.; fixture store 50 remained unchanged after the rejection.
+  - Account/dark and Dashboard Layout signed no-op regressions both passed on release 822003d90f52.
+  - Final source-derived inventory found no remaining non-excluded Beta browser/API capability missing from Drupal; check_sheet remains internal-only and UI Studio/DevStudio remains excluded.
+next_action: Keep the final parity inventory current as Beta evolves; do not reintroduce DevStudio/UI Studio into Drupal parity scope.
+updated_at: "2026-09-09T01:30:06+05:00"
