@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 final class DashboardController extends ControllerBase {
 
   private const ATTENDANCE_TOKEN_ID = 'merdpos-attendance-scan-v1';
+  private const DASHBOARD_LAYOUT_TOKEN_ID = 'merdpos-dashboard-layout-v1';
 
   public function __construct(
     private readonly ParityDataProviderInterface $parity,
@@ -48,16 +49,77 @@ final class DashboardController extends ControllerBase {
         'csrf' => $this->csrf->get(self::ATTENDANCE_TOKEN_ID),
       ];
     }
+    if (!empty($surface['layout_available'])) {
+      $surface['dashboard_layout']['endpoint'] = Url::fromRoute('merdpos_core.dashboard_layout')->toString();
+      $surface['dashboard_layout']['csrf'] = $this->csrf->get(self::DASHBOARD_LAYOUT_TOKEN_ID);
+    }
     return [
       '#theme' => 'merdpos_dashboard',
       '#surface' => $surface,
       '#charts' => $this->chartBuilder->build($surface['chart_specs'] ?? []),
       '#attached' => ['library' => ['merdpos_core/dashboard']],
       '#cache' => [
-        'contexts' => ['user', 'url.query_args:store_id', 'url.query_args:period'],
+        'contexts' => ['user', 'url.query_args:role_id', 'url.query_args:store_id', 'url.query_args:period'],
         'max-age' => 0,
       ],
     ];
+  }
+
+  public function dashboardLayout(): JsonResponse {
+    $request = $this->requestStack->getCurrentRequest();
+    if (!$request instanceof Request || !$request->isMethod('POST')) {
+      return new JsonResponse(['success'=>false, 'error'=>'POST required.'], 405);
+    }
+    $token = trim((string) $request->headers->get('X-MERDPOS-CSRF', ''));
+    if (!$this->csrf->validate($token, self::DASHBOARD_LAYOUT_TOKEN_ID)) {
+      return new JsonResponse(['success'=>false, 'error'=>'Your dashboard editing session expired. Refresh Home and try again.'], 403);
+    }
+    try {
+      $input = json_decode($request->getContent(), true, 32, JSON_THROW_ON_ERROR);
+    }
+    catch (JsonException) {
+      return new JsonResponse(['success'=>false, 'error'=>'Invalid dashboard request.'], 400);
+    }
+    if (!is_array($input) || array_key_exists('dev_studio', $input)) {
+      return new JsonResponse(['success'=>false, 'error'=>'Invalid dashboard request.'], 400);
+    }
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    if (!in_array($action, ['save_layout','reset_layout'], true)) {
+      return new JsonResponse(['success'=>false, 'error'=>'Unsupported dashboard action.'], 400);
+    }
+    $roleId = filter_var($input['role_id'] ?? NULL, FILTER_VALIDATE_INT);
+    if ($roleId === false || $roleId <= 0) {
+      return new JsonResponse(['success'=>false, 'error'=>'Choose a valid dashboard role.'], 422);
+    }
+    $body = ['action'=>$action, 'role_id'=>(int) $roleId];
+    if ($action === 'save_layout') {
+      $layout = $input['layout'] ?? NULL;
+      if (!is_array($layout) || count($layout) > 30) {
+        return new JsonResponse(['success'=>false, 'error'=>'Dashboard layout must contain 0-30 widgets.'], 422);
+      }
+      $clean = [];
+      foreach ($layout as $row) {
+        if (!is_array($row)) return new JsonResponse(['success'=>false, 'error'=>'Invalid dashboard widget row.'], 422);
+        $key = strtolower(trim((string) ($row['widget_key'] ?? '')));
+        if (!preg_match('/^[a-z][a-z0-9_]{1,63}$/D', $key)) return new JsonResponse(['success'=>false, 'error'=>'Invalid dashboard widget.'], 422);
+        $x = filter_var($row['grid_x'] ?? NULL, FILTER_VALIDATE_INT);
+        $y = filter_var($row['grid_y'] ?? NULL, FILTER_VALIDATE_INT);
+        $w = filter_var($row['grid_w'] ?? NULL, FILTER_VALIDATE_INT);
+        $h = filter_var($row['grid_h'] ?? NULL, FILTER_VALIDATE_INT);
+        if ($x === false || $y === false || $w === false || $h === false) {
+          return new JsonResponse(['success'=>false, 'error'=>'Invalid dashboard widget geometry.'], 422);
+        }
+        $clean[] = ['widget_key'=>$key, 'grid_x'=>$x, 'grid_y'=>$y, 'grid_w'=>$w, 'grid_h'=>$h];
+      }
+      $body['layout'] = $clean;
+    }
+    $result = $this->gateway->call('dashboard_layout', 'POST', [], $body);
+    $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
+    if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) return new JsonResponse($payload);
+    $message = trim((string) ($payload['error'] ?? $result['message'] ?? 'Dashboard update failed.'));
+    $http = (int) ($result['http_status'] ?? 503);
+    if ($http < 400 || $http > 599) $http = ($result['status'] ?? '') === 'forbidden' ? 403 : 503;
+    return new JsonResponse(['success'=>false, 'error'=>$message ?: 'Dashboard update failed.'], $http);
   }
 
   public function attendanceScan(): JsonResponse {

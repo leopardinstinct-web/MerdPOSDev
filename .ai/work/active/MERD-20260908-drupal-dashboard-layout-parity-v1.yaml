@@ -1,0 +1,24 @@
+version: 1
+id: MERD-20260908-drupal-dashboard-layout-parity-v1
+branch: milestone/drupal-dashboard-layout-parity-v1
+base_head: fbc70f1db992ea1f42ce0510bd7ed0de64ea6e07
+last_seen_head: 92b110e1df759509f0f0453ee91df82ba37262bb
+objective: Close normal Beta dashboard-layout personalization parity in Drupal while keeping DevStudio/UI Studio excluded.
+packet_state: VALIDATED
+lifecycle: VALIDATED
+scope:
+  - Read authoritative dashboard_layout before dashboard_data and render only saved widgets.
+  - Preserve role selection, 12-column geometry, add/remove, desktop drag/resize, mobile up/down ordering, widget search, quick templates and clear/reset.
+  - Signed POST writes through Drupal CSRF to canonical dashboard_layout.
+  - Preserve QR attendance inside saved my_shift widgets.
+constraints:
+  - Never send or expose dev_studio from Drupal.
+  - MERDPOS owns dashboard.configure, role selection, widget allowlists and layout validation.
+  - Empty saved dashboards remain empty; no fallback repopulation when layout service is healthy.
+validation:
+  - Commit 92b110e passed PHP lint, Node syntax, diff-check and UTF-8/mojibake validation locally.
+  - Exact branch passed bash syntax and the complete Drupal validator chain under Namecheap PHP 8.4.
+  - Dashboard Layout v1 validator proves authorized-vs-saved separation, empty-layout authority and Twig syntax.
+  - All existing gateway/auth/Finance/account/Admin/attendance/disputes/dark/shell/resource validators remained green.
+next_action: Open PR, require CI and secret scan, merge to beta/drupal-webapp, deploy canonical merge, then Playwright-verify desktop/mobile Light/Dark and bounded non-destructive layout editing.
+updated_at: "2026-09-08T16:58:48+05:00"

@@ -37,6 +37,7 @@ php84 "$DRUPAL/tools/validate_portal_gateway_client.php"
 php84 "$DRUPAL/tools/validate_merdpos_authenticator.php"
 php84 "$DRUPAL/tools/validate_login_rich_ui.php"
 php84 "$DRUPAL/tools/validate_parity_provider.php"
+php84 "$DRUPAL/tools/validate_dashboard_layout_v1.php"
 php84 "$DRUPAL/tools/validate_operations_hr_v2.php"
 php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
@@ -121,6 +122,10 @@ ACCOUNT_PASSWORD_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway")->call("beta_state","GET"); $p=$g["payload"]??[]; $perms=$p["permissions"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.change_password"); echo json_encode(["status"=>$g["status"]??null,"permission"=>!empty($perms["password.change_own"]),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["permission"])||($p["route"]??"")!=="/merdpos/account/change-password"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Account password parity self-test failed.\n");exit(1);}' "$ACCOUNT_PASSWORD_V1_PROBE"
 
+DASHBOARD_LAYOUT_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$r=\Drupal::service("merdpos_core.portal_gateway")->call("dashboard_layout","GET"); $p=$r["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.dashboard_layout"); echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"can_edit"=>$p["can_edit"]??null,"can_select_role"=>$p["can_select_role"]??null,"selected_role_id"=>(int)($p["selected_role"]["id"]??0),"allowed"=>is_array($p["allowed_widgets"]??null)?count($p["allowed_widgets"]):-1,"layout_is_array"=>is_array($p["layout"]??null),"columns"=>(int)($p["grid"]["columns"]??0),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true||empty($p["can_edit"])||empty($p["can_select_role"])||($p["selected_role_id"]??0)<1||($p["allowed"]??0)<1||empty($p["layout_is_array"])||($p["columns"]??0)!==12||($p["route"]??"")!=="/merdpos/dashboard/layout"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Dashboard Layout Parity v1 self-test failed.\n");exit(1);}' "$DASHBOARD_LAYOUT_V1_PROBE"
+
 DEV_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.portal_gateway")->call("dev_status","GET"); $p=$r["payload"]??[]; echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true){fwrite(STDERR,"Portal gateway DEV self-test failed.\n");exit(1);}' "$DEV_PROBE"
@@ -130,8 +135,8 @@ PARITY_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
 php84 -r '$p=json_decode($argv[1],true); $keys=["home","operations","reports","finance","dev"]; if(!is_array($p)){fwrite(STDERR,"Five-surface parity self-test failed.\n");exit(1);} foreach($keys as $key){if(($p[$key]??"")!=="ok"){fwrite(STDERR,"Five-surface parity self-test failed at {$key}.\n");exit(1);}}' "$PARITY_PROBE"
 
 DASHBOARD_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
-  '$r=\Drupal::service("merdpos_core.parity_provider")->home(["period"=>"7"]); $a=$r["allowed_widgets"]??[]; $c=$r["chart_specs"]??[]; $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"allowed"=>is_array($a)?count($a):-1,"visible"=>$r["visible_widget_count"]??-1,"charts"=>is_array($c)?count($c):-1],JSON_UNESCAPED_SLASHES);')"
-php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["allowed"]??0)<1||($p["visible"]??-1)!==($p["allowed"]??-2)||($p["charts"]??0)<1){fwrite(STDERR,"Rich dashboard v2 self-test failed.\n");exit(1);}' "$DASHBOARD_V2_PROBE"
+  '$r=\Drupal::service("merdpos_core.parity_provider")->home(["period"=>"7"]); $a=$r["allowed_widgets"]??[]; $c=$r["chart_specs"]??[]; $items=$r["layout_items"]??[]; $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"allowed"=>is_array($a)?count($a):-1,"layout_available"=>!empty($r["layout_available"]),"configured"=>is_array($items)?count($items):-1,"visible"=>$r["visible_widget_count"]??-1,"charts"=>is_array($c)?count($c):-1],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["allowed"]??0)<1||empty($p["layout_available"])||($p["configured"]??-2)!==($p["visible"]??-1)||($p["charts"]??0)<1){fwrite(STDERR,"Rich dashboard v2 self-test failed.\n");exit(1);}' "$DASHBOARD_V2_PROBE"
 
 OPERATIONS_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->section("operations",["period"=>"7"]); $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"directory"=>!empty($r["directory_available"]),"store_admin"=>!empty($r["store_admin_available"])],JSON_UNESCAPED_SLASHES);')"
