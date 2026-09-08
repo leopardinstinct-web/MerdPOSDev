@@ -8,7 +8,7 @@ services:
 
   merdpos_core.portal_gateway:
     class: Drupal\merdpos_core\Integration\PortalGatewayClient
-    arguments: ['@http_client', '@current_user', '@user.data']
+    arguments: ['@http_client', '@current_user', '@user.data', '@request_stack']
 
   Drupal\merdpos_core\Integration\PortalGatewayClientInterface:
     alias: merdpos_core.portal_gateway
