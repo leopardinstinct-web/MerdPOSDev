@@ -65,7 +65,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $items = [
     ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
     ['key' => 'admin', 'label' => 'Admin', 'route' => 'merdpos_core.administration', 'permission' => 'manage merdpos operations'],
-    ['key' => 'finance', 'label' => 'Finance', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
+    ['key' => 'finance', 'label' => 'Financials', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
     ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal', 'badge' => $variables['merdpos_pending_disputes']],
   ];
   if ($account->hasPermission('access merdpos dev tools')) $variables['merdpos_dev_url'] = Url::fromRoute('merdpos_core.dev')->toString();

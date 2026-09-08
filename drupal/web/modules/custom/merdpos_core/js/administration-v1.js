@@ -11,7 +11,7 @@
           const items = [...(panel?.querySelectorAll('.merdpos-admin-list > .merdpos-admin-editor') || [])];
           const apply = () => {
             const query = input.value.trim().toLowerCase();
-            items.forEach((item) => { item.hidden = query !== '' && !item.textContent.toLowerCase().includes(query); });
+            items.forEach((item) => { const haystack = (item.dataset.searchText || '').toLowerCase(); item.hidden = query !== '' && !haystack.includes(query); });
           };
           input.addEventListener('input', apply);
         });

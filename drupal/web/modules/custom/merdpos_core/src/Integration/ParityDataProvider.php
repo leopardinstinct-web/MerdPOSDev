@@ -802,7 +802,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $statuses = [$dashboard['status'], $identity['status']];
     if ($selectedStore > 0) $statuses[] = $financial['status'];
     $surface = $this->surface(
-      'finance','Finance','Financial command centre',
+      'finance','Financials','Financial command centre',
       'Sales, Register, Petty Cash and ledger detail are read from authoritative MERDPOS financial services. Drupal does not submit or alter financial records in this milestone.',
       $this->status($statuses),
       [
