@@ -1,0 +1,72 @@
+id: MERD-20260907-administration-acceptance
+branch: namecheap-beta-live
+runtime_branch: beta/drupal-webapp
+base_head: 1b96b28f10face3f059843dfd0786d84794d291d
+last_seen_head: 028cf3f0b1c5ed6c6d702dcb964770373a98c72b
+deployed_backend_head: 818741a024c31f7ce879459b43c0654b30b709e8
+drupal_base_head: f69977b49dd75284d4ba65ef88e1041b1bd439a3
+drupal_last_seen_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+deployed_drupal_head: 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+objective: Complete Beta Administration acceptance for Clients, Stores and Workforce
+  without expanding into full-POS scope.
+packet_state: CLOSED
+lifecycle: VERIFIED
+scope:
+- Verify client context switching preserves the selected Admin child page.
+- Verify Clients, Stores and Workforce CRUD and authority boundaries.
+- Verify store profile, timezone, currency, weekly hours and logo behavior.
+- Verify collapsed new-record editors, encoding guards and light/dark UI regressions.
+constraints:
+- No M3.x Checkout/Tender or retail-sale work.
+- Use DUMMY-only data for destructive acceptance writes.
+completed:
+- Admin Working client selector is scoped to Stores/Workforce and preserves child
+  tabs.
+- DUMMY Administration fixture, cleanup/audit helper, contract validator and live
+  Drupal E2E runner merged by PR
+- Backend deployed at 818741a024c31f7ce879459b43c0654b30b709e8 with Administration
+  fixture validation passing.
+- Administration theme contract defect fixed by PR
+- Drupal deployed at 8a48b7f99eaa492a9ee5d02d02d287c00612730d with Administration
+  navigation/theme guard passing.
+- Live DUMMY acceptance has passed client create/edit/inactivate and child-tab persistence.
+- Live DUMMY acceptance has passed store create/edit, IANA timezone, currency, week
+  start, seven-day hours and logo_path verification.
+- Live DUMMY acceptance has passed workforce create, role/pay/store assignment and
+  newly-created employee Drupal authentication.
+- Targeted live reproduction proved Workforce edit can return HTTP 200 + Saved and
+  render the edited employee.
+- PR
+- PR
+- Full live run 20260907135943-5f27c2 proved the Workforce payload is correct but
+  the sixth rapid Admin POST is rejected by the hosting layer with HTTP 429 Too Many
+  Requests.
+- PR
+- Paced run 20260908061553-19827d cleared the Admin write throttle and passed through
+  Workforce create, then timed out on the newly-created employee Drupal login while
+  the harness was still creating redundant fresh DEV API login sessions for readback.
+- Final live DUMMY Administration acceptance run 20260908062712-ce1c69 passed 20/20
+  across Clients, Stores, Workforce, authority and UI regressions.
+- Final bounded cleanup/audit proved stores=0 employees=0 clients=0.
+checks:
+- name: Administration client-context/theme deploy guard
+  result: PASS at Drupal 8a48b7f99eaa492a9ee5d02d02d287c00612730d
+- name: Administration DUMMY fixture contract
+  result: PASS
+- name: PR 65 CI / Secret scan
+  result: PASS
+- name: Partial live DUMMY CRUD matrix
+  result: PASS through Workforce create; full runner currently stops at first Workforce
+    edit verification
+- name: Final live Administration acceptance
+  result: PASS 20/20
+  evidence: run 20260908062712-ce1c69; zero-residue cleanup
+current_fixture:
+  run: 20260908061553-19827d
+  state: active_bounded_dummy_fixture
+  note: Must be bounded-cleaned before any new prepare/run.
+remaining: []
+next_action: Archived VERIFIED; Finance Beta acceptance is current.
+blocked: false
+blocker: null
+updated_at: '2026-09-08T12:50:00+05:00'

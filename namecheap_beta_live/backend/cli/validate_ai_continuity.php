@@ -63,7 +63,7 @@ continuity_require($agents, '.ai/BETA_SCOPE.md', 'AGENTS Beta-scope pointer', $e
 continuity_require($invariants, 'Beta scope boundary', 'binding Beta scope boundary', $errors);
 continuity_require($betaScope, 'Explicitly outside the current Beta queue', 'Beta out-of-scope boundary', $errors);
 continuity_require($betaScope, 'M3.3 Checkout & Tender', 'M3.3 exclusion marker', $errors);
-continuity_require($betaScope, 'Administration acceptance — CURRENT', 'current Beta milestone', $errors);
+continuity_require($betaScope, 'Finance Beta acceptance — CURRENT', 'current Beta milestone', $errors);
 continuity_require($memory, 'Do not suggest them as the next Beta step', 'memory Beta-scope guard', $errors);
 continuity_require($posRoadmap, 'Scope boundary (2026-09-06)', 'historical POS roadmap boundary banner', $errors);
 
@@ -109,7 +109,9 @@ foreach ($durableDocs as $label => $content) {
 }
 
 continuity_require($activeIndex, 'authoritative_branch: namecheap-beta-live', 'ACTIVE canonical branch', $errors);
-continuity_require($activeIndex, 'MERD-20260907-administration-acceptance', 'active Administration acceptance packet', $errors);
+continuity_require($activeIndex, 'MERD-20260908-finance-beta-acceptance', 'active Finance Beta acceptance packet', $errors);
+continuity_require(continuity_read($repo . '/.ai/work/archive/MERD-20260907-administration-acceptance.yaml', $errors), 'lifecycle: VERIFIED', 'archived verified Administration acceptance packet', $errors);
+continuity_require(continuity_read($repo . '/.ai/work/archive/MERD-20260908-admin-roles-shell.yaml', $errors), 'lifecycle: VERIFIED', 'archived verified Admin Roles/shell packet', $errors);
 continuity_require($activeIndex, 'updated_at:', 'ACTIVE update timestamp', $errors);
 continuity_require(continuity_read($repo . '/.ai/work/archive/MERD-20260906-attendance-qr-e2e.yaml', $errors), 'lifecycle: VERIFIED', 'archived verified Attendance QR E2E packet', $errors);
 

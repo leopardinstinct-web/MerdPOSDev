@@ -1,0 +1,34 @@
+version: 1
+id: MERD-20260908-finance-beta-acceptance
+objective: Verify approved MERDPOS Beta financial-day workflows end-to-end with DUMMY-only
+  data; no checkout/tender expansion.
+packet_state: DOCUMENTED
+lifecycle: DOCUMENTED
+base_head: 45be83dc08cab7344dde31382932bc59405015b4
+drupal_base_head: 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c
+scope:
+- Open financial day with Register and Petty Cash opening balances.
+- Cash IN and Cash OUT with authoritative available-balance protections.
+- Reject insufficient Register/Petty Cash cash-out; Petty available = opening + cash-ins
+  - prior cash-outs.
+- Submission-id idempotency and statement/ledger reconciliation.
+- Z-report/day close and Drupal Financials presentation parity.
+- USER/SUPER/ADMIN/DEV finance permission and store-scope boundaries.
+- Bounded DUMMY cleanup and zero-residue audit.
+constraints:
+- No retail Checkout/Tender, basket, receipt or sale-sync expansion.
+- Destructive writes are exact-DUMMY only and fail closed outside DUMMY.
+- Do not change frozen payroll/timesheet rules.
+completed: []
+checks: []
+remaining:
+- Implement/strengthen bounded Finance DUMMY fixture/harness as needed.
+- Run live Finance acceptance, fix real defects, deploy and rerun.
+- Cleanup and prove zero Finance AUTOTEST residue.
+next_action: Run the DUMMY Finance acceptance matrix and close only after full pass
+  plus zero-residue audit.
+blocked: false
+blocker: null
+updated_at: '2026-09-08T12:50:00+05:00'
+last_seen_head: 45be83dc08cab7344dde31382932bc59405015b4
+drupal_last_seen_head: 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c
