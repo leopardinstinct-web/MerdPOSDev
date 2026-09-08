@@ -15,6 +15,8 @@ const fail = (name, detail='') => { throw new Error(`${name}: ${detail}`); };
 const storeName = `${fx.prefix} Store`;
 const employeeName = `${fx.prefix} Employee`;
 const clientName = fx.temp_client.name;
+const ADMIN_WRITE_MIN_GAP_MS = 13000;
+let lastAdminWriteAt = 0;
 
 async function jsonResponse(response,label,expectSuccess=true) {
   const text=await response.text(); let data;
@@ -49,14 +51,19 @@ async function gotoAdmin(page,tab,clientId=fx.client.id) {
 }
 
 async function submitForm(page,form,buttonName) {
+  const waitMs=Math.max(0,ADMIN_WRITE_MIN_GAP_MS-(Date.now()-lastAdminWriteAt));
+  if (waitMs) await page.waitForTimeout(waitMs);
+  lastAdminWriteAt=Date.now();
   const [response]=await Promise.all([
     page.waitForNavigation({waitUntil:'domcontentloaded',timeout:20000}),
     form.getByRole('button',{name:buttonName}).click(),
   ]);
+  const status=response?.status()||0;
+  if (status===429) fail(`${buttonName} hosting throttle`,'HTTP 429 after paced Administration write');
   const errors=await page.locator('.messages--error,[data-drupal-messages] .messages--error').allInnerTexts();
   const statuses=await page.locator('.messages--status,[data-drupal-messages] .messages--status').allInnerTexts();
   if (errors.length) fail(`${buttonName} Drupal write`,errors.join(' | '));
-  return {status:response?.status()||0,url:page.url(),statuses};
+  return {status,url:page.url(),statuses};
 }
 
 async function pageHasNoMojibake(page,label) {
@@ -195,10 +202,7 @@ async function main() {
   if (await editEmployee.locator('input[name="hourly_rate"]').count()) await editEmployee.locator('input[name="hourly_rate"]').fill('32.50');
   if (await editEmployee.locator('input[name="rate_effective_date"]').count()) await editEmployee.locator('input[name="rate_effective_date"]').fill(String(directory.today));
   await editEmployee.locator('input[name="new_password"]').fill('76543210');
-  const safeEmployeeEdit=await editEmployee.evaluate(form=>{const fd=new FormData(form);return {id:fd.get('id'),full_name:fd.get('full_name'),user_id:fd.get('user_id'),client_role_id:fd.get('client_role_id'),status:fd.get('status'),store_access_mode:fd.get('store_access_mode'),store_ids:fd.getAll('store_ids[]'),hourly_rate:fd.get('hourly_rate'),rate_effective_date:fd.get('rate_effective_date'),password_set:Boolean(fd.get('new_password'))};});
-  console.log('DIAG Workforce edit safe payload',JSON.stringify(safeEmployeeEdit));
-  const employeeEditWrite=await submitForm(dev.page,editEmployee,'Save employee');
-  console.log('DIAG Workforce edit response',JSON.stringify(employeeEditWrite));
+  await submitForm(dev.page,editEmployee,'Save employee');
   directory=await freshDevGet('admin_directory.php');
   employee=(directory.employees||[]).find(row=>Number(row.id)===employeeId);
   if (!employee || employee.full_name!==employeeName+' Edited' || Math.abs(Number(employee.hourly_rate)-32.50)>0.001) fail('Employee update authoritative',JSON.stringify(employee));
