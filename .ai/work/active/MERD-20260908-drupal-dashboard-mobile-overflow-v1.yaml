@@ -1,11 +1,11 @@
 version: 1
 id: MERD-20260908-drupal-dashboard-mobile-overflow-v1
-branch: hotfix/drupal-dashboard-mobile-overflow-v1
+branch: beta/drupal-webapp
 base_head: 05d01ec38d4c21d6ec9e9838fc2d29bd7e0180f9
-last_seen_head: 05d01ec38d4c21d6ec9e9838fc2d29bd7e0180f9
+last_seen_head: 53b518c7be00027c4b22c09f9e5051e5eb42c852
 objective: Remove authenticated Home horizontal page overflow on 390px mobile without breaking intentional internal table scrolling.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Constrain dashboard filter selects with long store names.
   - Constrain current-shift action/store label inside the KPI grid.
@@ -15,9 +15,11 @@ constraints:
   - Do not hide table content; table wrapper remains independently scrollable.
   - DevStudio/UI Studio excluded.
 validation:
-  - Existing live release reproduced 399px document scroll width at 390px viewport.
-  - Playwright kit proved injected candidate fix reaches 390/390 document width.
-  - Desktop Dark account/password checks remained green.
-  - Full Drupal static validator suite passed with dashboard guard additions.
-next_action: Promote, deploy, rerun Playwright against source CSS without injection, then record VERIFIED evidence.
-updated_at: "2026-09-08T15:44:00+05:00"
+  - Live release 05d01ec reproduced document width 399 at a 390px viewport.
+  - Candidate CSS first proved 390/390 through the existing Playwright kit without altering backend behavior.
+  - PR #83 merged and Namecheap deployed release 53b518c7be00 with full Drupal validator chain passing.
+  - Clean source-only Playwright rerun passed mobile Dark at 390x844 with document width 390/390.
+  - Internal dashboard table remained intentionally scrollable at 759px scrollWidth / 295px clientWidth with overflow-x:auto.
+  - Desktop Dark account/password checks remained green after the source hotfix.
+next_action: Keep the mobile containment primitive canonical while continuing parity work on non-DevStudio dashboard layout personalization.
+updated_at: "2026-09-08T15:57:00+05:00"
