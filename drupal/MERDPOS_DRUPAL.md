@@ -150,6 +150,12 @@ Authenticated MERDPOS pages sign gateway and Working Now requests using the logg
 
 Anonymous access to `merdpos_core.*` routes redirects to the MERDPOS login screen with the original destination. Drupal core/local credentials are not the operational application login path.
 
+## Account password parity v1
+
+The authenticated account menu now exposes Beta-equivalent **Change password** only when the signed actor has `password.change_own`. The modal preserves the Beta field names and labels: Current password, New password, and Confirm new password. Drupal validates its own CSRF token and forwards only those values through the signed `change_password` gateway route; MERDPOS Beta remains authoritative for current-password verification, the 6?20 digit rule, password storage, session-security behavior, and security audit evidence.
+
+Drupal does not persist the submitted password fields. The return target is restricted to `/merdpos` paths, and deployment verifies the route is POST-only plus the authoritative permission is present before publishing the release marker. Browser closure must not change a real password merely to prove the boundary.
+
 ## Free UI capability stack
 
 The reviewed free/open-source Drupal UI stack is documented in `drupal/FREE_UI_STACK.md`. The selected Composer-managed projects are Dashboard, Charts, UI Patterns, UI Icons, Gin, Gin Toolbar and Better Exposed Filters. Gin is administration-only; the Git-owned `merdpos_app` theme remains the operational application shell and the canonical MERDPOS SVG icon set remains the primary visual language.
@@ -192,7 +198,7 @@ The Drupal DEV surface is a DEV-only, read-only platform command centre. It comb
 
 ## MERDPOS brand hierarchy and theme modes
 
-The route-scoped MERDPOS app theme now uses the approved brand assets by context: the full approved lockup remains the login identity, the standalone gradient M is the compact shell mark, and the approved MERDPOS wordmark is the persistent desktop shell identity. The source wordmark and tagline assets are copied unchanged from the canonical Beta brand directory into the Drupal theme so Drupal does not recreate brand artwork.
+The route-scoped MERDPOS app theme uses the approved brand assets by context: the full approved lockup remains the login identity, the standalone gradient M is the compact shell mark, and the approved MERDPOS wordmark is the persistent desktop shell identity. In Dark mode, the canonical multicolor tagline replaces the plain shell subline, while the full lockup is shown only on restrained light-glass surfaces in the login/account context so its dark lettering retains contrast. The approved lockup/tagline files are reused unchanged; Drupal does not recolor or recreate the artwork.
 
 The application supports `System`, `Light`, and `Dark` theme preferences. Preference is stored only in browser `localStorage` as `merdpos-theme`; an inline pre-paint bootstrap resolves the effective light/dark mode before CSS loads to avoid theme flash. The runtime selector synchronizes across login and authenticated shell controls and tracks operating-system changes while `System` is selected.
 
