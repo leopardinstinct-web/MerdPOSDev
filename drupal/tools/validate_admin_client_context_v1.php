@@ -11,7 +11,7 @@ admin_context_check(str_contains($controller,'private function requestedTab(Requ
 admin_context_check(str_contains($controller,'redirect_tab') && str_contains($controller,': $requestedTab;'),'Administration POST redirect does not preserve the active child tab.');
 admin_context_check(str_contains($controller,'#current_tab') && str_contains($controller,'$currentTab'),'Administration render does not expose canonical current_tab.');
 admin_context_check(str_contains($template,"'tab': current_tab"),'Administration form actions do not preserve the active child tab.');
-admin_context_check(str_contains($template,"current_tab in ['stores', 'workforce']"),'Client switch is not scoped to Stores/Workforce.');
+admin_context_check(str_contains($template,"current_tab in ['stores', 'workforce', 'roles']"),'Client switch is not scoped to Stores/Workforce/Roles.');
 admin_context_check(str_contains($template,'<input type="hidden" name="tab" value="{{ current_tab }}">'),'Client switch does not preserve the active child tab.');
 admin_context_check(str_contains($template,'merdpos-admin-client-switch--hero'),'Client switch is not placed in the hero context position.');
 admin_context_check(str_contains($template,'<label><span>Working client</span>'),'Client switch still uses ambiguous Manage client labeling.');

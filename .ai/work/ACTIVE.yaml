@@ -30,3 +30,8 @@ active:
     path: .ai/work/active/MERD-20260904-drupal-portal-gateway.yaml
     lifecycle: CODED
     packet_state: CODED
+
+  - id: MERD-20260908-admin-roles-shell
+    path: .ai/work/active/MERD-20260908-admin-roles-shell.yaml
+    lifecycle: CODED
+    packet_state: EXECUTING

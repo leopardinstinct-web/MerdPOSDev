@@ -62,6 +62,11 @@ final class AdministrationController extends ControllerBase {
     $requestedTab = $this->requestedTab($request);
     if ($request->isMethod('POST')) return $this->handlePost($request, $selectedClientId, $directory, $requestedTab);
 
+    $rolesResult = $this->gateway->call('role_authority', 'GET', [], [], $selectedClientId ?: NULL);
+    $roleState = $rolesResult['status'] === 'ok' && is_array($rolesResult['payload'] ?? null)
+      ? $rolesResult['payload'] : [];
+    $canManageRoles = $rolesResult['status'] === 'ok';
+
     $timingsResult = $this->gateway->call('store_timings', 'GET', [], [], $selectedClientId ?: NULL);
     $timingsPayload = $timingsResult['status'] === 'ok' && is_array($timingsResult['payload'] ?? null)
       ? $timingsResult['payload'] : [];
@@ -91,6 +96,7 @@ final class AdministrationController extends ControllerBase {
     $canManageClients = $clientsResult['status'] === 'ok';
     $currentTab = $requestedTab ?? ($canManageClients ? 'onboarding' : 'stores');
     if (!$canManageClients && in_array($currentTab, ['onboarding', 'clients'], true)) $currentTab = 'stores';
+    if (!$canManageRoles && $currentTab === 'roles') $currentTab = 'workforce';
 
     return [
       '#theme' => 'merdpos_administration',
@@ -102,6 +108,8 @@ final class AdministrationController extends ControllerBase {
       '#selected_client_id' => $selectedClientId,
       '#selected_client' => $selectedClient,
       '#current_tab' => $currentTab,
+      '#role_state' => $roleState,
+      '#can_manage_roles' => $canManageRoles,
       '#form_token' => $this->csrf->get(self::TOKEN_ID),
       '#gateway_status' => $directoryResult['status'] ?? 'unavailable',
       '#store_timings' => $storeTimings,
@@ -126,6 +134,10 @@ final class AdministrationController extends ControllerBase {
       'save_client' => $this->saveClient($request),
       'save_store' => $this->saveStore($request, $selectedClientId, $directory),
       'save_employee' => $this->saveEmployee($request, $selectedClientId),
+      'create_role' => $this->createRole($request, $selectedClientId),
+      'save_role' => $this->saveRole($request, $selectedClientId),
+      'delete_role' => $this->deleteRole($request, $selectedClientId),
+      'save_role_permissions' => $this->saveRolePermissions($request, $selectedClientId),
       default => ['status' => 'invalid', 'message' => 'Unsupported administration action.'],
     };
 
@@ -241,6 +253,39 @@ final class AdministrationController extends ControllerBase {
     return $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
   }
 
+  private function createRole(Request $request, int $selectedClientId): array {
+    return $this->gateway->call('role_authority', 'POST', [], [
+      'action' => 'create_role',
+      'role_label' => trim((string) $request->request->get('role_label', '')),
+      'authority_level' => (int) $request->request->get('authority_level', 1),
+    ], $selectedClientId ?: NULL);
+  }
+
+  private function saveRole(Request $request, int $selectedClientId): array {
+    return $this->gateway->call('role_authority', 'POST', [], [
+      'action' => 'save_role',
+      'role_id' => $this->nullablePositiveInt($request->request->get('role_id')),
+      'role_label' => trim((string) $request->request->get('role_label', '')),
+      'authority_level' => (int) $request->request->get('authority_level', 1),
+    ], $selectedClientId ?: NULL);
+  }
+
+  private function deleteRole(Request $request, int $selectedClientId): array {
+    return $this->gateway->call('role_authority', 'POST', [], [
+      'action' => 'delete_role',
+      'role_id' => $this->nullablePositiveInt($request->request->get('role_id')),
+    ], $selectedClientId ?: NULL);
+  }
+
+  private function saveRolePermissions(Request $request, int $selectedClientId): array {
+    $raw = $request->request->all('levels');
+    $levels = [];
+    foreach (is_array($raw) ? $raw : [] as $key => $value) {
+      if (is_string($key) && preg_match('/^[a-z][a-z0-9_.-]{1,119}$/', $key)) $levels[$key] = max(1, min(1000, (int) $value));
+    }
+    return $this->gateway->call('role_authority', 'POST', [], ['action'=>'save_permissions','levels'=>$levels], $selectedClientId ?: NULL);
+  }
+
   private function nullablePositiveInt(mixed $value): ?int {
     if ($value === null || $value === '') return NULL;
     $parsed = filter_var($value, FILTER_VALIDATE_INT);
@@ -249,12 +294,12 @@ final class AdministrationController extends ControllerBase {
 
   private function requestedTab(Request $request): ?string {
     $tab = strtolower(trim((string) $request->query->get('tab', '')));
-    return in_array($tab, ['onboarding', 'clients', 'stores', 'workforce'], true) ? $tab : NULL;
+    return in_array($tab, ['onboarding', 'clients', 'stores', 'workforce', 'roles'], true) ? $tab : NULL;
   }
 
   private function redirectBack(int $clientId, ?string $tab = NULL): RedirectResponse {
     $query = $clientId > 0 ? ['client_id' => $clientId] : [];
-    if ($tab !== NULL && in_array($tab, ['onboarding','clients','stores','workforce'], true)) $query['tab'] = $tab;
+    if ($tab !== NULL && in_array($tab, ['onboarding','clients','stores','workforce','roles'], true)) $query['tab'] = $tab;
     $options = $query ? ['query' => $query] : [];
     return new RedirectResponse(Url::fromRoute('merdpos_core.administration', [], $options)->toString());
   }
@@ -267,3 +312,4 @@ final class AdministrationController extends ControllerBase {
   }
 
 }
+
