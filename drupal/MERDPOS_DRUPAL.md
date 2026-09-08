@@ -128,6 +128,12 @@ The Working Now and generalized portal gateway endpoints are promoted on authori
 
 The shared `merdpos-surface.html.twig` template renders metrics, cards, tables, trend bars, and safe GET filters for report week / finance store and business date. No operational write form is exposed by this parity milestone.
 
+## Dashboard layout parity v1
+
+Normal Beta dashboard personalization is exposed in Drupal through the signed `dashboard_layout` route, separate from DevStudio/UI Studio. Home reads the authoritative selected role, allowed widget catalog and saved 12-column layout before rendering `dashboard_data`, so allowed widgets are not treated as automatically visible and an intentionally empty saved dashboard remains empty.
+
+Actors with canonical `dashboard.configure` can select a dashboard role and use **Edit dashboard**, **Add widget**, widget search, the Store operations / Finance / Workforce quick templates, remove, clear/reset, desktop drag/resize and mobile Move up / Move down controls. Drupal validates its own CSRF token and forwards save/reset requests through the signed gateway; MERDPOS remains authoritative for role selection, allowed widgets, duplicate/geometry checks and persistence. Drupal explicitly rejects a `dev_studio` flag and the frontend never emits one.
+
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
