@@ -125,8 +125,10 @@ final class FinanceController extends ControllerBase {
     }
     $error = trim((string) ($payload['error'] ?? $payload['message'] ?? $result['message'] ?? 'The financial action could not be completed.'));
     $http = (int) ($result['http_status'] ?? 0);
-    $retryable = $http === 0 && ($result['status'] ?? '') === 'unavailable';
-    if ($http < 400 || $http > 599) $http = ($result['status'] ?? '') === 'forbidden' ? 403 : 503;
+    $gatewayStatus = (string) ($result['status'] ?? '');
+    $retryable = $http === 0 && $gatewayStatus === 'unavailable';
+    if ($gatewayStatus === 'ok') $http = 422;
+    elseif ($http < 400 || $http > 599) $http = $gatewayStatus === 'forbidden' ? 403 : 503;
     return new JsonResponse(['success'=>false, 'error'=>$error ?: 'The financial action could not be completed.', 'retryable'=>$retryable], $http);
   }
 

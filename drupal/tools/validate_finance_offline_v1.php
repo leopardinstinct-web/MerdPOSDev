@@ -34,6 +34,7 @@ finance_offline_check(str_contains($controller, "headers->get('X-MERDPOS-CSRF'")
 finance_offline_check(str_contains($controller, 'normalizeQueuedSubmission'), 'Queued Finance submission normalization missing.');
 finance_offline_check(str_contains($controller, "call('financials', 'POST'"), 'Queued Finance signed write missing.');
 finance_offline_check(str_contains($controller, "'retryable'=>\$retryable"), 'Retryable gateway-unavailable signal missing.');
+finance_offline_check(str_contains($controller, "if (\$gatewayStatus === 'ok') \$http = 422;"), 'Authoritative Finance rejection must not be mislabeled as service unavailable.');
 finance_offline_check(str_contains($controller, '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/'), 'Browser UUID v4 validation missing.');
 foreach (['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) {
   finance_offline_check(!str_contains($controller, $forbidden), "Drupal Finance offline controller must not own operational SQL: {$forbidden}");
