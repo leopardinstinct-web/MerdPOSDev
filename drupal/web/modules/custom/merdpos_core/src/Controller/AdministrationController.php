@@ -98,6 +98,12 @@ final class AdministrationController extends ControllerBase {
     }
 
     $canManageClients = $clientsResult['status'] === 'ok';
+    $defaultsResult = $selectedClientId > 0
+      ? $this->gateway->call('defaults', 'GET', [], [], $selectedClientId)
+      : ['status'=>'invalid','payload'=>[]];
+    $defaultsState = ($defaultsResult['status'] ?? '') === 'ok' && is_array($defaultsResult['payload'] ?? null)
+      ? $defaultsResult['payload'] : [];
+    $canManageDefaults = ($defaultsResult['status'] ?? '') === 'ok' && !empty($defaultsState['success']);
     $legacyProbe = $selectedClientId > 0
       ? $this->gateway->call('legacy_migration', 'GET', ['client_id'=>$selectedClientId], [], $selectedClientId)
       : ['status'=>'invalid','payload'=>[]];
@@ -105,12 +111,15 @@ final class AdministrationController extends ControllerBase {
     $currentTab = $requestedTab ?? ($canManageClients ? 'onboarding' : 'stores');
     if (!$canManageClients && in_array($currentTab, ['onboarding', 'clients'], true)) $currentTab = 'stores';
     if (!$canManageRoles && $currentTab === 'roles') $currentTab = 'workforce';
+    if (!$canManageDefaults && $currentTab === 'defaults') $currentTab = 'stores';
 
     return [
       '#theme' => 'merdpos_administration',
       '#directory' => $directory,
       '#clients' => is_array($clientsPayload['clients'] ?? null) ? $clientsPayload['clients'] : [],
       '#can_manage_clients' => $canManageClients,
+      '#can_manage_defaults' => $canManageDefaults,
+      '#defaults_state' => $defaultsState,
       '#can_manage_legacy' => $canManageLegacy,
       '#legacy_token' => $this->csrf->get(self::LEGACY_TOKEN_ID),
       '#legacy_url' => Url::fromRoute('merdpos_core.legacy_migration')->toString(),
@@ -184,6 +193,8 @@ final class AdministrationController extends ControllerBase {
       'onboard_client' => $this->onboardClient($request),
       'save_client' => $this->saveClient($request),
       'save_store' => $this->saveStore($request, $selectedClientId, $directory),
+      'save_client_defaults' => $this->saveClientDefaults($request, $selectedClientId),
+      'save_store_defaults' => $this->saveStoreDefaults($request, $selectedClientId),
       'save_employee' => $this->saveEmployee($request, $selectedClientId),
       'create_role' => $this->createRole($request, $selectedClientId),
       'save_role' => $this->saveRole($request, $selectedClientId),
@@ -218,6 +229,29 @@ final class AdministrationController extends ControllerBase {
       'client_code' => trim((string) $request->request->get('client_code', '')),
       'status' => (string) $request->request->get('status', 'active'),
     ]);
+  }
+
+  private function saveClientDefaults(Request $request, int $selectedClientId): array {
+    $result = $this->gateway->call('defaults', 'POST', [], [
+      'action'=>'save_client_defaults',
+      'default_currency'=>trim((string)$request->request->get('default_currency', '')),
+      'default_timezone'=>trim((string)$request->request->get('default_timezone', '')),
+    ], $selectedClientId ?: NULL);
+    if (($result['status'] ?? '') === 'ok' && !empty($result['payload']['success'])) {
+      $result['payload']['message'] = 'Client defaults saved. Stores without overrides now inherit the new values.';
+    }
+    return $result;
+  }
+
+  private function saveStoreDefaults(Request $request, int $selectedClientId): array {
+    $result = $this->gateway->call('defaults', 'POST', [], [
+      'action'=>'save_store_defaults',
+      'store_id'=>$this->nullablePositiveInt($request->request->get('store_id')),
+      'currency_code'=>trim((string)$request->request->get('currency_code', '')),
+      'timezone'=>trim((string)$request->request->get('timezone', '')),
+    ], $selectedClientId ?: NULL);
+    if (($result['status'] ?? '') === 'ok' && !empty($result['payload']['success'])) $result['payload']['message'] = 'Store defaults saved.';
+    return $result;
   }
 
   private function saveStore(Request $request, int $selectedClientId, array $directory): array {
@@ -474,12 +508,12 @@ final class AdministrationController extends ControllerBase {
 
   private function requestedTab(Request $request): ?string {
     $tab = strtolower(trim((string) $request->query->get('tab', '')));
-    return in_array($tab, ['onboarding', 'clients', 'stores', 'workforce', 'roles'], true) ? $tab : NULL;
+    return in_array($tab, ['onboarding', 'clients', 'stores', 'defaults', 'workforce', 'roles'], true) ? $tab : NULL;
   }
 
   private function redirectBack(int $clientId, ?string $tab = NULL): RedirectResponse {
     $query = $clientId > 0 ? ['client_id' => $clientId] : [];
-    if ($tab !== NULL && in_array($tab, ['onboarding','clients','stores','workforce','roles'], true)) $query['tab'] = $tab;
+    if ($tab !== NULL && in_array($tab, ['onboarding','clients','stores','defaults','workforce','roles'], true)) $query['tab'] = $tab;
     $options = $query ? ['query' => $query] : [];
     return new RedirectResponse(Url::fromRoute('merdpos_core.administration', [], $options)->toString());
   }

@@ -36,6 +36,7 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
     'merdpos_administration' => [
       'variables' => [
         'directory' => [], 'clients' => [], 'can_manage_clients' => false,
+        'can_manage_defaults' => false, 'defaults_state' => [],
         'can_manage_legacy' => false, 'legacy_token' => '', 'legacy_url' => '',
         'can_select_client' => false, 'selectable_clients' => [],
         'selected_client_id' => 0, 'selected_client' => [], 'current_tab' => 'stores', 'form_token' => '',

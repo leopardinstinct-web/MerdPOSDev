@@ -1,0 +1,25 @@
+id: MERD-20260908-drupal-defaults-parity-v1
+branch: milestone/drupal-defaults-exactness-v1
+base_head: 7cfea4c3741d62b0ba6d0c40e480e719aa55fdca
+last_seen_head: 5fdd64a0a1559b426dcea281433a2fbd90ee2df5
+objective: Close Beta Defaults client/store currency and timezone parity in Drupal while keeping persistence, validation, inheritance and audit authoritative in MERDPOS.
+packet_state: VALIDATED
+lifecycle: VALIDATED
+scope:
+  - DEV-only Defaults Administration tab after Stores and before Workforce.
+  - Signed defaults GET for client defaults, store overrides and effective values.
+  - Signed save_client_defaults and save_store_defaults POST actions through Drupal CSRF.
+  - Explicit Use client default inheritance controls for optional store overrides.
+constraints:
+  - MERDPOS owns defaults.manage authority, currency/timezone validation, inheritance semantics, SQL persistence and audit.
+  - Drupal contains no defaults SQL and exposes no Beta CSRF.
+  - Deployment and browser closure must not alter DUMMY defaults merely to prove the path.
+  - DevStudio/UI Studio remains excluded.
+validation:
+  - Beta audit confirmed defaults.manage is DEV-only and Defaults is a real Operations workflow with both client defaults and per-store inheritance controls.
+  - Beta general Store profile also exposes currency/timezone, so the dedicated Defaults tab is intentionally additive rather than replacing Store profile fields.
+  - Dedicated Defaults v1 validator passes under PHP 8.4 and cross-checks Beta actions, labels, inheritance and no-SQL boundaries.
+  - Complete Drupal PHP 8.4 validator suite, Twig parsing, resources, UTF-8/mojibake, AI continuity and git diff checks are green at implementation head 5fdd64a0a155.
+  - Namecheap deploy probe is signed GET-only and will verify Defaults state without changing currency or timezone.
+next_action: Promote through PR, deploy canonical Drupal, then run DUMMY desktop/mobile Light/Dark non-mutating browser closure before marking EXACT.
+updated_at: "2026-09-08T21:25:56+05:00"
