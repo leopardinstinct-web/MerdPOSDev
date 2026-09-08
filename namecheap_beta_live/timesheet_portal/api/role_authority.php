@@ -91,10 +91,14 @@ function role_state(PDO $pdo, array $actor): array
     );
     $stmt->execute([$clientId]);
     $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $actorAuthority = (int)($actor['authority_level'] ?? 0);
+    $actualDev = beta_actual_user_is_dev($actor);
     foreach ($roles as &$role) {
+        $roleAuthority = strtoupper((string)$role['role_key']) === 'DEV' ? 1000 : (int)$role['authority_level'];
+        $customWithinAuthority = empty($role['is_system']) && $roleAuthority <= $actorAuthority;
         $role['allowed_widgets'] = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
-        $role['deletable'] = !(bool)$role['is_system'] && (int)$role['employee_count'] === 0;
-        $role['editable'] = strtoupper((string)$role['role_key']) !== 'DEV';
+        $role['deletable'] = !(bool)$role['is_system'] && (int)$role['employee_count'] === 0 && ($actualDev || $customWithinAuthority);
+        $role['editable'] = strtoupper((string)$role['role_key']) !== 'DEV' && ($actualDev || $customWithinAuthority);
     }
     unset($role);
 
@@ -106,6 +110,9 @@ function role_state(PDO $pdo, array $actor): array
         'permissions' => role_permission_state($pdo, $clientId),
         'dev_authority_level' => 1000,
         'authorization_model' => 'central_permission_loa_v1',
+        'actor_authority_level' => $actorAuthority,
+        'can_manage_system_roles' => $actualDev,
+        'can_manage_permissions' => beta_has_permission($actor, 'permissions.manage', $pdo),
     ];
 }
 
@@ -228,6 +235,9 @@ try {
         beta_require_permission($actor, 'roles.manage', $pdo);
         $label = role_label($input['role_label'] ?? '');
         $level = role_level($input['authority_level'] ?? null);
+        if (!beta_actual_user_is_dev($actor) && $level > (int)$actor['authority_level']) {
+            throw new MerdWorkforceException('role_forbidden', 'You cannot create a role above your own authority level.');
+        }
         $dup = $pdo->prepare('SELECT id FROM client_roles WHERE client_id=? AND LOWER(TRIM(role_label))=LOWER(TRIM(?)) LIMIT 1');
         $dup->execute([$clientId, $label]);
         if ($dup->fetchColumn()) throw new MerdWorkforceException('duplicate_role', 'A role with that name already exists.');
@@ -257,8 +267,12 @@ try {
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
         if (!$role) throw new MerdWorkforceException('role_not_found', 'Role not found.');
         $key = strtoupper((string)$role['role_key']);
+        $actualDev = beta_actual_user_is_dev($actor);
         if ($key === 'DEV') throw new MerdWorkforceException('role_fixed', 'DEV authority is fixed at 1000.');
+        if (!$actualDev && !empty($role['is_system'])) throw new MerdWorkforceException('role_forbidden', 'Only DEV can change system role authority.');
+        if (!$actualDev && (int)$role['authority_level'] > (int)$actor['authority_level']) throw new MerdWorkforceException('role_forbidden', 'You cannot edit a role above your own authority level.');
         $level = role_level($input['authority_level'] ?? null);
+        if (!$actualDev && $level > (int)$actor['authority_level']) throw new MerdWorkforceException('role_forbidden', 'You cannot raise a role above your own authority level.');
         $label = !empty($role['is_system']) ? (string)$role['role_label'] : role_label($input['role_label'] ?? $role['role_label']);
 
         if (empty($role['is_system'])) {
@@ -290,6 +304,9 @@ try {
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
         if (!$role) throw new MerdWorkforceException('role_not_found', 'Role not found.');
         if (!empty($role['is_system'])) throw new MerdWorkforceException('role_fixed', 'System roles cannot be deleted.');
+        if (!beta_actual_user_is_dev($actor) && (int)$role['authority_level'] > (int)$actor['authority_level']) {
+            throw new MerdWorkforceException('role_forbidden', 'You cannot delete a role above your own authority level.');
+        }
         $count = $pdo->prepare('SELECT COUNT(*) FROM employees WHERE client_id=? AND client_role_id=?');
         $count->execute([$clientId, (int)$roleId]);
         if ((int)$count->fetchColumn() > 0) throw new MerdWorkforceException('role_in_use', 'Reassign employees before deleting this role.');
@@ -338,6 +355,7 @@ try {
     // Backward-compatible save for the original three authority inputs.
     if ($action === 'save_authority') {
         beta_require_permission($actor, 'roles.manage', $pdo);
+        if (!beta_actual_user_is_dev($actor)) throw new MerdWorkforceException('role_forbidden', 'Only DEV can change system role authority.');
         $levels = $input['levels'] ?? null;
         if (!is_array($levels)) throw new MerdWorkforceException('invalid_authority', 'Provide authority levels.');
         $pdo->beginTransaction();

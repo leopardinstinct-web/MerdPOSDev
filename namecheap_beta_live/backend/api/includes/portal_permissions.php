@@ -64,7 +64,7 @@ function merd_portal_permission_catalog(): array
         'finance.management_summary' => ['label'=>'View cross-store financial dashboard summaries','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>50],
 
         'system.sync_status' => ['label'=>'View sync / outbox attention status','category'=>'System','min_loa'=>90,'dev_only'=>false,'order'=>10],
-        'roles.manage' => ['label'=>'Create, edit and delete roles','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>20],
+        'roles.manage' => ['label'=>'Create, edit and delete roles within own authority','category'=>'System','min_loa'=>50,'dev_only'=>false,'order'=>20],
         'permissions.manage' => ['label'=>'Configure permission LOA thresholds','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>30],
         'defaults.manage' => ['label'=>'Manage client / store currency and timezone defaults','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>40],
         'clients.manage' => ['label'=>'Add / edit clients','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>50],

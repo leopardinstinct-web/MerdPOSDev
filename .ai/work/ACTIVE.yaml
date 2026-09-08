@@ -26,3 +26,8 @@ active:
     path: .ai/work/active/MERD-20260902-devstudio-structure-editor.yaml
     lifecycle: VERIFIED
     packet_state: VERIFIED
+
+  - id: MERD-20260908-admin-roles-shell
+    path: .ai/work/active/MERD-20260908-admin-roles-shell.yaml
+    lifecycle: CODED
+    packet_state: EXECUTING
