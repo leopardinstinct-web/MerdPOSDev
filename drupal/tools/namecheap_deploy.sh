@@ -41,6 +41,7 @@ php84 "$DRUPAL/tools/validate_operations_hr_v2.php"
 php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
 php84 "$DRUPAL/tools/validate_finance_write_v1.php"
+php84 "$DRUPAL/tools/validate_account_password_v1.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
@@ -115,6 +116,10 @@ php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!==
 GATEWAY_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.portal_gateway")->call("beta_state","GET"); $p=$r["payload"]??[]; echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"role"=>$p["role"]??null,"is_dev"=>$p["is_dev"]??null],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true||($p["is_dev"]??false)!==true){fwrite(STDERR,"Portal gateway Beta-state self-test failed.\n");exit(1);}' "$GATEWAY_PROBE"
+
+ACCOUNT_PASSWORD_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$g=\Drupal::service("merdpos_core.portal_gateway")->call("beta_state","GET"); $p=$g["payload"]??[]; $perms=$p["permissions"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.change_password"); echo json_encode(["status"=>$g["status"]??null,"permission"=>!empty($perms["password.change_own"]),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["permission"])||($p["route"]??"")!=="/merdpos/account/change-password"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Account password parity self-test failed.\n");exit(1);}' "$ACCOUNT_PASSWORD_V1_PROBE"
 
 DEV_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.portal_gateway")->call("dev_status","GET"); $p=$r["payload"]??[]; echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null],JSON_UNESCAPED_SLASHES);')"

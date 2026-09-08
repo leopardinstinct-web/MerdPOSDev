@@ -1,26 +1,25 @@
 version: 1
 id: MERD-20260908-drupal-finance-write-parity-v1
-branch: milestone/drupal-finance-write-parity-v1
+branch: beta/drupal-webapp
 base_head: 492a9339399bcc9e09ba1b5556dcff43c1ef4695
-last_seen_head: ff72b5c8c27109dc852084652a7547c89d015b2d
+last_seen_head: 1d30d1aaf810b272e1d38e4977c3fec139e0813e
 objective: Close the first confirmed Beta-to-Drupal functional gap by exposing authoritative Financials writes in Drupal without duplicating MERDPOS finance rules.
-packet_state: VALIDATED
-lifecycle: VALIDATED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Finance route and navigation follow authoritative finance.view rather than broad local management access.
   - Drupal CSRF + signed financials POST for open_day, cash_in, cash_out and z_report.
   - Existing MERDPOS finance permission, store-attendance, balance, idempotency, ledger, audit and outbox logic remains authoritative.
   - Responsive action forms and destructive close confirmation.
-  - Deploy-time static and signed live precondition probes.
 constraints:
   - No operational finance SQL or validation-rule duplication in Drupal.
   - No real financial transaction created only for verification.
   - DevStudio/UI Studio excluded.
   - Beta offline financial queue is not yet implemented in Drupal and remains a tracked parity delta.
-validation:
-  - PHP 8.4 lint passed for FinanceController and Finance validators.
-  - Finance v2, Finance Write Parity v1, generalized gateway and five-surface parity validators passed.
-  - Full Drupal deploy-time static validator set passed after service/route/nav changes.
-  - Final diff audit caught and corrected an uncommitted accidental Operations service-argument edit before promotion.
-next_action: Commit and promote the validated Finance block to beta/drupal-webapp, deploy through the Paramiko helper, run non-mutating signed live probes, and browser-verify the Financials action surface.
-updated_at: "2026-09-08T15:05:00+05:00"
+verification:
+  - PR #81 CI and secret scan completed successfully before merge.
+  - PR #81 merged to beta/drupal-webapp as 1d30d1aaf810b272e1d38e4977c3fec139e0813e.
+  - Namecheap Drupal deployment reran the full static suite under PHP 8.4, including Finance Write Parity v1, and published the release marker at 1d30d1aaf810.
+  - Signed live finance preconditions passed without creating a financial transaction.
+next_action: Close the remaining Finance offline queue/reconnect delta after higher-priority missing Beta account and operational actions.
+updated_at: "2026-09-08T15:29:00+05:00"

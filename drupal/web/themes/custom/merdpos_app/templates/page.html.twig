@@ -45,6 +45,7 @@
       <img class="merdpos-shell-mark" src="{{ base_path ~ directory ~ '/assets/merdpos-mark.png' }}" alt="" width="36" height="36">
       <span class="merdpos-shell-brand-copy">
         <img class="merdpos-shell-wordmark" src="{{ base_path ~ directory ~ '/assets/merdpos-wordmark.png' }}" alt="MERDPOS">
+        <img class="merdpos-shell-tagline" src="{{ base_path ~ directory ~ '/assets/merdpos-tagline.png' }}" alt="Smarter Faster Together">
         <small>Drupal Beta</small>
       </span>
     </a>
@@ -62,16 +63,47 @@
       </button>
       <div class="merdpos-account-menu" data-merdpos-account-menu hidden>
         <div class="merdpos-account-menu-head">
+          <div class="merdpos-account-brand-glass" aria-hidden="true"><img src="{{ base_path ~ directory ~ '/assets/merdpos-logo-approved.png' }}" alt=""></div>
           <strong>{{ merdpos_user_name }}</strong>
           <span>{{ merdpos_role_labels|join(' · ') }}</span>
         </div>
         <label class="merdpos-account-theme"><span>Theme</span><select data-merdpos-theme aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+        {% if merdpos_can_change_password %}
+          <button class="merdpos-account-menu-action" type="button" data-merdpos-password-open>
+            <svg class="merdpos-account-menu-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" d="M420-360h120l-23-129q20-10 31.5-29t11.5-42q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 23 11.5 42t31.5 29l-23 129Zm60 280q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>
+            <span>Change password</span>
+          </button>
+        {% endif %}
         {% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}
-        <a href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">Log out</a>
+        <a class="merdpos-account-menu-action" href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">
+          <svg class="merdpos-account-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></svg>
+          <span>Log out</span>
+        </a>
       </div>
       </div>
     </div>
   </header>
+
+  {% if merdpos_can_change_password %}
+  <dialog class="merdpos-password-dialog" data-merdpos-password-dialog aria-labelledby="merdpos-password-title">
+    <form class="merdpos-password-form" method="post" action="{{ merdpos_password_url }}">
+      <input type="hidden" name="form_token" value="{{ merdpos_password_token }}">
+      <input type="hidden" name="return_url" value="{{ merdpos_password_return }}">
+      <header>
+        <div><p>ACCOUNT SECURITY</p><h2 id="merdpos-password-title">Change password</h2></div>
+        <button type="button" class="merdpos-password-close" data-merdpos-password-close aria-label="Close password dialog">×</button>
+      </header>
+      <p class="merdpos-password-note">Use your current MERDPOS password. The new password must contain 6–20 digits.</p>
+      <label>Current password<input name="current_password" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="20" required autocomplete="current-password"></label>
+      <label>New password<input name="new_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required autocomplete="new-password"></label>
+      <label>Confirm new password<input name="confirm_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required autocomplete="new-password"></label>
+      <div class="merdpos-password-actions">
+        <button type="button" class="merdpos-btn" data-merdpos-password-close>Cancel</button>
+        <button type="submit" class="merdpos-btn merdpos-btn--primary">Change password</button>
+      </div>
+    </form>
+  </dialog>
+  {% endif %}
 
   {% if merdpos_section_tabs|default([]) %}
   <nav class="merdpos-section-tabs merdpos-shell-section-tabs{{ merdpos_active_section == 'admin' ? ' merdpos-admin-tabs' : '' }}" aria-label="{{ merdpos_active_label }} sections">

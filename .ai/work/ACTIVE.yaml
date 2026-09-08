@@ -1,11 +1,15 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-08T15:05:00+05:00'
+updated_at: '2026-09-08T15:29:00+05:00'
 active:
-- id: MERD-20260908-drupal-finance-write-parity-v1
-  path: .ai/work/active/MERD-20260908-drupal-finance-write-parity-v1.yaml
+- id: MERD-20260908-drupal-account-password-parity-v1
+  path: .ai/work/active/MERD-20260908-drupal-account-password-parity-v1.yaml
   lifecycle: VALIDATED
   packet_state: VALIDATED
+- id: MERD-20260908-drupal-finance-write-parity-v1
+  path: .ai/work/active/MERD-20260908-drupal-finance-write-parity-v1.yaml
+  lifecycle: VERIFIED
+  packet_state: VERIFIED
 - id: MERD-20260908-finance-beta-acceptance
   path: .ai/work/active/MERD-20260908-finance-beta-acceptance.yaml
   lifecycle: DOCUMENTED

@@ -51,6 +51,29 @@
           if (event.key === 'Escape') close();
         });
       });
+      once('merdpos-password-dialog', '[data-merdpos-password-dialog]', context).forEach((dialog) => {
+        dialog.querySelectorAll('[data-merdpos-password-close]').forEach((button) => {
+          button.addEventListener('click', () => dialog.close());
+        });
+        dialog.addEventListener('click', (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+        dialog.addEventListener('close', () => dialog.querySelector('form')?.reset());
+      });
+      once('merdpos-password-open', '[data-merdpos-password-open]', context).forEach((button) => {
+        button.addEventListener('click', () => {
+          const account = button.closest('.merdpos-account');
+          const menu = account?.querySelector('[data-merdpos-account-menu]');
+          const toggle = account?.querySelector('[data-merdpos-account-toggle]');
+          if (menu) menu.hidden = true;
+          toggle?.setAttribute('aria-expanded', 'false');
+          const dialog = document.querySelector('[data-merdpos-password-dialog]');
+          if (!dialog) return;
+          if (typeof dialog.showModal === 'function') dialog.showModal();
+          else dialog.setAttribute('open', '');
+          requestAnimationFrame(() => dialog.querySelector('[name="current_password"]')?.focus());
+        });
+      });
     },
   };
 })(Drupal, once);
