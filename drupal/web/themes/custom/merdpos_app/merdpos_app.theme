@@ -65,7 +65,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $items = [
     ['key' => 'home', 'label' => 'Home', 'route' => 'merdpos_core.dashboard', 'permission' => 'view merdpos management dashboard'],
     ['key' => 'admin', 'label' => 'Admin', 'route' => 'merdpos_core.administration', 'permission' => 'manage merdpos operations'],
-    ['key' => 'finance', 'label' => 'Financials', 'route' => 'merdpos_core.finance', 'permission' => 'manage merdpos operations'],
+    ['key' => 'finance', 'label' => 'Financials', 'route' => 'merdpos_core.finance', 'permission' => 'access merdpos portal', 'backend_permission'=>'finance.view'],
     ['key' => 'reports', 'label' => 'Reports', 'route' => 'merdpos_core.reports', 'permission' => 'access merdpos portal', 'badge' => $variables['merdpos_pending_disputes']],
   ];
   if ($account->hasPermission('access merdpos dev tools')) $variables['merdpos_dev_url'] = Url::fromRoute('merdpos_core.dev')->toString();
@@ -73,6 +73,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_nav'] = [];
   foreach ($items as $item) {
     if (!$account->hasPermission($item['permission'])) continue;
+    if (isset($item['backend_permission']) && empty($variables['merdpos_permission_map'][$item['backend_permission']])) continue;
     $item['url'] = Url::fromRoute($item['route'])->toString();
     $item['active'] = $route_name === $item['route'] || ($item['key'] === 'reports' && $route_name === 'merdpos_core.disputes');
     $variables['merdpos_nav'][] = $item;

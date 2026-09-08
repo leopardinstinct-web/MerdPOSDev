@@ -176,9 +176,15 @@ The CSV route never queries the operational database. It reuses the signed gatew
 
 Deployment fails closed through `validate_reports_v2.php`, the five-surface parity validator, and the `reports_v2` release-marker probe. Live verification additionally checks desktop/mobile rendering and regression of Home, Operations, Finance, and DEV.
 
-## Finance v2
+## Finance v2 + governed write parity v1
 
-`/merdpos/finance` is a role-scoped, read-only Drupal command centre backed by the signed MERDPOS `dashboard_data`, `store_identity`, and `financials` services. It renders store/date filters, sales and cash KPIs, Drupal Charts, Register/Petty Cash account status and ledger detail. Drupal does not submit financial transactions or reproduce MERDPOS financial validation rules; future writes require a separately governed write-parity milestone.
+`/merdpos/finance` is role-scoped by the authoritative MERDPOS named permissions, not by a broad Drupal management role. The local Drupal route requires only `access merdpos portal`; the controller and shell then fail closed unless the signed actor has `finance.view`. `finance.submit`, `finance.open_day`, and `finance.cross_store` continue to come from MERDPOS Beta.
+
+The read surface remains backed by signed `dashboard_data`, `store_identity`, and `financials` responses and renders store/date filters, sales and cash KPIs, Drupal Charts, Register/Petty Cash account status and ledger detail. Governed writes now reuse the existing signed `financials` POST contract for the same four Beta submission types: financial-day opening balances, Cash IN, Cash OUT, and Z-report/day close.
+
+Drupal adds its own CSRF token, strict field/action allowlists, UUIDv4 submission IDs, destructive close confirmation, and POST/redirect/GET refresh. It does not reproduce operational finance SQL or acceptance rules. MERDPOS remains authoritative for named permissions, active-store/clock-in requirements, idempotency, available-balance checks, day-open/day-close sequencing, next-day opening balances, ledger writes, audit evidence, and Google Sheet outbox creation.
+
+The Beta portal also has a browser-local offline queue for financial submissions. This first Drupal write-parity milestone is synchronous and therefore does **not** yet claim exact offline-behavior parity; that delta remains explicitly tracked in `drupal/PARITY_MATRIX.md`.
 
 ## DEV v2 platform command centre
 

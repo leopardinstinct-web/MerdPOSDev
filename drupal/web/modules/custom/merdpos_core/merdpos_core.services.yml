@@ -56,7 +56,7 @@ services:
 
   merdpos_core.finance_controller:
     class: Drupal\merdpos_core\Controller\FinanceController
-    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack', '@merdpos_core.portal_gateway', '@csrf_token']
 
   merdpos_core.dev_controller:
     class: Drupal\merdpos_core\Controller\DevController

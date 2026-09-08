@@ -803,7 +803,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     if ($selectedStore > 0) $statuses[] = $financial['status'];
     $surface = $this->surface(
       'finance','Financials','Financial command centre',
-      'Sales, Register, Petty Cash and ledger detail are read from authoritative MERDPOS financial services. Drupal does not submit or alter financial records in this milestone.',
+      'Sales, Register, Petty Cash and ledger detail come from authoritative MERDPOS services. Governed opening, cash movement and Z-report actions submit through the same signed MERDPOS financials contract.',
       $this->status($statuses),
       [
         $this->metric('Sales today',$this->money($totalSales,$currency),$businessDate ?: 'Business date','brand'),
@@ -830,7 +830,10 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['store_rows'] = $storeTable;
     $surface['exceptions'] = array_values(array_unique($exceptions));
     $surface['selected_store'] = ['id'=>$selectedStore,'name'=>(string)($statement['store_name'] ?? ''),'can_cross_store'=>!empty($statement['can_cross_store']),'can_open_day'=>!empty($statement['can_open_day'])];
-    $surface['read_only'] = true;
+    $surface['day_status'] = $dayStatus;
+    $surface['business_date'] = $businessDate;
+    $surface['currency'] = $currency;
+    $surface['read_only'] = false;
     return $surface;
   }
 
