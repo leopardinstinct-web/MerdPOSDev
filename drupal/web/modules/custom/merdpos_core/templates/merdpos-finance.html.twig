@@ -7,7 +7,7 @@
       <div class="merdpos-finance-roleline">
         <span>{{ surface.role.label ?: surface.role.key }}</span>
         <span>LOA {{ surface.role.loa }}</span>
-        <span>Read-only Drupal view</span>
+        <span>Signed write parity</span>
       </div>
     </div>
     <div class="merdpos-finance-state">
@@ -60,7 +60,11 @@
   <section class="merdpos-finance-panel">
     <header class="merdpos-finance-panel-head">
       <div><p>SELECTED STORE</p><h2>{{ surface.selected_store.name ?: 'Financial day accounts' }}</h2></div>
-      <div class="merdpos-finance-capabilities"><span>{{ surface.selected_store.can_cross_store ? 'Cross-store enabled' : 'Store-scoped' }}</span><span>{{ surface.selected_store.can_open_day ? 'Open-day permission' : 'Open-day restricted' }}</span></div>
+      <div class="merdpos-finance-capabilities">
+        <span>{{ surface.selected_store.can_cross_store ? 'Cross-store enabled' : 'Store-scoped' }}</span>
+        <span>{{ surface.write.can_open_day ? 'Open-day permission' : 'Open-day restricted' }}</span>
+        <span>{{ surface.write.can_submit ? 'Cash entry permission' : 'Cash entry restricted' }}</span>
+      </div>
     </header>
     <div class="merdpos-finance-accounts">
       {% for account in surface.account_cards %}
@@ -73,6 +77,70 @@
         <div class="merdpos-empty">No account statement returned for this store and date.</div>
       {% endfor %}
     </div>
+  </section>
+
+  <section class="merdpos-finance-panel merdpos-finance-actions" aria-label="Financial actions">
+    <header class="merdpos-finance-panel-head">
+      <div><p>AUTHORITATIVE ACTIONS</p><h2>Register & petty cash</h2></div>
+      <div class="merdpos-finance-capabilities"><span>Signed MERDPOS write</span><span>Idempotent submission ID</span></div>
+    </header>
+    {% if not surface.selected_store.id %}
+      <div class="merdpos-empty">Choose an authorised store before submitting financials.</div>
+    {% elseif surface.day_status == 'not_open' %}
+      {% if surface.write.can_open_day %}
+        <form class="merdpos-finance-action-card" method="post" action="{{ surface.write.post_url }}">
+          <input type="hidden" name="form_token" value="{{ surface.write.form_token }}">
+          <input type="hidden" name="finance_action" value="open_day">
+          <input type="hidden" name="store_id" value="{{ surface.selected_store.id }}">
+          <input type="hidden" name="business_date" value="{{ surface.business_date }}">
+          <div class="merdpos-finance-action-copy"><p>OPEN DAY</p><h3>Opening balances</h3><span>An authorised actor confirms the starting Register and Petty Cash balances.</span></div>
+          <div class="merdpos-finance-action-fields">
+            <label><span>Register opening</span><input type="number" name="register_opening" min="0" step="0.01" required inputmode="decimal"></label>
+            <label><span>Petty Cash opening</span><input type="number" name="petty_cash_opening" min="0" step="0.01" required inputmode="decimal"></label>
+          </div>
+          <button class="merdpos-btn merdpos-btn--primary" type="submit">Open financial day</button>
+        </form>
+      {% else %}
+        <div class="merdpos-empty">This financial day has not been opened. MERDPOS requires finance.open_day permission to set the opening balances.</div>
+      {% endif %}
+    {% elseif surface.day_status == 'open' %}
+      {% if surface.write.can_submit %}
+        <div class="merdpos-finance-action-grid">
+          <form class="merdpos-finance-action-card" method="post" action="{{ surface.write.post_url }}">
+            <input type="hidden" name="form_token" value="{{ surface.write.form_token }}">
+            <input type="hidden" name="finance_action" value="cash_movement">
+            <input type="hidden" name="store_id" value="{{ surface.selected_store.id }}">
+            <input type="hidden" name="business_date" value="{{ surface.business_date }}">
+            <div class="merdpos-finance-action-copy"><p>CASH MOVEMENT</p><h3>Cash IN / OUT</h3><span>The MERDPOS backend validates store attendance and available balance.</span></div>
+            <div class="merdpos-finance-action-fields">
+              <label><span>Movement</span><select name="submission_type" required><option value="cash_in">Cash IN</option><option value="cash_out">Cash OUT</option></select></label>
+              <label><span>Account</span><select name="account" required><option value="Register">Register</option><option value="Petty Cash">Petty Cash</option></select></label>
+              <label class="is-wide"><span>Reason / head</span><input type="text" name="head" minlength="2" maxlength="120" required></label>
+              <label><span>Amount</span><input type="number" name="amount" min="0.01" step="0.01" required inputmode="decimal"></label>
+            </div>
+            <button class="merdpos-btn merdpos-btn--primary" type="submit">Save cash movement</button>
+          </form>
+
+          <form class="merdpos-finance-action-card merdpos-finance-action-card--close" method="post" action="{{ surface.write.post_url }}" data-finance-close-form>
+            <input type="hidden" name="form_token" value="{{ surface.write.form_token }}">
+            <input type="hidden" name="finance_action" value="z_report">
+            <input type="hidden" name="store_id" value="{{ surface.selected_store.id }}">
+            <input type="hidden" name="business_date" value="{{ surface.business_date }}">
+            <div class="merdpos-finance-action-copy"><p>Z REPORT</p><h3>Close financial day</h3><span>This is a one-time close. MERDPOS calculates actual sales, next-day openings and ledger lines.</span></div>
+            <div class="merdpos-finance-action-fields">
+              <label><span>Register total</span><input type="number" name="register_total" min="0" step="0.01" required inputmode="decimal"></label>
+              <label><span>Petty Cash add-in</span><input type="number" name="petty_cash_addin" min="0" step="0.01" value="0" inputmode="decimal"></label>
+              <label class="is-wide"><span>Denominations (optional, comma separated)</span><input type="text" name="denominations" maxlength="2000"></label>
+            </div>
+            <button class="merdpos-btn merdpos-btn--danger" type="submit">Close financial day</button>
+          </form>
+        </div>
+      {% else %}
+        <div class="merdpos-empty">You can view this financial day, but MERDPOS has not granted finance.submit permission for cash movements or closing.</div>
+      {% endif %}
+    {% else %}
+      <div class="merdpos-empty">This financial day is closed. Choose another business date to continue.</div>
+    {% endif %}
   </section>
 
   <section class="merdpos-finance-table-card">
@@ -89,5 +157,5 @@
     </tbody></table></div>
   </section>
 
-  <footer class="merdpos-finance-footer"><strong>Authoritative MERDPOS financials</strong><span>Drupal is presentation-only here. Financial writes remain disabled until controlled write parity is separately approved and audited.</span></footer>
+  <footer class="merdpos-finance-footer"><strong>Authoritative MERDPOS financials</strong><span>Drupal submits only whitelisted financial actions through the signed gateway. MERDPOS remains authoritative for permissions, store-attendance requirements, balances, close rules, idempotency, audit and outbox writes.</span></footer>
 </section>
