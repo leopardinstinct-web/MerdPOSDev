@@ -43,6 +43,7 @@ php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
 php84 "$DRUPAL/tools/validate_finance_write_v1.php"
 php84 "$DRUPAL/tools/validate_account_password_v1.php"
+php84 "$DRUPAL/tools/validate_timesheet_google_sync_v1.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
@@ -121,6 +122,10 @@ php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!==
 ACCOUNT_PASSWORD_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway")->call("beta_state","GET"); $p=$g["payload"]??[]; $perms=$p["permissions"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.change_password"); echo json_encode(["status"=>$g["status"]??null,"permission"=>!empty($perms["password.change_own"]),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||empty($p["permission"])||($p["route"]??"")!=="/merdpos/account/change-password"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Account password parity self-test failed.\n");exit(1);}' "$ACCOUNT_PASSWORD_V1_PROBE"
+
+WORKING_CLIENT_SYNC_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$g=\Drupal::service("merdpos_core.portal_gateway")->call("client_context","GET"); $p=$g["payload"]??[]; $rp=\Drupal::service("router.route_provider"); $c=$rp->getRouteByName("merdpos_core.working_client"); $s=$rp->getRouteByName("merdpos_core.timesheet_google_sync"); echo json_encode(["status"=>$g["status"]??null,"success"=>$p["success"]??null,"can_select"=>$p["can_select_client"]??null,"active_client_id"=>(int)($p["active_client_id"]??0),"clients"=>count($p["clients"]??[]),"client_route"=>$c->getPath(),"client_methods"=>$c->getMethods(),"sync_route"=>$s->getPath(),"sync_methods"=>$s->getMethods()],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true||empty($p["can_select"])||($p["active_client_id"]??0)<1||($p["clients"]??0)<1||($p["client_route"]??"")!=="/merdpos/account/working-client"||!in_array("POST",$p["client_methods"]??[],true)||($p["sync_route"]??"")!=="/merdpos/account/timesheet-google-sync"||!in_array("POST",$p["sync_methods"]??[],true)){fwrite(STDERR,"Time Sheet sync parity self-test failed.\n");exit(1);}' "$WORKING_CLIENT_SYNC_V1_PROBE"
 
 DASHBOARD_LAYOUT_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.portal_gateway")->call("dashboard_layout","GET"); $p=$r["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.dashboard_layout"); echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"can_edit"=>$p["can_edit"]??null,"can_select_role"=>$p["can_select_role"]??null,"selected_role_id"=>(int)($p["selected_role"]["id"]??0),"allowed"=>is_array($p["allowed_widgets"]??null)?count($p["allowed_widgets"]):-1,"layout_is_array"=>is_array($p["layout"]??null),"columns"=>(int)($p["grid"]["columns"]??0),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"

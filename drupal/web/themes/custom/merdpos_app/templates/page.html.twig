@@ -67,6 +67,27 @@
           <strong>{{ merdpos_user_name }}</strong>
           <span>{{ merdpos_role_labels|join(' · ') }}</span>
         </div>
+        {% if merdpos_client_context_available %}
+        <div class="merdpos-account-working-client" data-merdpos-working-client-block>
+          <span class="merdpos-account-context-label">Working client</span>
+          {% if merdpos_can_select_client %}
+            <select data-merdpos-working-client data-endpoint="{{ merdpos_working_client_url }}" data-csrf="{{ merdpos_working_client_token }}" aria-label="Select working client">
+              {% for client in merdpos_clients %}<option value="{{ client.id }}"{{ client.id == merdpos_active_client_id ? ' selected' : '' }}>{{ client.name }}{% if client.client_code %} &#183; {{ client.client_code }}{% endif %}</option>{% endfor %}
+            </select>
+          {% else %}
+            <strong>{{ merdpos_active_client.name|default('MERDPOS client') }}</strong>
+          {% endif %}
+          {% if merdpos_can_timesheet_sync %}
+          <div class="merdpos-account-timesheet-sync-row">
+            <span>Sync</span>
+            <button class="merdpos-account-timesheet-sync" type="button" data-merdpos-timesheet-sync data-endpoint="{{ merdpos_timesheet_sync_url }}" data-csrf="{{ merdpos_timesheet_sync_token }}" data-client-id="{{ merdpos_active_client_id }}" data-client-name="{{ merdpos_active_client.name|default('Working client') }}" aria-label="Sync Time Sheet from Google" title="Replace SQL Time Sheet from Google">
+              <img src="{{ base_path ~ directory ~ '/assets/restart_alt_48px.svg' }}" alt="">
+            </button>
+          </div>
+          {% endif %}
+          <span class="merdpos-account-context-notice" data-merdpos-context-notice aria-live="polite"></span>
+        </div>
+        {% endif %}
         <label class="merdpos-account-theme"><span>Theme</span><select data-merdpos-theme aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
         {% if merdpos_can_change_password %}
           <button class="merdpos-account-menu-action" type="button" data-merdpos-password-open>

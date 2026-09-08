@@ -42,15 +42,17 @@ final class AdministrationController extends ControllerBase {
     $contextPayload = $context['status'] === 'ok' && is_array($context['payload'] ?? null)
       ? $context['payload'] : [];
     $homeClientId = max(0, (int) ($contextPayload['home_client_id'] ?? $contextPayload['active_client_id'] ?? 0));
+    $activeClientId = max(0, (int) ($contextPayload['active_client_id'] ?? $homeClientId));
     $canSelectClient = !empty($contextPayload['can_select_client']);
     $selectableClients = is_array($contextPayload['clients'] ?? null) ? $contextPayload['clients'] : [];
 
     $requestedClientId = filter_var($request->query->get('client_id'), FILTER_VALIDATE_INT);
-    $selectedClientId = $homeClientId;
+    $selectedClientId = $activeClientId ?: $homeClientId;
     if ($canSelectClient && $requestedClientId !== false && $requestedClientId > 0) {
       foreach ($selectableClients as $client) {
         if ((int) ($client['id'] ?? 0) === (int) $requestedClientId) {
           $selectedClientId = (int) $requestedClientId;
+          $request->getSession()->set('merdpos_context_client_id', $selectedClientId);
           break;
         }
       }

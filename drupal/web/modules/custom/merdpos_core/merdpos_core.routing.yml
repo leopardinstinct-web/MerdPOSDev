@@ -79,6 +79,22 @@ merdpos_core.change_password:
     _permission: 'access merdpos portal'
   methods: [POST]
 
+merdpos_core.working_client:
+  path: '/merdpos/account/working-client'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\AccountController::selectWorkingClient'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
+merdpos_core.timesheet_google_sync:
+  path: '/merdpos/account/timesheet-google-sync'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\AccountController::syncGoogleTimeSheet'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
 merdpos_core.dev:
   path: '/merdpos/dev'
   defaults:

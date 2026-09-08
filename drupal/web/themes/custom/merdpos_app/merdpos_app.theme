@@ -21,6 +21,16 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_password_url'] = '';
   $variables['merdpos_password_token'] = '';
   $variables['merdpos_password_return'] = '';
+  $variables['merdpos_client_context_available'] = false;
+  $variables['merdpos_can_select_client'] = false;
+  $variables['merdpos_clients'] = [];
+  $variables['merdpos_active_client_id'] = 0;
+  $variables['merdpos_active_client'] = [];
+  $variables['merdpos_working_client_url'] = '';
+  $variables['merdpos_working_client_token'] = '';
+  $variables['merdpos_can_timesheet_sync'] = false;
+  $variables['merdpos_timesheet_sync_url'] = '';
+  $variables['merdpos_timesheet_sync_token'] = '';
 
   if ($variables['merdpos_is_login']) {
     $variables['merdpos_user_name'] = '';
@@ -35,6 +45,28 @@ function merdpos_app_preprocess_page(array &$variables): void {
     try {
       $profile = \Drupal::service('merdpos_core.identity_manager')->profile((int) $account->id());
       if (is_array($profile)) $variables['merdpos_profile'] = $profile;
+    }
+    catch (Throwable) {}
+  }
+
+  if ($account->isAuthenticated()) {
+    try {
+      $contextResult = \Drupal::service('merdpos_core.portal_gateway')->call('client_context', 'GET');
+      $contextPayload = is_array($contextResult['payload'] ?? NULL) ? $contextResult['payload'] : [];
+      if (($contextResult['status'] ?? '') === 'ok' && !empty($contextPayload['success'])) {
+        $variables['merdpos_client_context_available'] = true;
+        $variables['merdpos_can_select_client'] = !empty($contextPayload['can_select_client']);
+        $variables['merdpos_clients'] = is_array($contextPayload['clients'] ?? NULL) ? $contextPayload['clients'] : [];
+        $variables['merdpos_active_client_id'] = max(0, (int) ($contextPayload['active_client_id'] ?? 0));
+        $variables['merdpos_active_client'] = is_array($contextPayload['client'] ?? NULL) ? $contextPayload['client'] : [];
+        if ($variables['merdpos_can_select_client']) {
+          $variables['merdpos_working_client_url'] = Url::fromRoute('merdpos_core.working_client')->toString();
+          $variables['merdpos_working_client_token'] = \Drupal::service('csrf_token')->get('merdpos_working_client_v1');
+          $variables['merdpos_can_timesheet_sync'] = $variables['merdpos_active_client_id'] > 0;
+          $variables['merdpos_timesheet_sync_url'] = Url::fromRoute('merdpos_core.timesheet_google_sync')->toString();
+          $variables['merdpos_timesheet_sync_token'] = \Drupal::service('csrf_token')->get('merdpos_timesheet_google_sync_v1');
+        }
+      }
     }
     catch (Throwable) {}
   }

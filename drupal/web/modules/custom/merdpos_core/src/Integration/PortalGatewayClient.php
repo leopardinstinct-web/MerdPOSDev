@@ -6,6 +6,7 @@ namespace Drupal\merdpos_core\Integration;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use RuntimeException;
 use Throwable;
 
@@ -15,6 +16,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     private readonly ClientInterface $httpClient,
     private readonly ?AccountProxyInterface $currentUser = NULL,
     private readonly ?UserDataInterface $userData = NULL,
+    private readonly ?RequestStack $requestStack = NULL,
   ) {}
 
   public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
@@ -26,6 +28,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     if (!preg_match('/^[a-z][a-z0-9_]{1,63}$/', $route) || !in_array($method, ['GET','POST'], true)) {
       return $this->result('invalid', null, null, 'Invalid MERDPOS gateway request.');
     }
+    if ($contextClientId === NULL) $contextClientId = $this->sessionContextClientId();
     if ($contextClientId !== NULL && $contextClientId <= 0) return $this->result('invalid', null, null, 'Invalid MERDPOS client context.');
     if (count($query) > 100 || count($body) > 100) {
       return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
@@ -45,11 +48,12 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
         $config['secret'],
       );
 
+      $timeout = $route === 'timesheet_google_refresh' ? 190.0 : 12.0;
       $response = $this->httpClient->request('POST', $config['url'], [
         'headers' => $this->headers($timestamp, $config, $signature),
         'body' => $raw,
         'connect_timeout' => 3.0,
-        'timeout' => 12.0,
+        'timeout' => $timeout,
         'allow_redirects' => false,
         'http_errors' => false,
       ]);
@@ -68,6 +72,14 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     } catch (Throwable) {
       return $this->result('unavailable', null, null, 'MERDPOS gateway is temporarily unavailable.');
     }
+  }
+
+  private function sessionContextClientId(): ?int {
+    if (!$this->currentUser?->isAuthenticated() || $this->requestStack === NULL) return NULL;
+    $request = $this->requestStack->getCurrentRequest();
+    if ($request === NULL || !$request->hasSession()) return NULL;
+    $value = filter_var($request->getSession()->get('merdpos_context_client_id'), FILTER_VALIDATE_INT);
+    return $value === false || $value <= 0 ? NULL : (int) $value;
   }
 
   private function environmentConfig(): ?array {
