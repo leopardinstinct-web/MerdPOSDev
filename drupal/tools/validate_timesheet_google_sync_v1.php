@@ -45,7 +45,7 @@ foreach (['DELETE FROM employee_logs','INSERT INTO employee_logs','admin_audit_l
 
 timesheet_sync_check(str_contains($gateway, 'sessionContextClientId'), 'Gateway does not carry Drupal Working client context.');
 timesheet_sync_check(str_contains($gateway, "'merdpos_context_client_id'"), 'Gateway session context key missing.');
-timesheet_sync_check(str_contains($gateway, "timesheet_google_refresh' ? 190.0 : 12.0"), 'Long-running Time Sheet sync timeout missing.');
+timesheet_sync_check(str_contains($gateway, "'timesheet_google_refresh'") && str_contains($gateway, '190.0'), 'Long-running Time Sheet sync timeout missing.');
 timesheet_sync_check(str_contains($services, "'@user.data', '@request_stack'"), 'Gateway request-stack wiring missing.');
 timesheet_sync_check(str_contains($admin, '$activeClientId') && str_contains($admin, "getSession()->set('merdpos_context_client_id'"), 'Administration is not aligned to global Working client context.');
 

@@ -76,9 +76,11 @@ administration:
   css:
     theme:
       css/administration-v1.css: {}
+      css/legacy-migration-v1.css: {}
       css/dark-normalization.css: {}
   js:
     js/administration-v1.js: {}
+    js/legacy-migration-v1.js: {}
 
 disputes:
   version: 1.x
