@@ -83,6 +83,9 @@ gateway_check(str_contains($gatewaySource, "'store_logo' => ['POST']"), 'Drupal 
 gateway_check(str_contains($gatewaySource, '$request[\'context_client_id\']'), 'Explicit Drupal client context envelope missing.');
 gateway_check(str_contains($gatewaySource, "Only DEV may select another client context"), 'Cross-client DEV guard missing.');
 gateway_check(str_contains($gatewaySource, '$_SESSION[\'dev_active_client_id\'] = $contextClientId'), 'Selected client context is not applied before target dispatch.');
+gateway_check(str_contains($gatewaySource, 'dev_client_preferences'), 'Persisted DEV Working client preference is not loaded by the gateway.');
+gateway_check(str_contains($gatewaySource, '$contextClientId === null && $baseRole === \'DEV\''), 'Gateway does not default actual DEV to the persisted Working client.');
+gateway_check(str_contains($gatewaySource, 'selected_client_id'), 'Persisted Working client selection is not referenced by the gateway.');
 gateway_check(str_contains($gatewaySource, '$value === null || $value === []'), 'Empty gateway map compatibility guard missing.');
 
 echo "MERDPOS Drupal generalized portal gateway contract validated.\n";
