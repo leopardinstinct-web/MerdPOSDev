@@ -71,6 +71,14 @@ merdpos_core.finance:
   requirements:
     _permission: 'access merdpos portal'
 
+merdpos_core.finance_submit:
+  path: '/merdpos/finance/submit'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\FinanceController::submitJson'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
 merdpos_core.change_password:
   path: '/merdpos/account/change-password'
   defaults:

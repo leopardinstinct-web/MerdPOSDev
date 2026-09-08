@@ -814,7 +814,14 @@ final class ParityDataProvider implements ParityDataProviderInterface {
         'available'=>$this->money($row['available'] ?? 0,$currency),'closing'=>$closing,'status'=>strtoupper($status ?: 'unknown'),
       ];
       $accountTable[] = $item;
-      $accountCards[] = ['title'=>$item['account'],'status'=>$item['status'],'available'=>$item['available'],'opening'=>$item['opening'],'in'=>$item['in'],'out'=>$item['out'],'closing'=>$item['closing']];
+      $accountCards[] = [
+        'title'=>$item['account'],'status'=>$item['status'],
+        'available'=>$item['available'],'available_raw'=>(float)($row['available'] ?? 0),
+        'opening'=>$item['opening'],'opening_raw'=>(float)($row['opening'] ?? 0),
+        'in'=>$item['in'],'in_raw'=>(float)($row['cash_in'] ?? 0),
+        'out'=>$item['out'],'out_raw'=>(float)($row['cash_out'] ?? 0),
+        'closing'=>$item['closing'],
+      ];
       if ($status !== '' && !in_array($status,['open','closed'],true)) $exceptions[] = $item['account'] . ' returned status ' . strtoupper($status) . '.';
     }
     $dayStatus = strtolower((string)($statement['day_status'] ?? 'not_open'));
