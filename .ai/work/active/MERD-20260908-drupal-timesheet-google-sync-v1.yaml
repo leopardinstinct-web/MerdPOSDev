@@ -1,0 +1,26 @@
+id: MERD-20260908-drupal-timesheet-google-sync-v1
+branch: milestone/drupal-timesheet-google-sync-v1
+base_head: 7e9f5c7f3e572a2809fa6dc3daed74f8f76f5883
+last_seen_head: 8648325634aa43870e72ed4056cef7ba7abd5101
+objective: Close Beta Working-client and Google Time Sheet sync parity in Drupal without duplicating destructive attendance logic.
+packet_state: VERIFIED
+lifecycle: VERIFIED
+scope:
+  - Global Working client context in the authenticated account shell.
+  - Signed client_context switching with Drupal CSRF and actual-DEV authority.
+  - Beta-equivalent Sync action, restart icon, tooltip and destructive confirmation.
+  - Signed timesheet_google_refresh POST with selected-client and stale-context guards.
+constraints:
+  - MERDPOS Beta remains authoritative for Google source validation, row mapping, SQL replacement transaction and audit.
+  - Drupal must not contain employee_logs replacement SQL or call the sync route before explicit confirmation.
+  - DevStudio/UI Studio remains excluded.
+validation:
+  - Backend prerequisite PR #87 merged and deployed at 48ca08b; signed client_context live probe returned status=ok and scope=dev_selected_client.
+  - Drupal PR #88 CI and secret scan passed; canonical release 8648325634aa passed all PHP 8.4 deployment validators and the Working-client release probe.
+  - DUMMY DEV Playwright verified Working client DUMMY, exact Sync semantics and canonical icon on desktop/mobile Light/Dark.
+  - The destructive confirmation was dismissed in all four browser cases and the Drupal sync endpoint request count stayed 0; no attendance mutation was performed.
+  - Desktop Light/Dark measured 1440/1440; mobile Light/Dark measured 390/390.
+  - Account/dark regression and Dashboard Layout signed no-op regression both remained green after deployment.
+  - check_sheet was audited as an internal DEV diagnostic with no Beta user-facing caller, so Drupal intentionally exposes no invented UI.
+next_action: Continue Beta-to-Drupal parity closure with Finance offline queue/reconnect behavior, legacy_migration, and remaining defaults/settings exactness; keep DevStudio/UI Studio excluded.
+updated_at: "2026-09-08T18:13:20+05:00"

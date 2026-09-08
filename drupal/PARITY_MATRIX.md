@@ -1,6 +1,6 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 17:08 +05:00
+Updated: 2026-09-08 18:13 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
@@ -22,8 +22,8 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Dark-theme approved brand assets | EXACT | Canonical full lockup is contrast-preserved on light glass in dark account/login surfaces; canonical multicolor tagline replaces the plain shell subline in dark mode. Source-only Playwright closure passed desktop/mobile Dark on release `53b518c7be00`; assets are not recolored or duplicated into new binaries. |
 | Account: Change password (`change_password`) | EXACT | Permission-scoped account-menu modal sends current/new/confirm fields through Drupal CSRF + signed `change_password`; backend password verification/storage/audit stays authoritative. Source-only Playwright closure passed desktop/mobile without submitting or changing a password. |
 | Dashboard layout (`dashboard_layout`, non-DevStudio) | EXACT | Drupal renders the authoritative saved role layout and exposes role selection, Edit dashboard, add/remove, desktop drag/resize, mobile up/down ordering, quick templates, search and clear/reset through Drupal CSRF + the signed `dashboard_layout` route. `dev_studio` is rejected and never emitted. PR #85 merged and Namecheap release `f4bb37b3ca24` passed the signed release probe. Reversible DUMMY DEV Playwright closure completed signed no-op saves with 12 saved widgets unchanged on desktop/mobile Light/Dark; mobile measured 390/390. |
-| Sheet health (`check_sheet`) | MISSING / NEEDS AUDIT | Gateway supports GET; no Drupal action/surface currently references it. Audit Beta visibility/permission and reproduce only user-facing behavior. |
-| Timesheet Google refresh (`timesheet_google_refresh`) | MISSING / NEEDS AUDIT | Gateway supports POST; no Drupal equivalent currently references it. Audit Beta UI/permission before implementation. |
+| Sheet health (`check_sheet`) | INTERNAL / NO UI GAP | Audit found no Beta button, menu item, page, or browser caller for `check_sheet`; it is a DEV diagnostic endpoint. Drupal intentionally does not invent a user-facing surface for it. |
+| Timesheet Google refresh (`timesheet_google_refresh`) | EXACT | PR #88 merged and Namecheap release `8648325634aa` passed the complete Drupal deployment gate after backend Working-client prerequisite release `48ca08b`. The account shell preserves Beta **Working client** / **Sync** labels, canonical restart icon, DEV-only context, destructive confirmation, Drupal CSRF and signed `timesheet_google_refresh` POST. DUMMY DEV Playwright opened and cancelled the confirmation on desktop/mobile Light/Dark; the Drupal sync endpoint request count remained `0` in all four cases, mobile measured 390/390, and no attendance mutation was performed. |
 | Legacy migration (`legacy_migration`) | MISSING / NEEDS AUDIT | Gateway supports GET/POST; no Drupal surface currently references it. DEV-only operational migration is not DevStudio and requires parity review. |
 | Client/default settings (`defaults`) | COVERED / VERIFY EXACTNESS | Default currency/timezone and store/client settings are consumed across current Drupal administration/reporting; audit remaining explicit Beta defaults actions before marking exact. |
 | DEV platform diagnostics | EXACT READ / INTENTIONAL BOUNDARY | DEV command centre is read-only; DevStudio/UI Studio remains intentionally excluded. |
