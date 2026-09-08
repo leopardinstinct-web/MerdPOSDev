@@ -11,6 +11,8 @@ use Drupal\merdpos_core\Integration\ParityDataProviderInterface;
 use Drupal\merdpos_core\Integration\PortalGatewayClientInterface;
 use Drupal\merdpos_core\Presentation\DashboardChartBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use JsonException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -64,6 +66,8 @@ final class FinanceController extends ControllerBase {
       'can_open_day' => in_array('finance.open_day', $permissions, true) && !empty($surface['selected_store']['can_open_day']),
       'form_token' => $this->csrf->get(self::TOKEN_ID),
       'post_url' => Url::fromRoute('merdpos_core.finance')->toString(),
+      'submit_url' => Url::fromRoute('merdpos_core.finance_submit')->toString(),
+      'queue_key' => 'merdpos_financial_queue_v1',
     ];
 
     return [
@@ -72,6 +76,121 @@ final class FinanceController extends ControllerBase {
       '#charts' => $this->chartBuilder->build($surface['chart_specs'] ?? []),
       '#attached' => ['library' => ['merdpos_core/finance']],
       '#cache' => ['contexts'=>['user','url.query_args:store_id','url.query_args:business_date'],'max-age'=>0],
+    ];
+  }
+
+
+  public function submitJson(): JsonResponse {
+    $request = $this->requestStack->getCurrentRequest();
+    if (!$request instanceof Request || !$request->isMethod('POST')) throw new AccessDeniedHttpException();
+    $token = trim((string) $request->headers->get('X-MERDPOS-CSRF', ''));
+    if (!$this->csrf->validate($token, self::TOKEN_ID)) {
+      return new JsonResponse(['success'=>false, 'error'=>'This Financials session expired. Refresh the page and try again.'], 403);
+    }
+    try { $input = json_decode($request->getContent(), true, 32, JSON_THROW_ON_ERROR); }
+    catch (JsonException) { $input = NULL; }
+    if (!is_array($input)) return new JsonResponse(['success'=>false, 'error'=>'Invalid financial submission.'], 400);
+
+    $stateResult = $this->gateway->call('beta_state', 'GET');
+    $state = is_array($stateResult['payload'] ?? NULL) ? $stateResult['payload'] : [];
+    $permissions = $this->permissionKeys($state['permissions'] ?? []);
+    if (($stateResult['status'] ?? '') !== 'ok') {
+      $stateHttp = (int) ($stateResult['http_status'] ?? 0);
+      $retryable = $stateHttp === 0 && ($stateResult['status'] ?? '') === 'unavailable';
+      if ($stateHttp < 400 || $stateHttp > 599) $stateHttp = ($stateResult['status'] ?? '') === 'forbidden' ? 403 : 503;
+      return new JsonResponse(['success'=>false, 'error'=>(string) ($stateResult['message'] ?? 'MERDPOS finance permission check is unavailable.'), 'retryable'=>$retryable], $stateHttp);
+    }
+    if (!in_array('finance.view', $permissions, true)) {
+      return new JsonResponse(['success'=>false, 'error'=>'MERDPOS finance.view permission is required.'], 403);
+    }
+
+    $submission = $this->normalizeQueuedSubmission($input);
+    if (isset($submission['error'])) return new JsonResponse(['success'=>false, 'error'=>(string) $submission['error']], 422);
+    $required = ($submission['submission_type'] ?? '') === 'open_day' ? 'finance.open_day' : 'finance.submit';
+    if (!in_array($required, $permissions, true)) {
+      return new JsonResponse(['success'=>false, 'error'=>'MERDPOS does not allow this financial action for your role.'], 403);
+    }
+
+    $result = $this->gateway->call('financials', 'POST', [], $submission);
+    $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
+    if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) {
+      $inner = is_array($payload['result'] ?? NULL) ? $payload['result'] : [];
+      return new JsonResponse([
+        'success'=>true,
+        'submission_id'=>(string) ($submission['submission_id'] ?? ''),
+        'duplicate'=>!empty($inner['duplicate']),
+        'result'=>$inner,
+        'message'=>$this->successMessage((string) ($submission['submission_type'] ?? ''), !empty($inner['duplicate'])),
+      ]);
+    }
+    $error = trim((string) ($payload['error'] ?? $payload['message'] ?? $result['message'] ?? 'The financial action could not be completed.'));
+    $http = (int) ($result['http_status'] ?? 0);
+    $retryable = $http === 0 && ($result['status'] ?? '') === 'unavailable';
+    if ($http < 400 || $http > 599) $http = ($result['status'] ?? '') === 'forbidden' ? 403 : 503;
+    return new JsonResponse(['success'=>false, 'error'=>$error ?: 'The financial action could not be completed.', 'retryable'=>$retryable], $http);
+  }
+
+  private function normalizeQueuedSubmission(array $input): array {
+    $submissionId = strtolower(trim((string) ($input['submission_id'] ?? '')));
+    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $submissionId)) {
+      return ['error'=>'Invalid financial submission ID.'];
+    }
+
+    $storeId = filter_var($input['store_id'] ?? NULL, FILTER_VALIDATE_INT);
+    $businessDate = trim((string) ($input['business_date'] ?? ''));
+    $type = strtolower(trim((string) ($input['submission_type'] ?? '')));
+    $payload = $input['payload'] ?? NULL;
+    if ($storeId === false || $storeId <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $businessDate)
+      || !in_array($type, ['open_day','cash_in','cash_out','z_report'], true) || !is_array($payload)) {
+      return ['error'=>'Invalid financial submission.'];
+    }
+    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $businessDate, new \DateTimeZone('UTC'));
+    if (!$date || $date->format('Y-m-d') !== $businessDate) return ['error'=>'Invalid business date.'];
+
+    if ($type === 'open_day') {
+      $register = $this->amount($payload['register_opening'] ?? NULL);
+      $petty = $this->amount($payload['petty_cash_opening'] ?? NULL);
+      if ($register === NULL || $petty === NULL) return ['error'=>'Enter valid opening balances.'];
+      $payload = ['register_opening'=>$register, 'petty_cash_opening'=>$petty];
+    }
+    elseif ($type === 'cash_in' || $type === 'cash_out') {
+      $rows = $payload['transactions'] ?? NULL;
+      if (!is_array($rows) || !array_is_list($rows) || count($rows) < 1 || count($rows) > 100) return ['error'=>'Add at least one valid transaction.'];
+      $transactions = [];
+      foreach ($rows as $row) {
+        if (!is_array($row)) return ['error'=>'A financial transaction is invalid.'];
+        $account = trim((string) ($row['account'] ?? ''));
+        $head = trim((string) ($row['head'] ?? ''));
+        $amount = $this->amount($row['amount'] ?? NULL, false);
+        if (!in_array($account, ['Register','Petty Cash'], true) || strlen($head) < 2 || strlen($head) > 120 || $amount === NULL) return ['error'=>'A financial transaction is invalid.'];
+        $transactions[] = ['account'=>$account, 'head'=>$head, 'amount'=>$amount];
+      }
+      $payload = ['transactions'=>$transactions];
+    }
+
+    else {
+      $total = $this->amount($payload['register_total'] ?? NULL);
+      $pettyAddin = $this->amount($payload['petty_cash_addin'] ?? 0);
+      $denominations = $payload['denominations'] ?? [];
+      if ($total === NULL || $pettyAddin === NULL || $pettyAddin > $total || !is_array($denominations) || !array_is_list($denominations)) {
+        return ['error'=>'Enter valid closing totals. Petty Cash transfer cannot exceed the Register total.'];
+      }
+      $clean = [];
+      foreach ($denominations as $value) {
+        if (!is_scalar($value)) return ['error'=>'Invalid denomination notes.'];
+        $value = trim((string) $value);
+        if ($value === '') continue;
+        if (strlen($value) > 120 || count($clean) >= 100) return ['error'=>'Denomination notes are too long.'];
+        $clean[] = $value;
+      }
+      $payload = ['register_total'=>$total, 'petty_cash_addin'=>$pettyAddin, 'denominations'=>$clean];
+    }
+    return [
+      'submission_id'=>$submissionId,
+      'store_id'=>(int) $storeId,
+      'business_date'=>$businessDate,
+      'submission_type'=>$type,
+      'payload'=>$payload,
     ];
   }
 
@@ -207,7 +326,7 @@ final class FinanceController extends ControllerBase {
     if ($duplicate) return 'MERDPOS already recorded this financial submission. No duplicate transaction was created.';
     return match ($action) {
       'open_day' => 'Financial day opened successfully.',
-      'cash_movement' => 'Cash movement saved successfully.',
+      'cash_movement', 'cash_in', 'cash_out' => 'Cash movement saved successfully.',
       'z_report' => 'Financial day closed successfully.',
       default => 'Financial action completed successfully.',
     };

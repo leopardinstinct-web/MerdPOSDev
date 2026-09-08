@@ -214,7 +214,7 @@ The read surface remains backed by signed `dashboard_data`, `store_identity`, an
 
 Drupal adds its own CSRF token, strict field/action allowlists, UUIDv4 submission IDs, destructive close confirmation, and POST/redirect/GET refresh. It does not reproduce operational finance SQL or acceptance rules. MERDPOS remains authoritative for named permissions, active-store/clock-in requirements, idempotency, available-balance checks, day-open/day-close sequencing, next-day opening balances, ledger writes, audit evidence, and Google Sheet outbox creation.
 
-The Beta portal also has a browser-local offline queue for financial submissions. This first Drupal write-parity milestone is synchronous and therefore does **not** yet claim exact offline-behavior parity; that delta remains explicitly tracked in `drupal/PARITY_MATRIX.md`.
+The Finance offline-parity implementation now mirrors the Beta browser queue contract: submissions are saved under `merdpos_financial_queue_v1`, receive a browser-generated UUIDv4 before first send, keep that same idempotency key across reconnect retries, apply queued entries to effective balances, block duplicate queued openings/closings for the same store/date, and flush in order through a Drupal-CSRF JSON bridge when connectivity returns. The existing HTML POST remains as a no-JavaScript fallback. MERDPOS still owns every acceptance rule and mutation. This branch is source/validator `VALIDATED`; `EXACT` remains gated on live offline/reconnect browser closure.
 
 ## DEV v2 platform command centre
 

@@ -42,6 +42,7 @@ php84 "$DRUPAL/tools/validate_operations_hr_v2.php"
 php84 "$DRUPAL/tools/validate_reports_v2.php"
 php84 "$DRUPAL/tools/validate_finance_v2.php"
 php84 "$DRUPAL/tools/validate_finance_write_v1.php"
+php84 "$DRUPAL/tools/validate_finance_offline_v1.php"
 php84 "$DRUPAL/tools/validate_account_password_v1.php"
 php84 "$DRUPAL/tools/validate_timesheet_google_sync_v1.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
@@ -155,6 +156,10 @@ php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!==
 FINANCE_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->section("finance",[]); $g=\Drupal::service("merdpos_core.portal_gateway")->call("beta_state","GET"); $gp=$g["payload"]??[]; $perms=$gp["permissions"]??[]; $role=$r["role"]??[]; $store=$r["selected_store"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"filters"=>count($r["filters"]??[]),"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"accounts"=>count($r["account_cards"]??[]),"ledger"=>count($r["ledger_rows"]??[]),"cross_store"=>!empty($store["can_cross_store"]),"write_capable"=>empty($r["read_only"]),"finance_view"=>!empty($perms["finance.view"]),"finance_submit"=>!empty($perms["finance.submit"]),"finance_open_day"=>!empty($perms["finance.open_day"])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["loa"]??0)!==1000||($p["filters"]??0)!==2||($p["metrics"]??0)<5||($p["charts"]??0)<3||empty($p["cross_store"])||empty($p["write_capable"])||empty($p["finance_view"])||empty($p["finance_submit"])||empty($p["finance_open_day"])){fwrite(STDERR,"Finance v2 self-test failed.\n");exit(1);}' "$FINANCE_V2_PROBE"
+
+FINANCE_OFFLINE_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$rp=\Drupal::service("router.route_provider"); $r=$rp->getRouteByName("merdpos_core.finance_submit"); echo json_encode(["route"=>$r->getPath(),"methods"=>$r->getMethods()],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["route"]??"")!=="/merdpos/finance/submit"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Finance offline queue parity self-test failed.\n");exit(1);}' "$FINANCE_OFFLINE_V1_PROBE"
 
 DEV_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->section("dev",[]); $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"sources"=>count($r["source_statuses"]??[]),"sync_rows"=>count($r["sync_rows"]??[]),"security_rows"=>count($r["security_rows"]??[]),"read_only"=>!empty($r["read_only"]),"studio_excluded"=>!empty($r["studio_excluded"])],JSON_UNESCAPED_SLASHES);')"
