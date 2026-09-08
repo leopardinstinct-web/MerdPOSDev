@@ -138,6 +138,14 @@ Actors with canonical `dashboard.configure` can select a dashboard role and use 
 
 PR #85 merged to `beta/drupal-webapp` and Namecheap release `f4bb37b3ca24` passed the complete deployment gate, including the signed `dashboard_layout` live probe. The established Playwright DUMMY DEV fixture loaded 12 saved widgets and completed signed no-op saves on desktop and mobile in both Light and Dark themes; reloading confirmed the saved layout was unchanged. Desktop had no horizontal overflow and mobile measured 390/390 document width. The existing account/dark acceptance suite also remained green.
 
+## Legacy Migration parity v1
+
+Drupal Administration now reproduces Beta's user-facing **Legacy Sync** workflow through the signed `legacy_migration` route. Client rows open **Legacy migration · {Client}** with the canonical Legacy Google sources, Migration control, Open conflicts and Migration history sections plus **Preview changes**, **Sync legacy data** and **Final Sync & switch to SQL** actions.
+
+Drupal owns only presentation, its own CSRF boundary and a fresh authoritative Client Code preflight before Final Sync. MERDPOS Beta remains authoritative for spreadsheet-ID/tab validation, Google CSV fetch, staging/redaction, preview snapshot locking, identity reconciliation, conflict creation, attendance/financial mutation, authority cutover and audit. Drupal does not expose Beta CSRF, contains no migration SQL/Google-fetch logic, and disables Sync/Final when SQL authority is already active. The deployment probe is intentionally GET-only so release verification cannot create a preview batch or change operational data.
+
+Implementation head `f08f0691050f` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, JavaScript syntax, UTF-8/mojibake and diff checks before promotion. Live authenticated browser closure remains required before this row can move from VALIDATED to EXACT.
+
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.

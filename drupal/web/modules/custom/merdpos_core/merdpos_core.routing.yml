@@ -48,6 +48,14 @@ merdpos_core.administration:
   requirements:
     _permission: 'manage merdpos operations'
 
+merdpos_core.legacy_migration:
+  path: '/merdpos/admin/legacy-migration'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\AdministrationController::legacyMigration'
+  requirements:
+    _permission: 'manage merdpos operations'
+  methods: [GET, POST]
+
 merdpos_core.reports:
   path: '/merdpos/reports'
   defaults:

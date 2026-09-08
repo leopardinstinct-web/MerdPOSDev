@@ -10,6 +10,7 @@ use Drupal\Core\Url;
 use Drupal\merdpos_core\Integration\AdministrationOnboardingProvisioner;
 use Drupal\merdpos_core\Integration\PortalGatewayClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 final class AdministrationController extends ControllerBase {
 
   private const TOKEN_ID = 'merdpos-administration-write-v1';
+  private const LEGACY_TOKEN_ID = 'merdpos-legacy-migration-v1';
 
   public function __construct(
     private readonly PortalGatewayClientInterface $gateway,
@@ -96,6 +98,10 @@ final class AdministrationController extends ControllerBase {
     }
 
     $canManageClients = $clientsResult['status'] === 'ok';
+    $legacyProbe = $selectedClientId > 0
+      ? $this->gateway->call('legacy_migration', 'GET', ['client_id'=>$selectedClientId], [], $selectedClientId)
+      : ['status'=>'invalid','payload'=>[]];
+    $canManageLegacy = ($legacyProbe['status'] ?? '') === 'ok' && !empty($legacyProbe['payload']['success']);
     $currentTab = $requestedTab ?? ($canManageClients ? 'onboarding' : 'stores');
     if (!$canManageClients && in_array($currentTab, ['onboarding', 'clients'], true)) $currentTab = 'stores';
     if (!$canManageRoles && $currentTab === 'roles') $currentTab = 'workforce';
@@ -105,6 +111,9 @@ final class AdministrationController extends ControllerBase {
       '#directory' => $directory,
       '#clients' => is_array($clientsPayload['clients'] ?? null) ? $clientsPayload['clients'] : [],
       '#can_manage_clients' => $canManageClients,
+      '#can_manage_legacy' => $canManageLegacy,
+      '#legacy_token' => $this->csrf->get(self::LEGACY_TOKEN_ID),
+      '#legacy_url' => Url::fromRoute('merdpos_core.legacy_migration')->toString(),
       '#can_select_client' => $canSelectClient,
       '#selectable_clients' => $selectableClients,
       '#selected_client_id' => $selectedClientId,
@@ -121,6 +130,46 @@ final class AdministrationController extends ControllerBase {
       '#attached' => ['library' => ['merdpos_core/administration']],
       '#cache' => ['contexts' => ['user', 'url.query_args:client_id', 'url.query_args:tab'], 'max-age' => 0],
     ];
+  }
+
+  public function legacyMigration(Request $request): JsonResponse {
+    $clientId = $this->positiveInt($request->isMethod('GET') ? $request->query->get('client_id') : NULL);
+    $input = [];
+    if ($request->isMethod('POST')) {
+      $token = trim((string) $request->headers->get('X-MERDPOS-CSRF', ''));
+      if (!$this->csrf->validate($token, self::LEGACY_TOKEN_ID)) return new JsonResponse(['success'=>false,'error'=>'Your form session expired. Refresh and try again.'], 403);
+      try { $input = json_decode((string) $request->getContent(), true, 32, JSON_THROW_ON_ERROR); }
+      catch (\Throwable) { return new JsonResponse(['success'=>false,'error'=>'Invalid migration request.'], 400); }
+      if (!is_array($input)) return new JsonResponse(['success'=>false,'error'=>'Invalid migration request.'], 400);
+      $clientId = $this->positiveInt($input['client_id'] ?? NULL);
+    }
+    if ($clientId === NULL) return new JsonResponse(['success'=>false,'error'=>'Choose a valid client.'], 422);
+
+    if ($request->isMethod('GET')) {
+      return $this->legacyGatewayResponse($this->gateway->call('legacy_migration', 'GET', ['client_id'=>$clientId], [], $clientId));
+    }
+    if (!$request->isMethod('POST')) return new JsonResponse(['success'=>false,'error'=>'GET or POST required.'], 405);
+
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    if (!in_array($action, ['save_sources','preview','sync','final'], true)) return new JsonResponse(['success'=>false,'error'=>'Unsupported legacy migration action.'], 422);
+    if ($action === 'final') {
+      $confirmation = trim((string) ($input['confirmation_client_code'] ?? ''));
+      $preflight = $this->gateway->call('legacy_migration', 'GET', ['client_id'=>$clientId], [], $clientId);
+      $expected = trim((string) ($preflight['payload']['client']['client_code'] ?? ''));
+      if (($preflight['status'] ?? '') !== 'ok' || empty($preflight['payload']['success'])) return $this->legacyGatewayResponse($preflight);
+      if ($expected === '' || !hash_equals($expected, $confirmation)) return new JsonResponse(['success'=>false,'error'=>'Final cutover cancelled: Client Code did not match.'], 422);
+    }
+    $body = ['action'=>$action, 'client_id'=>$clientId];
+    if ($action === 'save_sources') {
+      $attendance = is_array($input['attendance_sheets'] ?? NULL) ? $input['attendance_sheets'] : [];
+      $body += [
+        'attendance_spreadsheet_id'=>trim((string)($input['attendance_spreadsheet_id'] ?? '')),
+        'attendance_sheets'=>$this->legacyAttendanceSheets($attendance),
+        'financial_spreadsheet_id'=>trim((string)($input['financial_spreadsheet_id'] ?? '')),
+        'financial_sheets'=>$this->legacyStringList($input['financial_sheets'] ?? []),
+      ];
+    }
+    return $this->legacyGatewayResponse($this->gateway->call('legacy_migration', 'POST', [], $body, $clientId));
   }
 
   private function handlePost(Request $request, int $selectedClientId, array $directory, ?string $requestedTab): RedirectResponse {
@@ -286,6 +335,135 @@ final class AdministrationController extends ControllerBase {
       if (is_string($key) && preg_match('/^[a-z][a-z0-9_.-]{1,119}$/', $key)) $levels[$key] = max(1, min(1000, (int) $value));
     }
     return $this->gateway->call('role_authority', 'POST', [], ['action'=>'save_permissions','levels'=>$levels], $selectedClientId ?: NULL);
+  }
+
+  private function legacyGatewayResponse(array $result): JsonResponse {
+    $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
+    if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) return new JsonResponse($this->sanitizeLegacyPayload($payload));
+    $error = trim((string) ($payload['error'] ?? $payload['message'] ?? $result['message'] ?? 'The migration request could not be completed.'));
+    $http = (int) ($result['http_status'] ?? 0);
+    if (($result['status'] ?? '') === 'forbidden') $http = 403;
+    elseif (($result['status'] ?? '') === 'ok') $http = 422;
+    elseif ($http < 400 || $http > 599) $http = 503;
+    return new JsonResponse(['success'=>false,'error'=>$error ?: 'The migration request could not be completed.'], $http);
+  }
+
+  private function sanitizeLegacyPayload(array $payload): array {
+    $client = is_array($payload['client'] ?? NULL) ? $payload['client'] : [];
+    $out = [
+      'success'=>true,
+      'client'=>['id'=>max(0,(int)($client['id'] ?? 0)),'name'=>trim((string)($client['name'] ?? '')),'client_code'=>trim((string)($client['client_code'] ?? '')),'status'=>trim((string)($client['status'] ?? ''))],
+      'sources'=>$this->sanitizeLegacySources($payload['sources'] ?? []),
+      'migration_state'=>$this->sanitizeLegacyState($payload['migration_state'] ?? []),
+      'recent_batches'=>$this->sanitizeLegacyRows($payload['recent_batches'] ?? [], ['public_id','mode','status','attendance_rows','financial_rows','inserted_rows','updated_rows','unchanged_rows','conflict_rows','rejected_rows','warning_rows','started_at','finished_at','error_message']),
+      'open_conflicts'=>$this->sanitizeLegacyRows($payload['open_conflicts'] ?? [], ['id','batch_id','source_type','source_key','conflict_code','message','existing_target_table','existing_target_key','created_at']),
+      'record_counts'=>$this->sanitizeLegacyCounts($payload['record_counts'] ?? []),
+      'suggestions'=>$this->sanitizeLegacySuggestions($payload['suggestions'] ?? []),
+      'rules'=>$this->sanitizeLegacyRules($payload['rules'] ?? []),
+    ];
+    if (isset($payload['message'])) $out['message'] = trim((string) $payload['message']);
+    if (is_array($payload['batch_result'] ?? NULL)) $out['batch_result'] = $this->sanitizeLegacyBatchResult($payload['batch_result']);
+    return $out;
+  }
+
+  private function sanitizeLegacySources(mixed $value): array {
+    if (!is_array($value)) return [];
+    $out = [];
+    foreach (['attendance','financial'] as $type) {
+      $row = is_array($value[$type] ?? NULL) ? $value[$type] : NULL;
+      if ($row === NULL) continue;
+      $sheets = $row['sheet_names'] ?? [];
+      if ($type === 'attendance' && is_array($sheets)) {
+        $sheets = array_intersect_key($sheets, array_flip(['timesheet','payrate','start_time','employee_setup']));
+        $sheets = array_map(static fn($v): string => mb_substr(trim((string)$v), 0, 160), $sheets);
+      }
+      else $sheets = $this->legacyStringList($sheets);
+      $out[$type] = ['provider'=>trim((string)($row['provider'] ?? '')),'spreadsheet_id'=>mb_substr(trim((string)($row['spreadsheet_id'] ?? '')),0,160),'sheet_names'=>$sheets,'status'=>trim((string)($row['status'] ?? '')),'updated_at'=>trim((string)($row['updated_at'] ?? ''))];
+    }
+    return $out;
+  }
+
+  private function sanitizeLegacyState(mixed $value): array {
+    $row = is_array($value) ? $value : [];
+    return [
+      'attendance_authority'=>trim((string)($row['attendance_authority'] ?? 'google_legacy')),
+      'financial_authority'=>trim((string)($row['financial_authority'] ?? 'google_legacy')),
+      'attendance_cutover_at'=>isset($row['attendance_cutover_at']) ? trim((string)$row['attendance_cutover_at']) : NULL,
+      'financial_cutover_at'=>isset($row['financial_cutover_at']) ? trim((string)$row['financial_cutover_at']) : NULL,
+    ];
+  }
+
+  private function sanitizeLegacyRows(mixed $value, array $allowed): array {
+    if (!is_array($value)) return [];
+    $out = [];
+    foreach (array_slice($value, 0, 100) as $row) {
+      if (!is_array($row)) continue;
+      $clean = [];
+      foreach ($allowed as $key) if (array_key_exists($key, $row)) {
+        $clean[$key] = is_scalar($row[$key]) || $row[$key] === NULL ? $row[$key] : NULL;
+      }
+      $out[] = $clean;
+    }
+    return $out;
+  }
+
+  private function sanitizeLegacyCounts(mixed $value): array {
+    $row = is_array($value) ? $value : [];
+    $out = [];
+    foreach (['employee_logs','attendance_shifts','financial_submissions','financial_ledger_entries','legacy_migration_records'] as $key) {
+      $out[$key] = isset($row[$key]) && is_numeric($row[$key]) ? max(0, (int)$row[$key]) : NULL;
+    }
+    return $out;
+  }
+
+  private function sanitizeLegacySuggestions(mixed $value): array {
+    $row = is_array($value) ? $value : [];
+    $attendance = is_array($row['attendance_sheets'] ?? NULL) ? array_intersect_key($row['attendance_sheets'], array_flip(['timesheet','payrate','start_time','employee_setup'])) : [];
+    return ['attendance_spreadsheet_id'=>mb_substr(trim((string)($row['attendance_spreadsheet_id'] ?? '')),0,160),'attendance_sheets'=>array_map(static fn($v): string => mb_substr(trim((string)$v),0,160),$attendance),'financial_spreadsheet_id'=>mb_substr(trim((string)($row['financial_spreadsheet_id'] ?? '')),0,160),'financial_sheets'=>$this->legacyStringList($row['financial_sheets'] ?? [])];
+  }
+
+  private function sanitizeLegacyRules(mixed $value): array {
+    $row = is_array($value) ? $value : [];
+    return [
+      'provider'=>trim((string)($row['provider'] ?? 'google_public_csv')),
+      'preview_before_sync'=>!empty($row['preview_before_sync']),
+      'sync_requires_same_preview_snapshot'=>!empty($row['sync_requires_same_preview_snapshot']),
+      'post_cutover_google_apply'=>!empty($row['post_cutover_google_apply']),
+      'financial_updates'=>trim((string)($row['financial_updates'] ?? '')),
+      'existing_employee_passwords_overwritten'=>!empty($row['existing_employee_passwords_overwritten']),
+      'staging_payloads_redact_credentials'=>!empty($row['staging_payloads_redact_credentials']),
+    ];
+  }
+
+  private function sanitizeLegacyBatchResult(array $row): array {
+    $out = [];
+    foreach (['batch_id','status','source_snapshot_hash','attendance_rows','financial_rows','inserted','updated','unchanged','conflicts','rejected','warnings'] as $key) {
+      if (array_key_exists($key, $row)) $out[$key] = is_scalar($row[$key]) || $row[$key] === NULL ? $row[$key] : NULL;
+    }
+    return $out;
+  }
+
+  private function legacyAttendanceSheets(array $value): array {
+    $out = [];
+    foreach (['timesheet','payrate','start_time','employee_setup'] as $key) {
+      $out[$key] = mb_substr(trim((string)($value[$key] ?? '')), 0, 160);
+    }
+    return $out;
+  }
+
+  private function legacyStringList(mixed $value): array {
+    if (!is_array($value)) return [];
+    $out = [];
+    foreach (array_slice($value, 0, 50) as $item) {
+      $item = mb_substr(trim((string)$item), 0, 160);
+      if ($item !== '' && !in_array($item, $out, true)) $out[] = $item;
+    }
+    return $out;
+  }
+
+  private function positiveInt(mixed $value): ?int {
+    $parsed = filter_var($value, FILTER_VALIDATE_INT);
+    return $parsed !== false && $parsed > 0 ? (int)$parsed : NULL;
   }
 
   private function nullablePositiveInt(mixed $value): ?int {

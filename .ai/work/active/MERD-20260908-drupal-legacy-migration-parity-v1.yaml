@@ -1,0 +1,24 @@
+id: MERD-20260908-drupal-legacy-migration-parity-v1
+branch: milestone/drupal-legacy-migration-parity-v1
+base_head: e94a97dea99802aab6bc5b63509da8666b08210a
+last_seen_head: f08f0691050f4a0e0b36717effece872f4332442
+objective: Close Beta Legacy Migration user-facing parity in Drupal while keeping Google fetch, staging, reconciliation, cutover, SQL mutation and audit authoritative in MERDPOS.
+packet_state: VALIDATED
+lifecycle: VALIDATED
+scope:
+  - Client-row Legacy Sync action and Legacy migration dialog.
+  - Signed legacy_migration GET plus save_sources, preview, sync and final POST actions.
+  - Beta-equivalent source configuration, authority state, conflicts, history and cutover labels.
+  - Drupal CSRF plus fresh authoritative Client Code preflight before Final Sync.
+constraints:
+  - MERDPOS owns legacy source validation, preview snapshot locking, staging, reconciliation, conflict handling, operational SQL and audit.
+  - Drupal exposes no Beta CSRF and contains no legacy migration SQL or Google-fetch logic.
+  - Final cutover remains disabled after SQL becomes authoritative; Sync/Final destructive actions require explicit browser confirmation.
+  - DevStudio/UI Studio remains excluded.
+validation:
+  - Dedicated Legacy Migration v1 validator passes under PHP 8.4, including signed-envelope mock and Twig parsing.
+  - Complete deliberate Drupal validator suite, JavaScript syntax, UTF-8/mojibake and git diff checks are green at implementation head f08f0691050f.
+  - Signed deploy probe is GET-only and verifies google_public_csv, preview-before-sync, post-cutover apply=false and the Drupal GET/POST route without creating a batch.
+  - Existing Finance offline, Working-client Time Sheet sync, Dashboard Layout, Administration, Attendance, Disputes and account regressions remain green statically.
+next_action: Promote through PR/CI, deploy canonical Drupal release, then run DUMMY desktop/mobile Light/Dark browser closure with migration POSTs intercepted/cancelled so no preview batch, sync or final cutover is created.
+updated_at: "2026-09-08T20:19:56+05:00"

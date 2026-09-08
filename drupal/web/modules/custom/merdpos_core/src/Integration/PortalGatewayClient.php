@@ -48,7 +48,7 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
         $config['secret'],
       );
 
-      $timeout = $route === 'timesheet_google_refresh' ? 190.0 : 12.0;
+      $timeout = in_array($route, ['timesheet_google_refresh','legacy_migration'], true) ? 190.0 : 12.0;
       $response = $this->httpClient->request('POST', $config['url'], [
         'headers' => $this->headers($timestamp, $config, $signature),
         'body' => $raw,

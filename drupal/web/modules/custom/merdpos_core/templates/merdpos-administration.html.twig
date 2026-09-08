@@ -10,7 +10,7 @@
 {% set actor_authority = role_state.actor_authority_level|default(0) %}
 {% set post_url = path('merdpos_core.administration', {}, {'query': {'client_id': selected_client_id, 'tab': current_tab}}) %}
 
-<section class="merdpos-admin-v1" data-merdpos-admin>
+<section class="merdpos-admin-v1" data-merdpos-admin data-legacy-url="{{ legacy_url }}" data-legacy-token="{{ legacy_token }}" data-can-manage-legacy="{{ can_manage_legacy ? '1' : '0' }}">
   <header class="merdpos-admin-hero">
     <div>
       <p class="merdpos-admin-eyebrow">ADMINISTRATION WRITE PARITY</p>
@@ -107,7 +107,7 @@
     <div class="merdpos-admin-list">
       {% for client in clients %}
       <details class="merdpos-admin-editor" data-search-text="{{ client.name }} {{ client.client_code }} {{ client.status }}">
-        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span></div></summary>
+        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span>{% if client.attendance_authority is defined %}<span>Attendance: {{ client.attendance_authority|replace({'_':' '}) }}</span>{% endif %}{% if client.financial_authority is defined %}<span>Finance: {{ client.financial_authority|replace({'_':' '}) }}</span>{% endif %}{% if can_manage_legacy %}<button type="button" class="merdpos-legacy-open" data-legacy-open="{{ client.id }}" data-legacy-client-code="{{ client.client_code }}" aria-label="Legacy Sync {{ client.name }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-6V1"/><path d="M20 1a9 9 0 0 0-15 4"/><path d="M4 17h6v6"/><path d="M4 23a9 9 0 0 0 15-4"/></svg><span>Legacy Sync</span></button>{% endif %}</div></summary>
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client"><input type="hidden" name="id" value="{{ client.id }}">
           <label><span>Client name</span><input name="name" maxlength="100" value="{{ client.name }}" required></label>
@@ -262,6 +262,16 @@
 
   {% if gateway_status != 'ok' %}
     <div class="merdpos-admin-error">MERDPOS administration data is temporarily unavailable. No direct database fallback was used.</div>
+  {% endif %}
+
+  {% if can_manage_legacy %}
+  <dialog class="merdpos-legacy-dialog" data-legacy-dialog aria-labelledby="merdposLegacyTitle">
+    <div class="merdpos-legacy-dialog-head">
+      <div><h2 id="merdposLegacyTitle" data-legacy-title>Legacy migration</h2><p>Controlled Google &rarr; staging &rarr; validation &rarr; MERDPOS SQL migration.</p></div>
+      <button type="button" class="merdpos-legacy-close" data-legacy-close aria-label="Close">&times;</button>
+    </div>
+    <div class="merdpos-legacy-body" data-legacy-body><div class="merdpos-admin-empty">Loading migration state&hellip;</div></div>
+  </dialog>
   {% endif %}
 
   <footer class="merdpos-admin-footer"><strong>Signed write boundary</strong><span>Drupal submits only whitelisted fields. MERDPOS re-resolves the actor, role, LOA, permissions, validation and audit trail before mutation.</span></footer>
