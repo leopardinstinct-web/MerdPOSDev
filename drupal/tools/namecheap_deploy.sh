@@ -47,6 +47,7 @@ php84 "$DRUPAL/tools/validate_account_password_v1.php"
 php84 "$DRUPAL/tools/validate_timesheet_google_sync_v1.php"
 php84 "$DRUPAL/tools/validate_legacy_migration_v1.php"
 php84 "$DRUPAL/tools/validate_defaults_v1.php"
+php84 "$DRUPAL/tools/validate_store_identity_v1.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
@@ -137,6 +138,11 @@ php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!==
 DEFAULTS_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway"); $x=$g->call("client_context","GET"); $xp=$x["payload"]??[]; $target=(int)($xp["active_client_id"]??$xp["home_client_id"]??0); $r=$target>0?$g->call("defaults","GET",[],[],$target):["status"=>"invalid","payload"=>[]]; $p=$r["payload"]??[]; $c=$p["client"]??[]; echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"active_client_id"=>(int)($p["active_client_id"]??0),"default_currency"=>$c["default_currency"]??null,"default_timezone"=>$c["default_timezone"]??null,"stores_is_array"=>is_array($p["stores"]??null),"currencies"=>count($p["currencies"]??[]),"timezones"=>count($p["timezones"]??[])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true||($p["active_client_id"]??0)<1||!preg_match("/^[A-Z]{3}$/",(string)($p["default_currency"]??""))||trim((string)($p["default_timezone"]??""))===""||empty($p["stores_is_array"])||($p["currencies"]??0)<1||($p["timezones"]??0)<100){fwrite(STDERR,"Defaults parity self-test failed.\n");exit(1);}' "$DEFAULTS_V1_PROBE"
+
+
+STORE_IDENTITY_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$g=\Drupal::service("merdpos_core.portal_gateway"); $x=$g->call("client_context","GET"); $xp=$x["payload"]??[]; $target=(int)($xp["active_client_id"]??$xp["home_client_id"]??0); $r=$target>0?$g->call("store_identity","GET",[],[],$target):["status"=>"invalid","payload"=>[]]; $p=$r["payload"]??[]; $rules=$p["rules"]??[]; echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"active_client_id"=>(int)($p["active_client_id"]??0),"stores_is_array"=>is_array($p["stores"]??null),"code_min"=>(int)($rules["store_code_min_length"]??0),"code_max"=>(int)($rules["store_code_max_length"]??0),"maps_https_google_only"=>$rules["maps_url_https_google_only"]??null],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["success"]??false)!==true||($p["active_client_id"]??0)<1||empty($p["stores_is_array"])||($p["code_min"]??0)!==2||($p["code_max"]??0)!==50||($p["maps_https_google_only"]??false)!==true){fwrite(STDERR,"Store Identity parity self-test failed.\n");exit(1);}' "$STORE_IDENTITY_V1_PROBE"
 
 DASHBOARD_LAYOUT_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.portal_gateway")->call("dashboard_layout","GET"); $p=$r["payload"]??[]; $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.dashboard_layout"); echo json_encode(["status"=>$r["status"]??null,"success"=>$p["success"]??null,"can_edit"=>$p["can_edit"]??null,"can_select_role"=>$p["can_select_role"]??null,"selected_role_id"=>(int)($p["selected_role"]["id"]??0),"allowed"=>is_array($p["allowed_widgets"]??null)?count($p["allowed_widgets"]):-1,"layout_is_array"=>is_array($p["layout"]??null),"columns"=>(int)($p["grid"]["columns"]??0),"route"=>$route->getPath(),"methods"=>$route->getMethods()],JSON_UNESCAPED_SLASHES);')"

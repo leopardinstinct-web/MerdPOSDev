@@ -40,6 +40,25 @@
           });
         });
 
+        root.querySelectorAll('[data-store-map-link]').forEach((link) => {
+          link.addEventListener('click', (event) => event.stopPropagation());
+        });
+
+        root.querySelectorAll('[data-store-code]').forEach((input) => {
+          const form = input.closest('form');
+          const isNew = !!form?.hasAttribute('data-store-new-form');
+          if (isNew) input.dataset.auto = input.value ? '0' : '1';
+          input.addEventListener('input', () => {
+            input.value = input.value.toUpperCase().replace(/\s+/g, '-');
+            if (isNew) input.dataset.auto = '0';
+          });
+          const name = isNew ? form?.querySelector('[data-store-name]') : null;
+          name?.addEventListener('input', () => {
+            if (input.dataset.auto !== '1') return;
+            input.value = String(name.value || '').toUpperCase().trim().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+          });
+        });
+
         root.querySelectorAll('[data-store-mode]').forEach((mode) => {
           const form = mode.closest('form');
           const list = form?.querySelector('[data-store-list]');

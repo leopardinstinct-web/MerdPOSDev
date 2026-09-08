@@ -1,6 +1,6 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 21:53 +05:00
+Updated: 2026-09-08 22:39 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
@@ -12,7 +12,8 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Operations / HR read surface | EXACT | Signed role-aware operations, staffing, attendance, schedules and management slices are implemented. |
 | Disputes | EXACT | Create/cancel/handover/review/flag resolution use signed `disputes` writes and authoritative permissions. |
 | Reports / timesheets | EXACT | Weeks, frozen timesheet reconciliation, disputes, charts, filters and authorised CSV export are implemented. |
-| Administration: clients/stores/workforce | EXACT | Governed signed writes, DEV client context, client search and onboarding are verified. |
+| Administration: clients/workforce | EXACT | Governed signed writes, DEV client context, client search and onboarding are verified. |
+| Administration: Store Identity (`store_identity`) | PARTIAL / VALIDATED | Final source sweep found the prior Administration umbrella row hid Beta DEV Store Identity behavior that Drupal lacked. Drupal now mirrors Internal Store ID, Store Code rules, Shop address, Google Maps URL/link, logo preview and first-save logo behavior through signed `store_identity` state/write authority; implementation head `62aeb41a0486` passed the complete PHP 8.4 validator suite. Protected-branch deploy and non-mutating DUMMY browser closure remain required before `EXACT`. |
 | Administration: store logo | EXACT | Drupal uploads are converted server-side and submitted through the signed `store_logo` gateway; no browser service secret is exposed. |
 | Administration: roles | EXACT | Signed `role_authority` workflow is implemented; role/permission thresholds remain backend-owned. |
 | Finance read | EXACT | Signed `financials` statement, store/date filters, charts, accounts and ledger detail. |
