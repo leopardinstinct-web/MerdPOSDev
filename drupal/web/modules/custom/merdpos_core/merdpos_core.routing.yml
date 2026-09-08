@@ -63,6 +63,14 @@ merdpos_core.finance:
   requirements:
     _permission: 'access merdpos portal'
 
+merdpos_core.change_password:
+  path: '/merdpos/account/change-password'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\AccountController::changePassword'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
 merdpos_core.dev:
   path: '/merdpos/dev'
   defaults:

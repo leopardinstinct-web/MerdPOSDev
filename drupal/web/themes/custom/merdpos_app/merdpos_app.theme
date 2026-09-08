@@ -17,6 +17,10 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_permission_map'] = [];
   $variables['merdpos_section_tabs'] = [];
   $variables['merdpos_dev_url'] = '';
+  $variables['merdpos_can_change_password'] = false;
+  $variables['merdpos_password_url'] = '';
+  $variables['merdpos_password_token'] = '';
+  $variables['merdpos_password_return'] = '';
 
   if ($variables['merdpos_is_login']) {
     $variables['merdpos_user_name'] = '';
@@ -40,6 +44,12 @@ function merdpos_app_preprocess_page(array &$variables): void {
       $state = \Drupal::service('merdpos_core.portal_gateway')->call('beta_state', 'GET');
       $payload = is_array($state['payload'] ?? NULL) ? $state['payload'] : [];
       $variables['merdpos_permission_map'] = is_array($payload['permissions'] ?? NULL) ? $payload['permissions'] : [];
+      $variables['merdpos_can_change_password'] = !empty($variables['merdpos_permission_map']['password.change_own']);
+      if ($variables['merdpos_can_change_password']) {
+        $variables['merdpos_password_url'] = Url::fromRoute('merdpos_core.change_password')->toString();
+        $variables['merdpos_password_token'] = \Drupal::service('csrf_token')->get('merdpos_change_password_v1');
+        $variables['merdpos_password_return'] = \Drupal::request()->getRequestUri();
+      }
       foreach (($payload['disputes'] ?? []) as $row) {
         if (!is_array($row)) continue;
         if (in_array(strtolower((string) ($row['status'] ?? '')), ['pending','awaiting_employee'], true)) $variables['merdpos_pending_disputes']++;
