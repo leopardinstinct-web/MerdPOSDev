@@ -41,6 +41,9 @@ dashboard_v2_check(str_contains($css, '.merdpos-dashboard-grid'), 'Rich dashboar
 dashboard_v2_check(str_contains($css, '@media'), 'Responsive dashboard CSS is missing.');
 dashboard_v2_check(str_contains($css, '.merdpos-dashboard-kpi'), 'Rich KPI treatment is missing.');
 
+dashboard_v2_check(str_contains($css, '.merdpos-dashboard-v2 { overflow-x: clip; }'), 'Dashboard mobile horizontal containment is missing.');
+dashboard_v2_check(str_contains($css, '.merdpos-dashboard-filters select'), 'Dashboard mobile filter width guard is missing.');
+dashboard_v2_check(str_contains($css, '.merdpos-current-shift-action strong'), 'Dashboard current-shift mobile label guard is missing.');
 $builder = new DashboardChartBuilder();
 $charts = $builder->build([
   [
