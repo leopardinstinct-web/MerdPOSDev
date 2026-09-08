@@ -1,6 +1,6 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 16:58 +05:00
+Updated: 2026-09-08 17:08 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
@@ -21,7 +21,7 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Account: Log out | EXACT | Drupal account menu provides logout and returns to MERDPOS login. |
 | Dark-theme approved brand assets | EXACT | Canonical full lockup is contrast-preserved on light glass in dark account/login surfaces; canonical multicolor tagline replaces the plain shell subline in dark mode. Source-only Playwright closure passed desktop/mobile Dark on release `53b518c7be00`; assets are not recolored or duplicated into new binaries. |
 | Account: Change password (`change_password`) | EXACT | Permission-scoped account-menu modal sends current/new/confirm fields through Drupal CSRF + signed `change_password`; backend password verification/storage/audit stays authoritative. Source-only Playwright closure passed desktop/mobile without submitting or changing a password. |
-| Dashboard layout (`dashboard_layout`, non-DevStudio) | VALIDATED | Drupal now reads and renders the authoritative saved role layout, exposes role selection plus Edit dashboard, add/remove, desktop drag/resize, mobile up/down ordering, quick templates, search and clear/reset, and persists only through Drupal CSRF + the signed `dashboard_layout` route. `dev_studio` is explicitly rejected and never emitted. Exact branch `92b110e` passed the complete PHP 8.4 validator/Twig/resource suite; pending PR/deploy/browser closure before `EXACT`. |
+| Dashboard layout (`dashboard_layout`, non-DevStudio) | EXACT | Drupal renders the authoritative saved role layout and exposes role selection, Edit dashboard, add/remove, desktop drag/resize, mobile up/down ordering, quick templates, search and clear/reset through Drupal CSRF + the signed `dashboard_layout` route. `dev_studio` is rejected and never emitted. PR #85 merged and Namecheap release `f4bb37b3ca24` passed the signed release probe. Reversible DUMMY DEV Playwright closure completed signed no-op saves with 12 saved widgets unchanged on desktop/mobile Light/Dark; mobile measured 390/390. |
 | Sheet health (`check_sheet`) | MISSING / NEEDS AUDIT | Gateway supports GET; no Drupal action/surface currently references it. Audit Beta visibility/permission and reproduce only user-facing behavior. |
 | Timesheet Google refresh (`timesheet_google_refresh`) | MISSING / NEEDS AUDIT | Gateway supports POST; no Drupal equivalent currently references it. Audit Beta UI/permission before implementation. |
 | Legacy migration (`legacy_migration`) | MISSING / NEEDS AUDIT | Gateway supports GET/POST; no Drupal surface currently references it. DEV-only operational migration is not DevStudio and requires parity review. |
