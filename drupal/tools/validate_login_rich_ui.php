@@ -30,7 +30,7 @@ rich_check(str_contains($twig, '/assets/merdpos-wordmark.png'), 'Approved MERDPO
 rich_check(str_contains($shellCss, '.merdpos-shell-mark {') && !str_contains($shellCss, '.merdpos-shell-brand img {'), 'Shell mark/wordmark sizing is not isolated.');
 rich_check(!str_contains($shellCss, 'filter: brightness(0) invert(1)'), 'Dark mode still destroys approved wordmark colors.');
 rich_check(str_contains($shellCss, ':root[data-theme="dark"] .merdpos-shell-brand {'), 'Dark-mode brand lockup surface missing.');
-rich_check(str_contains($twig, 'Operations') && str_contains($twig, 'Reports') && str_contains($twig, 'Finance') && str_contains($twig, 'DEV'), 'Rich capability graphics missing.');
+rich_check(str_contains($twig, 'Operations') && str_contains($twig, 'Reports') && str_contains($twig, 'Financials') && str_contains($twig, 'DEV'), 'Rich capability graphics missing.');
 rich_check(str_contains($theme, 'merdpos_core.identity_manager'), 'MERDPOS profile-aware shell missing.');
 rich_check(str_contains($route, 'MerdposLoginForm'), 'Drupal login route is not replaced.');
 rich_check(str_contains($denied, 'merdpos_core.'), 'Anonymous app redirect guard missing.');
