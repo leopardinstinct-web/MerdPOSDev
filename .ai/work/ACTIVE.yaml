@@ -1,33 +1,28 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: "2026-09-07T16:11:00+05:00"
+updated_at: '2026-09-08T12:50:00+05:00'
 active:
-  - id: MERD-20260907-administration-acceptance
-    path: .ai/work/active/MERD-20260907-administration-acceptance.yaml
-    lifecycle: DEPLOYED
-    packet_state: DEPLOYED
-
-  - id: MERD-20260901-ds-revision-79
-    path: .ai/work/active/MERD-20260901-ds-revision-79.yaml
-    lifecycle: DOCUMENTED
-    packet_state: RECONNED
-
-  - id: MERD-20260902-studio-overlay-about
-    path: .ai/work/active/MERD-20260902-studio-overlay-about.yaml
-    lifecycle: VALIDATED
-    packet_state: VALIDATED
-
-  - id: MERD-20260902-ds-revision-130
-    path: .ai/work/active/MERD-20260902-ds-revision-130.yaml
-    lifecycle: VERIFIED
-    packet_state: VERIFIED
-
-  - id: MERD-20260902-devstudio-structure-editor
-    path: .ai/work/active/MERD-20260902-devstudio-structure-editor.yaml
-    lifecycle: VERIFIED
-    packet_state: VERIFIED
-
-  - id: MERD-20260908-admin-roles-shell
-    path: .ai/work/active/MERD-20260908-admin-roles-shell.yaml
-    lifecycle: CODED
-    packet_state: EXECUTING
+- id: MERD-20260908-finance-beta-acceptance
+  path: .ai/work/active/MERD-20260908-finance-beta-acceptance.yaml
+  lifecycle: DOCUMENTED
+  packet_state: DOCUMENTED
+- id: MERD-20260908-search-account-financials
+  path: .ai/work/active/MERD-20260908-search-account-financials.yaml
+  lifecycle: DOCUMENTED
+  packet_state: DOCUMENTED
+- id: MERD-20260901-ds-revision-79
+  path: .ai/work/active/MERD-20260901-ds-revision-79.yaml
+  lifecycle: DOCUMENTED
+  packet_state: RECONNED
+- id: MERD-20260902-studio-overlay-about
+  path: .ai/work/active/MERD-20260902-studio-overlay-about.yaml
+  lifecycle: VALIDATED
+  packet_state: VALIDATED
+- id: MERD-20260902-ds-revision-130
+  path: .ai/work/active/MERD-20260902-ds-revision-130.yaml
+  lifecycle: VERIFIED
+  packet_state: VERIFIED
+- id: MERD-20260902-devstudio-structure-editor
+  path: .ai/work/active/MERD-20260902-devstudio-structure-editor.yaml
+  lifecycle: VERIFIED
+  packet_state: VERIFIED
