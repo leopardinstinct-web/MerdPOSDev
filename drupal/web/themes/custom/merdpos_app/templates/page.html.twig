@@ -75,6 +75,7 @@
           <span>{{ merdpos_role_labels|join(' · ') }}</span>
         </div>
         {% if merdpos_profile %}<span class="merdpos-account-id">MERDPOS ID {{ merdpos_profile.user_id }}</span>{% endif %}
+        {% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}
         <a href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">Log out</a>
       </div>
       </div>

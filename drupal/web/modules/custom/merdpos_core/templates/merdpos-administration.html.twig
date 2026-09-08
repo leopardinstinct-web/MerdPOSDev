@@ -4,6 +4,10 @@
 {% set employees = directory.employees|default([]) %}
 {% set store_fields = directory.store_edit_fields|default([]) %}
 {% set roles = actor.roles|default([]) %}
+{% set authority_roles = role_state.roles|default([]) %}
+{% set permission_rules = role_state.permissions|default([]) %}
+{% set can_manage_permissions = role_state.can_manage_permissions|default(false) %}
+{% set actor_authority = role_state.actor_authority_level|default(0) %}
 {% set post_url = path('merdpos_core.administration', {}, {'query': {'client_id': selected_client_id, 'tab': current_tab}}) %}
 
 <section class="merdpos-admin-v1" data-merdpos-admin>
@@ -18,7 +22,7 @@
         <span>Authoritative writes</span>
       </div>
     </div>
-    {% if current_tab in ['stores', 'workforce'] %}
+    {% if current_tab in ['stores', 'workforce', 'roles'] %}
       {% if can_select_client %}
       <form class="merdpos-admin-client-switch merdpos-admin-client-switch--hero" method="get">
         <input type="hidden" name="tab" value="{{ current_tab }}">
@@ -209,6 +213,51 @@
       </details>
       {% else %}<div class="merdpos-admin-empty">No workforce records are available in this client context.</div>{% endfor %}
     </div>
+  </section>
+
+  <section class="merdpos-admin-section" data-admin-panel="roles">
+    <div class="merdpos-admin-section-head">
+      <div><p>AUTHORITY</p><h2>Roles</h2><span>Create and maintain assignable roles. Workforce assigns these roles to employees.</span></div>
+      <div class="merdpos-admin-head-actions"><span class="merdpos-admin-permission">roles.manage</span></div>
+    </div>
+    {% if can_manage_roles %}
+    <div class="merdpos-admin-role-note"><strong>LOA {{ actor_authority }}</strong><span>You can manage custom roles at or below your own authority. System-role authority and permission thresholds remain DEV-governed.</span></div>
+    <details class="merdpos-admin-editor merdpos-admin-editor--new">
+      <summary><strong>New role</strong><span>Create an assignable custom role</span></summary>
+      <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
+        <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="create_role">
+        <label><span>Role name</span><input name="role_label" maxlength="80" required></label>
+        <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="{{ actor_authority > 99 ? 99 : actor_authority }}" value="{{ actor_authority > 50 ? 50 : actor_authority }}" required></label>
+        <div class="merdpos-admin-form-actions"><button type="submit">Create role</button></div>
+      </form>
+    </details>
+    <div class="merdpos-admin-list">
+      {% for role in authority_roles %}
+      <details class="merdpos-admin-editor" data-role-row="{{ role.id }}">
+        <summary><div><strong>{{ role.role_label }}</strong><span>{{ role.role_key }} &middot; {{ role.is_system ? 'System' : 'Custom' }}</span></div><div class="merdpos-admin-summary-meta"><b>LOA {{ role.authority_level }}</b><span>{{ role.employee_count }} assigned</span></div></summary>
+        {% if role.editable %}
+        <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_role"><input type="hidden" name="role_id" value="{{ role.id }}">
+          <label><span>Role name</span><input name="role_label" maxlength="80" value="{{ role.role_label }}"{{ role.is_system ? ' readonly' : '' }} required></label>
+          <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="{{ role_state.can_manage_system_roles|default(false) ? 99 : (actor_authority > 99 ? 99 : actor_authority) }}" value="{{ role.authority_level }}" required></label>
+          <div class="merdpos-admin-form-actions"><button type="submit">Save role</button>{% if role.deletable %}<button type="submit" name="entity_action" value="delete_role" class="is-danger" onclick="return confirm('Delete this unassigned role?')">Delete role</button>{% endif %}</div>
+        </form>
+        {% else %}<div class="merdpos-admin-readonly">{{ role.role_key == 'DEV' ? 'DEV authority is fixed at 1000.' : 'This role is outside your delegated role-management boundary.' }}</div>{% endif %}
+      </details>
+      {% else %}<div class="merdpos-admin-empty">No roles are available in this client context.</div>{% endfor %}
+    </div>
+    {% if can_manage_permissions %}
+    <details class="merdpos-admin-editor merdpos-admin-role-policy">
+      <summary><strong>Permission thresholds</strong><span>DEV-only security policy</span></summary>
+      <form method="post" action="{{ post_url }}" class="merdpos-admin-permission-form">
+        <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_role_permissions">
+        <p>Access is granted when role LOA meets the permission minimum. DEV-only permissions stay fixed at LOA 1000.</p>
+        <div class="merdpos-admin-permission-grid">{% for permission in permission_rules %}<label><span><strong>{{ permission.label }}</strong><small>{{ permission.category }} &middot; {{ permission.permission_key }}</small></span><input type="number" name="levels[{{ permission.permission_key }}]" min="1" max="1000" value="{{ permission.min_authority_level }}"{{ permission.dev_only ? ' readonly' : '' }}></label>{% endfor %}</div>
+        <div class="merdpos-admin-form-actions"><button type="submit">Save permission thresholds</button></div>
+      </form>
+    </details>
+    {% endif %}
+    {% else %}<div class="merdpos-admin-empty">Your role does not have role-management authority.</div>{% endif %}
   </section>
 
   {% if gateway_status != 'ok' %}
