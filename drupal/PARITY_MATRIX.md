@@ -1,6 +1,6 @@
 # MERDPOS Beta → Drupal Beta Parity Matrix
 
-Updated: 2026-09-08 22:39 +05:00
+Updated: 2026-09-09 01:30 +05:00
 
 Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving MERDPOS backend authority. **DevStudio/UI Studio is explicitly excluded.** Status is evidence-based; `EXACT` is used only when the Drupal path has been implemented and closure-verified, while `PARTIAL` records a known behavioral delta.
 
@@ -13,7 +13,7 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Disputes | EXACT | Create/cancel/handover/review/flag resolution use signed `disputes` writes and authoritative permissions. |
 | Reports / timesheets | EXACT | Weeks, frozen timesheet reconciliation, disputes, charts, filters and authorised CSV export are implemented. |
 | Administration: clients/workforce | EXACT | Governed signed writes, DEV client context, client search and onboarding are verified. |
-| Administration: Store Identity (`store_identity`) | PARTIAL / VALIDATED | Final source sweep found the prior Administration umbrella row hid Beta DEV Store Identity behavior that Drupal lacked. Drupal now mirrors Internal Store ID, Store Code rules, Shop address, Google Maps URL/link, logo preview and first-save logo behavior through signed `store_identity` state/write authority; implementation head `62aeb41a0486` passed the complete PHP 8.4 validator suite. Protected-branch deploy and non-mutating DUMMY browser closure remain required before `EXACT`. |
+| Administration: Store Identity (`store_identity`) | EXACT | Final source sweep found and closed the previously hidden Beta DEV Store Identity delta. Drupal now mirrors Internal Store ID, governed Store Code, Shop address, Google Maps URL/link, logo preview and first-save logo behavior through signed `store_identity` authority while MERDPOS retains validation, persistence and audit. PR #97 deployed at `822003d90f52` and passed the complete release gate. DUMMY DEV Playwright captured real Save-button payloads with 0 browser POSTs on desktop/mobile Light/Dark, verified 1440/1440 and 390/390 containment, and exercised a real invalid non-Google Maps URL rejection with exact error `Use an HTTPS Google Maps link.`; fixture store 50 was unchanged afterward. Account/dark and Dashboard Layout regressions remained green. |
 | Administration: store logo | EXACT | Drupal uploads are converted server-side and submitted through the signed `store_logo` gateway; no browser service secret is exposed. |
 | Administration: roles | EXACT | Signed `role_authority` workflow is implemented; role/permission thresholds remain backend-owned. |
 | Finance read | EXACT | Signed `financials` statement, store/date filters, charts, accounts and ledger detail. |
@@ -28,6 +28,10 @@ Scope: migrate current MERDPOS Beta behavior into Drupal Beta while preserving M
 | Legacy migration (`legacy_migration`) | EXACT | Beta **Legacy Sync** and **Legacy migration · {Client}** workflow is implemented through Drupal CSRF + the signed `legacy_migration` route for source configuration, Preview, Sync and Final Sync. MERDPOS remains authoritative for Google fetch, staging/redaction, snapshot locking, reconciliation, conflicts, operational SQL, authority cutover and audit; Final Sync requires a fresh authoritative Client Code preflight. PR #93 deployed at `7ba0bf509213` and passed the complete release gate. DUMMY DEV Playwright used real signed GET state, intercepted Preview before Drupal, cancelled Sync with zero POST, verified Final disabled without a Financial source, and received `422 / Final cutover cancelled: Client Code did not match.` from a deliberately mismatched server-side Final guard. No preview batch, sync or cutover was created; desktop/mobile Light/Dark closed at 1440/1440 and 390/390 with internal history-table scrolling preserved. |
 | Client/default settings (`defaults`) | EXACT | Beta DEV-only **Defaults** workflow is implemented as a dedicated Drupal Administration tab after Stores and before Workforce. Signed `defaults` GET provides required client currency/timezone defaults, optional per-store overrides and effective inherited values; `save_client_defaults` and `save_store_defaults` writes remain MERDPOS-authoritative behind Drupal CSRF. PR #95 deployed at `c9ee8c3d2029` and passed the complete server gate including a signed GET-only probe. DUMMY DEV Playwright verified `AUD / Australia/Sydney`, blank store overrides inheriting those values, both real Save buttons with expected FormData and **0 server POSTs**, desktop Light/Dark at 1440/1440 and mobile Light/Dark at 390/390. Account/dark and Dashboard Layout regressions remained green. |
 | DEV platform diagnostics | EXACT READ / INTENTIONAL BOUNDARY | DEV command centre is read-only; DevStudio/UI Studio remains intentionally excluded. |
+
+## Final source-derived inventory
+
+The final parity sweep re-inventoried Beta browser API callers and all Beta API files rather than relying on this matrix. No remaining non-excluded user-facing Beta browser/API capability was found missing from Drupal. `check_sheet` remains internal-only; DevStudio/UI Studio remains intentionally excluded.
 
 ## Navigation / brand contract
 
