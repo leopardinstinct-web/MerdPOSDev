@@ -51,7 +51,8 @@
         const applyFilters = () => {
           const query = (search?.value || '').trim().toLowerCase();
           cards.forEach((card) => {
-            const matchesSearch = query === '' || card.textContent.toLowerCase().includes(query);
+            const haystack = (card.dataset.searchText || '').toLowerCase();
+            const matchesSearch = query === '' || haystack.includes(query);
             card.hidden = !(matchesSearch && matchesFilter(card));
           });
         };

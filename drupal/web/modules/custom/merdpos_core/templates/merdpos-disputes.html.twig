@@ -62,7 +62,7 @@
     </div>
     <div class="merdpos-disputes-list" data-dispute-list>
       {% for dispute in disputes %}
-      <article class="merdpos-dispute-card" data-dispute-card data-status="{{ dispute.status }}">
+      <article class="merdpos-dispute-card" data-dispute-card data-status="{{ dispute.status }}" data-search-text="{{ dispute.employee }} {{ dispute.store }} {{ dispute.type }} {{ dispute.status }} {{ dispute.requested }} {{ dispute.reason }} {{ dispute.decision_note|default('') }}">
         <div class="merdpos-dispute-card-head">
           <div><strong>{{ dispute.employee }}</strong><span>{{ dispute.store ?: 'Store not set' }} · {{ dispute.type }}</span></div>
           <span class="merdpos-dispute-status is-{{ dispute.status }}">{{ dispute.status|replace({'_':' '})|title }}</span>

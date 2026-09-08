@@ -31,7 +31,7 @@
       <div class="merdpos-login-capabilities">
         <article><span class="merdpos-login-capability-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><strong>Operations</strong><small>Workforce · Stores</small></article>
         <article><span class="merdpos-login-capability-icon"><svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20V7"/></svg></span><strong>Reports</strong><small>Timesheets · Disputes</small></article>
-        <article><span class="merdpos-login-capability-icon"><svg viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/><path d="M5 7V5a2 2 0 0 1 2-2h10"/></svg></span><strong>Finance</strong><small>Cash · Ledger</small></article>
+        <article><span class="merdpos-login-capability-icon"><svg viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/><path d="M5 7V5a2 2 0 0 1 2-2h10"/></svg></span><strong>Financials</strong><small>Cash · Ledger</small></article>
         <article><span class="merdpos-login-capability-icon"><svg viewBox="0 0 24 24"><path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/></svg></span><strong>DEV</strong><small>Platform · Clients</small></article>
       </div>
       <div class="merdpos-login-security-card"><span class="merdpos-login-security-dot"></span><div><strong>Signed service boundary</strong><small>No direct operational database access</small></div></div>
@@ -51,15 +51,6 @@
 
 
     <div class="merdpos-shell-actions">
-      <label class="merdpos-theme-control">
-        <span>Theme</span>
-        <select data-merdpos-theme aria-label="Color theme">
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </label>
-
       <div class="merdpos-account">
       <button class="merdpos-account-trigger" type="button" data-merdpos-account-toggle aria-expanded="false">
         <span class="merdpos-account-avatar" aria-hidden="true">{{ merdpos_user_name|first|upper }}</span>
@@ -74,7 +65,7 @@
           <strong>{{ merdpos_user_name }}</strong>
           <span>{{ merdpos_role_labels|join(' · ') }}</span>
         </div>
-        {% if merdpos_profile %}<span class="merdpos-account-id">MERDPOS ID {{ merdpos_profile.user_id }}</span>{% endif %}
+        <label class="merdpos-account-theme"><span>Theme</span><select data-merdpos-theme aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
         {% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}
         <a href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">Log out</a>
       </div>

@@ -106,7 +106,7 @@
     </details>
     <div class="merdpos-admin-list">
       {% for client in clients %}
-      <details class="merdpos-admin-editor">
+      <details class="merdpos-admin-editor" data-search-text="{{ client.name }} {{ client.client_code }} {{ client.status }}">
         <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span></div></summary>
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client"><input type="hidden" name="id" value="{{ client.id }}">
@@ -147,7 +147,7 @@
     {% endif %}
     <div class="merdpos-admin-list">
       {% for store in stores %}
-      <details class="merdpos-admin-editor">
+      <details class="merdpos-admin-editor" data-search-text="{{ store.store_name }} {{ store.store_code|default(store.code|default('')) }} {{ store.status }} {{ store.timezone|default('') }} {{ store.currency_code|default('') }}">
         {% set week_names = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'} %}<summary><div><strong>{{ store.store_name }}</strong><span>{{ store.store_code|default(store.code|default('')) }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ store.status }}</b><span>Week starts {{ week_names[store.week_start_day]|default('Monday') }}</span></div></summary>
         {% if permissions['stores.manage']|default(false) %}
         <form method="post" action="{{ post_url }}" enctype="multipart/form-data" class="merdpos-admin-form merdpos-admin-form--wide">
@@ -194,7 +194,7 @@
     {% endif %}
     <div class="merdpos-admin-list">
       {% for employee in employees %}
-      <details class="merdpos-admin-editor">
+      <details class="merdpos-admin-editor" data-search-text="{{ employee.full_name }} {{ employee.user_id }} {{ employee.role_label }} {{ employee.employee_type|default('') }} {{ employee.status }}">
         <summary><div><strong>{{ employee.full_name }}</strong><span>ID {{ employee.user_id }} &middot; {{ employee.role_label }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ employee.status }}</b><span>{{ employee.store_access_mode == 'selected' ? employee.assigned_store_ids|length ~ ' stores' : 'All stores' }}</span></div></summary>
         {% if employee.editable %}
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide">
