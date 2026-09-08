@@ -74,6 +74,9 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_ai_continuity.php"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Administration DUMMY E2E fixture contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_administration_e2e_fixture.php"
 
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Finance DUMMY E2E fixture contract"
+php "$REPO/namecheap_beta_live/backend/cli/validate_finance_e2e_fixture.php"
+
 echo "[$(date -u '%Y-%m-%dT%H:%M:%SZ')] validating UI Studio inheritance/Undo semantics"
 php "$REPO/namecheap_beta_live/backend/cli/validate_ui_studio_inheritance.php"
 
