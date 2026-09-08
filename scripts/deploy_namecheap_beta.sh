@@ -149,6 +149,8 @@ php "$LIVE/backend/cli/apply_033_portal_permission_levels.php"
 php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
 php "$LIVE/backend/cli/apply_035_ui_studio_global_history.php"
 php "$LIVE/backend/cli/apply_036_store_week_start_day.php"
+php "$LIVE/backend/cli/apply_037_admin_role_delegation.php"
+php "$LIVE/backend/cli/validate_admin_role_delegation_v1.php"
 
 php -r '
 require $argv[1];
