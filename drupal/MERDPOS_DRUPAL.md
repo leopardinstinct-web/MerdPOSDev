@@ -152,7 +152,7 @@ Drupal Administration now reproduces Beta's DEV-only **Defaults** workflow after
 
 Client currency/timezone values are required. Store currency/timezone values are optional and blank means **Use client default**, preserving Beta inheritance semantics. MERDPOS remains authoritative for `defaults.manage`, currency/IANA-timezone validation, SQL persistence, effective values and audit. Drupal contains no Defaults persistence SQL and never exposes Beta CSRF.
 
-Implementation head `5fdd64a0a155` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, synchronized-resource checks, UTF-8/mojibake, AI continuity and diff checks. The Namecheap release probe is intentionally signed GET-only; browser closure must intercept writes so DUMMY defaults are not changed merely for verification.
+Implementation head `5fdd64a0a155` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, synchronized-resource checks, UTF-8/mojibake, AI continuity and diff checks. PR #95 merged and canonical Namecheap Drupal release `c9ee8c3d2029` passed the complete deployment gate, including the intentionally signed GET-only Defaults probe. DUMMY DEV Playwright then verified `AUD / Australia/Sydney` client defaults, blank per-store overrides inheriting those values, correct effective values, and both real Save-button payloads while preventing submission; server POST count remained `0`, so no DUMMY currency/timezone was changed. Desktop Light/Dark measured 1440/1440 and mobile Light/Dark measured 390/390. Account/dark and Dashboard Layout signed no-op regressions remained green on the same release.
 
 ## Namecheap Beta deployment
 
