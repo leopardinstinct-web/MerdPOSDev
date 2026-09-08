@@ -1,0 +1,27 @@
+id: MERD-20260908-drupal-store-identity-parity-v1
+branch: milestone/drupal-final-parity-sweep-v1
+base_head: 1475bfb8736b63d69c8feaedddba58107268f58a
+last_seen_head: 62aeb41a0486cc6588ce33697df62f13ceff064d
+objective: Close Beta Store Identity parity in Drupal while preserving MERDPOS authority for validation, persistence, audit and store logo handling.
+packet_state: VALIDATED
+lifecycle: VALIDATED
+scope:
+  - DEV Store Identity enrichment inside Administration Stores.
+  - Signed store_identity GET for ID/code/address/maps/logo state and rules.
+  - Signed store_identity POST for Store Code, Shop address and Google Maps URL authority.
+  - First-save logo parity using the authoritative returned store ID.
+  - Store-row address, logo and Open in Google Maps link parity.
+constraints:
+  - MERDPOS owns stores.profile.manage authority, Store Code/Maps validation, SQL persistence and audit.
+  - Drupal contains no Store Identity SQL and exposes no Beta CSRF.
+  - Deployment probe is GET-only; browser closure must not create or modify a real store merely to prove writes.
+  - DevStudio/UI Studio remains excluded.
+validation:
+  - Final sweep re-inventoried Beta browser API callers and all Beta API files instead of relying on the existing parity matrix.
+  - Sweep found the prior Administration umbrella row hid a real Store Identity delta: Google Maps URL/link and first-save logo behavior were missing in Drupal.
+  - Beta Store Identity contract includes Internal Store ID, Store Code, Shop address, Google Maps URL, Store logo, row address/map link and HTTPS-Google-only validation.
+  - Dedicated Store Identity v1 validator passes under PHP 8.4, including Beta source markers, Twig parsing and signed store_identity envelope checks.
+  - Complete Drupal PHP 8.4 validator suite, synchronized resources, UTF-8/mojibake and AI continuity are green at implementation head 62aeb41a0486.
+  - Namecheap deploy gate now includes the Store Identity validator and a signed GET-only rules/state probe.
+next_action: Promote through PR, deploy canonical Drupal, then close with DUMMY desktop/mobile Light/Dark non-mutating browser verification and authoritative invalid-Maps rejection evidence.
+updated_at: "2026-09-08T22:39:53+05:00"

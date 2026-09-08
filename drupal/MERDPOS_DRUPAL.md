@@ -154,6 +154,14 @@ Client currency/timezone values are required. Store currency/timezone values are
 
 Implementation head `5fdd64a0a155` passed the complete PHP 8.4 Drupal validator suite, Twig parsing, synchronized-resource checks, UTF-8/mojibake, AI continuity and diff checks. PR #95 merged and canonical Namecheap Drupal release `c9ee8c3d2029` passed the complete deployment gate, including the intentionally signed GET-only Defaults probe. DUMMY DEV Playwright then verified `AUD / Australia/Sydney` client defaults, blank per-store overrides inheriting those values, correct effective values, and both real Save-button payloads while preventing submission; server POST count remained `0`, so no DUMMY currency/timezone was changed. Desktop Light/Dark measured 1440/1440 and mobile Light/Dark measured 390/390. Account/dark and Dashboard Layout signed no-op regressions remained green on the same release.
 
+## Store Identity parity v1
+
+The final source-derived parity sweep re-inventoried Beta browser callers and API files rather than trusting the existing matrix. It found that the earlier Administration umbrella row hid a real DEV Store Identity delta. Beta enriches Store Edit with **Internal Store ID**, governed **Store Code**, **Shop address**, **Google Maps URL**, **Store logo**, row-level address/logo display and **Open in Google Maps â†—**; Google Maps links must be HTTPS Google URLs.
+
+Drupal now reads that authoritative identity/rules state through signed `store_identity` GET and forwards Store Code, address and Google Maps URL through signed `store_identity` POST before the remaining governed store workflow. The returned Store ID is carried into the remaining save, which also allows Beta-equivalent logo upload on initial store creation. MERDPOS remains authoritative for `stores.profile.manage`, Store Code/Maps validation, persistence and audit; Drupal contains no Store Identity SQL and exposes no Beta CSRF.
+
+Implementation head `62aeb41a0486` passed the dedicated Store Identity v1 validator plus the complete PHP 8.4 Drupal validator suite, synchronized-resource check, UTF-8/mojibake and AI continuity. The release probe is intentionally signed GET-only; browser verification must remain non-mutating before this row is promoted to EXACT.
+
 ## Namecheap Beta deployment
 
 The isolated Drupal runtime is deployed from cPanel Git checkout `/home/dridsheikh/merdpos-drupal` on branch `beta/drupal-webapp`. The public document root is `/home/dridsheikh/merdpos-drupal/drupal/web`; existing `app.merdpos.com` Beta paths are not reused or modified.
