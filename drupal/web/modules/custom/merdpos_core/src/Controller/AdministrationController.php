@@ -66,6 +66,24 @@ final class AdministrationController extends ControllerBase {
     $requestedTab = $this->requestedTab($request);
     if ($request->isMethod('POST')) return $this->handlePost($request, $selectedClientId, $directory, $requestedTab);
 
+    $storeIdentityResult = $selectedClientId > 0
+      ? $this->gateway->call('store_identity', 'GET', [], [], $selectedClientId)
+      : ['status'=>'invalid','payload'=>[]];
+    $storeIdentityState = ($storeIdentityResult['status'] ?? '') === 'ok' && is_array($storeIdentityResult['payload'] ?? null)
+      ? $storeIdentityResult['payload'] : [];
+    $storeIdentityAvailable = ($storeIdentityResult['status'] ?? '') === 'ok' && !empty($storeIdentityState['success']);
+    if ($storeIdentityAvailable && is_array($directory['stores'] ?? null)) {
+      $identityById = [];
+      foreach (($storeIdentityState['stores'] ?? []) as $row) {
+        if (is_array($row) && (int)($row['id'] ?? 0) > 0) $identityById[(int)$row['id']] = $row;
+      }
+      foreach ($directory['stores'] as &$store) {
+        $sid = is_array($store) ? (int)($store['id'] ?? 0) : 0;
+        if ($sid > 0 && isset($identityById[$sid])) $store = array_replace($store, $identityById[$sid]);
+      }
+      unset($store);
+    }
+
     $rolesResult = $this->gateway->call('role_authority', 'GET', [], [], $selectedClientId ?: NULL);
     $roleState = $rolesResult['status'] === 'ok' && is_array($rolesResult['payload'] ?? null)
       ? $rolesResult['payload'] : [];
@@ -119,6 +137,7 @@ final class AdministrationController extends ControllerBase {
       '#clients' => is_array($clientsPayload['clients'] ?? null) ? $clientsPayload['clients'] : [],
       '#can_manage_clients' => $canManageClients,
       '#can_manage_defaults' => $canManageDefaults,
+      '#store_identity_available' => $storeIdentityAvailable,
       '#defaults_state' => $defaultsState,
       '#can_manage_legacy' => $canManageLegacy,
       '#legacy_token' => $this->csrf->get(self::LEGACY_TOKEN_ID),
@@ -288,6 +307,21 @@ final class AdministrationController extends ControllerBase {
         }
         if (count($days) === 7) $body['days'] = $days;
       }
+    }
+    $identityEnabled = $canManageProfile && (string)$request->request->get('store_identity_enabled', '') === '1';
+    if ($identityEnabled) {
+      $identityResult = $this->gateway->call('store_identity', 'POST', [], [
+        'action'=>'save_store',
+        'id'=>$body['id'],
+        'store_name'=>$body['store_name'],
+        'store_code'=>trim((string)($body['store_code'] ?? $body['code'] ?? '')),
+        'address'=>trim((string)($body['address'] ?? $body['address_line1'] ?? '')),
+        'google_maps_url'=>trim((string)$request->request->get('google_maps_url', '')),
+        'status'=>$body['status'],
+      ], $selectedClientId ?: NULL);
+      if (($identityResult['status'] ?? '') !== 'ok' || empty($identityResult['payload']['success'])) return $identityResult;
+      $identityStoreId = $this->nullablePositiveInt($identityResult['payload']['store_id'] ?? NULL);
+      if ($identityStoreId !== NULL) $body['id'] = $identityStoreId;
     }
     $saveResult = $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
     if (($saveResult['status'] ?? '') !== 'ok' || empty($saveResult['payload']['success'])) return $saveResult;
