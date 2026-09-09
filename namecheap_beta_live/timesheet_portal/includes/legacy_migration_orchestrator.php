@@ -5,13 +5,13 @@ require_once __DIR__ . '/legacy_migration.php';
 require_once __DIR__ . '/legacy_financial_import.php';
 require_once __DIR__ . '/legacy_known_fetch.php';
 
-function legacy_supersede_old_conflicts(PDO $pdo, int $clientId, int $currentBatchId, int $actorId, string $currentPublicId): void
+function legacy_supersede_old_conflicts(PDO $pdo, int $clientId, int $currentBatchId, array $actor, string $currentPublicId): void
 {
     $stmt = $pdo->prepare(
-        "UPDATE legacy_migration_conflicts SET status='resolved',resolved_by_employee_id=?,resolved_at=UTC_TIMESTAMP(),"
+        "UPDATE legacy_migration_conflicts SET status='resolved',resolved_by_employee_id=?,resolved_by_platform_identity_id=?,resolved_at=UTC_TIMESTAMP(),"
         . "resolution_note=? WHERE client_id=? AND status='open' AND batch_id<>?"
     );
-    $stmt->execute([$actorId,'Superseded by newer migration batch ' . $currentPublicId,$clientId,$currentBatchId]);
+    $stmt->execute([beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor),'Superseded by newer migration batch ' . $currentPublicId,$clientId,$currentBatchId]);
 }
 
 function legacy_preview_snapshot(PDO $pdo, array $state): ?array
@@ -76,8 +76,8 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
 
     @set_time_limit(240);
     $public = merd_uuid_v4();
-    $stmt = $pdo->prepare("INSERT INTO legacy_migration_batches (public_id,client_id,mode,status,started_by_employee_id) VALUES (?,?,?,'running',?)");
-    $stmt->execute([$public,$clientId,$mode,(int)$actor['id']]);
+    $stmt = $pdo->prepare("INSERT INTO legacy_migration_batches (public_id,client_id,mode,status,started_by_employee_id,started_by_platform_identity_id) VALUES (?,?,?,'running',?,?)");
+    $stmt->execute([$public,$clientId,$mode,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
     $batchId = (int)$pdo->lastInsertId();
 
     try {
@@ -96,7 +96,7 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
         }
 
         $validated = legacy_validate_and_stage_known($pdo,$batchId,$clientId,$fetched);
-        legacy_supersede_old_conflicts($pdo,$clientId,$batchId,(int)$actor['id'],$public);
+        legacy_supersede_old_conflicts($pdo,$clientId,$batchId,$actor,$public);
         $c = $validated['counts'];
         $apply = ['inserted'=>0,'updated'=>0,'unchanged'=>0,'conflict'=>0,'rejected'=>$c['rejected'],'warning'=>$c['warning']];
         $retiredOutbox = 0;
@@ -146,8 +146,8 @@ function legacy_run_batch_safe(PDO $pdo, array $actor, int $clientId, string $mo
             if ($status !== 'completed') throw new MerdWorkforceException('final_sync_not_clean','Final cutover requires zero rejected rows and zero conflicts in the final batch. Review the migration report first.');
             $pdo->prepare(
                 "UPDATE client_migration_state SET attendance_authority='merdpos_sql',financial_authority='merdpos_sql',"
-                . 'attendance_cutover_at=UTC_TIMESTAMP(),financial_cutover_at=UTC_TIMESTAMP(),cutover_by_employee_id=? WHERE client_id=?'
-            )->execute([(int)$actor['id'],$clientId]);
+                . 'attendance_cutover_at=UTC_TIMESTAMP(),financial_cutover_at=UTC_TIMESTAMP(),cutover_by_employee_id=?,cutover_by_platform_identity_id=? WHERE client_id=?'
+            )->execute([beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor),$clientId]);
         }
 
         return [

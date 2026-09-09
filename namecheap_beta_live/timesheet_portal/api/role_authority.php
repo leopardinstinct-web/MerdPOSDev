@@ -7,8 +7,8 @@ require_once __DIR__ . '/../includes/dashboard_access.php';
 
 function role_actor(array $sessionUser): array
 {
-    beta_require_permission($sessionUser, 'roles.manage');
-    return $sessionUser;
+    if (beta_has_permission($sessionUser, 'roles.define') || beta_has_permission($sessionUser, 'roles.manage')) return $sessionUser;
+    throw new MerdWorkforceException('forbidden', 'Role administration is not permitted for this account.');
 }
 
 function role_label(mixed $value): string
@@ -58,88 +58,57 @@ function role_key_from_label(PDO $pdo, int $clientId, string $label): string
 
 function role_permission_state(PDO $pdo, int $clientId): array
 {
-    $catalog = merd_portal_permission_catalog();
-    $levels = beta_permission_levels($pdo, $clientId);
-    $rows = [];
-    foreach ($catalog as $key => $rule) {
-        $rows[] = [
-            'permission_key' => $key,
-            'label' => (string)$rule['label'],
-            'category' => (string)$rule['category'],
-            'min_authority_level' => !empty($rule['dev_only']) ? 1000 : (int)($levels[$key] ?? 1000),
-            'dev_only' => !empty($rule['dev_only']),
-            'order' => (int)($rule['order'] ?? 0),
-        ];
+    $catalog=merd_portal_permission_catalog();$levels=beta_permission_levels($pdo,$clientId);
+    $super=merd_dashboard_system_role($pdo,$clientId,'SUPER');$user=merd_dashboard_system_role($pdo,$clientId,'USER');$rows=[];
+    foreach($catalog as $key=>$rule){
+        $row=['permission_key'=>$key,'label'=>(string)$rule['label'],'category'=>(string)$rule['category'],
+            'min_authority_level'=>!empty($rule['dev_only'])?1000:(int)($levels[$key]??1000),'dev_only'=>!empty($rule['dev_only']),'order'=>(int)($rule['order']??0)];
+        foreach(['SUPER'=>$super,'USER'=>$user] as $target=>$role){
+            $eligible=is_array($role)&&empty($rule['dev_only'])&&merd_permission_role_key_allowed($rule,$target,false)
+                && (int)$role['authority_level'] >= (int)$row['min_authority_level'];
+            $row[strtolower($target).'_available']=$eligible;
+            $row[strtolower($target).'_enabled']=$eligible && merd_role_usability_enabled($pdo,$clientId,$target,$key);
+        }
+        $rows[]=$row;
     }
-    usort($rows, fn(array $a,array $b): int => strcmp($a['category'],$b['category']) ?: ($a['order'] <=> $b['order']) ?: strcmp($a['permission_key'],$b['permission_key']));
+    usort($rows,fn(array $a,array $b):int=>strcmp($a['category'],$b['category'])?:($a['order']<=>$b['order'])?:strcmp($a['permission_key'],$b['permission_key']));
     return $rows;
 }
 
 function role_state(PDO $pdo, array $actor): array
 {
-    $clientId = (int)$actor['client_id'];
-    $clientStmt = $pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1');
-    $clientStmt->execute([$clientId]);
-    $client = $clientStmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($client)) throw new MerdWorkforceException('client_not_found', 'Working client was not found.');
-
-    $stmt = $pdo->prepare(
-        'SELECT r.id,r.role_key,r.role_label,r.base_role,r.authority_level,r.is_system,r.status,'
-        . '(SELECT COUNT(*) FROM employees e WHERE e.client_id=r.client_id AND e.client_role_id=r.id) AS employee_count,'
-        . '(SELECT COUNT(*) FROM dashboard_role_layouts d WHERE d.client_id=r.client_id AND d.role_id=r.id) AS dashboard_widget_count '
-        . 'FROM client_roles r WHERE r.client_id=? ORDER BY r.authority_level ASC,r.id ASC'
-    );
-    $stmt->execute([$clientId]);
-    $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $actorAuthority = (int)($actor['authority_level'] ?? 0);
-    $actualDev = beta_actual_user_is_dev($actor);
-    foreach ($roles as &$role) {
-        $roleAuthority = strtoupper((string)$role['role_key']) === 'DEV' ? 1000 : (int)$role['authority_level'];
-        $customWithinAuthority = empty($role['is_system']) && $roleAuthority <= $actorAuthority;
-        $role['allowed_widgets'] = merd_dashboard_allowed_widgets($pdo, $clientId, $role);
-        $role['deletable'] = !(bool)$role['is_system'] && (int)$role['employee_count'] === 0 && ($actualDev || $customWithinAuthority);
-        $role['editable'] = strtoupper((string)$role['role_key']) !== 'DEV' && ($actualDev || $customWithinAuthority);
-    }
-    unset($role);
-
-    return [
-        'success' => true,
-        'csrf' => csrf_token(),
-        'client' => $client,
-        'roles' => $roles,
-        'permissions' => role_permission_state($pdo, $clientId),
-        'dev_authority_level' => 1000,
-        'authorization_model' => 'central_permission_loa_v1',
-        'actor_authority_level' => $actorAuthority,
-        'can_manage_system_roles' => $actualDev,
-        'can_manage_permissions' => beta_has_permission($actor, 'permissions.manage', $pdo),
-    ];
+    $clientId=(int)$actor['client_id'];
+    $clientStmt=$pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1');
+    $clientStmt->execute([$clientId]);$client=$clientStmt->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($client))throw new MerdWorkforceException('client_not_found','Working client was not found.');
+    $stmt=$pdo->prepare("SELECT r.id,r.role_key,r.role_label,r.base_role,r.authority_level,r.is_system,r.status,"
+        ."(SELECT COUNT(*) FROM employees e WHERE e.client_id=r.client_id AND e.client_role_id=r.id AND UPPER(TRIM(COALESCE(e.employee_type,'')))<>'DEV') employee_count,"
+        ."(SELECT COUNT(*) FROM dashboard_role_layouts d WHERE d.client_id=r.client_id AND d.role_id=r.id) dashboard_widget_count "
+        ."FROM client_roles r WHERE r.client_id=? AND UPPER(r.role_key)<>'DEV' ORDER BY r.authority_level,r.id");
+    $stmt->execute([$clientId]);$roles=$stmt->fetchAll(PDO::FETCH_ASSOC);
+    $actualDev=beta_actual_user_is_dev($actor);$actorKey=strtoupper((string)($actor['role_key']??$actor['role']??'USER'));
+    foreach($roles as &$role){$role['allowed_widgets']=merd_dashboard_allowed_widgets($pdo,$clientId,$role);$role['editable']=$actualDev;
+        $role['deletable']=$actualDev&&empty($role['is_system'])&&(int)$role['employee_count']===0;$role['assignable']=true;}unset($role);
+    return ['success'=>true,'csrf'=>csrf_token(),'client'=>$client,'roles'=>$roles,'permissions'=>role_permission_state($pdo,$clientId),
+        'dev_authority_level'=>1000,'authorization_model'=>'platform_dev_ceiling_admin_usability_v1','actor_authority_level'=>(int)($actor['authority_level']??0),
+        'actor_role_key'=>$actorKey,'can_define_roles'=>$actualDev,'can_manage_system_roles'=>$actualDev,
+        'can_manage_permissions'=>$actualDev&&beta_has_permission($actor,'permissions.manage',$pdo),'can_manage_usability'=>beta_has_permission($actor,'roles.manage',$pdo)];
 }
 
 function role_audit(PDO $pdo, array $actor, string $action, string $entityType, string $entityId, array $details): void
 {
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$actor['client_id'], (int)$actor['id'], $action, $entityType, $entityId,
-            json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
-        ]);
-    } catch (Throwable $e) {
-        error_log('MERDPOS role audit failed: ' . get_class($e));
-    }
+    try{$stmt=$pdo->prepare('INSERT INTO admin_audit_logs (client_id,employee_id,platform_identity_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?,?)');
+        $stmt->execute([(int)$actor['client_id'],beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor),$action,$entityType,$entityId,
+            json_encode($details,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE),substr((string)($_SERVER['REMOTE_ADDR']??''),0,64)]);
+    }catch(Throwable $e){error_log('MERDPOS role audit failed: '.get_class($e));}
 }
 
-function sync_system_authority(PDO $pdo, int $clientId, string $roleKey, int $level, int $actorId): void
+function sync_system_authority(PDO $pdo, int $clientId, string $roleKey, int $level, array $actor): void
 {
-    if (!in_array($roleKey, ['USER','ADMIN','SUPER'], true)) return;
-    $stmt = $pdo->prepare(
-        'INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id) VALUES (?,?,?,?) '
-        . 'ON DUPLICATE KEY UPDATE authority_level=VALUES(authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
-    );
-    $stmt->execute([$clientId, $roleKey, $level, $actorId]);
+    if(!in_array($roleKey,['USER','ADMIN','SUPER'],true))return;
+    $stmt=$pdo->prepare('INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?) '
+        .'ON DUPLICATE KEY UPDATE authority_level=VALUES(authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP');
+    $stmt->execute([$clientId,$roleKey,$level,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
 }
 
 function prune_role_dashboard(PDO $pdo, int $clientId, array $role): void
@@ -231,8 +200,30 @@ try {
     require_csrf($input);
     $action = (string)($input['action'] ?? '');
 
+    if ($action === 'save_usability') {
+        beta_require_permission($actor,'roles.manage',$pdo);
+        $actorKey=strtoupper((string)($actor['role_key']??$actor['role']??'USER'));
+        if(!beta_actual_user_is_dev($actor)&&$actorKey!=='ADMIN')throw new MerdWorkforceException('role_forbidden','Only ADMIN may configure SUPER / USER usability.');
+        $target=strtoupper(trim((string)($input['role_key']??'')));
+        if(!in_array($target,['SUPER','USER'],true))throw new MerdWorkforceException('invalid_role','Choose SUPER or USER.');
+        $enabled=$input['enabled']??null;if(!is_array($enabled))throw new MerdWorkforceException('invalid_usability','Provide application usability settings.');
+        $targetRole=merd_dashboard_system_role($pdo,$clientId,$target);if(!$targetRole)throw new MerdWorkforceException('role_not_found','Target role is not configured.');
+        $catalog=merd_portal_permission_catalog();$levels=beta_permission_levels($pdo,$clientId);$before=snapshot_role_dashboard_allowance($pdo,$clientId);
+        $upsert=$pdo->prepare('INSERT INTO client_role_usability (client_id,role_key,permission_key,enabled,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP');
+        $changed=[];$pdo->beginTransaction();try{
+            foreach($enabled as $key=>$raw){if(!is_string($key)||!isset($catalog[$key]))throw new MerdWorkforceException('invalid_usability','Unknown application capability.');
+                $rule=$catalog[$key];$available=empty($rule['dev_only'])&&merd_permission_role_key_allowed($rule,$target,false)&&(int)$targetRole['authority_level']>=(int)($levels[$key]??1000);
+                if(!$available)throw new MerdWorkforceException('role_forbidden','That capability is outside the DEV-defined ceiling for '.$target.'.');
+                $value=filter_var($raw,FILTER_VALIDATE_BOOLEAN,FILTER_NULL_ON_FAILURE);if($value===null)throw new MerdWorkforceException('invalid_usability','Usability values must be true or false.');
+                $upsert->execute([$clientId,$target,$key,$value?1:0,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);$changed[$key]=$value;}
+            $targetRole=merd_dashboard_system_role($pdo,$clientId,$target);if($targetRole)prune_role_dashboard($pdo,$clientId,$targetRole);
+            materialize_newly_allowed_dashboard_widgets($pdo,$clientId,$before);$pdo->commit();
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        role_audit($pdo,$actor,'role.usability.update','client_role',$target,['role_key'=>$target,'enabled'=>$changed]);json_response(role_state($pdo,$actor));
+    }
+
     if ($action === 'create_role') {
-        beta_require_permission($actor, 'roles.manage', $pdo);
+        beta_require_permission($actor, 'roles.define', $pdo);
         $label = role_label($input['role_label'] ?? '');
         $level = role_level($input['authority_level'] ?? null);
         if (!beta_actual_user_is_dev($actor) && $level > (int)$actor['authority_level']) {
@@ -261,7 +252,7 @@ try {
     }
 
     if ($action === 'save_role') {
-        beta_require_permission($actor, 'roles.manage', $pdo);
+        beta_require_permission($actor, 'roles.define', $pdo);
         $roleId = filter_var($input['role_id'] ?? null, FILTER_VALIDATE_INT);
         if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid role.');
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
@@ -285,7 +276,7 @@ try {
         try {
             $stmt = $pdo->prepare('UPDATE client_roles SET role_label=?,authority_level=? WHERE client_id=? AND id=?');
             $stmt->execute([$label, $level, $clientId, (int)$roleId]);
-            sync_system_authority($pdo, $clientId, $key, $level, (int)$actor['id']);
+            sync_system_authority($pdo,$clientId,$key,$level,$actor);
             $updated = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
             if ($updated) prune_role_dashboard($pdo, $clientId, $updated);
             $pdo->commit();
@@ -298,7 +289,7 @@ try {
     }
 
     if ($action === 'delete_role') {
-        beta_require_permission($actor, 'roles.manage', $pdo);
+        beta_require_permission($actor, 'roles.define', $pdo);
         $roleId = filter_var($input['role_id'] ?? null, FILTER_VALIDATE_INT);
         if ($roleId === false || $roleId <= 0) throw new MerdWorkforceException('invalid_role', 'Choose a valid role.');
         $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$roleId);
@@ -321,8 +312,8 @@ try {
         if (!is_array($levels)) throw new MerdWorkforceException('invalid_permission_authority', 'Provide permission LOA levels.');
         $catalog = merd_portal_permission_catalog();
         $upsert = $pdo->prepare(
-            'INSERT INTO client_permission_levels (client_id,permission_key,min_authority_level,updated_by_employee_id) VALUES (?,?,?,?) '
-            . 'ON DUPLICATE KEY UPDATE min_authority_level=VALUES(min_authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+            'INSERT INTO client_permission_levels (client_id,permission_key,min_authority_level,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?) '
+            . 'ON DUPLICATE KEY UPDATE min_authority_level=VALUES(min_authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP'
         );
         $changed = [];
         $allowedBefore = snapshot_role_dashboard_allowance($pdo, $clientId);
@@ -330,12 +321,12 @@ try {
         try {
             foreach ($catalog as $key => $rule) {
                 if (!empty($rule['dev_only'])) {
-                    $upsert->execute([$clientId,$key,1000,(int)$actor['id']]);
+                    $upsert->execute([$clientId,$key,1000,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
                     continue;
                 }
                 if (!array_key_exists($key, $levels)) continue;
                 $level = permission_level($levels[$key]);
-                $upsert->execute([$clientId,$key,$level,(int)$actor['id']]);
+                $upsert->execute([$clientId,$key,$level,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
                 $changed[$key] = $level;
             }
             // Tightening removes widgets whose data is no longer authorised. Relaxation
@@ -354,7 +345,7 @@ try {
 
     // Backward-compatible save for the original three authority inputs.
     if ($action === 'save_authority') {
-        beta_require_permission($actor, 'roles.manage', $pdo);
+        beta_require_permission($actor, 'roles.define', $pdo);
         if (!beta_actual_user_is_dev($actor)) throw new MerdWorkforceException('role_forbidden', 'Only DEV can change system role authority.');
         $levels = $input['levels'] ?? null;
         if (!is_array($levels)) throw new MerdWorkforceException('invalid_authority', 'Provide authority levels.');
@@ -365,7 +356,7 @@ try {
                 $role = merd_dashboard_system_role($pdo, $clientId, $key);
                 if (!$role) throw new RuntimeException("{$key} role is missing.");
                 $pdo->prepare('UPDATE client_roles SET authority_level=? WHERE id=? AND client_id=?')->execute([$level, (int)$role['id'], $clientId]);
-                sync_system_authority($pdo, $clientId, $key, $level, (int)$actor['id']);
+                sync_system_authority($pdo,$clientId,$key,$level,$actor);
                 $role['authority_level'] = $level;
                 prune_role_dashboard($pdo, $clientId, $role);
             }

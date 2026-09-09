@@ -14,7 +14,7 @@ test('dashboard Studio edit mode is actual-DEV gated in source',async()=>{
   expect(builder).toContain('data-describe-widget');expect(builder).toContain('addContextComment');
   expect(api).toContain('function dashboard_dev_studio_mode');expect(api).toContain('beta_user_is_dev($user)');
   expect(builder).toContain('canEdit&&editMode&&!studioEditMode');
-  expect(beta).toContain("$studioDashboard = beta_user_is_dev($user)");
+  expect(beta).toContain("$studioDashboard = beta_actual_user_is_dev($user)");
 });
 
 test('widget Describe writes DevStudio context while Studio edit opens the existing drawer',async({page})=>{

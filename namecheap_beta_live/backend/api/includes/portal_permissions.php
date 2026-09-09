@@ -64,7 +64,8 @@ function merd_portal_permission_catalog(): array
         'finance.management_summary' => ['label'=>'View cross-store financial dashboard summaries','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>50],
 
         'system.sync_status' => ['label'=>'View sync / outbox attention status','category'=>'System','min_loa'=>90,'dev_only'=>false,'order'=>10],
-        'roles.manage' => ['label'=>'Create, edit and delete roles within own authority','category'=>'System','min_loa'=>50,'dev_only'=>false,'order'=>20],
+        'roles.manage' => ['label'=>'Manage SUPER / USER application usability','category'=>'System','min_loa'=>50,'dev_only'=>false,'allowed_role_keys'=>['ADMIN'],'order'=>20],
+        'roles.define' => ['label'=>'Define ADMIN / SUPER / USER roles and authority ceilings','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>25],
         'permissions.manage' => ['label'=>'Configure permission LOA thresholds','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>30],
         'defaults.manage' => ['label'=>'Manage client / store currency and timezone defaults','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>40],
         'clients.manage' => ['label'=>'Add / edit clients','category'=>'System','min_loa'=>1000,'dev_only'=>true,'order'=>50],
@@ -110,4 +111,29 @@ function merd_portal_dashboard_widget_permissions(): array
         'attendance_trend_7d' => ['dashboard.widget.attendance_trend_7d','workforce.view'],
         'sync_status_table' => ['dashboard.widget.sync_status_table','system.sync_status'],
     ];
+}
+
+function merd_role_usability_enabled(PDO $pdo, int $clientId, string $roleKey, string $permissionKey): bool
+{
+    $roleKey = strtoupper(trim($roleKey));
+    if (!in_array($roleKey, ['SUPER','USER'], true)) return true;
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT enabled FROM client_role_usability WHERE client_id=? AND role_key=? AND permission_key=? LIMIT 1'
+        );
+        $stmt->execute([$clientId, $roleKey, $permissionKey]);
+        $value = $stmt->fetchColumn();
+        return $value === false ? true : (bool)$value;
+    } catch (Throwable) {
+        return true;
+    }
+}
+
+function merd_permission_role_key_allowed(array $rule, string $roleKey, bool $isDev): bool
+{
+    if ($isDev) return true;
+    $allowed = $rule['allowed_role_keys'] ?? null;
+    if (!is_array($allowed) || $allowed === []) return true;
+    $allowed = array_map(static fn(mixed $key): string => strtoupper(trim((string)$key)), $allowed);
+    return in_array(strtoupper(trim($roleKey)), $allowed, true);
 }

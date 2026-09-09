@@ -101,7 +101,7 @@ test('DEV role preview is universal across shell and API permission context', as
   expect(dashboardData).toContain("merd_dashboard_dependency_enabled($allowed, 'workforce.view')");
   expect(dashboardData).toContain("'working_count'=>$workingCount");
   expect(dashboardData).toContain("'pending_disputes_count'=>$pendingDisputesCount");
-  expect(clientContext).toContain('$canSelect = beta_user_is_dev($user);');
+  expect(clientContext).toContain('$canSelect = beta_actual_user_is_dev($user) && beta_user_is_platform_identity($user);');
   expect(betaApi).toContain("case 'timesheet_google_refresh.php':");
   expect(timesheetRefresh).toContain('beta_actual_user_is_dev($user)');
   expect(timesheetRefresh).toContain("legacy_parse_known_csv_rows($csv, 'timesheet', $sheetName)");

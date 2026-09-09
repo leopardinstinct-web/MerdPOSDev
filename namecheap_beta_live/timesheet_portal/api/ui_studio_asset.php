@@ -86,20 +86,11 @@ function studio_asset_sanitize_svg(string $xml): string
 function studio_asset_audit(PDO $pdo, array $user, array $asset): void
 {
     try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$user['client_id'], (int)$user['id'], 'ui_studio.context_asset.upload',
-            'ui_studio_asset', (string)$asset['token'],
-            json_encode([
-                'name'=>$asset['name'], 'mime'=>$asset['mime'], 'size'=>$asset['size'],
-                'sha256'=>$asset['sha256']
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
+        beta_admin_audit($pdo,$user,'ui_studio.context_asset.upload','ui_studio_asset',(string)$asset['token'],[
+            'name'=>$asset['name'],'mime'=>$asset['mime'],'size'=>$asset['size'],'sha256'=>$asset['sha256'],
         ]);
     } catch (Throwable $e) {
-        error_log('MERDPOS Studio asset audit write failed: ' . get_class($e));
+        error_log('MERDPOS Studio asset audit write failed: '.get_class($e));
     }
 }
 

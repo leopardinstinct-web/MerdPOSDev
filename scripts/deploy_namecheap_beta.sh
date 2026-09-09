@@ -101,6 +101,12 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_portal_multitenant_login.php
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating attendance-to-timesheet timezone reconciliation"
 php "$REPO/namecheap_beta_live/backend/cli/validate_attendance_timesheet_reconciliation.php"
 
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating DEV role authority / ADMIN usability model"
+php "$REPO/namecheap_beta_live/backend/cli/validate_admin_role_delegation_v1.php"
+
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating platform DEV identity architecture"
+php "$REPO/namecheap_beta_live/backend/cli/validate_platform_dev_identity_v1.php"
+
 rsync -az \
   --exclude='config.php' \
   --exclude='.env' \
@@ -153,6 +159,7 @@ php "$LIVE/backend/cli/apply_034_legacy_migration_sync.php"
 php "$LIVE/backend/cli/apply_035_ui_studio_global_history.php"
 php "$LIVE/backend/cli/apply_036_store_week_start_day.php"
 php "$LIVE/backend/cli/apply_037_admin_role_delegation.php"
+php "$LIVE/backend/cli/apply_038_platform_dev_identity.php"
 
 php -r '
 require $argv[1];
@@ -187,6 +194,7 @@ rsync -az \
   "$LIVE/timesheet_portal/"
 
 php "$LIVE/backend/cli/validate_admin_role_delegation_v1.php"
+php "$LIVE/backend/cli/validate_platform_dev_identity_v1.php"
 
 # Live-copy gate. The marker is not written unless the canonical design/runtime
 # contract survived rsync to Namecheap.

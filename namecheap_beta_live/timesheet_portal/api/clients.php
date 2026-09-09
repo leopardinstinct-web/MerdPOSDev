@@ -54,13 +54,13 @@ function clients_state(PDO $pdo): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function clients_seed_roles(PDO $pdo, int $clientId, int $actorEmployeeId): void
+function clients_seed_roles(PDO $pdo, int $clientId, array $actor): void
 {
     $legacy = $pdo->prepare(
-        'INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id) VALUES (?,?,?,?) '
-        . 'ON DUPLICATE KEY UPDATE authority_level=VALUES(authority_level),updated_by_employee_id=VALUES(updated_by_employee_id)'
+        'INSERT INTO client_role_authority (client_id,role_name,authority_level,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?) '
+        . 'ON DUPLICATE KEY UPDATE authority_level=VALUES(authority_level),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id)'
     );
-    foreach ([['USER',10],['ADMIN',50],['SUPER',90]] as [$role, $level]) $legacy->execute([$clientId, $role, $level, $actorEmployeeId]);
+    foreach ([['USER',10],['ADMIN',50],['SUPER',90]] as [$role, $level]) $legacy->execute([$clientId,$role,$level,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
 
     $roleStmt = $pdo->prepare(
         'INSERT INTO client_roles (client_id,role_key,role_label,base_role,authority_level,is_system,status) VALUES (?,?,?,?,?,1,\'active\') '
@@ -97,12 +97,7 @@ function clients_seed_dashboards(PDO $pdo, int $clientId): void
 }
 
 function clients_audit(PDO $pdo, array $user, int $targetClientId, string $action, array $details): void
-{
-    try {
-        $stmt = $pdo->prepare('INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)');
-        $stmt->execute([$targetClientId,(int)$user['id'],$action,'client',(string)$targetClientId,json_encode($details,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE),substr((string)($_SERVER['REMOTE_ADDR']??''),0,64)]);
-    } catch (Throwable $e) { error_log('MERDPOS client admin audit failed: ' . get_class($e)); }
-}
+{ try { $copy=$user; $copy['client_id']=$targetClientId; beta_admin_audit($pdo,$copy,$action,'client',(string)$targetClientId,$details); } catch (Throwable $e) { error_log('MERDPOS client admin audit failed: '.get_class($e)); } }
 
 try {
     $user = beta_require_active_user();$pdo = portal_db();beta_require_permission($user, 'clients.manage', $pdo);
@@ -115,7 +110,7 @@ try {
 
     $pdo->beginTransaction();
     try {
-        if($id===null){$setupKey=bin2hex(random_bytes(32));$stmt=$pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');$stmt->execute([$name,$code,$setupKey,$status]);$id=(int)$pdo->lastInsertId();clients_seed_roles($pdo,$id,(int)$user['id']);clients_seed_permissions($pdo,$id);clients_seed_dashboards($pdo,$id);if(clients_table_exists($pdo,'client_migration_state'))$pdo->prepare('INSERT IGNORE INTO client_migration_state (client_id) VALUES (?)')->execute([$id]);$action='client.create';}
+        if($id===null){$setupKey=bin2hex(random_bytes(32));$stmt=$pdo->prepare('INSERT INTO clients (name,client_code,setup_key,status) VALUES (?,?,?,?)');$stmt->execute([$name,$code,$setupKey,$status]);$id=(int)$pdo->lastInsertId();clients_seed_roles($pdo,$id,$user);clients_seed_permissions($pdo,$id);clients_seed_dashboards($pdo,$id);if(clients_table_exists($pdo,'client_migration_state'))$pdo->prepare('INSERT IGNORE INTO client_migration_state (client_id) VALUES (?)')->execute([$id]);$action='client.create';}
         else{$check=$pdo->prepare('SELECT id,name,client_code,status FROM clients WHERE id=? LIMIT 1 FOR UPDATE');$check->execute([$id]);$existing=$check->fetch(PDO::FETCH_ASSOC);if(!is_array($existing))throw new MerdWorkforceException('client_not_found','Client not found.');$stmt=$pdo->prepare('UPDATE clients SET name=?,client_code=?,status=? WHERE id=?');$stmt->execute([$name,$code,$status,$id]);$action='client.update';}
         $pdo->commit();
     } catch(PDOException $e){if($pdo->inTransaction())$pdo->rollBack();if((string)$e->getCode()==='23000')throw new MerdWorkforceException('duplicate_client','Client name or Client Code conflicts with an existing client.');throw $e;} catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}

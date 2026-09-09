@@ -7,9 +7,9 @@ require_once __DIR__ . '/../includes/dashboard_access.php';
 function directory_audit(PDO $pdo, array $actor, string $action, string $entityType, ?string $entityId, array $details): void
 {
     try {
-        $stmt = $pdo->prepare('INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)');
+        $stmt = $pdo->prepare('INSERT INTO admin_audit_logs (client_id,employee_id,platform_identity_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?,?)');
         $stmt->execute([
-            (int)$actor['client_id'], (int)$actor['id'], $action, $entityType, $entityId,
+            (int)$actor['client_id'], beta_actor_employee_id($actor), beta_actor_platform_identity_id($actor), $action, $entityType, $entityId,
             json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
         ]);
@@ -31,7 +31,7 @@ function directory_role_rows(PDO $pdo, array $actor): array
     if (!beta_has_permission($actor, 'workforce.manage', $pdo)) return [];
     $stmt = $pdo->prepare(
         "SELECT id,role_key,role_label,base_role,authority_level,is_system,status FROM client_roles "
-        . "WHERE client_id=? AND status='active' AND authority_level<=? ORDER BY authority_level ASC,id ASC"
+        . "WHERE client_id=? AND status='active' AND UPPER(role_key)<>'DEV' AND authority_level<=? ORDER BY authority_level ASC,id ASC"
     );
     $stmt->execute([(int)$actor['client_id'], (int)$actor['authority_level']]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -45,7 +45,7 @@ function directory_role_for_save(PDO $pdo, array $actor, mixed $roleId, mixed $l
     $role = null;
     if ($id !== false && $id > 0) $role = merd_dashboard_role_by_id($pdo, $clientId, (int)$id);
     if (!$role && $legacyBase !== null) $role = merd_dashboard_system_role($pdo, $clientId, strtoupper(trim((string)$legacyBase)));
-    if (!$role || strtolower((string)$role['status']) !== 'active') throw new MerdWorkforceException('role_not_found', 'Choose a valid active role.');
+    if (!$role || strtolower((string)$role['status']) !== 'active' || strtoupper((string)$role['role_key']) === 'DEV') throw new MerdWorkforceException('role_not_found', 'Choose a valid active client role.');
     if ((int)$role['authority_level'] > (int)$actor['authority_level']) throw new MerdWorkforceException('role_forbidden', 'You cannot assign a role above your Level of Authority.');
     return $role;
 }
@@ -141,10 +141,10 @@ function directory_normalize_store_schedule(array $rawDays): array
     return $days;
 }
 
-function directory_save_store_schedule(PDO $pdo, int $clientId, int $storeId, string $storeName, int $weekStartDay, array $days, int $actorId): void
+function directory_save_store_schedule(PDO $pdo, int $clientId, int $storeId, string $storeName, int $weekStartDay, array $days, array $actor): void
 {
     $upsert = $pdo->prepare('INSERT INTO store_weekly_hours (client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP');
-    foreach ($days as $day) $upsert->execute([$clientId,$storeId,$day['day_of_week'],$day['start_time'],$day['end_time'],$day['is_closed'],$actorId]);
+    foreach ($days as $day) $upsert->execute([$clientId,$storeId,$day['day_of_week'],$day['start_time'],$day['end_time'],$day['is_closed'],beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
     $legacyStart = null;
     if (isset($days[1]) && !$days[1]['is_closed']) $legacyStart = $days[1]['start_time'];
     if ($legacyStart === null) foreach ($days as $day) if (!$day['is_closed'] && $day['start_time'] !== null) { $legacyStart = $day['start_time']; break; }
@@ -236,7 +236,7 @@ function directory_load_state(PDO $pdo, array $actor): array
             . "LEFT JOIN stores s ON s.id=e.store_id AND s.client_id=e.client_id "
             . "LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id "
             . "LEFT JOIN employee_store_access a ON a.employee_id=e.id AND a.client_id=e.client_id "
-            . "WHERE e.client_id=? ORDER BY e.id ASC"
+            . "WHERE e.client_id=? AND UPPER(TRIM(COALESCE(e.employee_type,'')))<>'DEV' ORDER BY e.id ASC"
         );
         $employeesStmt->execute([$clientId]);
         $employees = $employeesStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -416,10 +416,10 @@ try {
             }
 
             $accessStmt = $pdo->prepare(
-                'INSERT INTO employee_store_access (client_id,employee_id,access_mode,updated_by_employee_id) VALUES (?,?,?,?) '
-                . 'ON DUPLICATE KEY UPDATE access_mode=VALUES(access_mode),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+                'INSERT INTO employee_store_access (client_id,employee_id,access_mode,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?) '
+                . 'ON DUPLICATE KEY UPDATE access_mode=VALUES(access_mode),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP'
             );
-            $accessStmt->execute([(int)$actor['client_id'],$id,$storeAccessMode,(int)$actor['id']]);
+            $accessStmt->execute([(int)$actor['client_id'],$id,$storeAccessMode,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
 
             $pdo->prepare('DELETE FROM employee_store_assignments WHERE client_id=? AND employee_id=?')->execute([(int)$actor['client_id'],$id]);
             if ($storeAccessMode === 'selected') {
@@ -429,10 +429,10 @@ try {
 
             if ($canPay) {
                 $rateStmt = $pdo->prepare(
-                    'INSERT INTO employee_hourly_rate_history (client_id,employee_id,hourly_rate,effective_from,changed_by_employee_id) VALUES (?,?,?,?,?) '
-                    . 'ON DUPLICATE KEY UPDATE hourly_rate=VALUES(hourly_rate),changed_by_employee_id=VALUES(changed_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+                    'INSERT INTO employee_hourly_rate_history (client_id,employee_id,hourly_rate,effective_from,changed_by_employee_id,changed_by_platform_identity_id) VALUES (?,?,?,?,?,?) '
+                    . 'ON DUPLICATE KEY UPDATE hourly_rate=VALUES(hourly_rate),changed_by_employee_id=VALUES(changed_by_employee_id),changed_by_platform_identity_id=VALUES(changed_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP'
                 );
-                $rateStmt->execute([(int)$actor['client_id'],$id,$requestedRate,$rateEffective,(int)$actor['id']]);
+                $rateStmt->execute([(int)$actor['client_id'],$id,$requestedRate,$rateEffective,beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
 
                 $currentRateStmt = $pdo->prepare('SELECT hourly_rate FROM employee_hourly_rate_history WHERE client_id=? AND employee_id=? AND effective_from<=CURDATE() ORDER BY effective_from DESC,id DESC LIMIT 1');
                 $currentRateStmt->execute([(int)$actor['client_id'],$id]);
@@ -508,7 +508,7 @@ try {
                 $pdo->prepare('UPDATE store_shift_start_times SET store_name=? WHERE client_id=? AND store_id=?')->execute([$name,(int)$actor['client_id'],$id]);
                 $auditAction = 'store.update';
             }
-            if ($scheduleDays !== null) directory_save_store_schedule($pdo,(int)$actor['client_id'],(int)$id,$name,$weekStartDay,$scheduleDays,(int)$actor['id']);
+            if ($scheduleDays !== null) directory_save_store_schedule($pdo,(int)$actor['client_id'],(int)$id,$name,$weekStartDay,$scheduleDays,$actor);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
