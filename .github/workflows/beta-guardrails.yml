@@ -43,6 +43,9 @@ jobs:
             php -n -l "$file"
           done < <(find namecheap_beta_live/backend namecheap_beta_live/timesheet_portal -type f -name '*.php' -print0)
 
+      - name: Validate dashboard write audit atomicity
+        run: php namecheap_beta_live/backend/cli/validate_dashboard_write_audit.php
+
       - name: Validate beta runtime contract
         run: php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
 
