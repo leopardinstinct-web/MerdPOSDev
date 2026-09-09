@@ -33,6 +33,8 @@ php84 -r '$required=["curl","dom","fileinfo","gd","mbstring","pdo_mysql","phar",
 
 cd "$DRUPAL"
 php84 "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader
+# Composer scaffold may rewrite tracked Drupal scaffold files; restore MERDPOS canonical copies immediately.
+git -C "$REPO" checkout -- drupal/.gitattributes drupal/web/.htaccess
 php84 "$DRUPAL/tools/validate_portal_gateway_client.php"
 php84 "$DRUPAL/tools/validate_merdpos_authenticator.php"
 php84 "$DRUPAL/tools/validate_login_rich_ui.php"
@@ -58,6 +60,7 @@ php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
 php84 "$DRUPAL/tools/validate_disputes_twig.php"
 php84 "$DRUPAL/tools/validate_store_settings_dark_v1.php"
 php84 "$DRUPAL/tools/validate_source_encoding.php"
+php84 "$DRUPAL/tools/validate_deploy_clean_checkout_v1.php"
 php84 "$DRUPAL/tools/validate_shell_declutter_v1.php"
 php84 "$DRUPAL/tools/validate_favicon_v1.php"
 php84 "$DRUPAL/tools/validate_admin_client_context_v1.php"
@@ -65,8 +68,6 @@ php84 "$DRUPAL/tools/validate_admin_roles_shell_v1.php"
 php84 "$DRUPAL/tools/validate_admin_role_usability_v1.php"
 php84 "$DRUPAL/tools/validate_search_account_financials_v1.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
-# Composer scaffold rewrites Drupal's .htaccess; restore the Git-owned Namecheap PHP 8.4 handler.
-git -C "$REPO" checkout -- drupal/web/.htaccess
 php84 "$DRUPAL/tools/namecheap_resolve_runtime.php"
 mkdir -p "$PRIVATE" "$SYNC" "$WEB/sites/default/files"
 chmod 700 "$PRIVATE" "$SYNC"
@@ -198,6 +199,13 @@ php84 -r '$p=json_decode($argv[1],true); $h=(int)($p["invalid_probe_http"]??0); 
 DISPUTE_WRITE_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway"); $s=$g->call("beta_state","GET"); $d=$g->call("disputes","GET"); $sp=$s["payload"]??[]; $dp=$d["payload"]??[]; $perms=$sp["permissions"]??[]; $open=0; foreach(($dp["disputes"]??[]) as $row){if(in_array(strtolower((string)($row["status"]??"")),["pending","awaiting_employee"],true))$open++;} $route=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.disputes"); echo json_encode(["status"=>($s["status"]??"")==="ok"&&($d["status"]??"")==="ok"?"ok":"failed","route"=>$route->getPath(),"submit"=>!empty($perms["disputes.submit_own"]),"review"=>!empty($perms["disputes.review"]),"resolve_flags"=>!empty($perms["attendance_flags.resolve"]),"total"=>count($dp["disputes"]??[]),"open"=>$open],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["route"]??"")!=="/merdpos/disputes"||empty($p["submit"])||empty($p["review"])||empty($p["resolve_flags"])){fwrite(STDERR,"Dispute Write Parity v1 read/permission self-test failed.\n");exit(1);}' "$DISPUTE_WRITE_V1_PROBE"
+
+TRACKED_DIRTY="$(git -C "$REPO" status --short --untracked-files=no)"
+if [[ -n "$TRACKED_DIRTY" ]]; then
+  echo "Deployment left tracked Git drift:" >&2
+  printf '%s\n' "$TRACKED_DIRTY" >&2
+  exit 1
+fi
 
 HEAD="$(git -C "$REPO" rev-parse HEAD)"
 BRANCH="$(git -C "$REPO" branch --show-current)"
