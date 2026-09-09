@@ -36,6 +36,9 @@ rich_check(str_contains($route, 'MerdposLoginForm'), 'Drupal login route is not 
 rich_check(str_contains($denied, 'merdpos_core.'), 'Anonymous app redirect guard missing.');
 rich_check(str_contains($services, 'merdpos_core.authenticator') && str_contains($services, 'merdpos_core.identity_manager'), 'MERDPOS auth services missing.');
 rich_check(str_contains($runtime, 'MERDPOS_DRUPAL_LOGIN_URL='), 'Private runtime login URL missing.');
+rich_check(str_contains($runtime, 'FROM platform_identities p') && str_contains($runtime, 'platform_identity_preferences'), 'Private runtime does not resolve the platform DEV service actor.');
+rich_check(!str_contains($runtime, "FROM employees e
+LEFT JOIN client_roles"), 'Private runtime still depends on a client-bound DEV employee actor.');
 rich_check(str_contains($deploy, 'config:set system.site page.front /merdpos -y'), 'Drupal app domain front page is not routed to MERDPOS.');
 
 $required = $composer['require'] ?? [];

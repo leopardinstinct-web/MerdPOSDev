@@ -30,20 +30,13 @@ if (!is_array($db) || !isset($db['database'], $db['hash_salt'])) {
   fwrite(STDERR, "Drupal private database bootstrap is invalid.\n");
   exit(1);
 }$sql = <<<'SQL'
-SELECT e.client_id,e.user_id,e.id,
-  UPPER(COALESCE(r.base_role,e.employee_type,e.role_name,'')) AS base_role,
-  COALESCE(r.authority_level,
-    CASE UPPER(COALESCE(e.employee_type,e.role_name,''))
-      WHEN 'DEV' THEN 1000 WHEN 'SUPER' THEN 800 WHEN 'ADMIN' THEN 500 ELSE 100 END
-  ) AS authority_level
-FROM employees e
-LEFT JOIN client_roles r ON r.id=e.client_role_id AND r.client_id=e.client_id
-WHERE e.status='active' AND e.user_id IS NOT NULL AND TRIM(e.user_id)<>''
-  AND UPPER(COALESCE(r.base_role,e.employee_type,e.role_name,''))='DEV'
-  AND (r.id IS NULL OR r.status='active')
-ORDER BY CASE UPPER(COALESCE(r.base_role,e.employee_type,e.role_name,''))
-  WHEN 'DEV' THEN 0 WHEN 'SUPER' THEN 1 WHEN 'ADMIN' THEN 2 ELSE 3 END,
-  authority_level DESC,e.id ASC
+SELECT p.id AS platform_identity_id,p.user_id,pref.selected_client_id AS client_id
+FROM platform_identities p
+JOIN platform_identity_preferences pref ON pref.platform_identity_id=p.id
+JOIN clients c ON c.id=pref.selected_client_id AND c.status='active'
+WHERE p.status='active' AND p.role_key='DEV'
+  AND p.user_id IS NOT NULL AND TRIM(p.user_id)<>''
+ORDER BY p.id ASC
 LIMIT 50
 SQL;
 $candidates = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
