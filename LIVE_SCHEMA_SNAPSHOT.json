@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.12-MariaDB-cll-lve-log",
-    "table_count": 49,
+    "table_count": 52,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -31,21 +31,21 @@
                     "position": 3,
                     "data_type": "int",
                     "column_type": "int(11)",
-                    "nullable": false,
-                    "default": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "platform_identity_id",
+                    "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
                     "extra": ""
                 },
                 {
                     "name": "action",
-                    "position": 4,
-                    "data_type": "varchar",
-                    "column_type": "varchar(80)",
-                    "nullable": false,
-                    "default": null,
-                    "extra": ""
-                },
-                {
-                    "name": "entity_type",
                     "position": 5,
                     "data_type": "varchar",
                     "column_type": "varchar(80)",
@@ -54,8 +54,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "entity_id",
+                    "name": "entity_type",
                     "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(80)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "entity_id",
+                    "position": 7,
                     "data_type": "varchar",
                     "column_type": "varchar(80)",
                     "nullable": true,
@@ -64,7 +73,7 @@
                 },
                 {
                     "name": "details",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "text",
                     "column_type": "text",
                     "nullable": true,
@@ -73,7 +82,7 @@
                 },
                 {
                     "name": "ip_address",
-                    "position": 8,
+                    "position": 9,
                     "data_type": "varchar",
                     "column_type": "varchar(64)",
                     "nullable": true,
@@ -82,7 +91,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 9,
+                    "position": 10,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -1478,8 +1487,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "updated_by_employee_id",
+                    "name": "created_by_platform_identity_id",
                     "position": 9,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_employee_id",
+                    "position": 10,
                     "data_type": "int",
                     "column_type": "int(11)",
                     "nullable": true,
@@ -1487,8 +1505,17 @@
                     "extra": ""
                 },
                 {
+                    "name": "updated_by_platform_identity_id",
+                    "position": 11,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
                     "name": "created_at",
-                    "position": 10,
+                    "position": 12,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -1497,7 +1524,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 11,
+                    "position": 13,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -1641,8 +1668,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "cutover_by_platform_identity_id",
                     "position": 9,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 10,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -1651,7 +1687,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 10,
+                    "position": 11,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -1734,8 +1770,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "updated_by_platform_identity_id",
                     "position": 6,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 7,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -1744,7 +1789,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -2041,8 +2086,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "updated_by_platform_identity_id",
                     "position": 6,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 7,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -2051,7 +2105,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -2126,6 +2180,173 @@
                     "constraint": "fk_role_authority_updater",
                     "column": "updated_by_employee_id",
                     "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                }
+            ]
+        },
+        {
+            "name": "client_role_usability",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "client_id",
+                    "position": 1,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "role_key",
+                    "position": 2,
+                    "data_type": "varchar",
+                    "column_type": "varchar(16)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "permission_key",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(120)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "enabled",
+                    "position": 4,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "1",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_employee_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_by_platform_identity_id",
+                    "position": 6,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 7,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 8,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_role_usability_employee",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "updated_by_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "fk_role_usability_platform",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "updated_by_platform_identity_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_role_usability_permission",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "permission_key",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "enabled",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "role_key",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "permission_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_role_usability_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                },
+                {
+                    "constraint": "fk_role_usability_employee",
+                    "column": "updated_by_employee_id",
+                    "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "SET NULL"
+                },
+                {
+                    "constraint": "fk_role_usability_platform",
+                    "column": "updated_by_platform_identity_id",
+                    "references_table": "platform_identities",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "SET NULL"
@@ -3500,8 +3721,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "changed_by_platform_identity_id",
                     "position": 7,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 8,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -3510,7 +3740,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 8,
+                    "position": 9,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -3861,8 +4091,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "updated_by_platform_identity_id",
                     "position": 6,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 7,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -3871,7 +4110,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -5043,13 +5282,22 @@
                     "position": 6,
                     "data_type": "int",
                     "column_type": "int(11)",
-                    "nullable": false,
-                    "default": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "started_by_platform_identity_id",
+                    "position": 7,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
                     "extra": ""
                 },
                 {
                     "name": "source_snapshot_hash",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "char",
                     "column_type": "char(64)",
                     "nullable": true,
@@ -5058,15 +5306,6 @@
                 },
                 {
                     "name": "attendance_rows",
-                    "position": 8,
-                    "data_type": "int",
-                    "column_type": "int(10) unsigned",
-                    "nullable": false,
-                    "default": "0",
-                    "extra": ""
-                },
-                {
-                    "name": "financial_rows",
                     "position": 9,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5075,7 +5314,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "inserted_rows",
+                    "name": "financial_rows",
                     "position": 10,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5084,7 +5323,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "updated_rows",
+                    "name": "inserted_rows",
                     "position": 11,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5093,7 +5332,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "unchanged_rows",
+                    "name": "updated_rows",
                     "position": 12,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5102,7 +5341,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "conflict_rows",
+                    "name": "unchanged_rows",
                     "position": 13,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5111,7 +5350,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "rejected_rows",
+                    "name": "conflict_rows",
                     "position": 14,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5120,7 +5359,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "warning_rows",
+                    "name": "rejected_rows",
                     "position": 15,
                     "data_type": "int",
                     "column_type": "int(10) unsigned",
@@ -5129,8 +5368,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "summary_json",
+                    "name": "warning_rows",
                     "position": 16,
+                    "data_type": "int",
+                    "column_type": "int(10) unsigned",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "summary_json",
+                    "position": 17,
                     "data_type": "longtext",
                     "column_type": "longtext",
                     "nullable": true,
@@ -5139,7 +5387,7 @@
                 },
                 {
                     "name": "error_message",
-                    "position": 17,
+                    "position": 18,
                     "data_type": "varchar",
                     "column_type": "varchar(1000)",
                     "nullable": true,
@@ -5148,7 +5396,7 @@
                 },
                 {
                     "name": "started_at",
-                    "position": 18,
+                    "position": 19,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -5157,7 +5405,7 @@
                 },
                 {
                     "name": "finished_at",
-                    "position": 19,
+                    "position": 20,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": true,
@@ -5333,8 +5581,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "resolution_note",
+                    "name": "resolved_by_platform_identity_id",
                     "position": 13,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "resolution_note",
+                    "position": 14,
                     "data_type": "varchar",
                     "column_type": "varchar(1000)",
                     "nullable": true,
@@ -5343,7 +5600,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 14,
+                    "position": 15,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -5352,7 +5609,7 @@
                 },
                 {
                     "name": "resolved_at",
-                    "position": 15,
+                    "position": 16,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": true,
@@ -5914,6 +6171,224 @@
                     "constraint": "fk_legacy_stage_client",
                     "column": "client_id",
                     "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "CASCADE"
+                }
+            ]
+        },
+        {
+            "name": "platform_identities",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "user_id",
+                    "position": 2,
+                    "data_type": "varchar",
+                    "column_type": "varchar(50)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "full_name",
+                    "position": 3,
+                    "data_type": "varchar",
+                    "column_type": "varchar(190)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "login_password",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "pin_code",
+                    "position": 5,
+                    "data_type": "varchar",
+                    "column_type": "varchar(255)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "role_key",
+                    "position": 6,
+                    "data_type": "varchar",
+                    "column_type": "varchar(16)",
+                    "nullable": false,
+                    "default": "'DEV'",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('active','inactive')",
+                    "nullable": false,
+                    "default": "'active'",
+                    "extra": ""
+                },
+                {
+                    "name": "legacy_employee_id",
+                    "position": 8,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 9,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 10,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_platform_identity_legacy_employee",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "legacy_employee_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_platform_identity_user_id",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "user_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": []
+        },
+        {
+            "name": "platform_identity_preferences",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "platform_identity_id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "selected_client_id",
+                    "position": 2,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 3,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                },
+                {
+                    "name": "updated_at",
+                    "position": 4,
+                    "data_type": "timestamp",
+                    "column_type": "timestamp",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": "on update current_timestamp()"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "idx_platform_identity_selected_client",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "selected_client_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "platform_identity_id",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_platform_identity_pref_client",
+                    "column": "selected_client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_platform_identity_pref_identity",
+                    "column": "platform_identity_id",
+                    "references_table": "platform_identities",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "CASCADE"
@@ -7262,8 +7737,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "device_id",
+                    "name": "platform_identity_id",
                     "position": 4,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "device_id",
+                    "position": 5,
                     "data_type": "int",
                     "column_type": "int(11)",
                     "nullable": true,
@@ -7272,7 +7756,7 @@
                 },
                 {
                     "name": "event_type",
-                    "position": 5,
+                    "position": 6,
                     "data_type": "varchar",
                     "column_type": "varchar(80)",
                     "nullable": false,
@@ -7281,7 +7765,7 @@
                 },
                 {
                     "name": "outcome",
-                    "position": 6,
+                    "position": 7,
                     "data_type": "varchar",
                     "column_type": "varchar(32)",
                     "nullable": false,
@@ -7290,7 +7774,7 @@
                 },
                 {
                     "name": "actor_type",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "varchar",
                     "column_type": "varchar(32)",
                     "nullable": true,
@@ -7299,7 +7783,7 @@
                 },
                 {
                     "name": "actor_id",
-                    "position": 8,
+                    "position": 9,
                     "data_type": "varchar",
                     "column_type": "varchar(80)",
                     "nullable": true,
@@ -7308,15 +7792,6 @@
                 },
                 {
                     "name": "request_id",
-                    "position": 9,
-                    "data_type": "varchar",
-                    "column_type": "varchar(64)",
-                    "nullable": true,
-                    "default": "NULL",
-                    "extra": ""
-                },
-                {
-                    "name": "ip_address",
                     "position": 10,
                     "data_type": "varchar",
                     "column_type": "varchar(64)",
@@ -7325,8 +7800,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "user_agent",
+                    "name": "ip_address",
                     "position": 11,
+                    "data_type": "varchar",
+                    "column_type": "varchar(64)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "user_agent",
+                    "position": 12,
                     "data_type": "varchar",
                     "column_type": "varchar(255)",
                     "nullable": true,
@@ -7335,7 +7819,7 @@
                 },
                 {
                     "name": "metadata",
-                    "position": 12,
+                    "position": 13,
                     "data_type": "text",
                     "column_type": "text",
                     "nullable": true,
@@ -7344,7 +7828,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 13,
+                    "position": 14,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -7931,8 +8415,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "updated_by_platform_identity_id",
                     "position": 9,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 10,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -7941,7 +8434,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 10,
+                    "position": 11,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": false,
@@ -8085,8 +8578,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "actor_label",
+                    "name": "actor_platform_identity_id",
                     "position": 6,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "actor_label",
+                    "position": 7,
                     "data_type": "varchar",
                     "column_type": "varchar(120)",
                     "nullable": false,
@@ -8095,7 +8597,7 @@
                 },
                 {
                     "name": "role_scope",
-                    "position": 7,
+                    "position": 8,
                     "data_type": "varchar",
                     "column_type": "varchar(32)",
                     "nullable": false,
@@ -8104,7 +8606,7 @@
                 },
                 {
                     "name": "action",
-                    "position": 8,
+                    "position": 9,
                     "data_type": "varchar",
                     "column_type": "varchar(48)",
                     "nullable": false,
@@ -8113,7 +8615,7 @@
                 },
                 {
                     "name": "summary",
-                    "position": 9,
+                    "position": 10,
                     "data_type": "varchar",
                     "column_type": "varchar(500)",
                     "nullable": false,
@@ -8122,7 +8624,7 @@
                 },
                 {
                     "name": "selector",
-                    "position": 10,
+                    "position": 11,
                     "data_type": "varchar",
                     "column_type": "varchar(1024)",
                     "nullable": false,
@@ -8131,7 +8633,7 @@
                 },
                 {
                     "name": "runtime_key",
-                    "position": 11,
+                    "position": 12,
                     "data_type": "varchar",
                     "column_type": "varchar(128)",
                     "nullable": false,
@@ -8140,7 +8642,7 @@
                 },
                 {
                     "name": "page_path",
-                    "position": 12,
+                    "position": 13,
                     "data_type": "varchar",
                     "column_type": "varchar(255)",
                     "nullable": false,
@@ -8149,15 +8651,6 @@
                 },
                 {
                     "name": "panel_id",
-                    "position": 13,
-                    "data_type": "varchar",
-                    "column_type": "varchar(96)",
-                    "nullable": false,
-                    "default": "''",
-                    "extra": ""
-                },
-                {
-                    "name": "nav_group",
                     "position": 14,
                     "data_type": "varchar",
                     "column_type": "varchar(96)",
@@ -8166,7 +8659,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "dialog_id",
+                    "name": "nav_group",
                     "position": 15,
                     "data_type": "varchar",
                     "column_type": "varchar(96)",
@@ -8175,7 +8668,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "popover_id",
+                    "name": "dialog_id",
                     "position": 16,
                     "data_type": "varchar",
                     "column_type": "varchar(96)",
@@ -8184,8 +8677,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "mobile_tools",
+                    "name": "popover_id",
                     "position": 17,
+                    "data_type": "varchar",
+                    "column_type": "varchar(96)",
+                    "nullable": false,
+                    "default": "''",
+                    "extra": ""
+                },
+                {
+                    "name": "mobile_tools",
+                    "position": 18,
                     "data_type": "tinyint",
                     "column_type": "tinyint(1)",
                     "nullable": false,
@@ -8194,7 +8696,7 @@
                 },
                 {
                     "name": "mutation_json",
-                    "position": 18,
+                    "position": 19,
                     "data_type": "longtext",
                     "column_type": "longtext",
                     "nullable": false,
@@ -8203,15 +8705,6 @@
                 },
                 {
                     "name": "legacy_only",
-                    "position": 19,
-                    "data_type": "tinyint",
-                    "column_type": "tinyint(1)",
-                    "nullable": false,
-                    "default": "0",
-                    "extra": ""
-                },
-                {
-                    "name": "is_system",
                     "position": 20,
                     "data_type": "tinyint",
                     "column_type": "tinyint(1)",
@@ -8220,8 +8713,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "deleted_at",
+                    "name": "is_system",
                     "position": 21,
+                    "data_type": "tinyint",
+                    "column_type": "tinyint(1)",
+                    "nullable": false,
+                    "default": "0",
+                    "extra": ""
+                },
+                {
+                    "name": "deleted_at",
+                    "position": 22,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": true,
@@ -8230,7 +8732,7 @@
                 },
                 {
                     "name": "deleted_by_employee_id",
-                    "position": 22,
+                    "position": 23,
                     "data_type": "int",
                     "column_type": "int(11)",
                     "nullable": true,
@@ -8238,8 +8740,17 @@
                     "extra": ""
                 },
                 {
+                    "name": "deleted_by_platform_identity_id",
+                    "position": 24,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
                     "name": "created_at",
-                    "position": 23,
+                    "position": 25,
                     "data_type": "timestamp",
                     "column_type": "timestamp(6)",
                     "nullable": false,
@@ -8415,8 +8926,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "created_at",
+                    "name": "updated_by_platform_identity_id",
                     "position": 5,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "created_at",
+                    "position": 6,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
@@ -8425,7 +8945,7 @@
                 },
                 {
                     "name": "updated_at",
-                    "position": 6,
+                    "position": 7,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": false,
