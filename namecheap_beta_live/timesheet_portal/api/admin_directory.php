@@ -106,6 +106,7 @@ function directory_store_profile_input(array $input, array $fields, bool $isNew)
         if (($field['type'] ?? '') === 'email' && $value !== '' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
             throw new MerdWorkforceException('invalid_store_email', 'Enter a valid store email address.');
         }
+        if (in_array($name, ['store_code','code'], true) && $value !== '') $value = directory_store_code($value);
         if ($value === '' && empty($field['nullable']) && empty($field['has_default'])) {
             if ($isNew && in_array($name, ['store_code','code'], true)) $value = directory_generated_code((string)($input['store_name'] ?? 'Store'));
             else throw new MerdWorkforceException('required_store_field', (string)$field['label'] . ' is required.');
@@ -113,6 +114,30 @@ function directory_store_profile_input(array $input, array $fields, bool $isNew)
         $values[$name] = ($value === '' && !empty($field['nullable'])) ? null : $value;
     }
     return $values;
+}
+
+function directory_store_code(string $value): string
+{
+    $code = strtoupper(trim($value));
+    if (strlen($code) < 2 || strlen($code) > 50 || !preg_match('/^[A-Z0-9][A-Z0-9_-]{1,49}$/', $code)) {
+        throw new MerdWorkforceException('invalid_store_code', 'Store Code must be 2-50 characters using A-Z, 0-9, hyphen or underscore.');
+    }
+    if (in_array($code, ['ALL','NONE','NULL','SYSTEM','ADMIN','SUPER','DEV','STORE'], true)) throw new MerdWorkforceException('reserved_store_code', 'That Store Code is reserved.');
+    return $code;
+}
+
+function directory_store_maps_url(mixed $value): ?string
+{
+    $url = trim((string)$value);
+    if ($url === '') return null;
+    if (strlen($url) > 2048 || filter_var($url, FILTER_VALIDATE_URL) === false) throw new MerdWorkforceException('invalid_maps_url', 'Enter a valid Google Maps URL.');
+    $parts = parse_url($url);
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    $host = strtolower((string)($parts['host'] ?? ''));
+    $path = strtolower((string)($parts['path'] ?? ''));
+    $googleHost = $host === 'maps.app.goo.gl' || $host === 'goo.gl' || preg_match('/(^|\.)google\.[a-z.]+$/', $host) === 1;
+    if ($scheme !== 'https' || !$googleHost || ($host === 'goo.gl' && !str_contains($path, 'maps'))) throw new MerdWorkforceException('invalid_maps_url', 'Use an HTTPS Google Maps link.');
+    return $url;
 }
 
 function directory_normalize_store_time(mixed $value): ?string
@@ -143,7 +168,7 @@ function directory_normalize_store_schedule(array $rawDays): array
 
 function directory_save_store_schedule(PDO $pdo, int $clientId, int $storeId, string $storeName, int $weekStartDay, array $days, array $actor): void
 {
-    $upsert = $pdo->prepare('INSERT INTO store_weekly_hours (client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP');
+    $upsert = $pdo->prepare('INSERT INTO store_weekly_hours (client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id,updated_by_platform_identity_id) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP');
     foreach ($days as $day) $upsert->execute([$clientId,$storeId,$day['day_of_week'],$day['start_time'],$day['end_time'],$day['is_closed'],beta_actor_employee_id($actor),beta_actor_platform_identity_id($actor)]);
     $legacyStart = null;
     if (isset($days[1]) && !$days[1]['is_closed']) $legacyStart = $days[1]['start_time'];
@@ -469,7 +494,37 @@ try {
 
         $columns = directory_store_columns($pdo);
         $storeEditFields = directory_store_edit_fields($pdo);
-        $profileValues = directory_store_profile_input($input, $storeEditFields, $id === null);
+        $canManageProfile = beta_has_permission($actor, 'stores.profile.manage', $pdo);
+        if ($canManageProfile) {
+            $profileValues = directory_store_profile_input($input, $storeEditFields, $id === null);
+            if (isset($columns['google_maps_url'])) $profileValues['google_maps_url'] = directory_store_maps_url($input['google_maps_url'] ?? null);
+        } elseif ($id !== null) {
+            $profileValues = [];
+            $profileNames = array_map(static fn(array $field): string => (string)$field['name'], $storeEditFields);
+            if (isset($columns['google_maps_url'])) $profileNames[] = 'google_maps_url';
+            if ($profileNames) {
+                $select = implode(',', array_map(static fn(string $field): string => '`'.$field.'`', $profileNames));
+                $profileStmt = $pdo->prepare('SELECT '.$select.' FROM stores WHERE id=? AND client_id=? LIMIT 1');
+                $profileStmt->execute([$id,(int)$actor['client_id']]);
+                $existingProfile = $profileStmt->fetch(PDO::FETCH_ASSOC);
+                if (!is_array($existingProfile)) throw new MerdWorkforceException('store_not_found','Store not found.');
+                foreach ($profileNames as $field) $profileValues[$field] = $existingProfile[$field] ?? null;
+            }
+        } else {
+            $profileValues = directory_store_profile_input(['store_name'=>$name], $storeEditFields, true);
+            if (isset($columns['google_maps_url'])) $profileValues['google_maps_url'] = null;
+        }
+
+        $canonicalCode = (string)($profileValues['store_code'] ?? $profileValues['code'] ?? '');
+        if ($canonicalCode !== '') {
+            $codeColumn = isset($columns['store_code']) ? 'store_code' : (isset($columns['code']) ? 'code' : '');
+            if ($codeColumn !== '') {
+                $dupCode = $pdo->prepare('SELECT id FROM stores WHERE client_id=? AND LOWER(TRIM(`'.$codeColumn.'`))=LOWER(TRIM(?)) AND (? IS NULL OR id<>?) LIMIT 1');
+                $dupCode->execute([(int)$actor['client_id'],$canonicalCode,$id,$id]);
+                if ($dupCode->fetchColumn()) throw new MerdWorkforceException('duplicate_store_code','That Store Code is already assigned to another store.');
+            }
+        }
+
         $scheduleDays = null;
         if (array_key_exists('days', $input)) {
             beta_require_permission($actor, 'stores.timings.manage', $pdo);
@@ -482,9 +537,9 @@ try {
             if ($id === null) {
                 $values = ['client_id'=>(int)$actor['client_id'],'store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay] + $profileValues;
                 if (isset($columns['name'])) $values['name'] = $name;
-                if (isset($columns['store_code']) && !array_key_exists('store_code',$values)) $values['store_code'] = directory_generated_code($name);
-                if (isset($columns['code']) && !array_key_exists('code',$values)) $values['code'] = directory_generated_code($name);
-                if (isset($columns['slug'])) $values['slug'] = strtolower(directory_generated_code($name));
+                if ($canonicalCode !== '' && isset($columns['store_code'])) $values['store_code'] = $canonicalCode;
+                if ($canonicalCode !== '' && isset($columns['code'])) $values['code'] = $canonicalCode;
+                if ($canonicalCode !== '' && isset($columns['slug'])) $values['slug'] = strtolower($canonicalCode);
                 foreach ($columns as $field=>$meta) {
                     if (array_key_exists($field,$values) || str_contains(strtolower((string)$meta['Extra']),'auto_increment')) continue;
                     if ($meta['Default'] !== null || strtoupper((string)$meta['Null']) === 'YES') continue;
@@ -495,26 +550,38 @@ try {
                 $placeholders = implode(',',array_fill(0,count($values),'?'));
                 $stmt = $pdo->prepare('INSERT INTO stores ('.$fieldSql.') VALUES ('.$placeholders.')');
                 $stmt->execute(array_values($values));
-                $id = (int)$pdo->lastInsertId(); $auditAction = 'store.create';
+                $id = (int)$pdo->lastInsertId();
+                $auditAction = 'store.create';
             } else {
                 $check = $pdo->prepare('SELECT id FROM stores WHERE id=? AND client_id=? LIMIT 1');
                 $check->execute([$id,(int)$actor['client_id']]);
                 if (!$check->fetchColumn()) throw new MerdWorkforceException('store_not_found','Store not found.');
-                $assign = ['store_name=?','status=?','week_start_day=?']; $args = [$name,$status,$weekStartDay];
+                $assign = ['store_name=?','status=?','week_start_day=?'];
+                $args = [$name,$status,$weekStartDay];
                 if (isset($columns['name'])) { $assign[]='`name`=?'; $args[]=$name; }
                 foreach ($profileValues as $field=>$value) { $assign[]='`'.$field.'`=?'; $args[]=$value; }
-                $args[]=$id; $args[]=(int)$actor['client_id'];
+                if ($canonicalCode !== '' && isset($columns['store_code']) && !array_key_exists('store_code',$profileValues)) { $assign[]='`store_code`=?'; $args[]=$canonicalCode; }
+                if ($canonicalCode !== '' && isset($columns['code']) && !array_key_exists('code',$profileValues)) { $assign[]='`code`=?'; $args[]=$canonicalCode; }
+                if ($canonicalCode !== '' && isset($columns['slug'])) { $assign[]='`slug`=?'; $args[]=strtolower($canonicalCode); }
+                $args[]=$id;
+                $args[]=(int)$actor['client_id'];
                 $pdo->prepare('UPDATE stores SET '.implode(',',$assign).' WHERE id=? AND client_id=?')->execute($args);
                 $pdo->prepare('UPDATE store_shift_start_times SET store_name=? WHERE client_id=? AND store_id=?')->execute([$name,(int)$actor['client_id'],$id]);
                 $auditAction = 'store.update';
             }
             if ($scheduleDays !== null) directory_save_store_schedule($pdo,(int)$actor['client_id'],(int)$id,$name,$weekStartDay,$scheduleDays,$actor);
+            beta_admin_audit($pdo,$actor,$auditAction,'store',(string)$id,[
+                'store_name'=>$name,
+                'status'=>$status,
+                'week_start_day'=>$weekStartDay,
+                'profile_fields'=>$canManageProfile ? array_keys($profileValues) : [],
+                'schedule_updated'=>$scheduleDays!==null,
+            ]);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
-        directory_audit($pdo,$actor,$auditAction,'store',(string)$id,['store_name'=>$name,'status'=>$status,'week_start_day'=>$weekStartDay,'profile_fields'=>array_keys($profileValues),'schedule_updated'=>$scheduleDays!==null]);
         json_response(directory_load_state($pdo,$actor));
     }
 

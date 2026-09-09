@@ -104,6 +104,7 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_attendance_timesheet_reconci
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating DEV role authority / ADMIN usability model"
 php "$REPO/namecheap_beta_live/backend/cli/validate_admin_role_delegation_v1.php"
 php "$REPO/namecheap_beta_live/backend/cli/validate_dashboard_write_audit.php"
+php "$REPO/namecheap_beta_live/backend/cli/validate_atomic_store_write.php"
 
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating platform DEV identity architecture"
 php "$REPO/namecheap_beta_live/backend/cli/validate_platform_dev_identity_v1.php"
@@ -196,6 +197,7 @@ rsync -az \
 
 php "$LIVE/backend/cli/validate_admin_role_delegation_v1.php"
 php "$LIVE/backend/cli/validate_dashboard_write_audit.php"
+php "$LIVE/backend/cli/validate_atomic_store_write.php"
 php "$LIVE/backend/cli/validate_platform_dev_identity_v1.php"
 
 # Live-copy gate. The marker is not written unless the canonical design/runtime

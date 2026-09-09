@@ -46,6 +46,9 @@ jobs:
       - name: Validate dashboard write audit atomicity
         run: php namecheap_beta_live/backend/cli/validate_dashboard_write_audit.php
 
+      - name: Validate atomic Store write
+        run: php namecheap_beta_live/backend/cli/validate_atomic_store_write.php
+
       - name: Validate beta runtime contract
         run: php namecheap_beta_live/backend/cli/validate_beta_runtime_contract.php
 
