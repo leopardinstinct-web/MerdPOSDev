@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../backend/api/includes/portal_permissions.php';
 
 function merd_dashboard_roles(PDO $pdo, int $clientId, bool $activeOnly = true): array
 {
-    $sql = 'SELECT id,client_id,role_key,role_label,base_role,authority_level,is_system,status FROM client_roles WHERE client_id=?';
+    $sql = "SELECT id,client_id,role_key,role_label,base_role,authority_level,is_system,status FROM client_roles WHERE client_id=? AND UPPER(role_key)<>'DEV'";
     if ($activeOnly) $sql .= " AND status='active'";
     $sql .= ' ORDER BY authority_level ASC,id ASC';
     $stmt = $pdo->prepare($sql);
@@ -32,26 +32,25 @@ function merd_dashboard_system_role(PDO $pdo, int $clientId, string $key): ?arra
 function merd_dashboard_user_role(PDO $pdo, array $user): array
 {
     $clientId = (int)$user['client_id'];
-    $baseRole = strtoupper(trim((string)($user['role'] ?? $user['actual_employee_type'] ?? $user['employee_type'] ?? 'USER')));
+    $actualDev = strtoupper(trim((string)($user['actual_role_key'] ?? $user['actual_employee_type'] ?? ''))) === 'DEV';
+    $baseRole = strtoupper(trim((string)($user['role'] ?? $user['employee_type'] ?? 'USER')));
     $roleId = isset($user['client_role_id']) ? (int)$user['client_role_id'] : 0;
 
-    if ($baseRole === 'DEV') {
+    // DEV is a platform identity. The legacy DEV client-role row is retained
+    // only as an internal dashboard template and is never assignable/exposed.
+    if ($actualDev && $baseRole === 'DEV') {
         $dev = merd_dashboard_system_role($pdo, $clientId, 'DEV');
         if ($dev) return $dev;
     }
-
     if ($roleId > 0) {
         $role = merd_dashboard_role_by_id($pdo, $clientId, $roleId);
-        if ($role && strtolower((string)$role['status']) === 'active') return $role;
+        if ($role && strtoupper((string)$role['role_key']) !== 'DEV' && strtolower((string)$role['status']) === 'active') return $role;
     }
-
     $fallback = merd_dashboard_system_role($pdo, $clientId, $baseRole);
-    if ($fallback) return $fallback;
-
+    if ($fallback && strtoupper((string)$fallback['role_key']) !== 'DEV') return $fallback;
     throw new RuntimeException('Dashboard role is not configured for this client.');
 }
 
-/** Always read current policy from SQL so a just-saved policy takes effect in the same request. */
 function merd_dashboard_permission_levels(PDO $pdo, int $clientId): array
 {
     $catalog = merd_portal_permission_catalog();
@@ -67,9 +66,7 @@ function merd_dashboard_permission_levels(PDO $pdo, int $clientId): array
             if (!isset($catalog[$key]) || !empty($catalog[$key]['dev_only'])) continue;
             $levels[$key] = max(1, min(1000, (int)$row['min_authority_level']));
         }
-    } catch (Throwable $e) {
-        // Catalogue defaults remain the safe migration fallback.
-    }
+    } catch (Throwable) { }
     return $levels;
 }
 
@@ -77,10 +74,13 @@ function merd_dashboard_role_has_permission(PDO $pdo, int $clientId, array $role
 {
     $catalog = merd_portal_permission_catalog();
     if (!isset($catalog[$permission])) return false;
-    $isDevRole = strtoupper(trim((string)($role['role_key'] ?? $role['base_role'] ?? ''))) === 'DEV';
+    $roleKey = strtoupper(trim((string)($role['role_key'] ?? $role['base_role'] ?? '')));
+    $isDevRole = $roleKey === 'DEV';
     if (!empty($catalog[$permission]['dev_only'])) return $isDevRole;
+    if (!merd_permission_role_key_allowed($catalog[$permission], $roleKey, $isDevRole)) return false;
     $levels = merd_dashboard_permission_levels($pdo, $clientId);
-    return (int)($role['authority_level'] ?? 0) >= (int)($levels[$permission] ?? 1000);
+    if ((int)($role['authority_level'] ?? 0) < (int)($levels[$permission] ?? 1000)) return false;
+    return merd_role_usability_enabled($pdo, $clientId, $roleKey, $permission);
 }
 
 function merd_dashboard_widget_catalog(PDO $pdo, int $clientId): array
@@ -88,10 +88,7 @@ function merd_dashboard_widget_catalog(PDO $pdo, int $clientId): array
     $rules = merd_portal_dashboard_widget_permissions();
     $catalog = [];
     foreach ($rules as $widget => $permissions) {
-        $catalog[$widget] = [
-            'visibility_permission' => (string)$permissions[0],
-            'data_permission' => (string)$permissions[1],
-        ];
+        $catalog[$widget] = ['visibility_permission'=>(string)$permissions[0],'data_permission'=>(string)$permissions[1]];
     }
     return $catalog;
 }
@@ -100,9 +97,6 @@ function merd_dashboard_allowed_widgets(PDO $pdo, int $clientId, array $role): a
 {
     $allowed = [];
     foreach (merd_dashboard_widget_catalog($pdo, $clientId) as $key => $rule) {
-        // Widget placement is controlled by its dedicated dashboard permission.
-        // The data permission is a dashboard-scoped dependency resolved only by
-        // dashboard_data.php; it must not grant the role a whole application area.
         if (!merd_dashboard_role_has_permission($pdo, $clientId, $role, (string)$rule['visibility_permission'])) continue;
         $allowed[] = $key;
     }
