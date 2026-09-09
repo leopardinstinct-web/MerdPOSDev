@@ -25,7 +25,7 @@ merdpos_core.attendance_scan:
 merdpos_core.operations:
   path: '/merdpos/operations'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\OperationsController::operations'
+    _controller: 'Drupal\merdpos_core\Controller\ReportsController::legacyOperationsRedirect'
     _title: 'Operations'
   requirements:
     _permission: 'access merdpos portal'
@@ -60,7 +60,7 @@ merdpos_core.reports:
   path: '/merdpos/reports'
   defaults:
     _controller: 'Drupal\merdpos_core\Controller\ReportsController::reports'
-    _title: 'Reports'
+    _title: 'Timesheets Report'
   requirements:
     _permission: 'access merdpos portal'
 

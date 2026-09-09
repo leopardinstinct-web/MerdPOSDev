@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace Drupal\merdpos_core\Controller;
 
+use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 use Drupal\merdpos_core\Integration\ParityDataProviderInterface;
 use Drupal\merdpos_core\Presentation\DashboardChartBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReportsController extends ControllerBase {
 
+  private const DISPUTE_CSRF_ID = 'merdpos_disputes_v1';
+
   public function __construct(
     private readonly ParityDataProviderInterface $parity,
     private readonly DashboardChartBuilder $chartBuilder,
     private readonly RequestStack $requestStack,
+    private readonly CsrfTokenGenerator $csrf,
   ) {}
 
   public static function create(ContainerInterface $container): static {
@@ -25,6 +30,7 @@ final class ReportsController extends ControllerBase {
       $container->get('merdpos_core.parity_provider'),
       $container->get('merdpos_core.dashboard_chart_builder'),
       $container->get('request_stack'),
+      $container->get('csrf_token'),
     );
   }
 
@@ -37,12 +43,18 @@ final class ReportsController extends ControllerBase {
       '#surface' => $surface,
       '#charts' => $this->chartBuilder->build($surface['chart_specs'] ?? []),
       '#export_url' => $exportUrl,
+      '#form_token' => $this->csrf->get(self::DISPUTE_CSRF_ID),
+      '#dispute_post_url' => Url::fromRoute('merdpos_core.disputes')->toString(),
       '#attached' => ['library' => ['merdpos_core/reports']],
       '#cache' => [
         'contexts' => ['user','url.query_args:week_start','url.query_args:store','url.query_args:employee','url.query_args:attendance'],
         'max-age' => 0,
       ],
     ];
+  }
+
+  public function legacyOperationsRedirect(): RedirectResponse {
+    return new RedirectResponse(Url::fromRoute('merdpos_core.reports', [], ['fragment'=>'merdpos-shift-detail'])->toString(), 302);
   }
 
   public function exportCsv(): StreamedResponse {

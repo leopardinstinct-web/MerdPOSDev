@@ -46,7 +46,7 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
       'template' => 'merdpos-administration',
     ],
     'merdpos_reports' => [
-      'variables' => ['surface' => [], 'charts' => [], 'export_url' => ''],
+      'variables' => ['surface' => [], 'charts' => [], 'export_url' => '', 'form_token'=>'', 'dispute_post_url'=>''],
       'template' => 'merdpos-reports',
     ],
     'merdpos_finance' => [

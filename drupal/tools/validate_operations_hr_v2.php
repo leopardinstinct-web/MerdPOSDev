@@ -104,19 +104,9 @@ ops_v2_check(count($user['late_arrivals'] ?? []) === 1, 'USER own authoritative 
 
 $root = dirname(__DIR__);
 $routing = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/merdpos_core.routing.yml');
-ops_v2_check(str_contains($routing, "OperationsController::operations"), 'Operations route is not wired to v2 controller.');
-ops_v2_check(str_contains($routing, "_permission: 'access merdpos portal'"), 'Operations route is not available to MERDPOS USER role.');
-$template = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-operations.html.twig');
-ops_v2_check(str_contains($template, 'Pending disputes'), 'Operations dispute panel missing.');
-ops_v2_check(str_contains($template, "path('merdpos_core.reports')"), 'Dispute drill-down link missing.');
-ops_v2_check(str_contains($template, 'Attendance security flags'), 'Attendance flags panel missing.');
-ops_v2_check(str_contains($template, 'Late arrivals'), 'Late-arrival panel missing.');
-ops_v2_check(str_contains($template, 'Employee directory'), 'Employee directory panel missing.');
-$css = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/operations-v2.css');
-ops_v2_check(str_contains($css, '.merdpos-ops-grid'), 'Operations rich grid CSS missing.');
-ops_v2_check(str_contains($css, '@media'), 'Operations responsive CSS missing.');
-$deploy = (string) file_get_contents($root . '/tools/namecheap_deploy.sh');
-ops_v2_check(str_contains($deploy, 'Operations HR v2 self-test failed.'), 'Operations deployment fail-closed probe missing.');
-ops_v2_check(str_contains($deploy, 'operations_v2'), 'Operations release-marker evidence missing.');
+$theme = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/merdpos_app.theme');
+ops_v2_check(str_contains($routing, "ReportsController::legacyOperationsRedirect"), 'Legacy Operations URL must redirect into Timesheets Report.');
+ops_v2_check(str_contains($routing, "path: '/merdpos/operations'"), 'Legacy Operations route path missing.');
+ops_v2_check(!str_contains($theme, "['label'=>'Operations'"), 'Standalone Operations section tab must stay retired.');
 
 echo "MERDPOS Drupal Operations and HR v2 validated.\n";
