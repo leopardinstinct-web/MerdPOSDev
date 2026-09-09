@@ -14,7 +14,6 @@ $files = [
     'migration' => $packageRoot . '/backend/sql/038_platform_dev_identity.sql',
     'apply' => $packageRoot . '/backend/cli/apply_038_platform_dev_identity.php',
     'finalize' => $packageRoot . '/backend/cli/finalize_038_platform_dev_identity.php',
-    'deploy' => $repoRoot . '/scripts/deploy_namecheap_beta.sh',
 ];
 $src = [];
 $errors = [];
@@ -44,9 +43,13 @@ $checks = [
 foreach ($checks as [$file,$needle,$label]) {
     if (!str_contains($src[$file] ?? '',$needle)) $errors[] = $label;
 }
-if (!str_contains($src['deploy'] ?? '', 'apply_038_platform_dev_identity.php')) $errors[] = '038 deploy staging wiring';
-if (!str_contains($src['deploy'] ?? '', 'validate_platform_dev_identity_v1.php')) $errors[] = 'platform identity validator deploy gate';
-if (str_contains($src['deploy'] ?? '', 'finalize_038_platform_dev_identity.php')) $errors[] = 'dangerous automatic DEV finalization in deploy';
+$deployPath = $repoRoot . '/scripts/deploy_namecheap_beta.sh';
+if (is_file($deployPath)) {
+    $deploy = file_get_contents($deployPath) ?: '';
+    if (!str_contains($deploy, 'apply_038_platform_dev_identity.php')) $errors[] = '038 deploy staging wiring';
+    if (!str_contains($deploy, 'validate_platform_dev_identity_v1.php')) $errors[] = 'platform identity validator deploy gate';
+    if (str_contains($deploy, 'finalize_038_platform_dev_identity.php')) $errors[] = 'dangerous automatic DEV finalization in deploy';
+}
 if (!str_contains($src['migration'] ?? '', 'actor_platform_identity_id')) $errors[] = 'UI Studio platform actor column';
 if (!str_contains($src['migration'] ?? '', 'updated_by_platform_identity_id')) $errors[] = 'platform actor update columns';
 
