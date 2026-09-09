@@ -69,7 +69,9 @@
           <div class="merdpos-report-table-wrap" tabindex="0" role="region" aria-label="{{ group.title }} table"><table><thead><tr>{% for column in group.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead><tbody>
           {% for row in group.rows %}<tr>{% for column in group.columns %}<td>{% if column.key == 'action' %}
             {% set action = attribute(row, 'action')|default({}) %}{% set dispute = action.dispute|default(null) %}
-            {% if dispute or action.can_dispute or action.can_add_missing %}<button type="button" class="merdpos-timesheet-action-trigger{{ dispute ? ' has-dispute is-' ~ dispute.status : '' }}" data-timesheet-action data-shift-id="{{ action.shift_id }}" data-store-id="{{ action.store_id }}" data-employee="{{ action.employee }}" data-date="{{ action.date }}" data-in="{{ action.in }}" data-out="{{ action.out }}" data-can-dispute="{{ action.can_dispute ? '1' : '0' }}" data-can-add-missing="{{ action.can_add_missing ? '1' : '0' }}" data-dispute-id="{{ dispute.id|default('') }}" data-dispute-status="{{ dispute.status|default('') }}" data-dispute-status-label="{{ dispute.status_label|default('') }}" data-dispute-type-label="{{ dispute.type_label|default('') }}" data-dispute-reason="{{ dispute.reason|default('') }}" data-dispute-submitted="{{ dispute.submitted|default('') }}" data-dispute-decision-note="{{ dispute.decision_note|default('') }}" data-dispute-requested-in="{{ dispute.requested_in|default('') }}" data-dispute-requested-out="{{ dispute.requested_out|default('') }}" data-can-cancel="{{ dispute.can_cancel|default(false) ? '1' : '0' }}" data-can-review="{{ dispute.can_review|default(false) ? '1' : '0' }}" data-can-handover="{{ dispute.can_handover|default(false) ? '1' : '0' }}" aria-label="Actions for {{ action.employee }} on {{ action.date }}">{{ ui.icon(dispute ? 'message' : 'more') }}<span>{{ dispute ? dispute.status_label : 'Actions' }}</span></button>{% else %}—{% endif %}
+            {% if dispute or action.can_dispute or action.can_add_missing %}
+            <button type="button" class="merdpos-timesheet-action-trigger{{ dispute ? ' has-dispute is-' ~ dispute.status : '' }}" data-timesheet-action data-shift-id="{{ action.shift_id }}" data-store-id="{{ action.store_id }}" data-employee="{{ action.employee }}" data-date="{{ action.date }}" data-in="{{ action.in }}" data-out="{{ action.out }}" data-can-dispute="{{ action.can_dispute ? '1' : '0' }}" data-can-add-missing="{{ action.can_add_missing ? '1' : '0' }}" data-dispute-id="{{ dispute.id|default('') }}" data-dispute-status="{{ dispute.status|default('') }}" data-dispute-status-label="{{ dispute.status_label|default('') }}" data-dispute-type-label="{{ dispute.type_label|default('') }}" data-dispute-reason="{{ dispute.reason|default('') }}" data-dispute-submitted="{{ dispute.submitted|default('') }}" data-dispute-decision-note="{{ dispute.decision_note|default('') }}" data-dispute-requested-in="{{ dispute.requested_in|default('') }}" data-dispute-requested-out="{{ dispute.requested_out|default('') }}" data-can-cancel="{{ dispute.can_cancel|default(false) ? '1' : '0' }}" data-can-review="{{ dispute.can_review|default(false) ? '1' : '0' }}" data-can-handover="{{ dispute.can_handover|default(false) ? '1' : '0' }}" aria-label="{{ dispute ? 'Open ' ~ dispute.status_label ~ ' dispute for ' ~ action.employee ~ ' on ' ~ action.date : 'Shift options for ' ~ action.employee ~ ' on ' ~ action.date }}" aria-haspopup="{{ dispute ? 'dialog' : 'menu' }}" aria-expanded="false" title="{{ dispute ? dispute.status_label ~ ' dispute' : 'Shift options' }}"><span class="merdpos-timesheet-action-icon" aria-hidden="true"></span>{% if dispute %}<span class="merdpos-timesheet-dispute-dot" aria-hidden="true"></span>{% endif %}</button>
+            {% else %}—{% endif %}
           {% else %}{{ attribute(row, column.key)|default('—') }}{% endif %}</td>{% endfor %}</tr>{% endfor %}
           </tbody></table></div>
         {% else %}<p class="merdpos-report-empty">{{ group.empty }}</p>{% endif %}
@@ -77,9 +79,14 @@
     {% endfor %}
   </div>
 
+  <div class="merdpos-timesheet-action-menu" data-timesheet-menu role="menu" aria-label="Shift options" hidden>
+    <button type="button" role="menuitem" data-timesheet-menu-choice="missing">{{ ui.icon('plus') }}<span>Missing shift</span></button>
+    <button type="button" role="menuitem" data-timesheet-menu-choice="dispute">{{ ui.icon('message') }}<span>Dispute existing shift</span></button>
+  </div>
+
   <dialog class="merdpos-timesheet-dialog" data-timesheet-dialog aria-labelledby="merdpos-timesheet-dialog-title">
     <div class="merdpos-timesheet-dialog-shell">
-      <header><div><p class="merdpos-eyebrow">SHIFT DETAIL</p><h2 id="merdpos-timesheet-dialog-title">Shift actions</h2><p data-timesheet-dialog-context></p></div><button type="button" class="merdpos-timesheet-dialog-close" data-timesheet-dialog-close aria-label="Close">{{ ui.icon('x') }}</button></header>
+      <header><div><p class="merdpos-eyebrow">SHIFT DETAIL</p><h2 id="merdpos-timesheet-dialog-title" data-timesheet-dialog-title>Shift details</h2><p data-timesheet-dialog-context></p></div><button type="button" class="merdpos-timesheet-dialog-close" data-timesheet-dialog-close aria-label="Close">{{ ui.icon('x') }}</button></header>
       <section class="merdpos-timesheet-existing" data-timesheet-existing hidden>
         <div class="merdpos-timesheet-status"><span data-dispute-status></span><strong data-dispute-type></strong><p data-dispute-requested hidden></p><p data-dispute-reason></p><small data-dispute-meta></small><p data-dispute-note hidden></p></div>
         <div class="merdpos-timesheet-existing-actions">
@@ -89,7 +96,7 @@
         </div>
       </section>
       <section class="merdpos-timesheet-create" data-timesheet-create hidden>
-        <div class="merdpos-timesheet-mode-switch" role="group" aria-label="Shift action type"><button type="button" data-timesheet-mode="dispute">Raise dispute</button><button type="button" data-timesheet-mode="missing">Add missing shift</button></div>
+        <p class="merdpos-timesheet-create-help" data-timesheet-create-help></p>
         <form method="post" action="{{ dispute_post_url }}" data-timesheet-create-form>
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="return_query" value=""><input type="hidden" name="dispute_action" value="create"><input type="hidden" name="shift_id" value=""><input type="hidden" name="dispute_type" value="other" data-dispute-type-hidden>
           <div data-timesheet-dispute-fields><label>Issue<select data-dispute-type-select><option value="other">Other correction</option><option value="missing_out">Missing clock-out</option><option value="wrong_in">Wrong clock-in</option><option value="wrong_out">Wrong clock-out</option><option value="delete_shift">Delete this shift</option></select></label></div>

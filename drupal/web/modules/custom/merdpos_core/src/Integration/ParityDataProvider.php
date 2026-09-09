@@ -536,6 +536,12 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $payrollVisible = (bool)($report['payroll_visible'] ?? false);
     $currency = (string)($dashboard['payload']['client_defaults']['currency_code'] ?? 'AUD');
     $statePayload = $this->map($state['payload'] ?? []);
+    $timezone = (string)($statePayload['client_defaults']['timezone'] ?? $dashboard['payload']['client_defaults']['timezone'] ?? 'Australia/Sydney');
+    $recentShiftsById = [];
+    foreach ($this->rows($statePayload['recent_shifts'] ?? []) as $recentShift) {
+      $recentId = trim((string)($recentShift['shift_id'] ?? ''));
+      if ($recentId !== '') $recentShiftsById[$recentId] = $recentShift;
+    }
     $role = $this->map($dashboard['payload']['role'] ?? []);
     $roleKey = strtoupper((string)($role['role_key'] ?? $role['base_role'] ?? 'USER'));
     $roleLabel = (string)($role['role_label'] ?? $roleKey);
@@ -669,8 +675,10 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     usort($employeeTable, static fn(array $a,array $b): int => ((float)$b['hours'] <=> (float)$a['hours']) ?: strcasecmp((string)$a['employee'], (string)$b['employee']));
 
     $shiftTable = [];
+    $representedShiftIds = [];
     foreach (array_slice($filteredShifts, 0, 250) as $row) {
       $shiftId = trim((string)($row['shift_id'] ?? ''));
+      if ($shiftId !== '') $representedShiftIds[$shiftId] = true;
       $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
       $isOwn = $currentUserId !== '' && hash_equals($currentUserId, (string)($row['employee_user_id'] ?? ''));
       $item = [
@@ -687,6 +695,20 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     }
     if ($selectedAttendance === 'all') {
       $selectedWeekEnd = $selectedWeek !== '' ? (new \DateTimeImmutable($selectedWeek))->modify('+6 days')->format('Y-m-d') : '';
+      foreach ($filteredDisputes as $row) {
+        if (strtolower((string)($row['dispute_type'] ?? '')) === 'new_shift') continue;
+        $shiftId = trim((string)($row['shift_id'] ?? ''));
+        if ($shiftId === '' || isset($representedShiftIds[$shiftId])) continue;
+        $recent = $recentShiftsById[$shiftId] ?? [];
+        $parts = $this->localDateTimeParts($recent['clock_in_at'] ?? $row['clock_in_at'] ?? '', (string)($recent['timezone'] ?? $timezone));
+        if ($selectedWeek !== '' && ($parts['date'] < $selectedWeek || $parts['date'] > $selectedWeekEnd)) continue;
+        $outParts = $this->localDateTimeParts($recent['clock_out_at'] ?? $row['clock_out_at'] ?? '', (string)($recent['timezone'] ?? $timezone));
+        $detail = $presentDispute($row);
+        $item = ['employee'=>(string)($row['full_name'] ?? ''),'store'=>(string)($row['store_name'] ?? ''),'date'=>$parts['date'],'in'=>$parts['time'],'out'=>$outParts['time'],'hours'=>'—','start'=>strtolower((string)($recent['status'] ?? '')) === 'open' ? 'Open shift · dispute' : 'Dispute status',
+          'action'=>['shift_id'=>$shiftId,'store_id'=>0,'employee'=>(string)($row['full_name'] ?? ''),'date'=>$parts['date'],'in'=>$parts['time'],'out'=>$outParts['time'],'can_dispute'=>false,'can_add_missing'=>false,'dispute'=>$detail],];
+        if ($payrollVisible) $item['wage']='—';
+        $shiftTable[]=$item; $representedShiftIds[$shiftId]=true;
+      }
       foreach (array_slice($newShiftDisputes, 0, 50) as $row) {
         $detail = $presentDispute($row);
         $requestedIn=(string)($row['requested_clock_in_at'] ?? ''); $requestedOut=(string)($row['requested_clock_out_at'] ?? '');
@@ -1252,6 +1274,17 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     catch (\Throwable) {
       return $text;
     }
+  }
+
+  private function localDateTimeParts(mixed $value, string $timezone): array {
+    $text = trim((string)$value);
+    if ($text === '') return ['date'=>'','time'=>'—'];
+    try {
+      $source = new \DateTimeImmutable($text, new \DateTimeZone('UTC'));
+      $zone = new \DateTimeZone($timezone !== '' ? $timezone : 'Australia/Sydney');
+      $local = $source->setTimezone($zone);
+      return ['date'=>$local->format('Y-m-d'),'time'=>$local->format('H:i')];
+    } catch (\Throwable) { return ['date'=>substr($text,0,10),'time'=>strlen($text)>=16?substr($text,11,5):'—']; }
   }
 
   private function status(array $statuses): string {

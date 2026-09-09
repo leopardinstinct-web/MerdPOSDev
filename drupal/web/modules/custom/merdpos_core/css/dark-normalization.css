@@ -146,3 +146,13 @@
   color: var(--color-ink-on-brand, #07131f) !important;
 }
 :root[data-theme="dark"] .merdpos-timesheet-status > span { color: var(--color-warning) !important; }
+
+:root[data-theme="dark"] .merdpos-timesheet-action-menu {
+  background:var(--color-surface-main) !important;
+  border-color:var(--color-border-default) !important;
+  box-shadow:var(--shadow-raised) !important;
+}
+:root[data-theme="dark"] .merdpos-timesheet-action-menu button { color:var(--color-text-primary) !important; }
+:root[data-theme="dark"] .merdpos-timesheet-action-menu button:hover,
+:root[data-theme="dark"] .merdpos-timesheet-action-menu button:focus-visible { background:var(--color-surface-selected) !important; }
+:root[data-theme="dark"] .merdpos-timesheet-dispute-dot { border-color:var(--color-surface-main) !important; }

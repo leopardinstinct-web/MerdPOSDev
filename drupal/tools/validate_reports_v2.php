@@ -21,7 +21,7 @@ final class ReportsGateway implements PortalGatewayClientInterface {
   public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $isUser = $this->role === 'USER';
     $payload = match ($route) {
-      'beta_state' => ['success'=>true,'permissions'=>$isUser?['disputes.submit_own']:['disputes.review'],'current_user_id'=>$isUser?'user-alice':'platform-dev','stores'=>[['id'=>1,'store_name'=>'Store A'],['id'=>2,'store_name'=>'Store B']]],
+      'beta_state' => ['success'=>true,'permissions'=>$isUser?['disputes.submit_own']:['disputes.review'],'current_user_id'=>$isUser?'user-alice':'platform-dev','stores'=>[['id'=>1,'store_name'=>'Store A'],['id'=>2,'store_name'=>'Store B']],'recent_shifts'=>[['shift_id'=>'44444444-4444-4444-8444-444444444444','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>null,'status'=>'open','timezone'=>'Australia/Sydney']]],
       'dashboard_data' => [
         'success'=>true,'role'=>['role_key'=>$this->role,'role_label'=>$isUser?'User':'Developer','base_role'=>$this->role,'authority_level'=>$isUser?1:1000],
         'client_defaults'=>['currency_code'=>'AUD','timezone'=>'Australia/Sydney'],
@@ -49,6 +49,7 @@ final class ReportsGateway implements PortalGatewayClientInterface {
       ]],
       'disputes' => ['success'=>true,'disputes'=>[
         ['dispute_id'=>'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','shift_id'=>'22222222-2222-4222-8222-222222222222','user_id'=>'user-alice','full_name'=>'Alice','store_name'=>'Store B','dispute_type'=>'wrong_in','reason'=>'Clock-in correction','status'=>'pending','submitted_at'=>'2026-09-02 05:00:00'],
+        ['dispute_id'=>'cccccccc-cccc-4ccc-8ccc-cccccccccccc','shift_id'=>'44444444-4444-4444-8444-444444444444','user_id'=>'user-alice','full_name'=>'Alice','store_name'=>'Store A','dispute_type'=>'other','reason'=>'Open shift question','status'=>'pending','submitted_at'=>'2026-09-04 02:00:00','clock_in_at'=>'2026-09-04 01:00:00'],
         ...($isUser?[]:[['dispute_id'=>'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','shift_id'=>'33333333-3333-4333-8333-333333333333','user_id'=>'user-bob','full_name'=>'Bob','store_name'=>'Store A','dispute_type'=>'wrong_out','reason'=>'Clock-out correction','status'=>'approved','submitted_at'=>'2026-09-03 05:00:00']]),
       ]],
       default => ['success'=>false],
@@ -66,9 +67,11 @@ reports_v2_check(count($dev['filters']??[])===4,'Reports v2 filters missing.');
 reports_v2_check(count($dev['chart_specs']??[])===4,'DEV Reports chart set mismatch.');
 reports_v2_check(count($dev['export_rows']??[])===3,'DEV export row count mismatch.');
 reports_v2_check(in_array('wage',array_column($dev['export_columns']??[],'key'),true),'DEV export must include authorized wage column.');
-reports_v2_check(($dev['pending_disputes']??-1)===1,'DEV pending dispute count mismatch.');
+reports_v2_check(($dev['pending_disputes']??-1)===2,'DEV pending dispute count mismatch.');
 $devShiftRows=$dev['groups'][2]['rows']??[];
 reports_v2_check(!empty($devShiftRows[1]['action']['dispute']['can_review']),'Reviewer pending-dispute action missing from Shift Detail.');
+$orphanReview=array_values(array_filter($devShiftRows,static fn(array $r): bool => ($r['action']['shift_id']??'')==='44444444-4444-4444-8444-444444444444'));
+reports_v2_check(count($orphanReview)===1 && ($orphanReview[0]['start']??'')==='Open shift · dispute' && !empty($orphanReview[0]['action']['dispute']['can_review']),'Open-shift dispute must remain visible in Shift Detail.');
 
 $filtered = (new ParityDataProvider(new ReportsGateway('DEV'), new ReportsWorkingNow()))->section('reports', [
   'store'=>'Store A','employee'=>'Bob','attendance'=>'late','week_start'=>'2026-08-31',
@@ -88,13 +91,15 @@ reports_v2_check(count($user['chart_specs']??[])===3,'USER payroll chart must be
 $userShiftRows=$user['groups'][2]['rows']??[];
 reports_v2_check(!empty($userShiftRows[0]['action']['can_dispute']) && !empty($userShiftRows[0]['action']['can_add_missing']),'USER own-row dispute/missing-shift actions missing.');
 reports_v2_check(!empty($userShiftRows[1]['action']['dispute']['can_cancel']),'USER own pending dispute must be cancellable from Shift Detail.');
+$orphanOwn=array_values(array_filter($userShiftRows,static fn(array $r): bool => ($r['action']['shift_id']??'')==='44444444-4444-4444-8444-444444444444'));
+reports_v2_check(count($orphanOwn)===1 && !empty($orphanOwn[0]['action']['dispute']['can_cancel']),'USER open-shift dispute must remain cancellable from Shift Detail.');
 
 $root = dirname(__DIR__);
 $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/merdpos_core.routing.yml');
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['Export CSV','Print / PDF','Frozen reconciliation preserved','Add missing shift','Cancel dispute','Payroll by store'] as $needle) {
+foreach (['Export CSV','Print / PDF','Frozen reconciliation preserved','Missing shift','Cancel dispute','Payroll by store'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
@@ -113,6 +118,12 @@ reports_v2_check(count($dev['groups']??[])===3,'Standalone dispute table must st
 reports_v2_check((end($dev['groups'][2]['columns'])['key']??'')==='action','Action must be the final Shift Detail column.');
 reports_v2_check(!in_array('action',array_column($dev['export_columns']??[],'key'),true),'UI Action column must not leak into CSV export.');
 reports_v2_check(!str_contains($template,'Dispute status') && !str_contains($template,'Current dispute queue'),'Standalone dispute report surfaces must stay retired.');
+reports_v2_check(str_contains($template,'data-timesheet-menu-choice="missing"') && str_contains($template,'data-timesheet-menu-choice="dispute"'),'Shift Action trigger must open the two-choice contextual menu.');
+reports_v2_check(str_contains($template,'merdpos-timesheet-action-icon') && !str_contains($template,">{{ dispute ? dispute.status_label : 'Actions' }}</span>"),'Row Action trigger must remain icon-only.');
+$actionIcon=$root . '/web/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg';
+reports_v2_check(is_file($actionIcon) && str_contains((string)file_get_contents($actionIcon),'M508.5-291.5'),'User-supplied Shift Action icon asset missing or changed.');
+reports_v2_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)"),'Context menu must select a workflow before opening the dialog.');
+reports_v2_check(str_contains($js,'it does not modify the row you clicked') && str_contains($js,"title.textContent = 'Dispute existing shift'"),'Missing-shift and existing-shift contexts must stay distinct.');
 reports_v2_check(str_contains($routing,'ReportsController::legacyOperationsRedirect'),'Legacy Operations URL must redirect to Shift Detail.');
 
 echo "MERDPOS Drupal Reports v2 validated.\n";
