@@ -205,6 +205,11 @@ AddType image/webp .webp
   # https://httpd.apache.org/docs/current/mod/mod_headers.html.
   Header onsuccess unset X-Content-Type-Options
   Header always set X-Content-Type-Options nosniff
+  # MERDPOS go-live response hardening. Keep CSP deliberately narrow so existing Drupal assets remain compatible.
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(self), geolocation=(self), microphone=(), payment=(), usb=()"
+  Header always set Content-Security-Policy "base-uri 'self'; object-src 'none'; frame-ancestors 'self'"
   # Disable Proxy header, since it's an attack vector.
   RequestHeader unset Proxy
 </IfModule>
