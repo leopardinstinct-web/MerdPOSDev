@@ -11,7 +11,7 @@ function sql_source_data(PDO $pdo, int $clientId): array
 {
     $timesheetRows = [];
     $stmt = $pdo->prepare(
-        'SELECT user_name, store_name, log_type, log_date, log_time '
+        'SELECT user_name, store_name, log_type, log_date, log_time, employee_id, store_id, local_log_id '
         . 'FROM employee_logs WHERE client_id=? ORDER BY log_datetime, id'
     );
     $stmt->execute([$clientId]);
@@ -22,6 +22,9 @@ function sql_source_data(PDO $pdo, int $clientId): array
             'LOG_TYPE' => (string)$row['log_type'],
             'DATE' => (string)$row['log_date'],
             'TIME' => (string)$row['log_time'],
+            'EMPLOYEE_ID' => (int)($row['employee_id'] ?? 0),
+            'STORE_ID' => (int)($row['store_id'] ?? 0),
+            'LOCAL_LOG_ID' => (string)($row['local_log_id'] ?? ''),
             '_raw' => [
                 (string)$row['user_name'],
                 (string)$row['store_name'],
@@ -171,6 +174,37 @@ function build_weekly_hours_map(array $rows): array
     return $map;
 }
 
+function attach_authoritative_shift_ids(PDO $pdo, int $clientId, array &$report, string $weekStart): void
+{
+    $utc = new DateTimeZone('UTC');
+    $from = (new DateTimeImmutable($weekStart . ' 00:00:00', $utc))->modify('-2 days')->format('Y-m-d H:i:s');
+    $to = (new DateTimeImmutable($weekStart . ' 00:00:00', $utc))->modify('+9 days')->format('Y-m-d H:i:s');
+    $stmt = $pdo->prepare(
+        "SELECT s.public_id,s.employee_id,s.store_id,s.clock_in_at,s.clock_out_at,"
+        . "COALESCE(NULLIF(st.timezone,''),NULLIF(c.default_timezone,''),'Australia/Sydney') AS timezone "
+        . "FROM attendance_shifts s INNER JOIN stores st ON st.id=s.store_id AND st.client_id=s.client_id "
+        . "INNER JOIN clients c ON c.id=s.client_id WHERE s.client_id=? AND s.status<>'void' "
+        . "AND s.clock_in_at>=? AND s.clock_in_at<?"
+    );
+    $stmt->execute([$clientId,$from,$to]);
+    $map=[];
+    foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $shift){
+        try{$tz=new DateTimeZone((string)$shift['timezone']);}catch(Throwable){$tz=new DateTimeZone('Australia/Sydney');}
+        $in=(new DateTimeImmutable((string)$shift['clock_in_at'],$utc))->setTimezone($tz);
+        $outText=trim((string)($shift['clock_out_at']??''));
+        $out=$outText!==''?(new DateTimeImmutable($outText,$utc))->setTimezone($tz):null;
+        $key=implode('|',[(int)$shift['employee_id'],(int)$shift['store_id'],$in->format('Y-m-d'),$in->format('H:i:s'),$out?->format('Y-m-d')??'',$out?->format('H:i:s')??'']);
+        $map[$key]=(string)$shift['public_id'];
+    }
+    foreach(($report['employees'] ?? []) as &$employee){
+        foreach(($employee['rows'] ?? []) as &$row){
+            if(trim((string)($row['shift_id'] ?? ''))!=='') continue;
+            $key=implode('|',[(int)($row['employee_id']??0),(int)($row['store_id']??0),(string)($row['in_date']??''),(string)($row['actual_in_time']??''),(string)($row['out_date']??''),(string)($row['actual_out_time']??'')]);
+            if(isset($map[$key])) $row['shift_id']=$map[$key];
+        } unset($row);
+    } unset($employee);
+}
+
 function apply_schedule_and_effective_rates(array &$report, array $source): void
 {
     $rateMap = build_rate_history_map($source['rate_history'] ?? []);
@@ -296,6 +330,7 @@ try {
     $source = sql_source_data($pdo, $clientId);
     $employeeFilter = $canViewAll ? null : $user['name'];
     $report = build_report($source, $weekStart, $employeeFilter, $canViewAll);
+    attach_authoritative_shift_ids($pdo, $clientId, $report, $weekStart);
     apply_schedule_and_effective_rates($report, $source);
     if (!$canViewPay) redact_timesheet_payroll($report);
     else $report['payroll_visible'] = true;
