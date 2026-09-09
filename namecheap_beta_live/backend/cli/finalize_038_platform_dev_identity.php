@@ -26,7 +26,6 @@ try {
     $pdo->beginTransaction();
     try {
         $pdo->exec("UPDATE employees SET status='inactive' WHERE status='active' AND UPPER(TRIM(employee_type))='DEV'");
-        $pdo->exec("UPDATE client_roles SET status='inactive' WHERE UPPER(TRIM(role_key))='DEV'");
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -36,11 +35,11 @@ try {
     $remainingEmployees = (int)$pdo->query(
         "SELECT COUNT(*) FROM employees WHERE status='active' AND UPPER(TRIM(employee_type))='DEV'"
     )->fetchColumn();
-    $remainingRoles = (int)$pdo->query(
-        "SELECT COUNT(*) FROM client_roles WHERE status='active' AND UPPER(TRIM(role_key))='DEV'"
-    )->fetchColumn();
-    if ($remainingEmployees !== 0 || $remainingRoles !== 0) throw new RuntimeException('DEV cutover verification failed.');
-    echo "038 platform DEV identity finalized; " . count($legacy) . " legacy DEV employee row(s) retired, zero active client DEV roles remain.\n";
+    if ($remainingEmployees !== 0) throw new RuntimeException('DEV cutover verification failed.');
+    $activePlatform = (int)$pdo->query("SELECT COUNT(*) FROM platform_identities WHERE role_key='DEV' AND status='active'")->fetchColumn();
+    if ($activePlatform < 1) throw new RuntimeException('No active platform DEV identity remains after cutover.');
+    echo "038 platform DEV identity finalized; " . count($legacy) . " legacy DEV employee row(s) retired, {$activePlatform} active platform DEV identity row(s).\n";
+    echo "Internal client DEV dashboard template rows are retained for layout compatibility but are non-assignable and hidden from role/workforce APIs.\n";
 } catch (Throwable $e) {
     fwrite(STDERR, '038 platform DEV identity finalization failed: ' . $e->getMessage() . "\n");
     exit(1);
