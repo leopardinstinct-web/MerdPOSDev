@@ -2,6 +2,8 @@
 
 Frozen: 2026-09-09 09:29 +05:00
 
+> Historical pre-role-sweep freeze. The current verified successor is `POST_DEV_CUTOVER_BASELINE.md`; this file is retained as the earlier rollback/provenance anchor.
+
 This document freezes the verified Drupal Beta parity state before role-acceptance and cutover-rehearsal work begins. It is a reproducibility and rollback anchor, not a claim that production cutover has been rehearsed.
 
 ## Immutable anchors

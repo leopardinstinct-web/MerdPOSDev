@@ -315,3 +315,11 @@ The Studio24–27 bullets below explain protections introduced at those versions
 - Backend docs must not describe DevStudio history deletion as a current capability.
 - Durable current-knowledge docs must be free of common mojibake/replacement-character corruption.
 - Beta CI and Namecheap deploy preflight must execute the continuity validator before release.
+
+## Platform DEV cutover / Drupal post-cutover regressions (2026-09-09)
+- DEV is platform-scoped: active client-bound DEV employees must remain zero after migration 038 finalization; DEV must never reappear in assignable workforce role selectors.
+- `drupal/tools/live_post_cutover_acceptance.js` is the reusable private-fixture four-role gate. It verifies core surface access, Administration/DEV boundaries, report export, POST-only method safety, role-control boundaries, dark-theme persistence, 390x844 overflow, logout/session loss and unexpected browser/server errors.
+- DEV role UI must expose role definition + permission thresholds; ADMIN must expose exactly SUPER/USER usability controls inside the DEV ceiling; SUPER must expose neither; USER must be denied Administration.
+- `validate_deploy_clean_checkout_v1.php` protects the Composer scaffold cleanup contract. Namecheap deploy restores Git-owned `.gitattributes` and `.htaccess` after Composer and fails if any tracked Git drift remains.
+- Root `/favicon.ico` plus the explicit favicon link are permanent console/runtime guards; fallback/error-page navigation must not generate favicon 404 noise.
+- Verified successor runtime: Drupal `23dc6328b92f2b00b34d2355ff85afef65dc0ea2`, backend `5f7bccbac89eaff6f0e0bd3f0785b1813227590b`.
