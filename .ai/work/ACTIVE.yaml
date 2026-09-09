@@ -1,7 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-09T01:30:06+05:00'
+updated_at: '2026-09-09T09:29:00+05:00'
 active:
+- id: MERD-20260909-drupal-production-readiness-v1
+  path: .ai/work/active/MERD-20260909-drupal-production-readiness-v1.yaml
+  lifecycle: ACTIVE
+  packet_state: BASELINE_FROZEN
 - id: MERD-20260908-drupal-store-identity-parity-v1
   path: .ai/work/active/MERD-20260908-drupal-store-identity-parity-v1.yaml
   lifecycle: VERIFIED
