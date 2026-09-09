@@ -152,6 +152,9 @@ function build_shift_rows(array $timesheetRows, array $startTimeMap, string $wee
             'log_type' => $log,
             'date' => normalize_date_string($date),
             'time' => normalize_time_string($time),
+            'employee_id' => (int)($row['EMPLOYEE_ID'] ?? 0),
+            'store_id' => (int)($row['STORE_ID'] ?? 0),
+            'local_log_id' => (string)($row['LOCAL_LOG_ID'] ?? ''),
         ];
     }
 
@@ -168,9 +171,19 @@ function build_shift_rows(array $timesheetRows, array $startTimeMap, string $wee
                     $roundedIn = rounded_time_15($lastIn['time']);
                     $roundedOut = rounded_time_15($item['time']);
                     $hours = total_hours_between($roundedIn, $roundedOut);
+                    $shiftId = '';
+                    foreach ([$lastIn['local_log_id'] ?? '', $item['local_log_id'] ?? ''] as $localLogId) {
+                        if (preg_match('/^attendance:([0-9a-f-]{36}):(IN|OUT)$/i', (string)$localLogId, $match)) {
+                            if ($shiftId !== '' && strcasecmp($shiftId, $match[1]) !== 0) { $shiftId = ''; break; }
+                            $shiftId = $match[1];
+                        }
+                    }
                     $shifts[] = [
                         'user_name' => $lastIn['user_name'],
                         'store_name' => $lastIn['store_name'],
+                        'employee_id' => (int)($lastIn['employee_id'] ?? 0),
+                        'store_id' => (int)($lastIn['store_id'] ?? 0),
+                        'shift_id' => $shiftId,
                         'in_date' => $lastIn['date'],
                         'actual_in_time' => $lastIn['time'],
                         'rounded_in_time' => $roundedIn,

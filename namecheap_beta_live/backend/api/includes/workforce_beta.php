@@ -367,7 +367,7 @@ function merd_list_disputes(PDO $pdo, array $employee): array
         'SELECT d.public_id AS dispute_id,d.dispute_type,d.origin,d.requested_clock_in_at,d.requested_clock_out_at,'
         . 'd.reason,d.status,d.submitted_at,d.decided_at,d.decision_note,s.public_id AS shift_id,'
         . 'COALESCE(d.requested_clock_in_at,s.clock_in_at) AS clock_in_at,COALESCE(d.requested_clock_out_at,s.clock_out_at) AS clock_out_at,'
-        . 'e.full_name,COALESCE(pst.store_name,st.store_name) AS store_name FROM attendance_disputes d '
+        . 'e.full_name,e.user_id,COALESCE(pst.store_name,st.store_name) AS store_name FROM attendance_disputes d '
         . 'LEFT JOIN attendance_shifts s ON s.id=d.shift_id INNER JOIN employees e ON e.id=d.employee_id '
         . 'LEFT JOIN stores st ON st.id=s.store_id LEFT JOIN stores pst ON pst.id=d.proposed_store_id '
         . 'WHERE ' . $where . ' ORDER BY d.submitted_at DESC LIMIT 200'
