@@ -40,7 +40,7 @@
     if (dispute) dispute.hidden = !truthy(trigger.dataset.canDispute);
     trigger.setAttribute('aria-expanded', 'true');
     positionMenu(trigger);
-    q('[role="menuitem"]:not([hidden])', menu)?.focus();
+    q('[role="menuitem"]:not([hidden])', menu)?.focus({preventScroll:true});
   };
 
   document.addEventListener('click', (event) => {
@@ -75,7 +75,6 @@
     if (dialog?.open) dialog.close();
   });
   window.addEventListener('resize', closeMenu);
-  window.addEventListener('scroll', closeMenu, true);
 
   if (!dialog) return;
   const title = q('[data-timesheet-dialog-title]', dialog);

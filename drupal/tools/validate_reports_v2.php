@@ -123,6 +123,7 @@ reports_v2_check(str_contains($template,'merdpos-timesheet-action-icon') && !str
 $actionIcon=$root . '/web/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg';
 reports_v2_check(is_file($actionIcon) && str_contains((string)file_get_contents($actionIcon),'M508.5-291.5'),'User-supplied Shift Action icon asset missing or changed.');
 reports_v2_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)"),'Context menu must select a workflow before opening the dialog.');
+reports_v2_check(str_contains($js,'focus({preventScroll:true})') && !str_contains($js,"window.addEventListener('scroll', closeMenu, true)"),'Shift Action menu must not close itself when focus causes scrolling.');
 reports_v2_check(str_contains($js,'it does not modify the row you clicked') && str_contains($js,"title.textContent = 'Dispute existing shift'"),'Missing-shift and existing-shift contexts must stay distinct.');
 reports_v2_check(str_contains($routing,'ReportsController::legacyOperationsRedirect'),'Legacy Operations URL must redirect to Shift Detail.');
 
