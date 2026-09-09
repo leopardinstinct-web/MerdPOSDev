@@ -63,3 +63,6 @@ core/.phpstan-baseline.php text eol=lf whitespace=blank-at-eol,-blank-at-eof,-sp
 *.ttf     -text diff
 *.woff    -text diff
 *.woff2   -text diff
+
+# Root MERDPOS favicon is an opaque binary asset; do not run text diff/whitespace checks on it.
+web/favicon.ico -text -diff
