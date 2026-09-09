@@ -5,7 +5,7 @@ active:
 - id: MERD-20260909-dashboard-write-audit
   path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
   lifecycle: WIRED
-  packet_state: LOCAL_VALIDATED_READY_FOR_PR
+  packet_state: POST_PLATFORM_DEPLOY_COMPAT_LOCAL_VALIDATED
 - id: MERD-20260908-finance-beta-acceptance
   path: .ai/work/active/MERD-20260908-finance-beta-acceptance.yaml
   lifecycle: DOCUMENTED

@@ -14,6 +14,7 @@ $files = [
     'migration' => $packageRoot . '/backend/sql/038_platform_dev_identity.sql',
     'apply' => $packageRoot . '/backend/cli/apply_038_platform_dev_identity.php',
     'finalize' => $packageRoot . '/backend/cli/finalize_038_platform_dev_identity.php',
+    'legacy_management_apply' => $packageRoot . '/backend/cli/apply_022_management_roles.php',
 ];
 $src = [];
 $errors = [];
@@ -39,6 +40,9 @@ $checks = [
     ['apply','Not every active DEV employee was staged as a platform identity.','safe staging guard'],
     ['finalize','DEV cutover blocked: a legacy DEV row has no usable platform identity and Working Client.','safe finalization guard'],
     ['finalize',"UPDATE employees SET status='inactive' WHERE status='active' AND UPPER(TRIM(employee_type))='DEV'",'legacy DEV retirement'],
+    ['legacy_management_apply',"table_name='platform_identities'",'022 post-cutover platform table detection'],
+    ['legacy_management_apply',"SELECT COUNT(*) FROM platform_identities WHERE role_key='DEV' AND status='active'",'022 active platform DEV fallback'],
+    ['legacy_management_apply','Neither the legacy DEV employee nor an active platform DEV identity was found.','022 safe failure when no DEV identity exists'],
 ];
 foreach ($checks as [$file,$needle,$label]) {
     if (!str_contains($src[$file] ?? '',$needle)) $errors[] = $label;
