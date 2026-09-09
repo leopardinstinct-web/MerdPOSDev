@@ -1,9 +1,9 @@
 id: MERD-20260909-drupal-production-readiness-v1
-branch: continuity/drupal-post-cutover-baseline-v1
+branch: hotfix/drupal-critical-write-safety-v1
 base_head: 23dc6328b92f2b00b34d2355ff85afef65dc0ea2
-last_seen_head: 23dc6328b92f2b00b34d2355ff85afef65dc0ea2
+last_seen_head: 61ccda99fd304d903f2ae03e89df879611206155
 objective: Freeze the verified Drupal Beta post-DEV-cutover baseline and continue production-readiness rehearsal from that exact state.
-packet_state: POST_CUTOVER_BASELINE_VERIFIED
+packet_state: CRITICAL_WRITE_FIXES_LOCAL_VALIDATED
 lifecycle: ACTIVE
 scope:
   - Preserve platform DEV separation and DEV-defined role authority as permanent invariants.
@@ -26,5 +26,14 @@ validation:
   - Namecheap deployment completed at 23dc6328b92f and the tracked checkout was empty afterward.
   - Runtime rollback pointer baseline/drupal-runtime-23dc6328b92f points to the exact deployed release.
   - Post-cutover evidence is recorded in drupal/POST_DEV_CUTOVER_BASELINE.md and its Git-ID companion.
-next_action: Rehearse critical writes on controlled test data, restore state, then perform rollback execution rehearsal.
+next_action: Commit, PR, merge and deploy the validated ADMIN form and dashboard audit fixes; live-verify them before critical writes and rollback rehearsal.
 updated_at: "2026-09-09T20:55:00+05:00"
+
+current_findings:
+  - GitHub heads and live server heads match the handover baseline.
+  - Unavailable usability keys are still submitted by the native ADMIN form.
+  - Dashboard save lacks audit; reset additionally lacks a transaction.
+  - Backend fix branch is hotfix/backend-dashboard-write-audit-v1 from 5f7bccbac89eaff6f0e0bd3f0785b1813227590b.
+  - Opera Connector unavailable; Windows execution and existing browser harness remain available.
+  - Local Drupal suite passes 32/32 including rendered SUPER and USER native payload regression.
+  - Local fixes are validated and ready for PR; no deployment or rehearsal mutations have been performed yet.
