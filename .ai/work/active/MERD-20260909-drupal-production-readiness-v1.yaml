@@ -1,0 +1,26 @@
+id: MERD-20260909-drupal-production-readiness-v1
+branch: milestone/drupal-production-readiness-v1
+base_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
+last_seen_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
+objective: Freeze the verified Drupal Beta parity baseline before role acceptance and cutover-rehearsal work begins.
+packet_state: BASELINE_FROZEN
+lifecycle: ACTIVE
+scope:
+  - Pin the canonical verified continuity head and exact deployed runtime rollback point.
+  - Create stable named baseline pointers for canonical parity and the live functional release.
+  - Record deployment artifacts, runtime assumptions and the code rollback procedure without committing secrets.
+  - Do not begin the role sweep until the requested user review is incorporated.
+constraints:
+  - DevStudio/UI Studio remains excluded from Drupal parity and production-readiness scope.
+  - MERDPOS remains authoritative for authentication, permissions, business logic, operational persistence and audit.
+  - A code rollback anchor is not a database rollback guarantee.
+  - Functional changes after the freeze require a new baseline record.
+validation:
+  - Canonical verified continuity head is 3bfd403e356b03ea669b0fda57b5a883aacc8f1d.
+  - Exact deployed Drupal runtime release is 822003d90f520aec762583ccae950324f3b19e68.
+  - Named branch baseline/drupal-parity-verified-20260909 points to the canonical verified head.
+  - Named branch baseline/drupal-runtime-822003d90f52 points to the exact functional rollback release.
+  - Deployment contract and Git object IDs are recorded in drupal/PRODUCTION_READINESS_BASELINE.md.
+  - Rollback execution itself remains intentionally unrehearsed until the production-readiness rehearsal stage.
+next_action: Await user review of the role-sweep expectations before beginning DEV / SUPER / ADMIN / USER acceptance.
+updated_at: "2026-09-09T09:29:00+05:00"
