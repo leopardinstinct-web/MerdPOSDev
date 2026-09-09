@@ -12,7 +12,8 @@ const access = {
   super: { admin: 200, dev: 403 },
   user:  { admin: 403, dev: 403 },
 };
-const surfaces = ['/merdpos','/merdpos/operations','/merdpos/disputes','/merdpos/reports','/merdpos/finance'];
+const surfaces = ['/merdpos','/merdpos/reports','/merdpos/finance'];
+const retiredSurfaces = ['/merdpos/operations','/merdpos/disputes'];
 const postOnly = ['/merdpos/dashboard/layout','/merdpos/attendance/scan','/merdpos/finance/submit','/merdpos/account/change-password','/merdpos/account/working-client','/merdpos/account/timesheet-google-sync'];
 const adminTabs = ['clients','stores','defaults','workforce','roles'];
 const badText = /website encountered an unexpected error|internal server error|fatal error/i;
@@ -50,6 +51,19 @@ async function routeStatus(page, path) {
   const text = await page.locator('body').innerText().catch(() => '');
   assert(!badText.test(text), `${path} rendered fatal runtime text`);
   return r.status();
+}
+async function consolidatedTimesheet(page, role) {
+  for (const legacy of retiredSurfaces) {
+    const status = await routeStatus(page, legacy);
+    const url = new URL(page.url());
+    assert(status === 200 && url.pathname === '/merdpos/reports' && url.hash === '#merdpos-shift-detail', `${role}: ${legacy} did not retire into Shift Detail`);
+  }
+  await page.goto(BASE + '/merdpos/reports', { waitUntil: 'domcontentloaded' });
+  assert((await page.locator('h1').first().innerText()).trim() === 'Timesheets Report', `${role}: consolidated Timesheets Report title missing`);
+  assert(await page.locator('#merdpos-shift-detail').count() === 1, `${role}: Shift Detail table missing`);
+  assert((await page.locator('#merdpos-shift-detail thead th').last().innerText()).trim() === 'Action', `${role}: Action is not the final Shift Detail column`);
+  assert(await page.locator('#merdpos-disputes-chart').count() === 0, `${role}: standalone dispute chart returned`);
+  return { legacyRedirects: retiredSurfaces.length, actionColumn: true };
 }
 async function roleControls(page, role) {
   const status = await routeStatus(page, '/merdpos/admin?tab=roles');
@@ -134,6 +148,7 @@ async function sessionChecks(page, cred) {
       const legacyExpected = role === 'user' ? 403 : 422;
       assert(routes['/merdpos/admin/legacy-migration'] === legacyExpected, `${role}: legacy route boundary mismatch`);
       assert(routes['/merdpos/reports/export.csv'] === 200, `${role}: report export unavailable`);
+      const timesheet = await consolidatedTimesheet(page, role);
       const methodSafety = {};
       for (const path of postOnly) methodSafety[path] = await routeStatus(page, path);
       assert(Object.values(methodSafety).every(v => v === 405), `${role}: POST-only route accepted GET`);
@@ -154,7 +169,7 @@ async function sessionChecks(page, cred) {
       const unexpectedClientErrors = runtime.clientErrors.filter(v => !expectedClientError(v, role));
       const unexpectedConsoleErrors = runtime.consoleErrors.filter(v => !expectedConsoleError(v, role));
       assert(runtime.pageErrors.length === 0 && unexpectedConsoleErrors.length === 0 && runtime.failedRequests.length === 0 && unexpectedClientErrors.length === 0 && runtime.serverErrors.length === 0, `${role}: browser/runtime errors detected ${JSON.stringify({runtime,unexpectedClientErrors,unexpectedConsoleErrors})}`);
-      report.roles[role] = { routes, methodSafety, tabs, controls, account, mobile, runtime };
+      report.roles[role] = { routes, methodSafety, tabs, controls, account, timesheet, mobile, runtime };
       if (role === 'user') { await sessionChecks(page, cred); report.session = { logout: true, clearedCookieRequiresLogin: true }; }
       await context.close();
     }

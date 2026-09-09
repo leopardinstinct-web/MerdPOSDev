@@ -135,3 +135,38 @@
   .merdpos-report-table-wrap { overflow: visible; }
   .merdpos-report-table-wrap table { min-width: 0; font-size: 8pt; }
 }
+
+.merdpos-timesheet-action-trigger { display:inline-flex; align-items:center; gap:.4rem; min-height:2.2rem; padding:.35rem .6rem; border:1px solid rgba(28,69,135,.18); border-radius:.75rem; background:#fff; color:var(--rep-blue); font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap; }
+.merdpos-timesheet-action-trigger svg { width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.merdpos-timesheet-action-trigger.has-dispute { background:rgba(201,121,18,.08); color:var(--rep-amber); }
+.merdpos-timesheet-action-trigger.is-approved { background:rgba(23,133,87,.08); color:var(--rep-green); }
+.merdpos-timesheet-action-trigger.is-rejected,.merdpos-timesheet-action-trigger.is-cancelled { background:rgba(96,112,142,.08); color:var(--rep-muted); }
+.merdpos-timesheet-dialog { width:min(46rem,calc(100vw - 2rem)); max-height:calc(100vh - 2rem); padding:0; border:0; border-radius:1.4rem; background:#fff; color:var(--rep-ink); box-shadow:0 2rem 6rem rgba(16,42,82,.28); }
+.merdpos-timesheet-dialog::backdrop { background:rgba(10,24,48,.58); backdrop-filter:blur(3px); }
+.merdpos-timesheet-dialog-shell { display:grid; gap:1rem; padding:1.2rem; }
+.merdpos-timesheet-dialog header { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; border-bottom:1px solid var(--rep-border); padding-bottom:.9rem; }
+.merdpos-timesheet-dialog h2 { margin:.15rem 0 .2rem; font-size:1.35rem; }
+.merdpos-timesheet-dialog header p:last-child { margin:0; color:var(--rep-muted); }
+.merdpos-timesheet-dialog-close { display:grid; place-items:center; width:2.4rem; height:2.4rem; border:1px solid var(--rep-border); border-radius:.8rem; background:#fff; color:var(--rep-ink); cursor:pointer; }
+.merdpos-timesheet-dialog-close svg { width:1.1rem; fill:none; stroke:currentColor; stroke-width:2; }
+.merdpos-timesheet-mode-switch { display:flex; flex-wrap:wrap; gap:.55rem; }
+.merdpos-timesheet-mode-switch button { padding:.55rem .8rem; border:1px solid var(--rep-border); border-radius:999px; background:#fff; color:var(--rep-blue); font:inherit; font-weight:800; cursor:pointer; }
+.merdpos-timesheet-mode-switch button.is-active { background:var(--rep-blue); color:#fff; }
+.merdpos-timesheet-create form,.merdpos-timesheet-existing-actions { display:grid; gap:.8rem; }
+.merdpos-timesheet-dialog label { display:grid; gap:.35rem; color:var(--rep-muted); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; }
+.merdpos-timesheet-dialog input,.merdpos-timesheet-dialog select,.merdpos-timesheet-dialog textarea { width:100%; box-sizing:border-box; padding:.65rem .7rem; border:1px solid rgba(28,69,135,.2); border-radius:.8rem; background:#fbfcff; color:var(--rep-ink); font:inherit; text-transform:none; letter-spacing:normal; }
+.merdpos-timesheet-form-actions,.merdpos-timesheet-existing-actions form > div { display:flex; flex-wrap:wrap; gap:.55rem; }
+.merdpos-timesheet-dialog button[type="submit"] { min-height:2.6rem; padding:.6rem .9rem; border:0; border-radius:.8rem; background:var(--rep-blue); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+.merdpos-timesheet-dialog button.is-danger { background:#a62e3b; }
+.merdpos-timesheet-dialog button.is-secondary { background:#edf2fa; color:var(--rep-blue); }
+.merdpos-timesheet-status { display:grid; gap:.35rem; padding:1rem; border:1px solid var(--rep-border); border-radius:1rem; background:#f8faff; }
+.merdpos-timesheet-status > span { justify-self:start; padding:.3rem .55rem; border-radius:999px; background:rgba(201,121,18,.1); color:var(--rep-amber); font-size:.75rem; font-weight:850; text-transform:uppercase; }
+.merdpos-timesheet-status strong { font-size:1.05rem; }
+.merdpos-timesheet-status p,.merdpos-timesheet-status small { margin:0; color:var(--rep-muted); line-height:1.45; }
+@media (max-width:42rem) {
+  .merdpos-timesheet-action-trigger span { display:none; }
+  .merdpos-timesheet-action-trigger { min-width:2.3rem; justify-content:center; padding:.35rem; }
+  .merdpos-timesheet-dialog { width:calc(100vw - 1rem); max-height:calc(100vh - 1rem); border-radius:1rem; }
+  .merdpos-timesheet-dialog-shell { padding:.9rem; }
+}
+@media print { .merdpos-timesheet-action-trigger,.merdpos-timesheet-dialog { display:none !important; } }

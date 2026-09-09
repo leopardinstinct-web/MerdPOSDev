@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 final class DisputesController extends ControllerBase {
 
   private const TOKEN_ID = 'merdpos_disputes_v1';
-  private const TYPES = ['missing_out','wrong_in','wrong_out','delete_shift','new_shift','other'];
+  private const TYPES = ['missing_out','wrong_in','wrong_out','wrong_store','delete_shift','new_shift','other'];
 
   public function __construct(
     private readonly PortalGatewayClientInterface $gateway,
@@ -37,91 +37,10 @@ final class DisputesController extends ControllerBase {
     $request = $this->requestStack->getCurrentRequest();
     if (!$request instanceof Request) throw new AccessDeniedHttpException();
 
-    if ($request->isMethod('POST')) return $this->handlePost($request);
-
-    $stateResult = $this->gateway->call('beta_state', 'GET');
-    $listResult = $this->gateway->call('disputes', 'GET');
-    $state = is_array($stateResult['payload'] ?? NULL) ? $stateResult['payload'] : [];
-    $permissions = $this->permissionKeys($state['permissions'] ?? []);
-    $canSubmit = in_array('disputes.submit_own', $permissions, true);
-    $canReview = in_array('disputes.review', $permissions, true);
-    $canResolveFlags = in_array('attendance_flags.resolve', $permissions, true);
-    $canView = in_array('disputes.view_own', $permissions, true) || $canReview;
-    if (!$canView) throw new AccessDeniedHttpException('MERDPOS dispute permission is required.');
-
-    $rows = is_array($listResult['payload']['disputes'] ?? NULL) ? $listResult['payload']['disputes'] : [];
-    $timezone = trim((string) ($state['client_defaults']['timezone'] ?? 'Australia/Sydney')) ?: 'Australia/Sydney';
-    $disputes = [];
-    foreach ($rows as $row) {
-      if (!is_array($row)) continue;
-      $disputes[] = $this->presentDispute($row, $timezone);
+    if (!$request->isMethod('POST')) {
+      return new RedirectResponse(Url::fromRoute('merdpos_core.reports', [], ['fragment'=>'merdpos-shift-detail'])->toString(), 302);
     }
-
-    $currentUserId = (string) ($state['current_user_id'] ?? '');
-    $ownShifts = [];
-    foreach (($state['recent_shifts'] ?? []) as $row) {
-      if (!is_array($row) || (string) ($row['user_id'] ?? '') !== $currentUserId) continue;
-      $shiftId = trim((string) ($row['shift_id'] ?? ''));
-      if ($shiftId === '') continue;
-      $ownShifts[] = [
-        'id' => $shiftId,
-        'label' => $this->shiftLabel($row, $timezone),
-        'store' => (string) ($row['store_name'] ?? ''),
-        'status' => strtoupper((string) ($row['status'] ?? '')),
-      ];
-    }
-
-    $stores = [];
-    foreach (($state['stores'] ?? []) as $row) {
-      if (!is_array($row) || (int) ($row['id'] ?? 0) <= 0) continue;
-      $stores[] = ['id' => (int) $row['id'], 'name' => (string) ($row['store_name'] ?? '')];
-    }
-
-    $flags = [];
-    if ($canResolveFlags) {
-      foreach (($state['attendance_flags'] ?? []) as $row) {
-        if (!is_array($row)) continue;
-        $flags[] = [
-          'id' => (string) ($row['flag_id'] ?? ''),
-          'employee' => (string) ($row['full_name'] ?? ''),
-          'store' => (string) ($row['attempted_store'] ?? ''),
-          'reason' => ucwords(str_replace('_', ' ', (string) ($row['reason'] ?? ''))),
-          'status' => strtolower((string) ($row['status'] ?? '')),
-          'created' => $this->localDateTime((string) ($row['created_at'] ?? ''), $timezone),
-        ];
-      }
-    }
-
-    $openCount = 0;
-    $pendingCount = 0;
-    $awaitingCount = 0;
-    foreach ($disputes as $row) {
-      if (in_array($row['status'], ['pending','awaiting_employee'], true)) $openCount++;
-      if ($row['status'] === 'pending') $pendingCount++;
-      if ($row['status'] === 'awaiting_employee') $awaitingCount++;
-    }
-
-    return [
-      '#theme' => 'merdpos_disputes',
-      '#disputes' => $disputes,
-      '#flags' => $flags,
-      '#own_shifts' => $ownShifts,
-      '#stores' => $stores,
-      '#form_token' => $this->csrf->get(self::TOKEN_ID),
-      '#post_url' => Url::fromRoute('merdpos_core.disputes')->toString(),
-      '#can_submit' => $canSubmit,
-      '#can_review' => $canReview,
-      '#can_resolve_flags' => $canResolveFlags,
-      '#role' => [
-        'key' => (string) ($state['role_key'] ?? $state['role'] ?? 'USER'),
-        'label' => (string) ($state['role_label'] ?? $state['role'] ?? 'MERDPOS'),
-        'loa' => (int) ($state['authority_level'] ?? 0),
-      ],
-      '#counts' => ['open'=>$openCount, 'pending'=>$pendingCount, 'awaiting'=>$awaitingCount, 'flags'=>count(array_filter($flags, static fn(array $f): bool => $f['status'] === 'open'))],
-      '#gateway_status' => (($stateResult['status'] ?? '') === 'ok' && ($listResult['status'] ?? '') === 'ok') ? 'ok' : 'unavailable',
-      '#attached' => ['library' => ['merdpos_core/disputes']],
-      '#cache' => ['contexts' => ['user'], 'max-age' => 0],
-    ];
+    return $this->handlePost($request);
   }
 
   private function handlePost(Request $request): RedirectResponse {
@@ -226,7 +145,15 @@ final class DisputesController extends ControllerBase {
   }
 
   private function redirectBack(): RedirectResponse {
-    return new RedirectResponse(Url::fromRoute('merdpos_core.disputes')->toString());
+    $query = [];
+    $raw = trim((string)($this->requestStack->getCurrentRequest()?->request->get('return_query', '') ?? ''));
+    if ($raw !== '') {
+      parse_str(ltrim($raw, '?'), $parsed);
+      foreach (['week_start','store','employee','attendance'] as $key) {
+        if (isset($parsed[$key]) && is_scalar($parsed[$key])) $query[$key] = (string)$parsed[$key];
+      }
+    }
+    return new RedirectResponse(Url::fromRoute('merdpos_core.reports', [], ['query'=>$query,'fragment'=>'merdpos-shift-detail'])->toString());
   }
 
   private function dateTimeLocal(mixed $value): ?string {

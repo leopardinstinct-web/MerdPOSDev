@@ -522,6 +522,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
   private function reports(array $query): array {
     $dashboard = $this->call('dashboard_data');
+    $state = $this->call('beta_state');
     $weeks = $this->call('weeks');
     $weekRows = $this->rows($weeks['payload']['weeks'] ?? []);
     $currentWeek = (string)($weeks['payload']['current_week'] ?? '');
@@ -534,17 +535,28 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $disputeRows = $this->rows($disputes['payload']['disputes'] ?? []);
     $payrollVisible = (bool)($report['payroll_visible'] ?? false);
     $currency = (string)($dashboard['payload']['client_defaults']['currency_code'] ?? 'AUD');
+    $statePayload = $this->map($state['payload'] ?? []);
     $role = $this->map($dashboard['payload']['role'] ?? []);
     $roleKey = strtoupper((string)($role['role_key'] ?? $role['base_role'] ?? 'USER'));
     $roleLabel = (string)($role['role_label'] ?? $roleKey);
     $loa = (int)($role['authority_level'] ?? 0);
+    $permissions = $this->permissionKeys($statePayload['permissions'] ?? []);
+    $currentUserId = (string)($statePayload['current_user_id'] ?? '');
+    $canSubmitOwn = in_array('disputes.submit_own', $permissions, true);
+    $canReview = in_array('disputes.review', $permissions, true);
+    $actionStores = [];
+    foreach ($this->rows($statePayload['stores'] ?? []) as $store) {
+      if ((int)($store['id'] ?? 0) > 0) $actionStores[] = ['id'=>(int)$store['id'],'name'=>(string)($store['store_name'] ?? '')];
+    }
 
     $allShifts = [];
     foreach ($this->rows($report['employees'] ?? []) as $employee) {
       $employeeName = (string)($employee['employee_name'] ?? '');
+      $employeeUserId = (string)($employee['user_id'] ?? '');
       foreach ($this->rows($employee['rows'] ?? []) as $row) {
         $item = [
-          'employee'=>$employeeName,
+          'employee'=>$employeeName,'employee_user_id'=>$employeeUserId,
+          'employee_id'=>(int)($row['employee_id'] ?? 0),'store_id'=>(int)($row['store_id'] ?? 0),'shift_id'=>(string)($row['shift_id'] ?? ''),
           'store'=>(string)($row['store_name'] ?? ''),
           'date'=>(string)($row['in_date'] ?? ''),
           'in'=>$this->clock((string)($row['actual_in_time'] ?? '')),
@@ -582,6 +594,28 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       if ($selectedEmployee !== '' && (string)($row['full_name'] ?? '') !== $selectedEmployee) return false;
       return true;
     }));
+
+    $disputesByShift = [];
+    $newShiftDisputes = [];
+    foreach ($filteredDisputes as $dispute) {
+      $shiftId = trim((string)($dispute['shift_id'] ?? ''));
+      if ($shiftId !== '' && !isset($disputesByShift[$shiftId])) $disputesByShift[$shiftId] = $dispute;
+      elseif (strtolower((string)($dispute['dispute_type'] ?? '')) === 'new_shift') $newShiftDisputes[] = $dispute;
+    }
+    $presentDispute = static function(array $dispute) use ($currentUserId,$canSubmitOwn,$canReview): array {
+      $status = strtolower((string)($dispute['status'] ?? 'unknown'));
+      $isOwn = $currentUserId !== '' && hash_equals($currentUserId, (string)($dispute['user_id'] ?? ''));
+      return [
+        'id'=>(string)($dispute['dispute_id'] ?? ''),'status'=>$status,'status_label'=>ucwords(str_replace('_',' ',$status)),
+        'type'=>(string)($dispute['dispute_type'] ?? 'other'),'type_label'=>ucwords(str_replace('_',' ',(string)($dispute['dispute_type'] ?? 'other'))),
+        'origin'=>(string)($dispute['origin'] ?? 'employee'),'reason'=>(string)($dispute['reason'] ?? ''),
+        'requested_in'=>(string)($dispute['requested_clock_in_at'] ?? ''),'requested_out'=>(string)($dispute['requested_clock_out_at'] ?? ''),
+        'submitted'=>(string)($dispute['submitted_at'] ?? ''),'decision_note'=>(string)($dispute['decision_note'] ?? ''),
+        'can_cancel'=>$isOwn && $canSubmitOwn && in_array($status,['pending','awaiting_employee'],true),
+        'can_review'=>$canReview && $status === 'pending',
+        'can_handover'=>$isOwn && $canSubmitOwn && $status === 'awaiting_employee' && (string)($dispute['origin'] ?? '') === 'pos_handover',
+      ];
+    };
 
     $storeAgg = [];
     $employeeAgg = [];
@@ -636,32 +670,41 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $shiftTable = [];
     foreach (array_slice($filteredShifts, 0, 250) as $row) {
+      $shiftId = trim((string)($row['shift_id'] ?? ''));
+      $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
+      $isOwn = $currentUserId !== '' && hash_equals($currentUserId, (string)($row['employee_user_id'] ?? ''));
       $item = [
         'employee'=>$row['employee'],'store'=>$row['store'],'date'=>$row['date'],'in'=>$row['in'],'out'=>$row['out'],
         'hours'=>$this->number($row['hours']),'start'=>$row['start'],
+        'action'=>[
+          'shift_id'=>$shiftId,'store_id'=>(int)($row['store_id'] ?? 0),'employee'=>(string)$row['employee'],'date'=>(string)$row['date'],
+          'in'=>(string)$row['in'],'out'=>(string)$row['out'],'can_dispute'=>$canSubmitOwn && $isOwn && $shiftId !== '',
+          'can_add_missing'=>$canSubmitOwn && $isOwn,'dispute'=>$dispute,
+        ],
       ];
       if ($payrollVisible) $item['wage'] = $this->money($row['wage'] ?? 0, $currency);
       $shiftTable[] = $item;
     }
+    if ($selectedAttendance === 'all') {
+      $selectedWeekEnd = $selectedWeek !== '' ? (new \DateTimeImmutable($selectedWeek))->modify('+6 days')->format('Y-m-d') : '';
+      foreach (array_slice($newShiftDisputes, 0, 50) as $row) {
+        $detail = $presentDispute($row);
+        $requestedIn=(string)($row['requested_clock_in_at'] ?? ''); $requestedOut=(string)($row['requested_clock_out_at'] ?? '');
+        $requestedDate = substr($requestedIn,0,10);
+        if ($selectedWeek !== '' && ($requestedDate < $selectedWeek || $requestedDate > $selectedWeekEnd)) continue;
+        $item=['employee'=>(string)($row['full_name'] ?? ''),'store'=>(string)($row['store_name'] ?? ''),'date'=>substr($requestedIn,0,10),
+          'in'=>strlen($requestedIn)>=16?substr($requestedIn,11,5):'—','out'=>strlen($requestedOut)>=16?substr($requestedOut,11,5):'—','hours'=>'—','start'=>'Missing shift request',
+          'action'=>['shift_id'=>'','store_id'=>0,'employee'=>(string)($row['full_name'] ?? ''),'date'=>substr($requestedIn,0,10),'in'=>strlen($requestedIn)>=16?substr($requestedIn,11,5):'—','out'=>strlen($requestedOut)>=16?substr($requestedOut,11,5):'—','can_dispute'=>false,'can_add_missing'=>false,'dispute'=>$detail],
+        ];
+        if ($payrollVisible) $item['wage']='—';
+        $shiftTable[]=$item;
+      }
+    }
 
-    $disputeTable = [];
     $disputeCounts = [];
-    foreach (array_slice($filteredDisputes, 0, 150) as $row) {
+    foreach ($filteredDisputes as $row) {
       $status = strtolower((string)($row['status'] ?? 'unknown'));
       $disputeCounts[$status] = ($disputeCounts[$status] ?? 0) + 1;
-      $requested = trim(implode(' → ', array_filter([
-        (string)($row['requested_clock_in_at'] ?? ''),
-        (string)($row['requested_clock_out_at'] ?? ''),
-      ])));
-      $disputeTable[] = [
-        'employee'=>(string)($row['full_name'] ?? ''),
-        'store'=>(string)($row['store_name'] ?? ''),
-        'type'=>ucwords(str_replace('_',' ',(string)($row['dispute_type'] ?? ''))),
-        'requested'=>$requested !== '' ? $requested : '-',
-        'reason'=>(string)($row['reason'] ?? ''),
-        'status'=>strtoupper($status),
-        'submitted'=>(string)($row['submitted_at'] ?? ''),
-      ];
     }
 
     $chartSpecs = [];
@@ -685,13 +728,6 @@ final class ParityDataProvider implements ParityDataProviderInterface {
         'colors'=>['#23a6a8','#e09b2d'],'height'=>280,
       ];
     }
-    if ($disputeCounts) {
-      $labels = array_map(static fn(string $s): string => ucwords(str_replace('_',' ',$s)), array_keys($disputeCounts));
-      $chartSpecs[] = [
-        'key'=>'reports_disputes','type'=>'donut','labels'=>$labels,'values'=>array_values($disputeCounts),
-        'series_label'=>'Disputes','color'=>'#1c4587','colors'=>['#e09b2d','#23a6a8','#c94b5b','#6f42c1','#1c4587'],'height'=>280,
-      ];
-    }
     if ($payrollVisible && $storeAgg) {
       $labels = array_keys($storeAgg);
       $values = array_map(static fn(array $v): float => round((float)$v['wage'],2), array_values($storeAgg));
@@ -706,6 +742,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       $employeeColumns[] = ['key'=>'wage','label'=>'Wage'];
       $shiftColumns[] = ['key'=>'wage','label'=>'Wage'];
     }
+    $exportColumns = $shiftColumns;
+    $shiftColumns[] = ['key'=>'action','label'=>'Action'];
 
     $metrics = [
       $this->metric('Week',(string)($report['week_label'] ?? $selectedWeek ?: '-'),'Selected payroll week','brand'),
@@ -727,22 +765,22 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     ];
 
     $surface = $this->surface(
-      'reports','Reports','Timesheets, attendance & disputes',
-      'Role-aware reporting over the existing MERDPOS reconciliation engine. Drupal filters and visualizes returned data without recalculating payroll rules.',
-      $this->status([$dashboard['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
+      'reports','Reports','Timesheets Report',
+      'Role-aware timesheets with shift-level correction and dispute actions over the existing MERDPOS reconciliation engine.',
+      $this->status([$dashboard['status'],$state['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
       $metrics,
       [
         $this->table('Store summary','Hours by store',$storeColumns,$storeTable),
         $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable),
         $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable),
-        $this->table('Disputes','Current dispute queue',[
-          ['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'type','label'=>'Issue'],['key'=>'requested','label'=>'Requested change'],['key'=>'reason','label'=>'Reason'],['key'=>'status','label'=>'Status'],['key'=>'submitted','label'=>'Submitted'],
-        ],$disputeTable),
       ],
       ['source'=>'dashboard_data + weeks + authoritative timesheet + disputes','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
       $filters,
     );
 
+    $surface['action_stores'] = $actionStores;
+    $surface['can_submit_disputes'] = $canSubmitOwn;
+    $surface['can_review_disputes'] = $canReview;
     $surface['role'] = ['key'=>$roleKey,'label'=>$roleLabel,'loa'=>$loa];
     $surface['payroll_visible'] = $payrollVisible;
     $surface['chart_specs'] = $chartSpecs;
@@ -752,8 +790,11 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['selected_store'] = $selectedStore;
     $surface['selected_employee'] = $selectedEmployee;
     $surface['selected_attendance'] = $selectedAttendance;
-    $surface['export_rows'] = $shiftTable;
-    $surface['export_columns'] = $shiftColumns;
+    $surface['export_rows'] = array_slice($shiftTable,0,count($filteredShifts));
+    $surface['export_columns'] = $exportColumns;
+    $surface['timesheet_action_stores'] = $actionStores;
+    $surface['timesheet_can_submit_own'] = $canSubmitOwn;
+    $surface['timesheet_can_review'] = $canReview;
     $surface['filter_summary'] = implode(' · ', array_filter([
       $selectedStore !== '' ? $selectedStore : 'All permitted stores',
       $selectedEmployee !== '' ? $selectedEmployee : 'All permitted employees',

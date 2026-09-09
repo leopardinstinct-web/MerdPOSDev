@@ -117,7 +117,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
     if (!$account->hasPermission($item['permission'])) continue;
     if (isset($item['backend_permission']) && empty($variables['merdpos_permission_map'][$item['backend_permission']])) continue;
     $item['url'] = Url::fromRoute($item['route'])->toString();
-    $item['active'] = $route_name === $item['route'] || ($item['key'] === 'reports' && $route_name === 'merdpos_core.disputes');
+    $item['active'] = $route_name === $item['route'];
     $variables['merdpos_nav'][] = $item;
   }
 
@@ -127,7 +127,6 @@ function merdpos_app_preprocess_page(array &$variables): void {
   ));
   $variables['merdpos_active_section'] = $active[0]['key'] ?? 'home';
   $variables['merdpos_active_label'] = $active[0]['label'] ?? 'Home';
-  if ($route_name === 'merdpos_core.disputes') $variables['merdpos_active_label'] = 'Disputes';
 
   $perms = $variables['merdpos_permission_map'];
   $requested_tab = trim((string) (\Drupal::request()->query->get('tab') ?? ''));
@@ -148,24 +147,6 @@ function merdpos_app_preprocess_page(array &$variables): void {
       $tab['active'] = $tab['key'] === $active_tab;
       $variables['merdpos_section_tabs'][] = $tab;
     }
-  }
-  elseif ($route_name === 'merdpos_core.operations') {
-    $variables['merdpos_section_tabs'] = [
-      ['label'=>'Operations','url'=>Url::fromRoute('merdpos_core.operations')->toString(),'active'=>true],
-      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>false],
-    ];
-  }
-  elseif ($route_name === 'merdpos_core.reports') {
-    $variables['merdpos_section_tabs'] = [
-      ['label'=>'Reports','url'=>Url::fromRoute('merdpos_core.reports')->toString(),'active'=>true],
-      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>false],
-    ];
-  }
-  elseif ($route_name === 'merdpos_core.disputes') {
-    $variables['merdpos_section_tabs'] = [
-      ['label'=>'Disputes','url'=>Url::fromRoute('merdpos_core.disputes')->toString(),'active'=>true],
-      ['label'=>'Reports','url'=>Url::fromRoute('merdpos_core.reports')->toString(),'active'=>false],
-    ];
   }
 }
 

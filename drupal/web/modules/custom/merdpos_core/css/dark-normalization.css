@@ -135,3 +135,14 @@
   background: var(--color-surface-selected) !important;
   color: var(--color-text-primary) !important;
 }
+
+:root[data-theme="dark"] :is(.merdpos-timesheet-dialog-close,.merdpos-timesheet-action-trigger,.merdpos-timesheet-mode-switch button,.merdpos-timesheet-status) {
+  background: var(--color-surface-raised) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-default) !important;
+}
+:root[data-theme="dark"] .merdpos-timesheet-mode-switch button.is-active {
+  background: var(--color-brand-cyan) !important;
+  color: var(--color-ink-on-brand, #07131f) !important;
+}
+:root[data-theme="dark"] .merdpos-timesheet-status > span { color: var(--color-warning) !important; }
