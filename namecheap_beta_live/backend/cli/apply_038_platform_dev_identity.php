@@ -57,7 +57,7 @@ try {
     }
 
     $missing = (int)$pdo->query(
-        "SELECT COUNT(*) FROM employees e LEFT JOIN platform_identities p ON p.user_id=e.user_id AND p.role_key='DEV' AND p.status='active' "
+        "SELECT COUNT(*) FROM employees e LEFT JOIN platform_identities p ON BINARY p.user_id=BINARY e.user_id AND p.role_key='DEV' AND p.status='active' "
         . "WHERE e.status='active' AND UPPER(TRIM(e.employee_type))='DEV' AND p.id IS NULL"
     )->fetchColumn();
     if ($missing !== 0) throw new RuntimeException('Not every active DEV employee was staged as a platform identity.');
