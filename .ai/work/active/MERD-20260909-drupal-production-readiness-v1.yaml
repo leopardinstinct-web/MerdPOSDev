@@ -1,7 +1,7 @@
 id: MERD-20260909-drupal-production-readiness-v1
 branch: milestone/drupal-production-readiness-v1
 base_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
-last_seen_head: d5edf12328e81da15f6df1d54b77782ac737e4d0
+last_seen_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
 objective: Freeze the verified Drupal Beta parity baseline before role acceptance and cutover-rehearsal work begins.
 packet_state: BASELINE_FROZEN
 lifecycle: ACTIVE
