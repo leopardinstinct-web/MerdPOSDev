@@ -219,6 +219,7 @@ final class AdministrationController extends ControllerBase {
       'save_role' => $this->saveRole($request, $selectedClientId),
       'delete_role' => $this->deleteRole($request, $selectedClientId),
       'save_role_permissions' => $this->saveRolePermissions($request, $selectedClientId),
+      'save_role_usability' => $this->saveRoleUsability($request, $selectedClientId),
       default => ['status' => 'invalid', 'message' => 'Unsupported administration action.'],
     };
 
@@ -394,6 +395,33 @@ final class AdministrationController extends ControllerBase {
       'action' => 'delete_role',
       'role_id' => $this->nullablePositiveInt($request->request->get('role_id')),
     ], $selectedClientId ?: NULL);
+  }
+
+  private function saveRoleUsability(Request $request, int $selectedClientId): array {
+    $roleKey = strtoupper(trim((string) $request->request->get('role_key', '')));
+    if (!in_array($roleKey, ['SUPER', 'USER'], true)) return ['status'=>'invalid','message'=>'Choose SUPER or USER.'];
+    $keys = $this->roleUsabilityKeys($request->request->all('permission_keys'));
+    $selected = array_fill_keys($this->roleUsabilityKeys($request->request->all('enabled_keys')), true);
+    $enabled = [];
+    foreach ($keys as $key) $enabled[$key] = isset($selected[$key]);
+    if (!$enabled) return ['status'=>'invalid','message'=>'No application capabilities were supplied.'];
+    $result = $this->gateway->call('role_authority', 'POST', [], [
+      'action'=>'save_usability', 'role_key'=>$roleKey, 'enabled'=>$enabled,
+    ], $selectedClientId ?: NULL);
+    if (($result['status'] ?? '') === 'ok' && !empty($result['payload']['success'])) {
+      $result['payload']['message'] = $roleKey . ' application usability saved within the DEV-defined ceiling.';
+    }
+    return $result;
+  }
+
+  private function roleUsabilityKeys(mixed $value): array {
+    if (!is_array($value)) return [];
+    $keys = [];
+    foreach ($value as $key) {
+      $key = trim((string) $key);
+      if (preg_match('/^[a-z][a-z0-9_.-]{1,119}$/', $key)) $keys[$key] = true;
+    }
+    return array_keys($keys);
   }
 
   private function saveRolePermissions(Request $request, int $selectedClientId): array {
