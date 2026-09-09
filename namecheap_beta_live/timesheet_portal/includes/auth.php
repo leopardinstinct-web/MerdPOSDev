@@ -1,13 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-/**
- * Browser-rendered MERDPOS pages must always leave PHP with an explicit HTML
- * content type. API routes intentionally keep their own JSON response headers.
- *
- * This protects the portal from host/proxy MIME defaults that can otherwise
- * make already-rendered HTML appear as literal source text in the browser.
- */
 function portal_request_is_api(): bool
 {
     $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
@@ -21,17 +14,14 @@ function portal_html_response_headers(): void
     header('X-Content-Type-Options: nosniff', true);
 }
 
-if (PHP_SAPI !== 'cli' && !portal_request_is_api()) {
-    portal_html_response_headers();
-}
+if (PHP_SAPI !== 'cli' && !portal_request_is_api()) portal_html_response_headers();
 
 function start_app_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
         $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
         session_set_cookie_params([
-            'lifetime' => 0, 'path' => '/', 'secure' => $secure,
-            'httponly' => true, 'samesite' => 'Lax',
+            'lifetime'=>0,'path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Lax',
         ]);
         session_name(SESSION_NAME);
         session_start();
@@ -50,23 +40,30 @@ function current_user(): ?array
     if (!is_array($identity)) return null;
 
     $user = $identity;
-    $homeClientId = (int)($identity['client_id'] ?? 0);
     $role = strtoupper((string)($identity['role'] ?? $identity['actual_employee_type'] ?? $identity['employee_type'] ?? 'USER'));
+    $isPlatform = strtolower((string)($identity['identity_scope'] ?? '')) === 'platform';
+    if ($isPlatform && $role === 'DEV') {
+        $activeClientId = (int)($identity['client_id'] ?? $identity['active_client_id'] ?? 0);
+        if (isset($_SESSION['dev_active_client_id'])) {
+            $candidate = filter_var($_SESSION['dev_active_client_id'], FILTER_VALIDATE_INT);
+            if ($candidate !== false && $candidate > 0) $activeClientId = (int)$candidate;
+        }
+        $user['auth_client_id'] = 0;
+        $user['home_client_id'] = 0;
+        $user['client_id'] = $activeClientId;
+        $user['active_client_id'] = $activeClientId;
+        $user['is_cross_client_context'] = false;
+        $user['identity_scope'] = 'platform';
+        return $user;
+    }
 
-    // Keep the authenticated tenant immutable. DEV may separately choose an
-    // active client context for management data without impersonating a user
-    // from that client or changing the employee row they authenticated against.
+    $homeClientId = (int)($identity['client_id'] ?? 0);
     $user['auth_client_id'] = $homeClientId;
     $user['home_client_id'] = $homeClientId;
-    $activeClientId = $homeClientId;
-    if ($role === 'DEV' && isset($_SESSION['dev_active_client_id'])) {
-        $candidate = filter_var($_SESSION['dev_active_client_id'], FILTER_VALIDATE_INT);
-        if ($candidate !== false && $candidate > 0) $activeClientId = (int)$candidate;
-    }
-    $user['client_id'] = $activeClientId;
-    $user['active_client_id'] = $activeClientId;
-    $user['is_cross_client_context'] = $role === 'DEV' && $activeClientId !== $homeClientId;
-
+    $user['client_id'] = $homeClientId;
+    $user['active_client_id'] = $homeClientId;
+    $user['is_cross_client_context'] = false;
+    $user['identity_scope'] = 'employee';
     return $user;
 }
 
@@ -76,7 +73,7 @@ function require_login(): array
     if (!$user) {
         http_response_code(401);
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Not logged in']);
+        echo json_encode(['success'=>false,'error'=>'Not logged in']);
         exit;
     }
     return $user;
@@ -123,7 +120,7 @@ function require_csrf(array $input): void
 {
     $provided = (string)($input['csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
     if ($provided === '' || !hash_equals(csrf_token(), $provided)) {
-        json_response(['success' => false, 'error' => 'Your session expired. Refresh and try again.'], 419);
+        json_response(['success'=>false,'error'=>'Your session expired. Refresh and try again.'], 419);
     }
 }
 
@@ -131,7 +128,6 @@ function request_input(): array
 {
     static $cached = null;
     if (is_array($cached)) return $cached;
-
     $input = $_POST;
     $raw = file_get_contents('php://input');
     if (!$input && $raw !== '') {
