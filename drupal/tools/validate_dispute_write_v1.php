@@ -17,13 +17,14 @@ dispute_v1_check(str_contains($controller,'csrf->validate'),'Drupal dispute CSRF
 dispute_v1_check(str_contains($controller,"call('disputes', 'POST'"),'Dispute writes must use the signed MERDPOS gateway.');
 foreach(['create','decide','cancel','confirm_handover','reject_handover'] as $action) dispute_v1_check(str_contains($controller,"'{$action}'"),"Missing dispute action {$action}.");
 foreach(['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) dispute_v1_check(!str_contains($controller,$forbidden),"Drupal dispute controller contains operational SQL marker: {$forbidden}");
-foreach(['data-timesheet-action','data-timesheet-dialog','data-timesheet-create-form','Add missing shift','data-dispute-cancel','data-dispute-review'] as $needle) dispute_v1_check(str_contains($template,$needle),'Shift Detail dispute UI missing: '.$needle);
+foreach(['data-timesheet-action','data-timesheet-menu','data-timesheet-menu-choice="missing"','data-timesheet-menu-choice="dispute"','Missing shift','Dispute existing shift','data-timesheet-dialog','data-timesheet-create-form','data-dispute-cancel','data-dispute-review'] as $needle) dispute_v1_check(str_contains($template,$needle),'Shift Detail dispute UI missing: '.$needle);
 dispute_v1_check(!str_contains($template,'Current dispute queue') && !str_contains($template,'Dispute status'),'Standalone dispute report surfaces must stay retired.');
 dispute_v1_check(str_contains($provider,"['key'=>'action','label'=>'Action']"),'Shift Detail Action column missing.');
 dispute_v1_check(str_contains($provider,'disputesByShift') && str_contains($provider,'newShiftDisputes'),'Disputes are not integrated with Shift Detail rows.');
-dispute_v1_check(str_contains($js,"typeHidden.value = missing ? 'new_shift'") && str_contains($js,'window.location.search'),'Missing-shift mode or filter-preserving return missing.');
+dispute_v1_check(str_contains($provider,'representedShiftIds') && str_contains($provider,'Open shift · dispute'),'Disputes without completed Timesheet rows must stay visible in Shift Detail.');
+dispute_v1_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)") && str_contains($js,"typeHidden.value = 'new_shift'") && str_contains($js,'window.location.search'),'Two-stage Shift Action menu or filter-preserving return missing.');
 dispute_v1_check(str_contains($js,'showModal') && !str_contains($js,'fetch('),'Timesheet actions must use the shared dialog and server forms.');
-dispute_v1_check(str_contains($css,'.merdpos-timesheet-action-trigger') && str_contains($css,'.merdpos-timesheet-dialog'),'Integrated action styling missing.');
+dispute_v1_check(str_contains($css,'.merdpos-timesheet-action-trigger') && str_contains($css,'.merdpos-timesheet-action-menu') && str_contains($css,'.merdpos-timesheet-dialog'),'Integrated action/menu/dialog styling missing.');
 dispute_v1_check(!str_contains($theme,"['label'=>'Disputes'"),'Standalone Disputes section tab must stay retired.');
 foreach(['disputes.submit_own','disputes.review'] as $permission) dispute_v1_check(str_contains($api,$permission),'Canonical dispute permission missing: '.$permission);
 foreach(['create','decide','cancel','confirm_handover','reject_handover'] as $action) dispute_v1_check(str_contains($api,"action === '{$action}'"),"Canonical disputes API action missing: {$action}");

@@ -170,3 +170,30 @@
   .merdpos-timesheet-dialog-shell { padding:.9rem; }
 }
 @media print { .merdpos-timesheet-action-trigger,.merdpos-timesheet-dialog { display:none !important; } }
+
+/* Shift Detail contextual action menu. The trigger uses the user-supplied error icon as a mask. */
+.merdpos-timesheet-action-trigger {
+  position:relative; display:inline-grid; place-items:center; width:2.35rem; min-width:2.35rem; height:2.35rem; min-height:2.35rem;
+  padding:0; gap:0; border-radius:.72rem; color:var(--rep-blue);
+}
+.merdpos-timesheet-action-icon {
+  display:block !important; width:1.22rem; height:1.22rem; background:currentColor;
+  -webkit-mask:url('/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg') center/contain no-repeat;
+  mask:url('/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg') center/contain no-repeat;
+}
+.merdpos-timesheet-dispute-dot {
+  display:block !important; position:absolute; width:.46rem; height:.46rem; right:.18rem; top:.18rem;
+  border:2px solid #fff; border-radius:50%; background:currentColor;
+}
+.merdpos-timesheet-action-menu {
+  position:fixed; z-index:1200; min-width:13.5rem; padding:.35rem; border:1px solid var(--rep-border); border-radius:.85rem;
+  background:#fff; box-shadow:0 1rem 2.8rem rgba(16,42,82,.2);
+}
+.merdpos-timesheet-action-menu[hidden] { display:none; }
+.merdpos-timesheet-action-menu button {
+  display:flex; align-items:center; gap:.65rem; width:100%; padding:.68rem .75rem; border:0; border-radius:.62rem;
+  background:transparent; color:var(--rep-ink); font:inherit; font-size:.86rem; font-weight:750; text-align:left; cursor:pointer;
+}
+.merdpos-timesheet-action-menu button:hover,.merdpos-timesheet-action-menu button:focus-visible { background:rgba(28,69,135,.07); outline:none; }
+.merdpos-timesheet-action-menu svg { width:1.05rem; height:1.05rem; fill:none; stroke:currentColor; stroke-width:1.8; }
+.merdpos-timesheet-create-help { margin:0; color:var(--rep-muted); line-height:1.45; }
