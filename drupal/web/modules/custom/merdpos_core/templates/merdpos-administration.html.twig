@@ -7,6 +7,8 @@
 {% set authority_roles = role_state.roles|default([]) %}
 {% set permission_rules = role_state.permissions|default([]) %}
 {% set can_manage_permissions = role_state.can_manage_permissions|default(false) %}
+{% set can_define_roles = role_state.can_define_roles|default(false) %}
+{% set can_manage_usability = role_state.can_manage_usability|default(false) %}
 {% set actor_authority = role_state.actor_authority_level|default(0) %}
 {% set post_url = path('merdpos_core.administration', {}, {'query': {'client_id': selected_client_id, 'tab': current_tab}}) %}
 
@@ -275,47 +277,62 @@
 
   <section class="merdpos-admin-section" data-admin-panel="roles">
     <div class="merdpos-admin-section-head">
-      <div><p>AUTHORITY</p><h2>Roles</h2><span>Create and maintain assignable roles. Workforce assigns these roles to employees.</span></div>
-      <div class="merdpos-admin-head-actions"><span class="merdpos-admin-permission">roles.manage</span></div>
+      <div><p>AUTHORITY</p><h2>Roles</h2><span>{{ can_define_roles ? 'DEV defines role identity, LOA and permission ceilings.' : 'Role definitions are DEV-governed. ADMIN may only configure SUPER / USER application usability.' }}</span></div>
+      <div class="merdpos-admin-head-actions"><span class="merdpos-admin-permission">{{ can_define_roles ? 'roles.define' : 'roles.manage' }}</span></div>
     </div>
     {% if can_manage_roles %}
-    <div class="merdpos-admin-role-note"><strong>LOA {{ actor_authority }}</strong><span>You can manage custom roles at or below your own authority. System-role authority and permission thresholds remain DEV-governed.</span></div>
+    <div class="merdpos-admin-role-note"><strong>LOA {{ actor_authority }}</strong><span>{{ can_define_roles ? 'DEV owns role identity, authority levels and permission ceilings.' : 'ADMIN changes only SUPER / USER usability inside the DEV-defined ceiling.' }}</span></div>
+    {% if can_define_roles %}
     <details class="merdpos-admin-editor merdpos-admin-editor--new">
       <summary><strong>New role</strong><span>Create an assignable custom role</span></summary>
       <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="create_role">
         <label><span>Role name</span><input name="role_label" maxlength="80" required></label>
-        <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="{{ actor_authority > 99 ? 99 : actor_authority }}" value="{{ actor_authority > 50 ? 50 : actor_authority }}" required></label>
+        <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="99" value="50" required></label>
         <div class="merdpos-admin-form-actions"><button type="submit">Create role</button></div>
       </form>
     </details>
+    {% endif %}
     <div class="merdpos-admin-list">
       {% for role in authority_roles %}
       <details class="merdpos-admin-editor" data-role-row="{{ role.id }}">
         <summary><div><strong>{{ role.role_label }}</strong><span>{{ role.role_key }} &middot; {{ role.is_system ? 'System' : 'Custom' }}</span></div><div class="merdpos-admin-summary-meta"><b>LOA {{ role.authority_level }}</b><span>{{ role.employee_count }} assigned</span></div></summary>
-        {% if role.editable %}
+        {% if can_define_roles and role.editable %}
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_role"><input type="hidden" name="role_id" value="{{ role.id }}">
           <label><span>Role name</span><input name="role_label" maxlength="80" value="{{ role.role_label }}"{{ role.is_system ? ' readonly' : '' }} required></label>
-          <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="{{ role_state.can_manage_system_roles|default(false) ? 99 : (actor_authority > 99 ? 99 : actor_authority) }}" value="{{ role.authority_level }}" required></label>
+          <label><span>Authority level (LOA)</span><input type="number" name="authority_level" min="1" max="99" value="{{ role.authority_level }}" required></label>
           <div class="merdpos-admin-form-actions"><button type="submit">Save role</button>{% if role.deletable %}<button type="submit" name="entity_action" value="delete_role" class="is-danger" onclick="return confirm('Delete this unassigned role?')">Delete role</button>{% endif %}</div>
         </form>
-        {% else %}<div class="merdpos-admin-readonly">{{ role.role_key == 'DEV' ? 'DEV authority is fixed at 1000.' : 'This role is outside your delegated role-management boundary.' }}</div>{% endif %}
+        {% else %}<div class="merdpos-admin-readonly">DEV-governed role definition. LOA and role identity are read-only here.</div>{% endif %}
       </details>
       {% else %}<div class="merdpos-admin-empty">No roles are available in this client context.</div>{% endfor %}
     </div>
+    {% if can_manage_usability and not can_manage_permissions %}
+    {% for target in ['SUPER','USER'] %}
+    <details class="merdpos-admin-editor merdpos-admin-role-policy">
+      <summary><strong>{{ target }} application usability</strong><span>Within DEV-defined ceiling</span></summary>
+      <form method="post" action="{{ post_url }}" class="merdpos-admin-permission-form">
+        <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_role_usability"><input type="hidden" name="role_key" value="{{ target }}">
+        <p>Unavailable capabilities are outside the DEV-defined ceiling and cannot be granted by ADMIN.</p>
+        <div class="merdpos-admin-permission-grid">{% for permission in permission_rules %}{% if not permission.dev_only %}{% set available = target == 'SUPER' ? permission.super_available : permission.user_available %}{% set enabled = target == 'SUPER' ? permission.super_enabled : permission.user_enabled %}<label><span><strong>{{ permission.label }}</strong><small>{{ permission.category }} &middot; {{ permission.permission_key }}</small></span><input type="hidden" name="permission_keys[]" value="{{ permission.permission_key }}"><input type="checkbox" name="enabled_keys[]" value="{{ permission.permission_key }}"{{ enabled ? ' checked' : '' }}{{ available ? '' : ' disabled' }}></label>{% endif %}{% endfor %}</div>
+        <div class="merdpos-admin-form-actions"><button type="submit">Save {{ target }} usability</button></div>
+      </form>
+    </details>
+    {% endfor %}
+    {% endif %}
     {% if can_manage_permissions %}
     <details class="merdpos-admin-editor merdpos-admin-role-policy">
       <summary><strong>Permission thresholds</strong><span>DEV-only security policy</span></summary>
       <form method="post" action="{{ post_url }}" class="merdpos-admin-permission-form">
         <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_role_permissions">
-        <p>Access is granted when role LOA meets the permission minimum. DEV-only permissions stay fixed at LOA 1000.</p>
+        <p>DEV defines the application ceiling. DEV-only permissions stay fixed at LOA 1000.</p>
         <div class="merdpos-admin-permission-grid">{% for permission in permission_rules %}<label><span><strong>{{ permission.label }}</strong><small>{{ permission.category }} &middot; {{ permission.permission_key }}</small></span><input type="number" name="levels[{{ permission.permission_key }}]" min="1" max="1000" value="{{ permission.min_authority_level }}"{{ permission.dev_only ? ' readonly' : '' }}></label>{% endfor %}</div>
         <div class="merdpos-admin-form-actions"><button type="submit">Save permission thresholds</button></div>
       </form>
     </details>
     {% endif %}
-    {% else %}<div class="merdpos-admin-empty">Your role does not have role-management authority.</div>{% endif %}
+    {% else %}<div class="merdpos-admin-empty">Your role does not have role administration authority.</div>{% endif %}
   </section>
 
   {% if gateway_status != 'ok' %}
