@@ -26,10 +26,9 @@ foreach (['Internal Store ID','Store Code','Shop address','Google Maps URL','HTT
   store_identity_v1_check(str_contains($template,$marker),"Drupal Store Identity UI marker missing: {$marker}");
 }
 store_identity_v1_check(str_contains($controller,"call('store_identity', 'GET'"),'Drupal signed Store Identity GET missing.');
-store_identity_v1_check(str_contains($controller,"call('store_identity', 'POST'"),'Drupal signed Store Identity POST missing.');
-store_identity_v1_check(strpos($controller,"call('store_identity', 'POST'") < strpos($controller,"call('admin_directory', 'POST'"),'Store Identity validation must run before the general store write.');
-store_identity_v1_check(str_contains($controller,"'google_maps_url'=>trim((string)" . '$request' . "->request->get('google_maps_url', ''))"),'Google Maps URL is not forwarded to Store Identity authority.');
-store_identity_v1_check(str_contains($controller, '$body' . "['id'] = " . '$identityStoreId'),'New Store Identity ID is not handed to the remaining governed save flow.');
+store_identity_v1_check(!str_contains($controller,"call('store_identity', 'POST'"),'Drupal Store editor must not pre-commit a split Store Identity POST.');
+store_identity_v1_check(str_contains($controller,"call('admin_directory', 'POST'"),'Drupal authoritative directory Store write missing.');
+store_identity_v1_check(str_contains($controller, '$body' . "['google_maps_url'] = trim((string) " . '$request' . "->request->get('google_maps_url', ''))"),'Google Maps URL is not forwarded into the atomic Store write.');
 store_identity_v1_check(str_contains($moduleFile,"'store_identity_available' => false"),'Store Identity theme contract missing.');
 store_identity_v1_check(str_contains($template,'name="store_identity_enabled" value="1"'),'Store Identity server-side opt-in marker missing.');
 store_identity_v1_check(str_contains($template,'name="logo" accept="image/png,image/jpeg,image/webp"'),'Store Identity logo upload missing.');

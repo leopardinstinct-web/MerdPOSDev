@@ -297,6 +297,7 @@ final class AdministrationController extends ControllerBase {
       if ($canManageProfile) $body[$name] = trim((string) $request->request->get($name, ''));
       elseif (is_array($existingStore)) $body[$name] = $existingStore[$name] ?? '';
     }
+    if ($canManageProfile) $body['google_maps_url'] = trim((string) $request->request->get('google_maps_url', ''));
     if (!empty($directory['permissions']['stores.timings.manage'])) {
       $rawDays = $request->request->all('days');
       if (is_array($rawDays) && count($rawDays) === 7) {
@@ -308,21 +309,6 @@ final class AdministrationController extends ControllerBase {
         }
         if (count($days) === 7) $body['days'] = $days;
       }
-    }
-    $identityEnabled = $canManageProfile && (string)$request->request->get('store_identity_enabled', '') === '1';
-    if ($identityEnabled) {
-      $identityResult = $this->gateway->call('store_identity', 'POST', [], [
-        'action'=>'save_store',
-        'id'=>$body['id'],
-        'store_name'=>$body['store_name'],
-        'store_code'=>trim((string)($body['store_code'] ?? $body['code'] ?? '')),
-        'address'=>trim((string)($body['address'] ?? $body['address_line1'] ?? '')),
-        'google_maps_url'=>trim((string)$request->request->get('google_maps_url', '')),
-        'status'=>$body['status'],
-      ], $selectedClientId ?: NULL);
-      if (($identityResult['status'] ?? '') !== 'ok' || empty($identityResult['payload']['success'])) return $identityResult;
-      $identityStoreId = $this->nullablePositiveInt($identityResult['payload']['store_id'] ?? NULL);
-      if ($identityStoreId !== NULL) $body['id'] = $identityStoreId;
     }
     $saveResult = $this->gateway->call('admin_directory', 'POST', [], $body, $selectedClientId ?: NULL);
     if (($saveResult['status'] ?? '') !== 'ok' || empty($saveResult['payload']['success'])) return $saveResult;
