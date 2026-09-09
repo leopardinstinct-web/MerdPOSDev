@@ -29,15 +29,31 @@ try {
     $verify->execute([1, 'Imran']);
     $role = $verify->fetch(PDO::FETCH_ASSOC);
 
-    if (!is_array($role)) {
-        throw new RuntimeException('Active Imran employee row was not found.');
+    if (is_array($role)) {
+        if (strtoupper((string)$role['employee_type']) !== 'DEV') {
+            throw new RuntimeException('DEV role verification failed.');
+        }
+        $pdo->commit();
+        echo "022 management roles applied; legacy DEV employee verified.\n";
+        exit(0);
     }
-    if (strtoupper((string)$role['employee_type']) !== 'DEV') {
-        throw new RuntimeException('DEV role verification failed.');
+
+    $platformTable = $pdo->prepare(
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='platform_identities'"
+    );
+    $platformTable->execute();
+    $platformCount = 0;
+    if ((int)$platformTable->fetchColumn() === 1) {
+        $platformCount = (int)$pdo->query(
+            "SELECT COUNT(*) FROM platform_identities WHERE role_key='DEV' AND status='active'"
+        )->fetchColumn();
+    }
+    if ($platformCount < 1) {
+        throw new RuntimeException('Neither the legacy DEV employee nor an active platform DEV identity was found.');
     }
 
     $pdo->commit();
-    echo "022 management roles applied; DEV role verified.\n";
+    echo "022 management roles already superseded; active platform DEV identity verified.\n";
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     fwrite(STDERR, "022 management roles failed: " . $e->getMessage() . "\n");

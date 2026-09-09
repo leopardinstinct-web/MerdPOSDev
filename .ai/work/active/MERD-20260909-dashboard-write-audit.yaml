@@ -1,10 +1,10 @@
 version: 1
 id: MERD-20260909-dashboard-write-audit
 objective: Make dashboard layout save and reset auditable atomically before Drupal critical-write rehearsal.
-branch: hotfix/backend-dashboard-write-audit-v1
-base_head: 5f7bccbac89eaff6f0e0bd3f0785b1813227590b
-last_seen_head: 5f7bccbac89eaff6f0e0bd3f0785b1813227590b
-packet_state: LOCAL_VALIDATED_READY_FOR_PR
+branch: hotfix/backend-post-platform-migration-deploy-v1
+base_head: ece50cf8c503bb2d40b6d10f2157e2166152dd88
+last_seen_head: ece50cf8c503bb2d40b6d10f2157e2166152dd88
+packet_state: POST_PLATFORM_DEPLOY_COMPAT_LOCAL_VALIDATED
 lifecycle: WIRED
 scope:
 - Dashboard layout API, transactional persistence helper, regression and deploy gates.
@@ -18,7 +18,7 @@ checks:
 - All 15 backend validators pass, including atomic rollback on synthetic audit failure.
 - Drupal companion branch hotfix/drupal-critical-write-safety-v1 passes all 32 validators.
 remaining:
-- Commit, push, PR checks and secret scan, merge, deploy, live audit and restoration evidence.
-blocker: none; direct GitHub writeback is available in the current continuation session.
-next_action: Commit and PR the validated backend fix, merge after CI and secret scan, deploy, then capture live audit evidence.
+- PR #111 merged the dashboard audit fix at ece50cf8c503bb2d40b6d10f2157e2166152dd88.\n- First backend deploy attempt reached the new validator but stopped at legacy migration 022 because platform DEV intentionally retired the old client DEV employee.\n- Follow-up makes migration 022 post-cutover idempotent while retaining safe failure when neither legacy nor platform DEV exists.\n- Deploy follow-up, live audit evidence and restoration evidence remain.
+blocker: deployment requires the validated post-platform compatibility follow-up for legacy migration 022.
+next_action: PR and merge the migration 022 compatibility fix, redeploy backend, then capture live dashboard audit and critical-write restoration evidence.
 updated_at: '2026-09-09'
