@@ -1,26 +1,30 @@
 id: MERD-20260909-drupal-production-readiness-v1
-branch: milestone/drupal-production-readiness-v1
-base_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
-last_seen_head: 3bfd403e356b03ea669b0fda57b5a883aacc8f1d
-objective: Freeze the verified Drupal Beta parity baseline before role acceptance and cutover-rehearsal work begins.
-packet_state: BASELINE_FROZEN
+branch: continuity/drupal-post-cutover-baseline-v1
+base_head: 23dc6328b92f2b00b34d2355ff85afef65dc0ea2
+last_seen_head: 23dc6328b92f2b00b34d2355ff85afef65dc0ea2
+objective: Freeze the verified Drupal Beta post-DEV-cutover baseline and continue production-readiness rehearsal from that exact state.
+packet_state: POST_CUTOVER_BASELINE_VERIFIED
 lifecycle: ACTIVE
 scope:
-  - Pin the canonical verified continuity head and exact deployed runtime rollback point.
-  - Create stable named baseline pointers for canonical parity and the live functional release.
-  - Record deployment artifacts, runtime assumptions and the code rollback procedure without committing secrets.
-  - Do not begin the role sweep until the requested user review is incorporated.
+  - Preserve platform DEV separation and DEV-defined role authority as permanent invariants.
+  - Freeze the exact deployed Drupal/backend SHAs after four-role live acceptance.
+  - Preserve the reusable live post-cutover acceptance harness and clean-checkout deploy guard.
+  - Continue next with critical-write safety and rollback rehearsal without changing the frozen invariants.
 constraints:
   - DevStudio/UI Studio remains excluded from Drupal parity and production-readiness scope.
   - MERDPOS remains authoritative for authentication, permissions, business logic, operational persistence and audit.
+  - DEV must remain platform-scoped and absent from assignable client workforce roles.
+  - ADMIN may configure only SUPER/USER application usability inside the DEV-defined ceiling.
   - A code rollback anchor is not a database rollback guarantee.
-  - Functional changes after the freeze require a new baseline record.
 validation:
-  - Canonical verified continuity head is 3bfd403e356b03ea669b0fda57b5a883aacc8f1d.
-  - Exact deployed Drupal runtime release is 822003d90f520aec762583ccae950324f3b19e68.
-  - Named branch baseline/drupal-parity-verified-20260909 points to the canonical verified head.
-  - Named branch baseline/drupal-runtime-822003d90f52 points to the exact functional rollback release.
-  - Deployment contract and Git object IDs are recorded in drupal/PRODUCTION_READINESS_BASELINE.md.
-  - Rollback execution itself remains intentionally unrehearsed until the production-readiness rehearsal stage.
-next_action: Await user review of the role-sweep expectations before beginning DEV / SUPER / ADMIN / USER acceptance.
-updated_at: "2026-09-09T09:29:00+05:00"
+  - Deployed Drupal runtime is 23dc6328b92f2b00b34d2355ff85afef65dc0ea2.
+  - Deployed backend runtime is 5f7bccbac89eaff6f0e0bd3f0785b1813227590b.
+  - Migration 038 finalization left 0 active client-bound DEV employees, 2 active platform DEV identities and 2 active platform Working Client preferences.
+  - Four-role live browser acceptance rerun against 23dc6328b92f returned verified=true.
+  - Drupal static deployment validators pass 32/32.
+  - PR #108 CI and Secret scan both passed before deployment.
+  - Namecheap deployment completed at 23dc6328b92f and the tracked checkout was empty afterward.
+  - Runtime rollback pointer baseline/drupal-runtime-23dc6328b92f points to the exact deployed release.
+  - Post-cutover evidence is recorded in drupal/POST_DEV_CUTOVER_BASELINE.md and its Git-ID companion.
+next_action: Rehearse critical writes on controlled test data, restore state, then perform rollback execution rehearsal.
+updated_at: "2026-09-09T20:55:00+05:00"
