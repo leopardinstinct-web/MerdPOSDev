@@ -2,6 +2,10 @@ version: 1
 authoritative_branch: namecheap-beta-live
 updated_at: '2026-09-08T12:50:00+05:00'
 active:
+- id: MERD-20260909-dashboard-write-audit
+  path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
+  lifecycle: WIRED
+  packet_state: LOCAL_VALIDATED_READY_FOR_PR
 - id: MERD-20260908-finance-beta-acceptance
   path: .ai/work/active/MERD-20260908-finance-beta-acceptance.yaml
   lifecycle: DOCUMENTED

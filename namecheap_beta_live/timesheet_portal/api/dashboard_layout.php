@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/beta_api.php';
 require_once __DIR__ . '/../includes/dashboard_access.php';
+require_once __DIR__ . '/../includes/dashboard_layout_write.php';
 
 function dashboard_can_configure(array $user, ?PDO $pdo = null, bool $devStudio = false): bool
 {
@@ -89,8 +90,7 @@ try {
     $action = (string)($input['action'] ?? 'save_layout');
 
     if ($action === 'reset_layout') {
-        $stmt = $pdo->prepare('DELETE FROM dashboard_role_layouts WHERE client_id=? AND role_id=?');
-        $stmt->execute([$clientId, $roleId]);
+        dashboard_write_layout($pdo, $user, $role, [], true);
         json_response(dashboard_state($pdo, $user, $role, $devStudio));
     }
 
@@ -120,21 +120,7 @@ try {
         $clean[] = [$key, $x, $y, $w, $h];
     }
 
-    $pdo->beginTransaction();
-    try {
-        $delete = $pdo->prepare('DELETE FROM dashboard_role_layouts WHERE client_id=? AND role_id=?');
-        $delete->execute([$clientId, $roleId]);
-        if ($clean) {
-            $insert = $pdo->prepare(
-                'INSERT INTO dashboard_role_layouts (client_id,role_id,widget_key,grid_x,grid_y,grid_w,grid_h) VALUES (?,?,?,?,?,?,?)'
-            );
-            foreach ($clean as [$key,$x,$y,$w,$h]) $insert->execute([$clientId,$roleId,$key,$x,$y,$w,$h]);
-        }
-        $pdo->commit();
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
-        throw $e;
-    }
+    dashboard_write_layout($pdo, $user, $role, $clean);
 
     json_response(dashboard_state($pdo, $user, $role, $devStudio));
 } catch (Throwable $e) {

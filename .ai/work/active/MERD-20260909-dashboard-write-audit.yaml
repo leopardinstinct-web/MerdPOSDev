@@ -1,0 +1,24 @@
+version: 1
+id: MERD-20260909-dashboard-write-audit
+objective: Make dashboard layout save and reset auditable atomically before Drupal critical-write rehearsal.
+branch: hotfix/backend-dashboard-write-audit-v1
+base_head: 5f7bccbac89eaff6f0e0bd3f0785b1813227590b
+last_seen_head: 5f7bccbac89eaff6f0e0bd3f0785b1813227590b
+packet_state: LOCAL_VALIDATED_READY_FOR_PR
+lifecycle: WIRED
+scope:
+- Dashboard layout API, transactional persistence helper, regression and deploy gates.
+constraints:
+- Preserve backend authorization, CSRF and platform DEV actor attribution.
+- Rehearsal mutations require proven DUMMY context; no operational finance creation.
+completed:
+- Save and reset use shared transaction with canonical beta_admin_audit before commit.
+- Audit records client, actor, role, action and widget keys/count without secrets.
+checks:
+- All 15 backend validators pass, including atomic rollback on synthetic audit failure.
+- Drupal companion branch hotfix/drupal-critical-write-safety-v1 passes all 32 validators.
+remaining:
+- Commit, push, PR checks and secret scan, merge, deploy, live audit and restoration evidence.
+blocker: none; direct GitHub writeback is available in the current continuation session.
+next_action: Commit and PR the validated backend fix, merge after CI and secret scan, deploy, then capture live audit evidence.
+updated_at: '2026-09-09'
