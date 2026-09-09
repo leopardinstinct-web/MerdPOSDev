@@ -76,24 +76,7 @@ function store_identity_load(PDO $pdo, int $clientId): array
 }
 
 function store_identity_audit(PDO $pdo, array $actor, string $action, int $storeId, array $details): void
-{
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$actor['client_id'],
-            (int)$actor['id'],
-            $action,
-            'store',
-            (string)$storeId,
-            json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
-        ]);
-    } catch (Throwable $e) {
-        error_log('MERDPOS store identity audit write failed: ' . get_class($e));
-    }
-}
+{ try { beta_admin_audit($pdo,$actor,$action,'store',(string)$storeId,$details); } catch (Throwable $e) { error_log('MERDPOS store identity audit write failed: '.get_class($e)); } }
 
 try {
     $sessionUser = beta_require_active_user();

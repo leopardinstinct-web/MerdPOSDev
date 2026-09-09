@@ -53,11 +53,21 @@ expect_error(fn() => merd_service_authenticate($stale, 'working_now', $now, $sec
 
 $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->exec('CREATE TABLE clients (id INTEGER PRIMARY KEY, status TEXT)');
+$pdo->exec('CREATE TABLE platform_identities (id INTEGER PRIMARY KEY, user_id TEXT, full_name TEXT, login_password TEXT, pin_code TEXT, role_key TEXT, status TEXT, legacy_employee_id INTEGER)');
+$pdo->exec('CREATE TABLE platform_identity_preferences (platform_identity_id INTEGER PRIMARY KEY, selected_client_id INTEGER)');
+$pdo->exec("INSERT INTO clients VALUES (1,'active')");
+$pdo->exec("INSERT INTO platform_identities VALUES (9,'9001','Platform Developer','x','x','DEV','active',NULL)");
+$pdo->exec("INSERT INTO platform_identity_preferences VALUES (9,1)");
 $pdo->exec('CREATE TABLE client_roles (id INTEGER PRIMARY KEY, client_id INTEGER, role_key TEXT, role_label TEXT, base_role TEXT, authority_level INTEGER, status TEXT)');
 $pdo->exec('CREATE TABLE employees (id INTEGER PRIMARY KEY, client_id INTEGER, full_name TEXT, user_id TEXT, employee_type TEXT, role_name TEXT, client_role_id INTEGER, status TEXT)');
 $pdo->exec('CREATE TABLE client_permission_levels (client_id INTEGER, permission_key TEXT, min_authority_level INTEGER)');
 $pdo->exec("INSERT INTO client_roles VALUES (1,1,'ADMIN','Administrator','ADMIN',50,'active'),(2,1,'USER','User','USER',10,'active')");
 $pdo->exec("INSERT INTO employees VALUES (1,1,'Admin User','1001','ADMIN','Administrator',1,'active'),(2,1,'Staff User','1002','USER','User',2,'active')");
+$dev = merd_service_actor($pdo, 1, '9001');
+check(($dev['identity_scope'] ?? '') === 'platform' && (int)$dev['role']['authority_level'] === 1000, 'Platform DEV service actor failed');
+merd_service_require_permissions($pdo, 1, $dev['role'], ['clients.manage']);
+
 $admin = merd_service_actor($pdo, 1, '1001');
 merd_service_require_permissions($pdo, 1, $admin['role'], [
     'dashboard.view',

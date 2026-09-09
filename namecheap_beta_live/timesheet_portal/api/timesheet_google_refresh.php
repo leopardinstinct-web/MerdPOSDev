@@ -128,23 +128,9 @@ function timesheet_refresh_replace(PDO $pdo, array $actor, int $clientId, string
                 $item['local_log_id'],
             ]);
         }
-        $audit = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $audit->execute([
-            $clientId,
-            (int)$actor['id'],
-            'dev.timesheet_google_refresh',
-            'client',
-            (string)$clientId,
-            json_encode([
-                'sheet_name' => $sheetName,
-                'deleted_rows' => $deleted,
-                'inserted_rows' => count($prepared),
-                'unmatched_employee_count' => count($unmatchedEmployees),
-                'source_snapshot_hash' => $snapshotHash,
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
+        beta_admin_audit($pdo,$actor,'dev.timesheet_google_refresh','client',(string)$clientId,[
+            'sheet_name'=>$sheetName,'deleted_rows'=>$deleted,'inserted_rows'=>count($prepared),
+            'unmatched_employee_count'=>count($unmatchedEmployees),'source_snapshot_hash'=>$snapshotHash,
         ]);
         $pdo->commit();
     } catch (Throwable $e) {

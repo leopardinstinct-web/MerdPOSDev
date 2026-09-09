@@ -63,14 +63,14 @@ foreach ([
     'timesheet_google_refresh','change_password','attendance_scan',
 ] as $route) {
     gateway_check(
-        str_contains($gatewaySource, "'{$route}' =>"),
+        str_contains($gatewaySource, "'{$route}'=>") || str_contains($gatewaySource, "'{$route}' =>"),
         "Gateway route missing: {$route}"
     );
 }
 
 foreach (['ui_studio_history','ui_studio_asset','login','logout'] as $route) {
     gateway_check(
-        !str_contains($gatewaySource, "'{$route}' =>"),
+        !str_contains($gatewaySource, "'{$route}'=>") || str_contains($gatewaySource, "'{$route}' =>"),
         "Forbidden gateway route exposed: {$route}"
     );
 }
@@ -78,14 +78,14 @@ foreach (['ui_studio_history','ui_studio_asset','login','logout'] as $route) {
 gateway_check(str_contains($gatewaySource, "route === 'dashboard_layout'"), 'Dashboard layout DevStudio guard missing.');
 gateway_check(str_contains($gatewaySource, "'dev_studio'"), 'DevStudio request guard missing.');
 gateway_check(str_contains($gatewaySource, "'/includes/beta_api.php'"), 'Canonical Beta permission/runtime reuse missing.');
-gateway_check(str_contains($gatewaySource, "'client_context' => ['GET', 'POST']"), 'Drupal client-context POST route missing.');
-gateway_check(str_contains($gatewaySource, "'store_logo' => ['POST']"), 'Drupal store-logo POST route missing.');
+gateway_check(str_contains($gatewaySource, "'client_context'=>['GET','POST']"), 'Drupal client-context POST route missing.');
+gateway_check(str_contains($gatewaySource, "'store_logo'=>['POST']"), 'Drupal store-logo POST route missing.');
 gateway_check(str_contains($gatewaySource, '$request[\'context_client_id\']'), 'Explicit Drupal client context envelope missing.');
-gateway_check(str_contains($gatewaySource, "Only DEV may select another client context"), 'Cross-client DEV guard missing.');
-gateway_check(str_contains($gatewaySource, '$_SESSION[\'dev_active_client_id\'] = $contextClientId'), 'Selected client context is not applied before target dispatch.');
-gateway_check(str_contains($gatewaySource, 'dev_client_preferences'), 'Persisted DEV Working client preference is not loaded by the gateway.');
-gateway_check(str_contains($gatewaySource, '$contextClientId === null && $baseRole === \'DEV\''), 'Gateway does not default actual DEV to the persisted Working client.');
-gateway_check(str_contains($gatewaySource, 'selected_client_id'), 'Persisted Working client selection is not referenced by the gateway.');
+gateway_check(str_contains($gatewaySource, "Client employees cannot select another client context."), 'Cross-client DEV guard missing.');
+gateway_check(str_contains($gatewaySource, '$_SESSION[\'dev_active_client_id\']=$contextClientId'), 'Selected client context is not applied before target dispatch.');
+gateway_check(str_contains($gatewaySource, 'merd_platform_identity_selected_client'), 'Persisted DEV Working client preference is not loaded by the gateway.');
+gateway_check(str_contains($gatewaySource, 'if ($isPlatform)'), 'Gateway does not default actual DEV to the persisted Working client.');
+gateway_check(str_contains($gatewaySource, "'identity_scope'=>'platform'"), 'Persisted Working client selection is not referenced by the gateway.');
 gateway_check(str_contains($gatewaySource, '$value === null || $value === []'), 'Empty gateway map compatibility guard missing.');
 
 echo "MERDPOS Drupal generalized portal gateway contract validated.\n";

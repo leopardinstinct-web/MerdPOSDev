@@ -26,24 +26,7 @@ function defaults_timezone(mixed $value, bool $allowBlank = false): ?string
 }
 
 function defaults_audit(PDO $pdo, array $user, string $action, string $entityType, string $entityId, array $details): void
-{
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$user['client_id'],
-            (int)$user['id'],
-            $action,
-            $entityType,
-            $entityId,
-            json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
-        ]);
-    } catch (Throwable $e) {
-        error_log('MERDPOS defaults audit write failed: ' . get_class($e));
-    }
-}
+{ try { beta_admin_audit($pdo,$user,$action,$entityType,$entityId,$details); } catch (Throwable $e) { error_log('MERDPOS defaults audit write failed: '.get_class($e)); } }
 
 function defaults_state(PDO $pdo, array $user): array
 {

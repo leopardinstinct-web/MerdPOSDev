@@ -32,16 +32,16 @@
     panel.innerHTML = `
       <div class="roles-shell">
         <section class="controls-card roles-card">
-          <div class="roles-head"><div><h2>Roles</h2><p>Role identity and Level of Authority for the working client. A role receives every portal capability whose required LOA is at or below the role LOA.</p></div><button id="addRoleBtn" type="button" class="primary-btn compact-btn">+ Add role</button></div>
+          <div class="roles-head"><div><h2>Roles</h2><p id="rolesIntro">Role identity and Level of Authority for the working client.</p></div><button id="addRoleBtn" type="button" class="primary-btn compact-btn">+ Add role</button></div>
           <div id="rolesStatus" class="role-status"></div>
           <div id="rolesList" class="roles-list"><div class="entity-empty">Loading roles…</div></div>
         </section>
         <section class="controls-card permission-card">
           <div class="permission-head">
-            <div><h2>Permission policy</h2><p>Configure the minimum LOA for every delegable MERDPOS capability. Page/API permissions control application areas; dedicated Widget permissions control dashboard placement. Standard widget data dependencies are resolved automatically inside the dashboard and do not expose the matching page or menu.</p></div>
+            <div><h2 id="permissionTitle">Permission policy</h2><p id="permissionIntro">Configure the DEV-defined application ceiling.</p></div>
             <div class="permission-actions"><span id="permissionUnsaved" class="permission-unsaved" hidden>Unsaved changes</span><button id="savePermissionPolicy" class="primary-btn compact-btn" type="button">Save policy</button></div>
           </div>
-          <div class="permission-danger-note"><strong>Backend enforced.</strong> Lowering a page/API threshold grants that application capability to more roles. Widget thresholds grant only that dashboard widget; its declared data dependency stays dashboard-scoped. Raising a widget threshold removes it immediately. DEV-only capabilities remain locked at 1000.</div>
+          <div id="permissionDangerNote" class="permission-danger-note"><strong>Backend enforced.</strong> Access is recalculated immediately.</div>
           <div id="permissionSummary" class="permission-summary"></div>
           <div id="permissionGroups" class="permission-groups"><div class="entity-empty">Loading permission policy…</div></div>
           <p class="permission-footnote">A role name does not grant access by itself. The numeric LOA and this client permission policy are authoritative. DEV-only items additionally require an actual DEV identity and cannot be delegated by setting another role to LOA 1000.</p>
@@ -49,7 +49,7 @@
       </div>`;
     main.appendChild(panel);
     document.getElementById('addRoleBtn')?.addEventListener('click', openAddRole);
-    document.getElementById('savePermissionPolicy')?.addEventListener('click', savePermissions);
+    document.getElementById('savePermissionPolicy')?.addEventListener('click', savePolicy);
   }
 
   function ensureAddDialog() {
@@ -112,7 +112,7 @@
       const key = String(role.role_key || '').toUpperCase();
       const isDev = key === 'DEV';
       const system = Number(role.is_system) === 1;
-      const editableName = !system;
+      const editableName = Boolean(state.can_define_roles) && !system;
       const allowedCount = Array.isArray(role.allowed_widgets) ? role.allowed_widgets.length : 0;
       return `
         <article class="role-row ${isDev ? 'role-dev-fixed' : ''}" data-role-row="${Number(role.id)}">
@@ -122,11 +122,11 @@
           </div>
           <div class="role-meta"><span>Dashboard</span><strong>${Number(role.dashboard_widget_count || 0)} widgets</strong></div>
           <div class="role-meta"><span>Allowed</span><strong>${allowedCount} widgets</strong></div>
-          <label class="role-loa"><span class="sr-only">LOA</span><input data-role-loa type="number" min="1" max="99" step="1" value="${Number(role.authority_level)}" ${isDev ? 'disabled' : ''}></label>
+          <label class="role-loa"><span class="sr-only">LOA</span><input data-role-loa type="number" min="1" max="99" step="1" value="${Number(role.authority_level)}" ${isDev || !state.can_define_roles ? 'disabled' : ''}></label>
           <div class="role-actions">
             ${editableName ? `<button type="button" class="secondary-btn compact-btn" data-rename-role="${Number(role.id)}">Rename</button>` : ''}
-            ${!isDev ? `<button type="button" class="secondary-btn compact-btn" data-save-role="${Number(role.id)}">Save</button>` : '<span class="role-system-chip">Fixed LOA 1000</span>'}
-            ${!system ? `<button type="button" class="secondary-btn compact-btn role-delete" data-delete-role="${Number(role.id)}" ${Number(role.employee_count || 0) > 0 ? 'disabled title="Reassign employees first"' : ''}>Delete</button>` : ''}
+            ${state.can_define_roles && !isDev ? `<button type="button" class="secondary-btn compact-btn" data-save-role="${Number(role.id)}">Save</button>` : ''}
+            ${state.can_define_roles && !system ? `<button type="button" class="secondary-btn compact-btn role-delete" data-delete-role="${Number(role.id)}" ${Number(role.employee_count || 0) > 0 ? 'disabled title="Reassign employees first"' : ''}>Delete</button>` : ''}
           </div>
         </article>`;
     }).join('');
@@ -135,6 +135,8 @@
     root.querySelectorAll('[data-delete-role]').forEach(button => button.addEventListener('click', () => deleteRole(Number(button.dataset.deleteRole))));
     root.querySelectorAll('[data-rename-role]').forEach(button => button.addEventListener('click', () => renameRole(Number(button.dataset.renameRole))));
     root.querySelectorAll('[data-role-loa]').forEach(input => input.addEventListener('input', renderPermissions));
+    const add = document.getElementById('addRoleBtn');
+    if (add) add.hidden = !state.can_define_roles;
   }
 
   function permissionDraftLevel(permission) {
@@ -162,10 +164,37 @@
     return roles.map(role => `<span class="impact-role">${esc(role.role_label)} · ${Number(roleLevels.get(Number(role.id)) ?? role.authority_level)}</span>`).join('');
   }
 
+  function renderUsability() {
+    const root = document.getElementById('permissionGroups');
+    const summary = document.getElementById('permissionSummary');
+    if (!root || !state) return;
+    const permissions = (state.permissions || []).filter(item => !item.dev_only);
+    const groups = new Map();
+    permissions.forEach(permission => {
+      const category = String(permission.category || 'Other');
+      if (!groups.has(category)) groups.set(category, []);
+      groups.get(category).push(permission);
+    });
+    root.innerHTML = Array.from(groups.entries()).map(([category, rows]) => `
+      <section class="permission-group">
+        <div class="permission-group-title"><strong>${esc(category)}</strong><small>${rows.length} capabilities</small></div>
+        ${rows.map(permission => `<div class="permission-row usability-row">
+          <div class="permission-copy"><strong>${esc(permission.label)}</strong><code>${esc(permission.permission_key)}</code></div>
+          <label class="usability-toggle"><input type="checkbox" data-usability-role="SUPER" data-usability-key="${esc(permission.permission_key)}" ${permission.super_enabled ? 'checked' : ''} ${permission.super_available ? '' : 'disabled'}><span>SUPER</span></label>
+          <label class="usability-toggle"><input type="checkbox" data-usability-role="USER" data-usability-key="${esc(permission.permission_key)}" ${permission.user_enabled ? 'checked' : ''} ${permission.user_available ? '' : 'disabled'}><span>USER</span></label>
+        </div>`).join('')}
+      </section>`).join('');
+    root.querySelectorAll('[data-usability-key]').forEach(input => input.addEventListener('change', () => {
+      const unsaved = document.getElementById('permissionUnsaved'); if (unsaved) unsaved.hidden = false;
+    }));
+    if (summary) summary.innerHTML = `<span>${permissions.length} DEV-ceiling capabilities</span><span>ADMIN controls SUPER / USER usability only</span>`;
+  }
+
   function renderPermissions() {
     const root = document.getElementById('permissionGroups');
     const summary = document.getElementById('permissionSummary');
     if (!root || !state) return;
+    if (!state.can_manage_permissions && state.can_manage_usability) { renderUsability(); return; }
     const permissions = (state.permissions || []).slice();
     const roleLevels = draftRoleLevels();
     const groups = new Map();
@@ -279,6 +308,34 @@
     } catch (error) { setStatus(error.message, true); }
   }
 
+  async function saveUsability() {
+    if (!state) return;
+    const button = document.getElementById('savePermissionPolicy');
+    if (button) button.disabled = true;
+    try {
+      for (const roleKey of ['SUPER','USER']) {
+        const enabled = {};
+        document.querySelectorAll(`[data-usability-role="${roleKey}"][data-usability-key]`).forEach(input => {
+          if (!input.disabled) enabled[input.dataset.usabilityKey] = Boolean(input.checked);
+        });
+        state = await api('api/role_authority.php', {
+          method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify({action:'save_usability',csrf:state.csrf,role_key:roleKey,enabled}),
+        });
+      }
+      renderAll();
+      setStatus('SUPER / USER application usability saved within the DEV-defined ceiling.');
+      window.MERDPOSDashboardBuilder?.reloadRoles?.();
+    } catch (error) { setStatus(error.message, true); }
+    finally { if (button) button.disabled = false; }
+  }
+
+  async function savePolicy() {
+    if (state?.can_manage_permissions) return savePermissions();
+    if (state?.can_manage_usability) return saveUsability();
+    setStatus('This role cannot change application authority.', true);
+  }
+
   async function savePermissions() {
     if (!state) return;
     const button = document.getElementById('savePermissionPolicy');
@@ -308,10 +365,25 @@
   }
 
   function renderAll() {
-    renderRoles();
-    renderPermissions();
-    const unsaved = document.getElementById('permissionUnsaved');
-    if (unsaved) unsaved.hidden = true;
+    const adminUsability = !state?.can_manage_permissions && Boolean(state?.can_manage_usability);
+    const intro = document.getElementById('rolesIntro');
+    const title = document.getElementById('permissionTitle');
+    const permissionIntro = document.getElementById('permissionIntro');
+    const note = document.getElementById('permissionDangerNote');
+    const save = document.getElementById('savePermissionPolicy');
+    if (intro) intro.textContent = state?.can_define_roles
+      ? 'DEV defines the client role model, authority ceilings and application permission ceiling.'
+      : 'Role definitions are DEV-governed. ADMIN cannot change role identity or authority ceilings.';
+    if (title) title.textContent = adminUsability ? 'Application usability' : 'Permission policy';
+    if (permissionIntro) permissionIntro.textContent = adminUsability
+      ? 'Enable or disable SUPER and USER application capabilities inside the DEV-defined ceiling.'
+      : 'Configure the minimum LOA for delegable MERDPOS capabilities. DEV-only capabilities remain fixed.';
+    if (note) note.innerHTML = adminUsability
+      ? '<strong>Backend enforced.</strong> ADMIN cannot grant anything outside the DEV-defined ceiling or change ADMIN itself.'
+      : '<strong>Backend enforced.</strong> DEV defines the maximum authority available to client roles.';
+    if (save) save.textContent = adminUsability ? 'Save usability' : 'Save policy';
+    renderRoles(); renderPermissions();
+    const unsaved = document.getElementById('permissionUnsaved'); if (unsaved) unsaved.hidden = true;
   }
 
   async function load() {

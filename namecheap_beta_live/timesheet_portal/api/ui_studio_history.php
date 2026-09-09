@@ -77,11 +77,11 @@ function studio_history_insert(PDO $pdo, array $user, int $clientId, int $revisi
     $created = $createdAt ?: (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s.u');
     $stmt = $pdo->prepare(
         'INSERT INTO ui_studio_history '
-        . '(public_id,client_id,revision,actor_employee_id,actor_label,role_scope,action,summary,selector,runtime_key,page_path,panel_id,nav_group,dialog_id,popover_id,mobile_tools,mutation_json,legacy_only,is_system,created_at) '
-        . 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+        . '(public_id,client_id,revision,actor_employee_id,actor_platform_identity_id,actor_label,role_scope,action,summary,selector,runtime_key,page_path,panel_id,nav_group,dialog_id,popover_id,mobile_tools,mutation_json,legacy_only,is_system,created_at) '
+        . 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
-        $publicId, $clientId, $revision, (int)$user['id'],
+        $publicId, $clientId, $revision, beta_actor_employee_id($user), beta_actor_platform_identity_id($user),
         studio_history_text($user['name'] ?? $user['full_name'] ?? 'Developer', 120),
         studio_history_text(strtoupper((string)($entry['roleScope'] ?? 'DEV')), 32) ?: 'DEV',
         studio_history_text($entry['action'] ?? 'change', 48) ?: 'change',
@@ -150,8 +150,8 @@ try {
         studio_history_insert($pdo, $user, $clientId, $nextRevision, [
             'action'=>'bootstrap','summary'=>'Imported existing local Studio draft','roleScope'=>'DEV'
         ], $bootstrapMutation, false, true);
-        $update = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=? WHERE client_id=?');
-        $update->execute([$nextRevision, json_encode($patches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), (int)$user['id'], $clientId]);
+        $update = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=?,updated_by_platform_identity_id=? WHERE client_id=?');
+        $update->execute([$nextRevision, json_encode($patches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), beta_actor_employee_id($user), beta_actor_platform_identity_id($user), $clientId]);
         $pdo->commit();
         json_response(studio_history_payload($pdo, $clientId));
     }
@@ -161,11 +161,11 @@ try {
         $mutation = merd_ui_studio_patch_mutation($currentPatches, $patches);
         $nextRevision = $revision + 1;
         studio_history_insert($pdo, $user, $clientId, $nextRevision, $entry, $mutation);
-        $update = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=? WHERE client_id=?');
+        $update = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=?,updated_by_platform_identity_id=? WHERE client_id=?');
         $update->execute([
             $nextRevision,
             json_encode($patches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
-            (int)$user['id'], $clientId,
+            beta_actor_employee_id($user), beta_actor_platform_identity_id($user), $clientId,
         ]);
         $pdo->commit();
         json_response(studio_history_payload($pdo, $clientId));
@@ -204,8 +204,8 @@ try {
         $mutation['receipt'] = ['version'=>1,'sourceRevision'=>$sourceRevision,'updates'=>$safeUpdates];
         $nextRevision = $revision + 1;
         studio_history_insert($pdo, $user, $clientId, $nextRevision, ['action'=>'llm_receipt','summary'=>"LLM receipt applied: " . count($safeUpdates) . " updates; {$confirmed} confirmed applied",'roleScope'=>'DEV'], $mutation);
-        $updateState = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=? WHERE client_id=?');
-        $updateState->execute([$nextRevision, json_encode($nextPatches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), (int)$user['id'], $clientId]);
+        $updateState = $pdo->prepare('UPDATE ui_studio_state SET revision=?,patches_json=?,updated_by_employee_id=?,updated_by_platform_identity_id=? WHERE client_id=?');
+        $updateState->execute([$nextRevision, json_encode($nextPatches, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR), beta_actor_employee_id($user), beta_actor_platform_identity_id($user), $clientId]);
         $pdo->commit();
         $payload = studio_history_payload($pdo, $clientId); $payload['receipt_summary'] = "Receipt applied: " . count($safeUpdates) . " updates; {$confirmed} confirmed.";
         json_response($payload);

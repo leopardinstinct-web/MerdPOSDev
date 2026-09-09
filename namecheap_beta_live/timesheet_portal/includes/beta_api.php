@@ -71,6 +71,19 @@ function beta_actor_platform_identity_id(array $user): ?int
     return $id > 0 ? $id : null;
 }
 
+function beta_admin_audit(PDO $pdo, array $actor, string $action, string $entityType, ?string $entityId, array $details): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO admin_audit_logs (client_id,employee_id,platform_identity_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?,?)'
+    );
+    $stmt->execute([
+        (int)$actor['client_id'], beta_actor_employee_id($actor), beta_actor_platform_identity_id($actor),
+        $action, $entityType, $entityId,
+        json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
+    ]);
+}
+
 function beta_has_permission(array $user, string $permission, ?PDO $pdo = null): bool
 {
     $catalog = merd_portal_permission_catalog();

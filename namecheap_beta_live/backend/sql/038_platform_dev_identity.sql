@@ -52,3 +52,18 @@ ALTER TABLE legacy_migration_batches ADD COLUMN IF NOT EXISTS started_by_platfor
 ALTER TABLE client_legacy_sources ADD COLUMN IF NOT EXISTS created_by_platform_identity_id BIGINT UNSIGNED NULL AFTER created_by_employee_id;
 ALTER TABLE client_legacy_sources ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
 ALTER TABLE client_migration_state ADD COLUMN IF NOT EXISTS cutover_by_platform_identity_id BIGINT UNSIGNED NULL AFTER cutover_by_employee_id;
+
+ALTER TABLE client_role_authority MODIFY updated_by_employee_id INT NULL;
+ALTER TABLE client_role_authority ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
+ALTER TABLE client_permission_levels MODIFY updated_by_employee_id INT NULL;
+ALTER TABLE client_permission_levels ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
+ALTER TABLE employee_store_access MODIFY updated_by_employee_id INT NULL;
+ALTER TABLE employee_store_access ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
+ALTER TABLE employee_hourly_rate_history MODIFY changed_by_employee_id INT NULL;
+ALTER TABLE employee_hourly_rate_history ADD COLUMN IF NOT EXISTS changed_by_platform_identity_id BIGINT UNSIGNED NULL AFTER changed_by_employee_id;
+ALTER TABLE store_weekly_hours MODIFY updated_by_employee_id INT NULL;
+ALTER TABLE store_weekly_hours ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
+ALTER TABLE legacy_migration_conflicts ADD COLUMN IF NOT EXISTS resolved_by_platform_identity_id BIGINT UNSIGNED NULL AFTER resolved_by_employee_id;
+ALTER TABLE ui_studio_state ADD COLUMN IF NOT EXISTS updated_by_platform_identity_id BIGINT UNSIGNED NULL AFTER updated_by_employee_id;
+ALTER TABLE ui_studio_history ADD COLUMN IF NOT EXISTS actor_platform_identity_id BIGINT UNSIGNED NULL AFTER actor_employee_id;
+ALTER TABLE ui_studio_history ADD COLUMN IF NOT EXISTS deleted_by_platform_identity_id BIGINT UNSIGNED NULL AFTER deleted_by_employee_id;

@@ -4,24 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/beta_api.php';
 
 function store_logo_audit(PDO $pdo, array $user, int $storeId, ?string $previous, string $next): void
-{
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$user['client_id'],
-            (int)$user['id'],
-            'store.logo.update',
-            'store',
-            (string)$storeId,
-            json_encode(['previous_logo_path' => $previous, 'logo_path' => $next], JSON_UNESCAPED_SLASHES),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
-        ]);
-    } catch (Throwable $e) {
-        error_log('MERDPOS store logo audit write failed: ' . get_class($e));
-    }
-}
+{ try { beta_admin_audit($pdo,$user,'store.logo.update','store',(string)$storeId,['previous_logo_path'=>$previous,'logo_path'=>$next]); } catch (Throwable $e) { error_log('MERDPOS store logo audit write failed: '.get_class($e)); } }
 
 try {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {

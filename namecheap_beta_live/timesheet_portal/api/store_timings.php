@@ -40,25 +40,7 @@ function timings_load(PDO $pdo, int $clientId): array
 }
 
 function timings_audit(PDO $pdo, array $actor, array $storeIds, array $days, int $weekStartDay): void
-{
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO admin_audit_logs (client_id,employee_id,action,entity_type,entity_id,details,ip_address) '
-            . 'VALUES (?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            (int)$actor['client_id'],
-            (int)$actor['id'],
-            'store_timings.update',
-            'store_schedule',
-            count($storeIds) === 1 ? (string)$storeIds[0] : 'all',
-            json_encode(['store_ids' => $storeIds, 'days' => $days, 'week_start_day' => $weekStartDay], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64),
-        ]);
-    } catch (Throwable $e) {
-        error_log('MERDPOS store timing audit write failed: ' . get_class($e));
-    }
-}
+{ try { beta_admin_audit($pdo,$actor,'store_timings.update','store_schedule',count($storeIds)===1?(string)$storeIds[0]:'all',['store_ids'=>$storeIds,'days'=>$days,'week_start_day'=>$weekStartDay]); } catch (Throwable $e) { error_log('MERDPOS store timing audit write failed: '.get_class($e)); } }
 
 try {
     $sessionUser = beta_require_active_user();
@@ -142,10 +124,10 @@ try {
 
     $upsert = $pdo->prepare(
         'INSERT INTO store_weekly_hours '
-        . '(client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id) '
-        . 'VALUES (?,?,?,?,?,?,?) '
+        . '(client_id,store_id,day_of_week,start_time,end_time,is_closed,updated_by_employee_id,updated_by_platform_identity_id) '
+        . 'VALUES (?,?,?,?,?,?,?,?) '
         . 'ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),'
-        . 'is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_at=CURRENT_TIMESTAMP'
+        . 'is_closed=VALUES(is_closed),updated_by_employee_id=VALUES(updated_by_employee_id),updated_by_platform_identity_id=VALUES(updated_by_platform_identity_id),updated_at=CURRENT_TIMESTAMP'
     );
     $legacyUpsert = $pdo->prepare(
         'INSERT INTO store_shift_start_times (client_id,store_id,store_name,shift_start_time) '
@@ -167,7 +149,8 @@ try {
                     $day['start_time'],
                     $day['end_time'],
                     $day['is_closed'],
-                    (int)$actor['id'],
+                    beta_actor_employee_id($actor),
+                    beta_actor_platform_identity_id($actor),
                 ]);
             }
 

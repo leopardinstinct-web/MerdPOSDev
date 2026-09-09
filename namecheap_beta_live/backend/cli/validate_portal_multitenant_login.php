@@ -10,7 +10,9 @@ foreach ([$login, $runner] as $file) {
 $source = (string) file_get_contents($login);
 $test = (string) file_get_contents($runner);
 $checks = [
-    [str_contains($source, "FROM employees WHERE user_id=? AND status='active' ORDER BY client_id,id LIMIT 21"), 'Login must resolve numeric User ID across active tenant candidates.'],
+    [str_contains($source, 'merd_platform_identity_by_user_id($pdo, $userId)'), 'Platform identity namespace must be checked before client employees.'],
+    [str_contains($source, "'identity_scope'=>'platform'"), 'Platform DEV login must establish a platform-scoped session.'],
+    [str_contains($source, "FROM employees WHERE user_id=? AND status='active' AND UPPER(TRIM(employee_type))<>'DEV' ORDER BY client_id,id LIMIT 21"), 'Client login must resolve numeric User ID across active non-DEV tenant candidates.'],
     [!str_contains($source, "FROM employees WHERE client_id=? AND user_id=?"), 'Fixed PORTAL_CLIENT_ID login lookup must stay retired.'],
     [str_contains($source, '$authClientId = (int)$employee[\'client_id\'];'), 'Resolved employee tenant must become the authentication client.'],
     [str_contains($source, 'recordFailure(PORTAL_CLIENT_ID, null'), 'Pre-tenant failures must use one canonical lockout namespace.'],
