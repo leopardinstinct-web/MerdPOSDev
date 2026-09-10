@@ -65,7 +65,8 @@ async function consolidatedTimesheet(page, role) {
   assert(await page.locator('#merdpos-shift-detail').count() === 1, `${role}: Shift Detail table missing`);
   const shiftRows = await page.locator('#merdpos-shift-detail tbody tr').count();
   if (shiftRows > 0) {
-    assert((await page.locator('#merdpos-shift-detail thead th').last().innerText()).trim() === 'Action', `${role}: Action is not the final Shift Detail column`);
+    const lastShiftHeader = ((await page.locator('#merdpos-shift-detail thead th').last().textContent()) || '').trim();
+    assert(lastShiftHeader === 'Action', `${role}: Action is not the final Shift Detail column`);
   } else {
     assert(await page.locator('#merdpos-shift-detail .merdpos-report-empty').count() === 1, `${role}: Shift Detail is neither populated nor a valid empty state`);
   }
