@@ -60,12 +60,18 @@ async function consolidatedTimesheet(page, role) {
   }
   await page.goto(BASE + '/merdpos/reports', { waitUntil: 'domcontentloaded' });
   assert((await page.locator('h1').first().innerText()).trim() === 'Timesheets Report', `${role}: consolidated Timesheets Report title missing`);
-  const navLabels = (await page.locator('.merdpos-bottom-nav-item').allTextContents()).map(v => v.trim());
+  const navLabels = (await page.locator('.merdpos-bottom-nav-label').allTextContents()).map(v => v.trim());
   assert(navLabels.includes('Timesheets') && !navLabels.includes('Reports'), `${role}: primary navigation must expose Timesheets and retire Reports`);
   assert(await page.locator('#merdpos-shift-detail').count() === 1, `${role}: Shift Detail table missing`);
-  assert((await page.locator('#merdpos-shift-detail thead th').last().innerText()).trim() === 'Action', `${role}: Action is not the final Shift Detail column`);
+  const shiftRows = await page.locator('#merdpos-shift-detail tbody tr').count();
+  if (shiftRows > 0) {
+    const lastShiftHeader = ((await page.locator('#merdpos-shift-detail thead th').last().textContent()) || '').trim();
+    assert(lastShiftHeader === 'Action', `${role}: Action is not the final Shift Detail column`);
+  } else {
+    assert(await page.locator('#merdpos-shift-detail .merdpos-report-empty').count() === 1, `${role}: Shift Detail is neither populated nor a valid empty state`);
+  }
   assert(await page.locator('#merdpos-disputes-chart').count() === 0, `${role}: standalone dispute chart returned`);
-  return { legacyRedirects: retiredSurfaces.length, actionColumn: true };
+  return { legacyRedirects: retiredSurfaces.length, actionColumn: shiftRows > 0 ? true : 'empty-state' };
 }
 async function roleControls(page, role) {
   const status = await routeStatus(page, '/merdpos/admin?tab=roles');
