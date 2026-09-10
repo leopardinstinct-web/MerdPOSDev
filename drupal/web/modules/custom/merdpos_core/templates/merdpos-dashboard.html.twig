@@ -16,52 +16,19 @@
 <section class="merdpos-app merdpos-dashboard-v2" aria-labelledby="merdpos-dashboard-title">
   <header class="merdpos-dashboard-hero">
     <div class="merdpos-dashboard-hero-copy">
-      <p class="merdpos-eyebrow">MERDPOS / HOME</p>
+      <p class="merdpos-eyebrow">Home</p>
       <h1 id="merdpos-dashboard-title">{{ surface.title }}</h1>
       <p>{{ surface.description }}</p>
-      <div class="merdpos-dashboard-roleline">
-        <span>{{ surface.role.label|default('MERDPOS') }}</span>
-        <span>LOA {{ surface.role.loa|default(0) }}</span>
-        <span>{{ surface.visible_widget_count|default(0) }} {{ surface.layout_available ? 'widgets on dashboard' : 'authorized widgets' }}</span>
-      </div>
     </div>
-    <div class="merdpos-dashboard-live merdpos-dashboard-live--{{ surface.status }}">
-      <span class="merdpos-dashboard-live-pulse"></span>
-      <div><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS service</small></div>
-    </div>
+    {% if surface.filters %}
+      <form class="merdpos-dashboard-filters merdpos-dashboard-filters--hero" method="get" aria-label="Dashboard period">
+        {% for filter in surface.filters %}<label><span>{{ filter.label }}</span><select name="{{ filter.name }}" onchange="this.form.submit()">{% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}</select></label>{% endfor %}
+      </form>
+    {% endif %}
   </header>
-
-  {% if surface.filters %}
-    <form class="merdpos-dashboard-filters" method="get" aria-label="Dashboard filters">
-      <div class="merdpos-dashboard-filter-title"><strong>Operational lens</strong><span>{{ surface.period_label }}</span></div>
-      {% for filter in surface.filters %}
-        <label><span>{{ filter.label }}</span><select name="{{ filter.name }}">
-          {% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
-        </select></label>
-      {% endfor %}
-      <button type="submit">Apply view</button>
-    </form>
-  {% endif %}
 
   {% if surface.layout_available %}
     <section class="merdpos-dashboard-layout-shell" data-dashboard-layout data-endpoint="{{ surface.dashboard_layout.endpoint }}" data-csrf="{{ surface.dashboard_layout.csrf }}" data-role-id="{{ surface.dashboard_layout.selected_role_id }}" data-allowed-widgets="{{ surface.dashboard_layout.allowed_widgets|join(',') }}">
-      <div class="merdpos-dashboard-layout-bar">
-        {% if surface.dashboard_layout.can_select_role %}
-          <label class="merdpos-dashboard-role-select"><span>Dashboard role</span><select data-dashboard-role>
-            {% for role in surface.dashboard_layout.roles %}<option value="{{ role.id }}"{{ role.id == surface.dashboard_layout.selected_role_id ? ' selected' : '' }}>{{ role.role_label }}</option>{% endfor %}
-          </select></label>
-        {% else %}
-          <div class="merdpos-dashboard-role-static"><span>Dashboard role</span><strong>{{ surface.role.label }}</strong></div>
-        {% endif %}
-        <div class="merdpos-dashboard-layout-actions">
-          {% if surface.dashboard_layout.can_edit %}
-            <button type="button" class="merdpos-dashboard-edit-toggle" data-dashboard-edit aria-pressed="false">Edit dashboard</button>
-            <button type="button" class="merdpos-dashboard-add-widget" data-dashboard-add aria-label="Add dashboard widget" aria-expanded="false" hidden>+</button>
-          {% endif %}
-          <span class="merdpos-dashboard-save-state" data-dashboard-save-state aria-live="polite"></span>
-        </div>
-      </div>
-
       <div class="merdpos-dashboard-layout-grid" data-dashboard-grid aria-label="Role dashboard">
         {% for layout_item in surface.layout_items %}
           <article class="merdpos-dashboard-layout-item" data-dashboard-item data-widget="{{ layout_item.widget_key }}" data-grid-x="{{ layout_item.grid_x }}" data-grid-y="{{ layout_item.grid_y }}" data-grid-w="{{ layout_item.grid_w }}" data-grid-h="{{ layout_item.grid_h }}" style="grid-column: {{ layout_item.grid_x + 1 }} / span {{ layout_item.grid_w }}; grid-row: {{ layout_item.grid_y + 1 }} / span {{ layout_item.grid_h }};">

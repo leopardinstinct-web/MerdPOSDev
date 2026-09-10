@@ -10,7 +10,7 @@
 .merdpos-dashboard-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
   align-items: center;
   min-height: 13rem;
@@ -51,21 +51,6 @@
   color: var(--color-text-secondary);
   font-size: var(--type-md);
   line-height: 1.6;
-}
-.merdpos-dashboard-roleline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .55rem;
-  margin-top: 1.2rem;
-}
-.merdpos-dashboard-roleline span {
-  padding: .42rem .72rem;
-  border: 1px solid color-mix(in srgb, var(--db-blue) 12%, var(--color-border-subtle));
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, #fff 80%, transparent);
-  color: var(--db-blue);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-bold);
 }
 .merdpos-dashboard-live {
   position: relative;
@@ -420,3 +405,6 @@
   }
   .merdpos-current-shift-action strong { max-width: min(11rem, 58vw); }
 }
+
+/* Header-review dashboard simplification. */
+.merdpos-dashboard-hero{grid-template-columns:minmax(0,1fr) auto;align-items:end}.merdpos-dashboard-filters--hero{margin:0;padding:0;border:0;background:transparent;box-shadow:none;display:block}.merdpos-dashboard-filters--hero label{min-width:10rem}.merdpos-dashboard-filters--hero select{min-width:10rem}.merdpos-dashboard-layout-bar{display:none!important}@media(max-width:51.25rem){.merdpos-dashboard-hero{grid-template-columns:1fr}.merdpos-dashboard-filters--hero{width:100%}.merdpos-dashboard-filters--hero label,.merdpos-dashboard-filters--hero select{width:100%;min-width:0}}

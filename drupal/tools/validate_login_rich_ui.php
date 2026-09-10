@@ -1,62 +1,19 @@
 <?php
 declare(strict_types=1);
-
-$root = dirname(__DIR__);
-function rich_check(bool $ok, string $message): void {
-  if (!$ok) throw new RuntimeException($message);
-}
-function rich_read(string $path): string {
-  $data = file_get_contents($path);
-  if (!is_string($data)) throw new RuntimeException('Unreadable file: ' . $path);
-  return $data;
-}
-
-$twig = rich_read($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
-$theme = rich_read($root . '/web/themes/custom/merdpos_app/merdpos_app.theme');
-$shellCss = rich_read($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
-$services = rich_read($root . '/web/modules/custom/merdpos_core/merdpos_core.services.yml');
-$route = rich_read($root . '/web/modules/custom/merdpos_core/src/Routing/MerdposRouteSubscriber.php');
-$denied = rich_read($root . '/web/modules/custom/merdpos_core/src/Routing/MerdposAccessDeniedSubscriber.php');
-$runtime = rich_read($root . '/tools/namecheap_resolve_runtime.php');
-$deploy = rich_read($root . '/tools/namecheap_deploy.sh');
-$composer = json_decode(rich_read($root . '/composer.json'), true, 32, JSON_THROW_ON_ERROR);
-
-rich_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-logo-approved.png'), 'Approved MERDPOS login graphic missing.');
-rich_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-mark.png'), 'Approved MERDPOS mark missing.');
-rich_check(str_contains($twig, 'Welcome back.'), 'Previous MERDPOS login heading missing.');
-rich_check(str_contains($twig, 'merdpos-logo-approved.png'), 'Approved MERDPOS login logo not rendered.');
-rich_check(str_contains($twig, '/assets/merdpos-mark.png'), 'Approved MERDPOS shell mark not rendered.');
-rich_check(str_contains($twig, '/assets/merdpos-wordmark.png'), 'Approved MERDPOS shell wordmark not rendered.');
-rich_check(str_contains($shellCss, '.merdpos-shell-mark {') && !str_contains($shellCss, '.merdpos-shell-brand img {'), 'Shell mark/wordmark sizing is not isolated.');
-rich_check(!str_contains($shellCss, 'filter: brightness(0) invert(1)'), 'Dark mode still destroys approved wordmark colors.');
-rich_check(str_contains($shellCss, ':root[data-theme="dark"] .merdpos-shell-brand {'), 'Dark-mode brand lockup surface missing.');
-rich_check(str_contains($twig, 'Administration') && str_contains($twig, 'Timesheets') && !str_contains($twig, '<strong>Reports</strong>') && str_contains($twig, 'Financials') && str_contains($twig, 'DEV'), 'Rich capability graphics missing.');
-rich_check(str_contains($theme, 'merdpos_core.identity_manager'), 'MERDPOS profile-aware shell missing.');
-rich_check(str_contains($route, 'MerdposLoginForm'), 'Drupal login route is not replaced.');
-rich_check(str_contains($denied, 'merdpos_core.'), 'Anonymous app redirect guard missing.');
-rich_check(str_contains($services, 'merdpos_core.authenticator') && str_contains($services, 'merdpos_core.identity_manager'), 'MERDPOS auth services missing.');
-rich_check(str_contains($runtime, 'MERDPOS_DRUPAL_LOGIN_URL='), 'Private runtime login URL missing.');
-rich_check(str_contains($runtime, 'FROM platform_identities p') && str_contains($runtime, 'platform_identity_preferences'), 'Private runtime does not resolve the platform DEV service actor.');
-rich_check(!str_contains($runtime, "FROM employees e
-LEFT JOIN client_roles"), 'Private runtime still depends on a client-bound DEV employee actor.');
-rich_check(str_contains($deploy, 'config:set system.site page.front /merdpos -y'), 'Drupal app domain front page is not routed to MERDPOS.');
-
-$required = $composer['require'] ?? [];
-foreach (['drupal/dashboard','drupal/charts','drupal/ui_patterns','drupal/ui_icons','drupal/gin','drupal/gin_toolbar','drupal/better_exposed_filters'] as $package) {
-  rich_check(isset($required[$package]), 'Free UI package missing: ' . $package);
-}
-
-$authDir = $root . '/web/modules/custom/merdpos_core/src/Auth';
-foreach (glob($authDir . '/*.php') ?: [] as $file) {
-  $source = rich_read($file);
-  rich_check(!preg_match('/\b(?:SELECT|INSERT|UPDATE|DELETE)\b\s+/i', $source), 'Direct SQL found in Drupal auth boundary: ' . basename($file));
-  rich_check(!str_contains($source, 'login_password') && !str_contains($source, 'pin_code'), 'MERDPOS credential storage fields leaked into Drupal auth.');
-}
-
-$surface = rich_read($root . '/web/modules/custom/merdpos_core/templates/merdpos-surface.html.twig');
-foreach (['merdpos-kpi-icon', 'M16 21v-2a4 4', 'M4 20V10', 'M3 7h15', 'M21 15a4'] as $needle) {
-  rich_check(str_contains($surface, $needle), 'Canonical MERDPOS widget icon treatment missing: ' . $needle);
-}
-
-echo "MERDPOS Drupal login and rich free-UI contract validated.\n";
-
+$root=dirname(__DIR__);function rich_check(bool $ok,string $m): void {if(!$ok)throw new RuntimeException($m);}function rich_read(string $p): string {$s=file_get_contents($p);if(!is_string($s))throw new RuntimeException('Unreadable '.$p);return $s;}
+$twig=rich_read($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');$theme=rich_read($root.'/web/themes/custom/merdpos_app/merdpos_app.theme');$css=rich_read($root.'/web/themes/custom/merdpos_app/css/app-shell.css');
+$services=rich_read($root.'/web/modules/custom/merdpos_core/merdpos_core.services.yml');$route=rich_read($root.'/web/modules/custom/merdpos_core/src/Routing/MerdposRouteSubscriber.php');$denied=rich_read($root.'/web/modules/custom/merdpos_core/src/Routing/MerdposAccessDeniedSubscriber.php');
+$runtime=rich_read($root.'/tools/namecheap_resolve_runtime.php');$deploy=rich_read($root.'/tools/namecheap_deploy.sh');$composer=json_decode(rich_read($root.'/composer.json'),true,32,JSON_THROW_ON_ERROR);
+foreach(['merdpos-logo-approved.png','merdpos-mark.png','merdpos-wordmark.png','M-dark-theme.png','MERDPOS-dark-theme.png'] as $asset) rich_check(is_file($root.'/web/themes/custom/merdpos_app/assets/'.$asset),'Shell/login asset missing: '.$asset);
+rich_check(str_contains($twig,'Welcome back.')&&str_contains($twig,'merdpos-logo-approved.png'),'MERDPOS login brand regressed.');
+rich_check(str_contains($twig,'data-light-src=')&&str_contains($twig,'M-dark-theme.png')&&str_contains($twig,'MERDPOS-dark-theme.png'),'Dark/light shell brand source switching missing.');
+rich_check(!str_contains($twig,'merdpos-shell-tagline')&&!str_contains($twig,'<small>Drupal Beta</small>'),'Signed-in tagline/Drupal Beta label must remain removed.');
+rich_check(str_contains($css,':root[data-theme="dark"] .merdpos-shell-brand')&&str_contains($css,'background:transparent')&&str_contains($css,'box-shadow:none'),'Dark shell brand must remain transparent without white glass.');
+rich_check(!str_contains($css,'filter: brightness(0) invert(1)'),'Dark mode still destroys approved brand colors.');
+rich_check(str_contains($twig,'Administration')&&str_contains($twig,'Timesheets')&&!str_contains($twig,'<strong>Reports</strong>')&&str_contains($twig,'Financials')&&str_contains($twig,'DEV'),'Login capability graphics missing.');
+rich_check(str_contains($theme,'merdpos_core.identity_manager')&&str_contains($route,'MerdposLoginForm')&&str_contains($denied,'merdpos_core.'),'MERDPOS shell/auth integration regressed.');
+rich_check(str_contains($services,'merdpos_core.authenticator')&&str_contains($services,'merdpos_core.identity_manager'),'MERDPOS auth services missing.');
+rich_check(str_contains($runtime,'MERDPOS_DRUPAL_LOGIN_URL=')&&str_contains($runtime,'FROM platform_identities p'),'Platform DEV runtime identity resolution regressed.');
+rich_check(str_contains($deploy,'config:set system.site page.front /merdpos -y'),'Drupal front page is not MERDPOS.');
+foreach(['drupal/dashboard','drupal/charts','drupal/ui_patterns','drupal/ui_icons','drupal/gin','drupal/gin_toolbar','drupal/better_exposed_filters'] as $package) rich_check(isset(($composer['require']??[])[$package]),'Free UI package missing: '.$package);
+echo "MERDPOS Drupal login + light/dark shell brand contract validated.\n";

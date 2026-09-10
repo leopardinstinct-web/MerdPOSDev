@@ -15,36 +15,15 @@
 <section class="merdpos-admin-v1" data-merdpos-admin data-legacy-url="{{ legacy_url }}" data-legacy-token="{{ legacy_token }}" data-can-manage-legacy="{{ can_manage_legacy ? '1' : '0' }}">
   <header class="merdpos-admin-hero">
     <div>
-      <p class="merdpos-admin-eyebrow">ADMINISTRATION WRITE PARITY</p>
-      <h1>Clients, stores and workforce.</h1>
-      <p>One governed workspace. Every save is re-authorised by MERDPOS and written through the signed service boundary.</p>
-      <div class="merdpos-admin-badges">
+      <p class="merdpos-admin-eyebrow">Admin</p>
+      <h1>Admin Command Center</h1>
+      <p>Create, Modify Clients, Stores, Workforce and other operational aspects.</p>
+      <div class="merdpos-admin-badges merdpos-hero-roleline">
         <span>{{ actor.role_label|default('Management') }}</span>
         <span>LOA {{ actor.authority_level|default(0) }}</span>
         <span>Authoritative writes</span>
       </div>
     </div>
-    {% if current_tab in ['stores', 'defaults', 'workforce', 'roles'] %}
-      {% if can_select_client %}
-      <form class="merdpos-admin-client-switch merdpos-admin-client-switch--hero" method="get">
-        <input type="hidden" name="tab" value="{{ current_tab }}">
-        <label><span>Working client</span>
-          <select name="client_id" onchange="this.form.submit()">
-            {% for client in selectable_clients %}
-              <option value="{{ client.id }}"{{ client.id == selected_client_id ? ' selected' : '' }}>{{ client.name }} &middot; {{ client.client_code }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <noscript><button type="submit">Switch</button></noscript>
-      </form>
-      {% else %}
-      <div class="merdpos-admin-context-card">
-        <small>Working client</small>
-        <strong>{{ selected_client.name|default('MERDPOS client') }}</strong>
-        <span>{{ selected_client.client_code|default('') }}</span>
-      </div>
-      {% endif %}
-    {% endif %}
   </header>
 
 

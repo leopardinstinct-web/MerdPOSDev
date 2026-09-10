@@ -10,6 +10,13 @@
     document.querySelectorAll('[data-merdpos-theme]').forEach((select) => {
       select.value = safe;
     });
+    document.querySelectorAll('[data-merdpos-theme-label]').forEach((label) => {
+      label.textContent = resolved === 'dark' ? 'Dark theme' : 'Light theme';
+    });
+    document.querySelectorAll('[data-merdpos-shell-brand-image]').forEach((image) => {
+      const source = resolved === 'dark' ? image.dataset.darkSrc : image.dataset.lightSrc;
+      if (source && image.getAttribute('src') !== source) image.setAttribute('src', source);
+    });
   };
 
   const bindThemeControls = (context) => {
@@ -20,6 +27,14 @@
       select.addEventListener('change', () => {
         localStorage.setItem(THEME_KEY, select.value);
         applyTheme(select.value);
+      });
+    });
+    once('merdpos-theme-toggle', '[data-merdpos-theme-toggle]', context).forEach((button) => {
+      button.addEventListener('click', () => {
+        const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
       });
     });
   };
@@ -51,6 +66,26 @@
             window.location.reload();
           } catch (error) {
             if (prior) select.value = prior;
+            select.disabled = false;
+            window.alert(error.message);
+          }
+        });
+        select.dataset.activeValue = select.value;
+      });
+      once('merdpos-working-role', '[data-merdpos-working-role]', context).forEach((select) => {
+        select.addEventListener('change', async () => {
+          const prior = select.dataset.activeValue || select.value;
+          const roleKey = String(select.value || '').toUpperCase();
+          if (!['DEV','ADMIN','SUPER','USER'].includes(roleKey)) return;
+          select.disabled = true;
+          try {
+            const response = await fetch(select.dataset.endpoint || '', {method:'POST', credentials:'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json','X-MERDPOS-CSRF':select.dataset.csrf || ''}, body:JSON.stringify({role_key:roleKey})});
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload || payload.success !== true) throw new Error(payload?.error || `Working Role change failed (${response.status}).`);
+            sessionStorage.setItem('merdposContextNotice', payload.message || 'Working Role changed.');
+            window.location.reload();
+          } catch (error) {
+            select.value = prior;
             select.disabled = false;
             window.alert(error.message);
           }

@@ -19,6 +19,7 @@ final class AccountController extends ControllerBase {
 
   public const PASSWORD_TOKEN_ID = 'merdpos_change_password_v1';
   public const WORKING_CLIENT_TOKEN_ID = 'merdpos_working_client_v1';
+  public const WORKING_ROLE_TOKEN_ID = 'merdpos_working_role_v1';
   public const TIMESHEET_SYNC_TOKEN_ID = 'merdpos_timesheet_google_sync_v1';
 
   public function __construct(
@@ -119,6 +120,26 @@ final class AccountController extends ControllerBase {
       return new JsonResponse(['success'=>true, 'active_client_id'=>(int) $clientId, 'client'=>$selected, 'message'=>'Working client changed to ' . $name . '.']);
     }
     return $this->gatewayError($result, $payload, 'Working client could not be changed.');
+  }
+
+  public function selectWorkingRole(): JsonResponse {
+    $request = $this->requestStack->getCurrentRequest();
+    if (!$request instanceof Request || !$request->isMethod('POST')) throw new AccessDeniedHttpException();
+    if (!$this->csrf->validate(trim((string) $request->headers->get('X-MERDPOS-CSRF', '')), self::WORKING_ROLE_TOKEN_ID)) {
+      return new JsonResponse(['success'=>false, 'error'=>'Your role selection session expired. Refresh and try again.'], 403);
+    }
+    $input = $this->jsonInput($request);
+    if ($input === NULL) return new JsonResponse(['success'=>false, 'error'=>'Invalid Working Role request.'], 400);
+    $roleKey = strtoupper(trim((string) ($input['role_key'] ?? '')));
+    if (!in_array($roleKey, ['DEV','ADMIN','SUPER','USER'], true)) return new JsonResponse(['success'=>false, 'error'=>'Choose a valid Working Role.'], 422);
+
+    $contextResult = $this->gateway->call('client_context', 'GET');
+    $context = is_array($contextResult['payload'] ?? NULL) ? $contextResult['payload'] : [];
+    if (($contextResult['status'] ?? '') !== 'ok' || empty($context['can_select_client']) || strtoupper((string) ($context['actual_role'] ?? '')) !== 'DEV') {
+      throw new AccessDeniedHttpException('Only the actual DEV identity can switch the Working Role.');
+    }
+    $request->getSession()->set('merdpos_context_role_key', $roleKey);
+    return new JsonResponse(['success'=>true, 'role_key'=>$roleKey, 'message'=>'Working Role changed to ' . ucfirst(strtolower($roleKey)) . '.']);
   }
 
   public function syncGoogleTimeSheet(): JsonResponse {

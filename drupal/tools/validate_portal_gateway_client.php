@@ -60,6 +60,9 @@ $malformed = new PortalGatewayClient(new Client(['handler'=>new MockHandler([
 gateway_client_check($malformed->call('beta_state')['status'] === 'unavailable', 'Malformed payload must fail closed.');
 
 gateway_client_check($client->call('../ui_studio_history')['status'] === 'invalid', 'Invalid route syntax must fail locally.');
+$source=(string)file_get_contents(dirname(__DIR__).'/web/modules/custom/merdpos_core/src/Integration/PortalGatewayClient.php');
+gateway_client_check(str_contains($source,'sessionContextRoleKey') && str_contains($source,"context_role_key"), 'Signed Working Role context forwarding missing.');
+gateway_client_check(str_contains($source,"['DEV','ADMIN','SUPER','USER']"), 'Working Role context allow-list missing.');
 
 putenv('MERDPOS_DRUPAL_GATEWAY_URL');
 putenv('MERDPOS_DRUPAL_SERVICE_URL');

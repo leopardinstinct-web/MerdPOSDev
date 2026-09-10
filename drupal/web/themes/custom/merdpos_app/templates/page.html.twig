@@ -42,11 +42,9 @@
 <div class="merdpos-shell-frame" data-active-section="{{ merdpos_active_section }}">
   <header class="merdpos-shell-header">
     <a class="merdpos-shell-brand" href="{{ path('merdpos_core.dashboard') }}" aria-label="MERDPOS Home">
-      <img class="merdpos-shell-mark" src="{{ base_path ~ directory ~ '/assets/merdpos-mark.png' }}" alt="" width="36" height="36">
+      <img class="merdpos-shell-mark" data-merdpos-shell-brand-image data-light-src="{{ base_path ~ directory ~ '/assets/merdpos-mark.png' }}" data-dark-src="{{ base_path ~ directory ~ '/assets/M-dark-theme.png' }}" src="{{ base_path ~ directory ~ '/assets/merdpos-mark.png' }}" alt="" width="36" height="36">
       <span class="merdpos-shell-brand-copy">
-        <img class="merdpos-shell-wordmark" src="{{ base_path ~ directory ~ '/assets/merdpos-wordmark.png' }}" alt="MERDPOS">
-        <img class="merdpos-shell-tagline" src="{{ base_path ~ directory ~ '/assets/merdpos-tagline.png' }}" alt="Smarter Faster Together">
-        <small>Drupal Beta</small>
+        <img class="merdpos-shell-wordmark" data-merdpos-shell-brand-image data-light-src="{{ base_path ~ directory ~ '/assets/merdpos-wordmark.png' }}" data-dark-src="{{ base_path ~ directory ~ '/assets/MERDPOS-dark-theme.png' }}" src="{{ base_path ~ directory ~ '/assets/merdpos-wordmark.png' }}" alt="MERDPOS">
       </span>
     </a>
 
@@ -61,45 +59,52 @@
         </span>
         <span class="merdpos-account-chevron" aria-hidden="true">⌄</span>
       </button>
+      <div class="merdpos-account-pills" aria-label="Working context"><span class="merdpos-account-context-pill" data-merdpos-client-code title="Working client">{{ merdpos_active_client.client_code|default('—') }}</span><span class="merdpos-account-context-pill" data-merdpos-role-pill title="Working role">{{ merdpos_role_labels|last }}</span></div>
       <div class="merdpos-account-menu" data-merdpos-account-menu hidden>
         <div class="merdpos-account-menu-head">
-          <div class="merdpos-account-brand-glass" aria-hidden="true"><img src="{{ base_path ~ directory ~ '/assets/merdpos-logo-approved.png' }}" alt=""></div>
           <strong>{{ merdpos_user_name }}</strong>
           <span>{{ merdpos_role_labels|join(' · ') }}</span>
         </div>
         {% if merdpos_client_context_available %}
-        <div class="merdpos-account-working-client" data-merdpos-working-client-block>
-          <span class="merdpos-account-context-label">Working client</span>
-          {% if merdpos_can_select_client %}
-            <select data-merdpos-working-client data-endpoint="{{ merdpos_working_client_url }}" data-csrf="{{ merdpos_working_client_token }}" aria-label="Select working client">
-              {% for client in merdpos_clients %}<option value="{{ client.id }}"{{ client.id == merdpos_active_client_id ? ' selected' : '' }}>{{ client.name }}{% if client.client_code %} &#183; {{ client.client_code }}{% endif %}</option>{% endfor %}
-            </select>
-          {% else %}
-            <strong>{{ merdpos_active_client.name|default('MERDPOS client') }}</strong>
-          {% endif %}
-          {% if merdpos_can_timesheet_sync %}
-          <div class="merdpos-account-timesheet-sync-row">
-            <span>Sync</span>
-            <button class="merdpos-account-timesheet-sync" type="button" data-merdpos-timesheet-sync data-endpoint="{{ merdpos_timesheet_sync_url }}" data-csrf="{{ merdpos_timesheet_sync_token }}" data-client-id="{{ merdpos_active_client_id }}" data-client-name="{{ merdpos_active_client.name|default('Working client') }}" aria-label="Sync Time Sheet from Google" title="Replace SQL Time Sheet from Google">
-              <img src="{{ base_path ~ directory ~ '/assets/restart_alt_48px.svg' }}" alt="">
-            </button>
+        <details class="merdpos-account-context" data-merdpos-context-section>
+          <summary><span>Working client</span><small>{{ merdpos_active_client.name|default('MERDPOS client') }}</small></summary>
+          <div class="merdpos-account-context-row" data-merdpos-working-client-block>
+            <span class="merdpos-account-context-label">Working client</span>
+            {% if merdpos_can_select_client %}
+              <select data-merdpos-working-client data-endpoint="{{ merdpos_working_client_url }}" data-csrf="{{ merdpos_working_client_token }}" aria-label="Select working client">
+                {% for client in merdpos_clients %}<option value="{{ client.id }}"{{ client.id == merdpos_active_client_id ? ' selected' : '' }}>{{ client.name }}{% if client.client_code %} · {{ client.client_code }}{% endif %}</option>{% endfor %}
+              </select>
+            {% else %}<strong>{{ merdpos_active_client.name|default('MERDPOS client') }}</strong>{% endif %}
+            {% if merdpos_can_timesheet_sync %}<button class="merdpos-account-timesheet-sync" type="button" data-merdpos-timesheet-sync data-endpoint="{{ merdpos_timesheet_sync_url }}" data-csrf="{{ merdpos_timesheet_sync_token }}" data-client-id="{{ merdpos_active_client_id }}" data-client-name="{{ merdpos_active_client.name|default('Working client') }}" aria-label="Sync Time Sheet from Google" title="Sync Time Sheet"><img src="{{ base_path ~ directory ~ '/assets/restart_alt_48px.svg' }}" alt=""></button>{% endif %}
           </div>
-          {% endif %}
           <span class="merdpos-account-context-notice" data-merdpos-context-notice aria-live="polite"></span>
-        </div>
+        </details>
         {% endif %}
-        <label class="merdpos-account-theme"><span>Theme</span><select data-merdpos-theme aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+        {% if merdpos_can_select_role %}
+        {% set merdpos_working_role_label = merdpos_active_role_key == 'DEV' ? 'Developer' : (merdpos_active_role_key|lower|capitalize) %}
+        <details class="merdpos-account-context merdpos-account-role-context" data-merdpos-context-section>
+          <summary><span>Working Role</span><small>{{ merdpos_working_role_label }}</small></summary>
+          <div class="merdpos-account-context-row">
+            <span class="merdpos-account-context-label">Working Role</span>
+            <select data-merdpos-working-role data-endpoint="{{ merdpos_working_role_url }}" data-csrf="{{ merdpos_working_role_token }}" aria-label="Select Working Role">
+              <option value="DEV"{{ merdpos_active_role_key == 'DEV' ? ' selected' : '' }}>Developer</option>
+              <option value="ADMIN"{{ merdpos_active_role_key == 'ADMIN' ? ' selected' : '' }}>Admin</option>
+              <option value="SUPER"{{ merdpos_active_role_key == 'SUPER' ? ' selected' : '' }}>Super</option>
+              <option value="USER"{{ merdpos_active_role_key == 'USER' ? ' selected' : '' }}>User</option>
+            </select>
+          </div>
+        </details>
+        {% endif %}
+        <button class="merdpos-account-menu-action" type="button" data-merdpos-theme-toggle aria-label="Toggle color theme">
+          <svg class="merdpos-account-menu-icon merdpos-theme-icon merdpos-theme-icon--light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="merdpos-account-menu-icon merdpos-theme-icon merdpos-theme-icon--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+          <span data-merdpos-theme-label>Theme</span>
+        </button>
         {% if merdpos_can_change_password %}
-          <button class="merdpos-account-menu-action" type="button" data-merdpos-password-open>
-            <svg class="merdpos-account-menu-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" d="M420-360h120l-23-129q20-10 31.5-29t11.5-42q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 23 11.5 42t31.5 29l-23 129Zm60 280q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>
-            <span>Change password</span>
-          </button>
+          <button class="merdpos-account-menu-action" type="button" data-merdpos-password-open><svg class="merdpos-account-menu-icon" viewBox="0 -960 960 960" aria-hidden="true"><path fill="currentColor" d="M420-360h120l-23-129q20-10 31.5-29t11.5-42q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 23 11.5 42t31.5 29l-23 129Zm60 280q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Z"/></svg><span>Change password</span></button>
         {% endif %}
-        {% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}
-        <a class="merdpos-account-menu-action" href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}">
-          <svg class="merdpos-account-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></svg>
-          <span>Log out</span>
-        </a>
+        {% if merdpos_dev_url %}<a class="merdpos-account-menu-action" href="{{ merdpos_dev_url }}"><svg class="merdpos-account-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/></svg><span>DEV</span></a>{% endif %}
+        <a class="merdpos-account-menu-action" href="{{ path('user.logout', {}, {'query': {'destination': path('user.login')}}) }}"><svg class="merdpos-account-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></svg><span>Log out</span></a>
       </div>
       </div>
     </div>
@@ -146,13 +151,13 @@
          {% if item.active %}aria-current="page"{% endif %}>
         <span class="merdpos-bottom-nav-icon" aria-hidden="true">
           {% if item.key == 'home' %}
-            <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
           {% elseif item.key == 'operations' %}
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           {% elseif item.key == 'admin' %}
             <svg viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>
           {% elseif item.key == 'reports' %}
-            <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20V7"/></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           {% elseif item.key == 'finance' %}
             <svg viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/><path d="M5 7V5a2 2 0 0 1 2-2h10"/></svg>
           {% else %}

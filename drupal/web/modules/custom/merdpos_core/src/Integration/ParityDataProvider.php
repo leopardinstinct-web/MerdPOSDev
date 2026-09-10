@@ -178,31 +178,20 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $configuredKeys = $layoutAvailable
       ? array_values(array_filter(array_map(static fn(array $row): string => (string) ($row['widget_key'] ?? ''), $this->rows($layoutPayload['layout'] ?? []))))
       : $allowedKeys;
-    $filterOptions = $this->map($payload['filter_options'] ?? []);
     $filterState = $this->map($payload['filters'] ?? []);
-    $filters = [];
-    $filterable = array_intersect($configuredKeys, ['working_now_count','working_now','workforce_by_store','store_cash_position','cash_mix','today_sales_by_store','recent_attendance','sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales']);
-    if ($filterable) {
-      $storeOptions = [['value'=>'0','label'=>'All stores']];
-      foreach ($this->rows($filterOptions['stores'] ?? []) as $store) {
-        $storeOptions[] = ['value'=>(string)($store['id'] ?? ''),'label'=>(string)($store['store_name'] ?? '')];
-      }
-      $filters[] = ['name'=>'store_id','label'=>'Store','type'=>'select','value'=>(string)($filterState['store_id'] ?? 0),'options'=>$storeOptions];
-    }    if (array_intersect($configuredKeys, ['sales_trend_7d','attendance_trend_7d'])) {
-      $filters[] = [
-        'name'=>'period', 'label'=>'Period', 'type'=>'select',
-        'value'=>(string)($filterState['period'] ?? '7'),
-        'options'=>[
-          ['value'=>'current_week','label'=>'Current week'],
-          ['value'=>'7','label'=>'7 days'],
-          ['value'=>'14','label'=>'14 days'],
-          ['value'=>'30','label'=>'30 days'],
-        ],
-      ];
-    }
+    $filters = [[
+      'name'=>'period', 'label'=>'Period', 'type'=>'select',
+      'value'=>(string)($filterState['period'] ?? 'current_week'),
+      'options'=>[
+        ['value'=>'current_week','label'=>'Working Week'],
+        ['value'=>'7','label'=>'7 days'],
+        ['value'=>'14','label'=>'14 days'],
+        ['value'=>'30','label'=>'30 days'],
+      ],
+    ]];
 
     $surface = $this->surface(
-      'home', 'Home', 'Management workspace',
+      'home', 'Home', 'Dashboard',
       'A role-aware operational command centre using only widgets authorized by MERDPOS LOA policy.',
       $dashboard['status'], $kpis, [],
       ['source'=>'dashboard_data', 'business_date'=>$businessDate, 'currency_code'=>$currency],
@@ -787,8 +776,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     ];
 
     $surface = $this->surface(
-      'reports','Reports','Timesheets Report',
-      'Role-aware timesheets with shift-level correction and dispute actions over the existing MERDPOS reconciliation engine.',
+      'reports','Reports','Attendance & Payroll',
+      'Track attendance, review and process wages, and raise or resolve pay disputes. Full history, clear records, and accurate results.',
       $this->status([$dashboard['status'],$state['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
       $metrics,
       [
@@ -917,8 +906,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $statuses = [$dashboard['status'], $identity['status']];
     if ($selectedStore > 0) $statuses[] = $financial['status'];
     $surface = $this->surface(
-      'finance','Financials','Financial command centre',
-      'Sales, Register, Petty Cash and ledger detail come from authoritative MERDPOS services. Governed opening, cash movement and Z-report actions submit through the same signed MERDPOS financials contract.',
+      'finance','Financials','Cashflow Transactions',
+      'Monitor sales, register activity, petty cash, and ledger detail. Manage register openings, cash movements, and Z-reports.',
       $this->status($statuses),
       [
         $this->metric('Sales today',$this->money($totalSales,$currency),$businessDate ?: 'Business date','brand'),
@@ -1187,10 +1176,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $out = [];
     $roleId = filter_var($query['role_id'] ?? 0, FILTER_VALIDATE_INT);
     if ($roleId !== false && $roleId > 0) $out['role_id'] = (string) $roleId;
-    $storeId = filter_var($query['store_id'] ?? 0, FILTER_VALIDATE_INT);
-    if ($storeId !== false && $storeId > 0) $out['store_id'] = (string)$storeId;
-    $period = strtolower(trim((string)($query['period'] ?? '7')));
-    if (!in_array($period, ['current_week','7','14','30'], true)) $period = '7';
+    $period = strtolower(trim((string)($query['period'] ?? 'current_week')));
+    if (!in_array($period, ['current_week','7','14','30'], true)) $period = 'current_week';
     $out['period'] = $period;
     if ($period !== 'current_week') $out['days'] = $period;
     return $out;

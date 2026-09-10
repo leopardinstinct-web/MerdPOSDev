@@ -19,16 +19,12 @@
 <section class="merdpos-app merdpos-reports-v2" aria-labelledby="merdpos-reports-title">
   <header class="merdpos-reports-hero">
     <div class="merdpos-reports-copy">
-      <p class="merdpos-eyebrow">MERDPOS / TIMESHEETS</p>
+      <p class="merdpos-eyebrow">Timesheets</p>
       <h1 id="merdpos-reports-title">{{ surface.title }}</h1>
       <p>{{ surface.description }}</p>
-      <div class="merdpos-reports-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.payroll_visible ? 'Payroll visible' : 'Payroll redacted' }}</span></div>
+      <div class="merdpos-reports-roleline merdpos-hero-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.payroll_visible ? 'Payroll visible' : 'Payroll redacted' }}</span></div>
     </div>
-    <div class="merdpos-reports-actions">
-      <div class="merdpos-reports-live is-{{ surface.status }}"><span></span><strong>{{ surface.status_label }}</strong><small>Authoritative MERDPOS report</small></div>
-      <a class="merdpos-report-action" href="{{ export_url }}">{{ ui.icon('download') }}<span>Export CSV</span></a>
-      <button class="merdpos-report-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
-    </div>
+    <button class="merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
   </header>
 
   {% if surface.filters %}

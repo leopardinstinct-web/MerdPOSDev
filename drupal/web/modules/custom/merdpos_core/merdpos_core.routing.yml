@@ -60,7 +60,7 @@ merdpos_core.reports:
   path: '/merdpos/reports'
   defaults:
     _controller: 'Drupal\merdpos_core\Controller\ReportsController::reports'
-    _title: 'Timesheets Report'
+    _title: 'Attendance & Payroll'
   requirements:
     _permission: 'access merdpos portal'
 
@@ -99,6 +99,14 @@ merdpos_core.working_client:
   path: '/merdpos/account/working-client'
   defaults:
     _controller: 'Drupal\merdpos_core\Controller\AccountController::selectWorkingClient'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
+merdpos_core.working_role:
+  path: '/merdpos/account/working-role'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\AccountController::selectWorkingRole'
   requirements:
     _permission: 'access merdpos portal'
   methods: [POST]
