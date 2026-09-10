@@ -60,6 +60,8 @@ async function consolidatedTimesheet(page, role) {
   }
   await page.goto(BASE + '/merdpos/reports', { waitUntil: 'domcontentloaded' });
   assert((await page.locator('h1').first().innerText()).trim() === 'Timesheets Report', `${role}: consolidated Timesheets Report title missing`);
+  const navLabels = (await page.locator('.merdpos-bottom-nav-item').allTextContents()).map(v => v.trim());
+  assert(navLabels.includes('Timesheets') && !navLabels.includes('Reports'), `${role}: primary navigation must expose Timesheets and retire Reports`);
   assert(await page.locator('#merdpos-shift-detail').count() === 1, `${role}: Shift Detail table missing`);
   assert((await page.locator('#merdpos-shift-detail thead th').last().innerText()).trim() === 'Action', `${role}: Action is not the final Shift Detail column`);
   assert(await page.locator('#merdpos-disputes-chart').count() === 0, `${role}: standalone dispute chart returned`);
