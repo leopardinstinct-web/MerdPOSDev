@@ -98,6 +98,7 @@ $drupalWorkingNowValidator = beta_contract_read($repo . '/namecheap_beta_live/ba
 $drupalServiceAuth = beta_contract_read($repo . '/namecheap_beta_live/backend/api/includes/service_auth.php', $errors);
 $drupalServiceActor = beta_contract_read($repo . '/namecheap_beta_live/backend/api/includes/service_actor.php', $errors);
 $drupalWorkingNowApi = beta_contract_read($repo . '/namecheap_beta_live/backend/api/integrations/working_now.php', $errors);
+$drupalPortalGateway = beta_contract_read($repo . '/namecheap_beta_live/backend/api/integrations/portal_gateway.php', $errors);
 $betaGuardrails = beta_contract_read($repo . '/.github/workflows/beta-guardrails.yml', $errors);
 $brandStandard = beta_contract_read($repo . '/docs/pos_latest/BRAND_IDENTITY_STANDARD.md', $errors);
 $deployScript = beta_contract_read($repo . '/scripts/deploy_namecheap_beta.sh', $errors);
@@ -294,8 +295,13 @@ beta_contract_require_contains($betaApi, 'function beta_apply_dev_role_preview',
 beta_contract_require_contains($betaApi, '$_COOKIE[\'merdpos_dev_view_role\']', 'DEV presentation role cookie', $errors);
 beta_contract_require_contains($betaApi, "['DEV','ADMIN','SUPER','USER']", 'DEV presentation role allow-list including Developer', $errors);
 beta_contract_require_contains($betaApi, '$user[\'actual_role_key\'] = (string)($user[\'actual_role_key\'] ?? \'DEV\');', 'DEV presentation preserves platform DEV identity while previewing client roles', $errors);
+beta_contract_require_contains($betaApi, '$previewUser[\'identity_scope\'] = \'employee\';', 'DEV preview permission snapshot disables platform DEV bypass', $errors);
+beta_contract_require_contains($betaApi, '$previewUser[\'actual_role_key\'] = $viewRoleKey;', 'DEV preview permission snapshot follows selected client role key', $errors);
 beta_contract_require_contains($betaApi, '$user[\'permissions\'] = $permissions', 'universal effective permission snapshot', $errors);
 beta_contract_require_contains($betaApi, '!empty($user[\'is_role_preview\'])', 'preview permissions override actual DEV route checks', $errors);
+beta_contract_require_contains($drupalPortalGateway, "context_role_key", 'Drupal gateway signed DEV role context', $errors);
+beta_contract_require_contains($drupalPortalGateway, "['DEV','ADMIN','SUPER','USER']", 'Drupal gateway role context allow-list', $errors);
+beta_contract_require_contains($drupalPortalGateway, '$_COOKIE[\'merdpos_dev_view_role\']=$contextRoleKey', 'Drupal gateway forwards DEV role context into authoritative preview engine', $errors);
 beta_contract_require_contains($betaApi, '$user=beta_apply_dev_role_preview($pdo,$user);', 'all beta APIs receive effective preview user', $errors);
 beta_contract_require_contains($dashboard, '$permissions = (array)($user[\'permissions\'] ?? []);', 'dashboard consumes universal effective permissions', $errors);
 beta_contract_require_contains($dashboardDataApi, '$effectiveRole = merd_dashboard_user_role($pdo, $user);', 'dashboard data follows effective preview role', $errors);

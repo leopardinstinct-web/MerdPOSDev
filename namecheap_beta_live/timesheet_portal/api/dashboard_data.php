@@ -47,6 +47,35 @@ function dashboard_data_current_week_dates(string $businessDate, DateTimeZone $t
     return $dates;
 }
 
+function dashboard_data_working_week_windows(array $stores, DateTimeZone $fallbackTimezone): array
+{
+    $windows = [];
+    foreach ($stores as $store) {
+        $storeId = (int)($store['id'] ?? 0);
+        if ($storeId <= 0) continue;
+        $timezone = $fallbackTimezone;
+        $timezoneName = trim((string)($store['timezone'] ?? ''));
+        if ($timezoneName !== '') { try { $timezone = new DateTimeZone($timezoneName); } catch (Throwable) {} }
+        $today = new DateTimeImmutable('now', $timezone);
+        $weekStartDay = max(1, min(7, (int)($store['week_start_day'] ?? 1)));
+        $offset = ((int)$today->format('N') - $weekStartDay + 7) % 7;
+        $windows[] = ['store_id'=>$storeId,'start_date'=>$today->modify("-{$offset} days")->format('Y-m-d'),'end_date'=>$today->format('Y-m-d'),'week_start_day'=>$weekStartDay];
+    }
+    return $windows;
+}
+
+function dashboard_data_window_dates(array $windows, DateTimeZone $timezone): array
+{
+    if (!$windows) return [];
+    $starts = array_column($windows, 'start_date');
+    $ends = array_column($windows, 'end_date');
+    $start = new DateTimeImmutable((string)min($starts), $timezone);
+    $end = new DateTimeImmutable((string)max($ends), $timezone);
+    $dates = [];
+    for ($cursor=$start; $cursor <= $end; $cursor=$cursor->modify('+1 day')) $dates[]=$cursor->format('Y-m-d');
+    return $dates;
+}
+
 function dashboard_data_fill_series(array $dates, array $rows, bool $integer = false): array
 {
     $values = [];
@@ -89,7 +118,7 @@ try {
     $timezone = (string)($defaults['default_timezone'] ?: 'Australia/Sydney');
     try { $timezoneObject = new DateTimeZone($timezone); } catch (Throwable) { $timezone = 'Australia/Sydney'; $timezoneObject = new DateTimeZone($timezone); }
 
-    $period = strtolower(trim((string)($_GET['period'] ?? '')));
+    $period = strtolower(trim((string)($_GET['period'] ?? 'current_week')));
     $isCurrentWeek = $period === 'current_week';
     $days = filter_var($_GET['days'] ?? 7, FILTER_VALIDATE_INT);
     if (!in_array($days, [7,14,30], true)) $days = 7;
@@ -184,21 +213,25 @@ try {
 
         $periodTimezoneObject = $timezoneObject;
         $weekStartDay = 1;
+        $workingWeekStoreWindows = [];
         if ($isCurrentWeek) {
             if (is_array($selectedStore)) {
                 $weekStartDay = max(1, min(7, (int)($selectedStore['week_start_day'] ?? 1)));
                 $storeTimezone = trim((string)($selectedStore['timezone'] ?? ''));
                 if ($storeTimezone !== '') { try { $periodTimezoneObject = new DateTimeZone($storeTimezone); } catch (Throwable) {} }
             } else {
-                $weekStarts = array_values(array_unique(array_map(static fn(array $row): int => max(1, min(7, (int)($row['week_start_day'] ?? 1))), $filterStores)));
-                if (count($weekStarts) > 1) throw new MerdWorkforceException('store_required_for_current_week', 'Choose a store to use its configured week start.');
-                if ($weekStarts) $weekStartDay = $weekStarts[0];
+                $workingWeekStoreWindows = dashboard_data_working_week_windows($filterStores, $timezoneObject);
             }
         }
         $businessDate = (new DateTimeImmutable('now', $periodTimezoneObject))->format('Y-m-d');
-        $trendDates = $isCurrentWeek
-            ? dashboard_data_current_week_dates($businessDate, $periodTimezoneObject, $weekStartDay)
-            : dashboard_data_period_dates($businessDate, $periodTimezoneObject, (int)$days);
+        if ($isCurrentWeek && $storeId === 0 && $workingWeekStoreWindows) {
+            $trendDates = dashboard_data_window_dates($workingWeekStoreWindows, $timezoneObject);
+        } else {
+            $trendDates = $isCurrentWeek
+                ? dashboard_data_current_week_dates($businessDate, $periodTimezoneObject, $weekStartDay)
+                : dashboard_data_period_dates($businessDate, $periodTimezoneObject, (int)$days);
+        }
+        if (!$trendDates) $trendDates = [$businessDate];
         $days = count($trendDates);
         $trendStart = $trendDates[0];
 
@@ -228,23 +261,51 @@ try {
 
         $salesTrend = [];
         if ($dashboardCanFinanceSummary && (isset($allowedMap['sales_change']) || isset($allowedMap['sales_trend_7d']))) {
-            $stmt = $pdo->prepare(
-                "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value "
-                . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? AND (?=0 OR rs.store_id=?) "
-                . "GROUP BY DATE(rs.sold_at) ORDER BY business_date ASC"
-            );
-            $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
+            if ($isCurrentWeek && $storeId === 0 && $workingWeekStoreWindows) {
+                $clauses = [];
+                $args = [$clientId];
+                foreach ($workingWeekStoreWindows as $window) {
+                    $clauses[] = '(rs.store_id=? AND DATE(rs.sold_at) BETWEEN ? AND ?)';
+                    array_push($args, (int)$window['store_id'], (string)$window['start_date'], (string)$window['end_date']);
+                }
+                $stmt = $pdo->prepare(
+                    "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value FROM retail_sales rs "
+                    . "WHERE rs.client_id=? AND rs.status='completed' AND (" . implode(' OR ', $clauses) . ') GROUP BY DATE(rs.sold_at) ORDER BY business_date ASC'
+                );
+                $stmt->execute($args);
+            } else {
+                $stmt = $pdo->prepare(
+                    "SELECT DATE(rs.sold_at) AS business_date,COALESCE(SUM(rs.total),0) AS value "
+                    . "FROM retail_sales rs WHERE rs.client_id=? AND rs.status='completed' AND DATE(rs.sold_at) BETWEEN ? AND ? AND (?=0 OR rs.store_id=?) "
+                    . "GROUP BY DATE(rs.sold_at) ORDER BY business_date ASC"
+                );
+                $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
+            }
             $salesTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), false);
         }
 
         $attendanceTrend = [];
         if ($dashboardCanWorkforce && (isset($allowedMap['attendance_change']) || isset($allowedMap['attendance_trend_7d']))) {
-            $stmt = $pdo->prepare(
-                "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value "
-                . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? AND (?=0 OR s.store_id=?) "
-                . "GROUP BY DATE(s.clock_in_at) ORDER BY business_date ASC"
-            );
-            $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
+            if ($isCurrentWeek && $storeId === 0 && $workingWeekStoreWindows) {
+                $clauses = [];
+                $args = [$clientId];
+                foreach ($workingWeekStoreWindows as $window) {
+                    $clauses[] = '(s.store_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ?)';
+                    array_push($args, (int)$window['store_id'], (string)$window['start_date'], (string)$window['end_date']);
+                }
+                $stmt = $pdo->prepare(
+                    "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value FROM attendance_shifts s "
+                    . "WHERE s.client_id=? AND (" . implode(' OR ', $clauses) . ') GROUP BY DATE(s.clock_in_at) ORDER BY business_date ASC'
+                );
+                $stmt->execute($args);
+            } else {
+                $stmt = $pdo->prepare(
+                    "SELECT DATE(s.clock_in_at) AS business_date,COUNT(*) AS value "
+                    . "FROM attendance_shifts s WHERE s.client_id=? AND DATE(s.clock_in_at) BETWEEN ? AND ? AND (?=0 OR s.store_id=?) "
+                    . "GROUP BY DATE(s.clock_in_at) ORDER BY business_date ASC"
+                );
+                $stmt->execute([$clientId,$trendStart,$businessDate,$storeId,$storeId]);
+            }
             $attendanceTrend = dashboard_data_fill_series($trendDates, $stmt->fetchAll(PDO::FETCH_ASSOC), true);
         }
 
@@ -285,7 +346,8 @@ try {
             'timezone'=>$timezone,
             'period_days'=>(int)$days,
             'period'=>$isCurrentWeek ? 'current_week' : (string)$days,
-            'week_start_day'=>$isCurrentWeek ? $weekStartDay : null,
+            'week_start_day'=>$isCurrentWeek && $storeId > 0 ? $weekStartDay : null,
+            'working_week_scope'=>$isCurrentWeek ? ($storeId > 0 ? 'store' : 'all_stores') : null,
             'active_employees'=>$activeEmployees,
             'sync_attention'=>$syncAttention,
             'financial_by_store'=>$financialRows,
@@ -309,7 +371,7 @@ try {
         ],
         'allowed_widgets'=>$allowed,
         'client_defaults'=>['currency_code'=>$currency,'timezone'=>$timezone],
-        'filters'=>['store_id'=>$storeId,'days'=>(int)$days,'period'=>$isCurrentWeek ? 'current_week' : (string)$days,'period_label'=>$isCurrentWeek ? 'Current week' : ((int)$days . ' days'),'week_start_day'=>$isCurrentWeek ? ($weekStartDay ?? 1) : null],
+        'filters'=>['store_id'=>$storeId,'days'=>(int)$days,'period'=>$isCurrentWeek ? 'current_week' : (string)$days,'period_label'=>$isCurrentWeek ? 'Working Week' : ((int)$days . ' days'),'week_start_day'=>$isCurrentWeek && $storeId > 0 ? $weekStartDay : null,'working_week_scope'=>$isCurrentWeek ? ($storeId > 0 ? 'store' : 'all_stores') : null],
         'filter_options'=>['stores'=>$filterStores,'periods'=>['current_week',7,14,30]],
         'working_count'=>$workingCount,
         'working'=>$working,
