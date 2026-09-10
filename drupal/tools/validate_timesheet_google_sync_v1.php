@@ -49,10 +49,10 @@ timesheet_sync_check(str_contains($gateway, "'timesheet_google_refresh'") && str
 timesheet_sync_check(str_contains($services, "'@user.data', '@request_stack'"), 'Gateway request-stack wiring missing.');
 timesheet_sync_check(str_contains($admin, '$activeClientId') && str_contains($admin, "getSession()->set('merdpos_context_client_id'"), 'Administration is not aligned to global Working client context.');
 
-foreach (['Working client','Select working client','Sync','Sync Time Sheet from Google','Replace SQL Time Sheet from Google'] as $marker) {
+foreach (['Working client','Select working client','Sync Time Sheet'] as $marker) {
   timesheet_sync_check(str_contains($template, $marker), "Account Working client marker missing: {$marker}");
 }
-timesheet_sync_check(str_contains($template, '/assets/restart_alt_48px.svg'), 'Canonical restart icon is not used.');
+timesheet_sync_check(str_contains($template, '/assets/restart_alt_48px.svg') && str_contains($template, 'data-merdpos-working-client-block'), 'Compact Working client sync row is not wired to the canonical restart icon.');
 timesheet_sync_check(str_contains($theme, "call('client_context', 'GET'"), 'Shell does not read canonical Working client state.');
 timesheet_sync_check(str_contains($theme, "merdpos_can_timesheet_sync"), 'Actual-DEV sync visibility state missing.');
 timesheet_sync_check(str_contains($js, 'Replace all ${clientName} SQL Time Sheet data with the latest Google'), 'Beta-equivalent destructive confirmation missing.');

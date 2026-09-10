@@ -99,7 +99,7 @@ layout_v1_check(str_contains($controller, "DASHBOARD_LAYOUT_TOKEN_ID = 'merdpos-
 layout_v1_check(str_contains($controller, 'array_key_exists(\'dev_studio\', $input)'), 'Controller does not reject DevStudio flags.');
 layout_v1_check(str_contains($controller, "call('dashboard_layout', 'POST'"), 'Controller does not use signed dashboard_layout write.');
 layout_v1_check(str_contains($route, "merdpos_core.dashboard_layout:") && str_contains($route, "methods: [POST]"), 'Dashboard layout route is not POST-only.');
-layout_v1_check(str_contains($template, '>Dashboard role<') && str_contains($template, '>Edit dashboard<'), 'Beta dashboard editor labels are missing.');
+layout_v1_check(!str_contains($template, 'merdpos-dashboard-layout-bar') && !str_contains($template, '>Dashboard role<') && !str_contains($template, '>Edit dashboard<'), 'Removed Dashboard layout bar/editor controls returned.');
 layout_v1_check(str_contains($template, '>Add widget<') && str_contains($template, 'Clear this role dashboard'), 'Widget drawer parity labels are missing.');
 layout_v1_check(str_contains($template, 'data-dashboard-up') && str_contains($template, 'data-dashboard-down'), 'Mobile dashboard ordering controls are missing.');
 layout_v1_check(str_contains($library, 'css/dashboard-layout-v1.css') && str_contains($library, 'js/dashboard-layout-v1.js'), 'Dashboard layout assets are not attached.');

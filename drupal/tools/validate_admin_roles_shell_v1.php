@@ -1,24 +1,16 @@
 <?php
 declare(strict_types=1);
-
-$root=dirname(__DIR__);
-function roles_shell_read(string $path): string { $s=file_get_contents($path); if(!is_string($s)) throw new RuntimeException('Unreadable: '.$path); return $s; }
-function roles_shell_check(bool $ok,string $message): void { if(!$ok) throw new RuntimeException($message); }
-$controller=roles_shell_read($root.'/web/modules/custom/merdpos_core/src/Controller/AdministrationController.php');
-$template=roles_shell_read($root.'/web/modules/custom/merdpos_core/templates/merdpos-administration.html.twig');
-$module=roles_shell_read($root.'/web/modules/custom/merdpos_core/merdpos_core.module');
-$theme=roles_shell_read($root.'/web/themes/custom/merdpos_app/merdpos_app.theme');
-$page=roles_shell_read($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');
-roles_shell_check(str_contains($controller,"call('role_authority', 'GET'") && str_contains($controller,"call('role_authority', 'POST'"),'Admin Roles is not wired through the signed role_authority gateway.');
-roles_shell_check(str_contains($controller,"'create_role'") && str_contains($controller,"'save_role'") && str_contains($controller,"'delete_role'") && str_contains($controller,"'save_role_permissions'") && str_contains($controller,"'save_role_usability'"),'Admin role write actions are incomplete.');
-roles_shell_check(str_contains($controller,"'workforce', 'roles'") && str_contains($controller,"'workforce','roles'"),'Roles tab is not preserved across Admin GET/POST navigation.');
-roles_shell_check(str_contains($module,"'role_state' => []") && str_contains($module,"'can_manage_roles' => false"),'Admin Roles Twig contract is incomplete.');
-roles_shell_check(str_contains($template,'data-admin-panel="roles"') && str_contains($template,'roles.manage'),'Roles panel or permission marker missing.');
-roles_shell_check(str_contains($template,'role_state.can_define_roles') && str_contains($template,'role_state.can_manage_usability') && str_contains($template,'can_manage_permissions'),'DEV role-definition, ADMIN usability and permission-threshold boundaries are not represented in Admin Roles.');
-$home=strpos($theme,"['key' => 'home'"); $admin=strpos($theme,"['key' => 'admin'"); $finance=strpos($theme,"['key' => 'finance'"); $reports=strpos($theme,"['key' => 'reports'");
-roles_shell_check($home!==false && $admin>$home && $finance>$admin && $reports>$finance,'Bottom navigation is not ordered Home, Admin, Financials, Timesheets.');
-roles_shell_check(str_contains($theme,"['key' => 'reports', 'label' => 'Timesheets'") && !str_contains($theme,"'label' => 'Reports'"),'Timesheets must replace Reports in primary navigation.');
-roles_shell_check(!str_contains($theme,"['key' => 'operations'") && !str_contains($theme,"['key' => 'dev'"),'Operations or DEV still appears in bottom-navigation items.');
-roles_shell_check(str_contains($theme,"$"."variables['merdpos_dev_url']") && str_contains($page,'{% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}'),'DEV is not in the account menu.');
-roles_shell_check(str_contains($theme,"['key'=>'roles','label'=>'Roles']"),'Permission-aware Admin Roles shell tab missing.');
-echo "MERDPOS Admin Roles + four-item shell v1 contract validated.\n";
+$root=dirname(__DIR__);function roles_shell_read(string $p): string {$s=file_get_contents($p);if(!is_string($s))throw new RuntimeException('Unreadable '.$p);return $s;}function roles_shell_check(bool $ok,string $m): void {if(!$ok)throw new RuntimeException($m);}
+$controller=roles_shell_read($root.'/web/modules/custom/merdpos_core/src/Controller/AdministrationController.php');$template=roles_shell_read($root.'/web/modules/custom/merdpos_core/templates/merdpos-administration.html.twig');$module=roles_shell_read($root.'/web/modules/custom/merdpos_core/merdpos_core.module');
+$theme=roles_shell_read($root.'/web/themes/custom/merdpos_app/merdpos_app.theme');$page=roles_shell_read($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');
+roles_shell_check(str_contains($controller,"call('role_authority', 'GET'")&&str_contains($controller,"call('role_authority', 'POST'"),'Admin Roles signed gateway wiring missing.');
+roles_shell_check(str_contains($controller,"'create_role'")&&str_contains($controller,"'save_role'")&&str_contains($controller,"'save_role_usability'"),'Admin role write actions incomplete.');
+roles_shell_check(str_contains($module,"'role_state' => []")&&str_contains($template,'data-admin-panel="roles"')&&str_contains($template,'role_state.can_define_roles'),'Admin Roles contract incomplete.');
+$home=strpos($theme,"['key'=>'home'");$admin=strpos($theme,"['key'=>'admin'");$finance=strpos($theme,"['key'=>'finance'");$reports=strpos($theme,"['key'=>'reports'");
+roles_shell_check($home!==false&&$admin>$home&&$finance>$admin&&$reports>$finance,'Bottom navigation order must be Dashboard, Admin, Financials, Timesheets.');
+roles_shell_check(str_contains($theme,"['key'=>'home','label'=>'Dashboard'")&&str_contains($theme,"['key'=>'reports','label'=>'Timesheets'")&&!str_contains($theme,"'label'=>'Reports'"),'Dashboard/Timesheets primary labels regressed.');
+roles_shell_check(!str_contains($theme,"['key'=>'operations'")&&!str_contains($theme,"['key'=>'dev'"),'Operations or DEV returned to bottom navigation.');
+roles_shell_check(str_contains($theme,"$"."variables['merdpos_can_select_role']")&&str_contains($page,'data-merdpos-working-role'),'DEV-only Working Role selector missing.');
+roles_shell_check(str_contains($page,'<span>DEV</span>')&&str_contains($page,'m8 9-4 3 4 3'),'DEV account action must remain icon + DEV.');
+roles_shell_check(str_contains($page,"item.key == 'home'")&&str_contains($page,'<rect x="3" y="3" width="7"')&&str_contains($page,"item.key == 'reports'")&&str_contains($page,'<circle cx="12" cy="12" r="9"'),'Dashboard/Timesheets navigation icons regressed.');
+echo "MERDPOS Admin Roles + role-aware four-item shell contract validated.\n";

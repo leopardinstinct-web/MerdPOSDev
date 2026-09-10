@@ -99,9 +99,10 @@ $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/m
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['Export CSV','Print / PDF','Frozen reconciliation preserved','Missing shift','Cancel dispute','Payroll by store'] as $needle) {
+foreach (['Print / PDF','Frozen reconciliation preserved','Missing shift','Cancel dispute','Payroll by store'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
+reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must not expose Export CSV.');
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
 reports_v2_check(str_contains($controller,"Content-Type','text/csv"),'CSV response content type missing.');
 reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'CSV response must be private/no-store.');
@@ -112,8 +113,8 @@ $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/rep
 reports_v2_check(str_contains($js,'window.print()'),'Reports print action missing.');
 reports_v2_check(str_contains($js,'openDialog') && str_contains($js,"'new_shift'") && !str_contains($js,'fetch('),'Integrated Shift Detail action dialog missing or bypassing server forms.');
 $provider = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');
-reports_v2_check(str_contains($provider,'existing MERDPOS timesheet engine') || str_contains($provider,'existing MERDPOS reconciliation engine'),'Reports authority statement missing.');
-reports_v2_check(($dev['title']??'')==='Timesheets Report','Reports title must present the consolidated Timesheets Report.');
+reports_v2_check(str_contains($provider,'Track attendance, review and process wages'),'Timesheets description missing.');
+reports_v2_check(($dev['title']??'')==='Attendance & Payroll','Timesheets title must present Attendance & Payroll.');
 reports_v2_check(count($dev['groups']??[])===3,'Standalone dispute table must stay retired.');
 reports_v2_check((end($dev['groups'][2]['columns'])['key']??'')==='action','Action must be the final Shift Detail column.');
 reports_v2_check(!in_array('action',array_column($dev['export_columns']??[],'key'),true),'UI Action column must not leak into CSV export.');

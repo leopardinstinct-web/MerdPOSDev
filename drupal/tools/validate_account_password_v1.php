@@ -42,10 +42,9 @@ account_password_check(str_contains($js, 'showModal'), 'Password dialog open beh
 account_password_check(str_contains($js, 'merdpos-password-close'), 'Password dialog close behavior missing.');
 account_password_check(str_contains($css, '.merdpos-password-dialog'), 'Password dialog styling missing.');
 account_password_check(str_contains($css, '@media(max-width:35rem)'), 'Password dialog mobile adaptation missing.');
-account_password_check(str_contains($template, '/assets/merdpos-tagline.png'), 'Approved MERDPOS tagline asset is not used in the authenticated shell.');
-account_password_check(str_contains($template, '/assets/merdpos-logo-approved.png'), 'Approved MERDPOS lockup asset is not used in the account/login treatment.');
-account_password_check(str_contains($css, ':root[data-theme="dark"] .merdpos-shell-tagline'), 'Dark-theme tagline treatment missing.');
-account_password_check(str_contains($css, ':root[data-theme="dark"] .merdpos-account-brand-glass'), 'Dark-theme account brand glass missing.');
+account_password_check(!str_contains($template, 'merdpos-shell-tagline'), 'Authenticated shell tagline must remain removed.');
+account_password_check(str_contains($template, '/assets/merdpos-logo-approved.png'), 'Approved MERDPOS login lockup asset is missing.');
+account_password_check(!str_contains($template, 'merdpos-account-brand-glass') && !str_contains($css, 'merdpos-account-brand-glass'), 'Account-menu brand glass returned.');
 account_password_check(str_contains($css, ':root[data-theme="dark"] .merdpos-login-brand'), 'Dark-theme login lockup contrast treatment missing.');
 account_password_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-logo-approved.png'), 'Approved MERDPOS logo asset missing.');
 account_password_check(is_file($root . '/web/themes/custom/merdpos_app/assets/merdpos-tagline.png'), 'Approved MERDPOS tagline asset missing.');

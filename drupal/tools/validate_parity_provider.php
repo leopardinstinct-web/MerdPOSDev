@@ -49,7 +49,7 @@ final class StubGateway implements PortalGatewayClientInterface {
           'sales_change','attendance_change','sales_trend_7d','attendance_trend_7d','top_stores_sales','sync_status_table',
         ],
         'client_defaults'=>['currency_code'=>'AUD','timezone'=>'Australia/Sydney'],
-        'filters'=>['store_id'=>0,'days'=>7,'period'=>'7','period_label'=>'7 days'],
+        'filters'=>['store_id'=>0,'days'=>7,'period'=>'current_week','period_label'=>'Working Week'],
         'filter_options'=>['stores'=>[['id'=>1,'store_name'=>'Test Store']],'periods'=>['current_week',7,14,30]],
         'working_count'=>1,
         'working'=>[['full_name'=>'Test Employee','user_id'=>'999','store_id'=>1,'store_name'=>'Test Store','clock_in_at'=>'2026-09-04 01:00:00','working_minutes'=>91,'timezone'=>'Australia/Sydney']],
@@ -160,7 +160,7 @@ foreach ($surfaces as $key => $surface) {
     parity_check(count($surface['metrics'] ?? []) === 8, 'Home role-aware KPI count mismatch.');
     parity_check(count($surface['dashboard_widgets'] ?? []) === 10, 'Home rich widget count mismatch.');
     parity_check(count($surface['chart_specs'] ?? []) === 6, 'Home chart spec count mismatch.');
-    parity_check(count($surface['filters'] ?? []) === 2, 'Home dashboard filters missing.');
+    parity_check(count($surface['filters'] ?? []) === 1 && ($surface['filters'][0]['name'] ?? '') === 'period' && ($surface['filters'][0]['value'] ?? '') === 'current_week', 'Home must expose only the Working Week period filter.');
   }
   elseif ($key === 'operations') {
     parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Operations role did not resolve DEV.');

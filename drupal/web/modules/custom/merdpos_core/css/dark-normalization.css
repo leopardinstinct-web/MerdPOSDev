@@ -50,11 +50,6 @@
   border-color: var(--color-border-subtle) !important;
   box-shadow: var(--shadow-raised) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-roleline span,.merdpos-ops-roleline span,.merdpos-reports-roleline span) {
-  background: var(--color-surface-raised) !important;
-  border-color: var(--color-border-default) !important;
-  color: var(--color-brand-cyan) !important;
-}
 :root[data-theme="dark"] :is(.merdpos-dashboard-live,.merdpos-ops-live,.merdpos-ops-dispute-bell,.merdpos-reports-live) {
   background: var(--color-surface-raised) !important;
   border-color: var(--color-border-default) !important;

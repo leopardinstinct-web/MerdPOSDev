@@ -1,17 +1,16 @@
 <section class="merdpos-dev-v2" aria-label="Platform command centre">
   <header class="merdpos-dev-hero">
     <div>
-      <p class="merdpos-eyebrow">MERDPOS / DEV</p>
+      <p class="merdpos-eyebrow">DEV</p>
       <h1>{{ surface.title }}</h1>
       <p>{{ surface.description }}</p>
-      <div class="merdpos-dev-roleline">
+      <div class="merdpos-dev-roleline merdpos-hero-roleline">
         <span>{{ surface.role.label ?: surface.role.key }}</span>
         <span>LOA {{ surface.role.loa }}</span>
         <span>DEV-only</span>
         <span>Read-only Drupal view</span>
       </div>
     </div>
-    <div class="merdpos-dev-live"><i></i><div><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS services</small></div></div>
   </header>
 
   <div class="merdpos-dev-kpis">

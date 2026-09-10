@@ -33,7 +33,7 @@ foreach (['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) finance_
 foreach (['name="form_token"','name="finance_action" value="open_day"','name="finance_action" value="cash_movement"','name="finance_action" value="z_report"','data-finance-close-form','Signed MERDPOS write'] as $marker) finance_write_check(str_contains($template, $marker), "Finance template marker missing: {$marker}");
 finance_write_check(!str_contains($template, '|raw'), 'Finance template must not bypass Twig escaping.');
 finance_write_check(str_contains($libraries, 'js/finance-v3.js'), 'Finance write JS library missing.');
-finance_write_check(str_contains($theme, "'backend_permission'=>'finance.view'"), 'Finance shell navigation is not tied to finance.view.');
+finance_write_check(str_contains($theme, "'backend_any'=>['finance.view']"), 'Finance shell navigation is not tied to finance.view.');
 finance_write_check(str_contains($provider, "['read_only'] = false"), 'Finance provider is still marked read-only.');
 
 putenv('MERDPOS_DRUPAL_GATEWAY_URL=https://example.invalid/integrations/portal_gateway.php');
