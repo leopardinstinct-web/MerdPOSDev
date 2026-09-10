@@ -16,7 +16,8 @@ roles_shell_check(str_contains($module,"'role_state' => []") && str_contains($mo
 roles_shell_check(str_contains($template,'data-admin-panel="roles"') && str_contains($template,'roles.manage'),'Roles panel or permission marker missing.');
 roles_shell_check(str_contains($template,'role_state.can_define_roles') && str_contains($template,'role_state.can_manage_usability') && str_contains($template,'can_manage_permissions'),'DEV role-definition, ADMIN usability and permission-threshold boundaries are not represented in Admin Roles.');
 $home=strpos($theme,"['key' => 'home'"); $admin=strpos($theme,"['key' => 'admin'"); $finance=strpos($theme,"['key' => 'finance'"); $reports=strpos($theme,"['key' => 'reports'");
-roles_shell_check($home!==false && $admin>$home && $finance>$admin && $reports>$finance,'Bottom navigation is not ordered Home, Admin, Finance, Reports.');
+roles_shell_check($home!==false && $admin>$home && $finance>$admin && $reports>$finance,'Bottom navigation is not ordered Home, Admin, Financials, Timesheets.');
+roles_shell_check(str_contains($theme,"['key' => 'reports', 'label' => 'Timesheets'") && !str_contains($theme,"'label' => 'Reports'"),'Timesheets must replace Reports in primary navigation.');
 roles_shell_check(!str_contains($theme,"['key' => 'operations'") && !str_contains($theme,"['key' => 'dev'"),'Operations or DEV still appears in bottom-navigation items.');
 roles_shell_check(str_contains($theme,"$"."variables['merdpos_dev_url']") && str_contains($page,'{% if merdpos_dev_url %}<a href="{{ merdpos_dev_url }}">DEV</a>{% endif %}'),'DEV is not in the account menu.');
 roles_shell_check(str_contains($theme,"['key'=>'roles','label'=>'Roles']"),'Permission-aware Admin Roles shell tab missing.');
