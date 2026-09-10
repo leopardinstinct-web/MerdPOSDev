@@ -1,6 +1,6 @@
 {
     "snapshot_kind": "schema_metadata_only",
-    "server_version": "11.4.12-MariaDB-cll-lve-log",
+    "server_version": "11.4.13-MariaDB-cll-lve-log",
     "table_count": 52,
     "tables": [
         {
