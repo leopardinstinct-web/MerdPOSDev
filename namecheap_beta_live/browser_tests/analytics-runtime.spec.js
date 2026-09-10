@@ -90,13 +90,16 @@ test('analytics wiring and data endpoint keep filtering inside dashboard authori
   expect(api).toContain('function dashboard_data_period_dates');
   expect(api).toContain('function dashboard_data_current_week_dates');
   expect(api).toContain("$isCurrentWeek = $period === 'current_week'");
-  expect(api).toContain("'store_required_for_current_week'");
+  expect(api).toContain('function dashboard_data_working_week_windows');
+  expect(api).toContain('function dashboard_data_window_dates');
+  expect(api).not.toContain("'store_required_for_current_week'");
   expect(api).toContain("week_start_day,timezone FROM stores");
   expect(api).toContain("in_array($days, [7,14,30], true)");
   expect(api).toContain("AND (?=0 OR rs.store_id=?)");
   expect(api).toContain("AND (?=0 OR s.store_id=?)");
   expect(api).toContain("$allRecent ? 's.client_id=?' : 's.client_id=? AND s.employee_id=?'");
   expect(api).toContain("'period'=>$isCurrentWeek ? 'current_week' : (string)$days");
-  expect(api).toContain("'period_label'=>$isCurrentWeek ? 'Current week'");
+  expect(api).toContain("'period_label'=>$isCurrentWeek ? 'Working Week'");
+  expect(api).toContain("'working_week_scope'=>$isCurrentWeek ? ($storeId > 0 ? 'store' : 'all_stores')");
   expect(api).toContain("'filter_options'=>['stores'=>$filterStores,'periods'=>['current_week',7,14,30]]");
 });

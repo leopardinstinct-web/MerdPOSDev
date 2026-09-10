@@ -67,6 +67,9 @@ try {
     $query=merd_drupal_gateway_scalar_map($request['query'] ?? [],'query');
     $body=merd_drupal_gateway_scalar_map($request['body'] ?? [],'body');
     $contextClientId=$request['context_client_id'] ?? null;
+    $contextRoleRaw=$request['context_role_key'] ?? null;
+    $contextRoleKey=$contextRoleRaw === null ? null : strtoupper(trim((string)$contextRoleRaw));
+    if ($contextRoleKey !== null && !in_array($contextRoleKey,['DEV','ADMIN','SUPER','USER'],true)) throw new MerdRequestException('invalid_request',400,'Invalid role context.');
     if ($contextClientId !== null) {
         $validated=filter_var($contextClientId,FILTER_VALIDATE_INT);
         if ($validated===false || $validated<=0) throw new MerdRequestException('invalid_request',400,'Invalid client context.');
@@ -80,6 +83,8 @@ try {
     $role=$actor['role'];
     $isPlatform=($actor['identity_scope'] ?? '') === 'platform';
     $baseRole=strtoupper((string)$role['base_role']);
+    if ($contextRoleKey === null) $contextRoleKey=$isPlatform ? 'DEV' : $baseRole;
+    if (!$isPlatform && $contextRoleKey !== $baseRole) throw new MerdRequestException('forbidden',403,'Client employees cannot select another role context.');
     if ($isPlatform) {
         $platform=$actor['platform_identity'];
         if ($contextClientId === null) {
@@ -109,7 +114,7 @@ try {
             'is_dev'=>true,'is_super'=>true,'is_management'=>true,'is_admin'=>false,
         ];
         $_SESSION['dev_active_client_id']=$contextClientId;
-        $_COOKIE['merdpos_dev_view_role']='DEV';
+        $_COOKIE['merdpos_dev_view_role']=$contextRoleKey;
     } else {
         $employee=$actor['employee'];
         $storeStmt=$pdo->prepare('SELECT store_id FROM employees WHERE id=? AND client_id=? LIMIT 1');

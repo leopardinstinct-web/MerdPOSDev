@@ -18,6 +18,7 @@ function client_context_state(PDO $pdo, array $user): array
         'success'=>true,
         'csrf'=>csrf_token(),
         'role'=>(string)($user['role_key'] ?? $user['role'] ?? 'USER'),
+        'role_label'=>(string)($user['role_label'] ?? $user['role_name'] ?? $user['role_key'] ?? 'USER'),
         'actual_role'=>beta_actual_user_is_dev($user) ? 'DEV' : (string)($user['role_key'] ?? $user['role'] ?? 'USER'),
         'authority_level'=>(int)($user['authority_level'] ?? 0),
         'can_select_client'=>$canSelect,

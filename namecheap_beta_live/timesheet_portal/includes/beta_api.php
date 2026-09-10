@@ -161,10 +161,14 @@ function beta_apply_dev_role_preview(PDO $pdo, array $user): array
         return $user;
     }
     $previewUser = $user;
+    $previewUser['identity_scope'] = 'employee';
+    $previewUser['actual_role_key'] = $viewRoleKey;
+    $previewUser['actual_employee_type'] = $viewRoleKey;
     $previewUser['role'] = $viewRoleKey;
     $previewUser['role_key'] = $viewRoleKey;
     $previewUser['role_label'] = (string)$viewRole['role_label'];
     $previewUser['authority_level'] = (int)$viewRole['authority_level'];
+    $previewUser['is_dev'] = false;
     [$permissions, $levels] = beta_permission_snapshot($pdo, $previewUser);
     $user['role'] = $viewRoleKey;
     $user['employee_type'] = $viewRoleKey;
@@ -225,7 +229,7 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             if ($action === 'save_permissions') { beta_require_permission($user, 'permissions.manage', $pdo); return; }
             beta_require_permission($user, 'roles.define', $pdo); return;
         case 'client_context.php':
-            if ($method === 'POST') beta_require_permission($user, 'client_context.switch', $pdo);
+            if ($method === 'POST' && !beta_actual_user_is_dev($user)) beta_require_permission($user, 'client_context.switch', $pdo);
             return;
         case 'timesheet_google_refresh.php':
             if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Only the actual DEV identity can refresh Google Time Sheet data.');
