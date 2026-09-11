@@ -1,0 +1,22 @@
+id: MERD-20260911-drupal-cutover-certification-v1
+branch: feature/drupal-cutover-certification-v1
+base_head: 49ad494e648254c8312bd098edac363eb5a3b530
+last_seen_head: 49ad494e648254c8312bd098edac363eb5a3b530
+objective: Apply final Drupal Beta UX/global-style corrections, run production-readiness regression and critical-write safety, execute rollback/restore rehearsal, and certify cutover.
+packet_state: IMPLEMENTATION_VALIDATED_LOCAL
+lifecycle: WIRED
+scope:
+  - Redirect actual DEV away from /merdpos/dev when Working Role previews ADMIN/SUPER/USER, with server-side fail-closed guard.
+  - Centralize shared controls, cards/widgets, tables, states and responsive touch behavior in global UI primitives.
+  - Update Dashboard description and rename Period to Select View while preserving Working Week default.
+  - Run four-role runtime, session, security, critical-write, DB restore, rollback and forward-restore rehearsals.
+constraints:
+  - Operational MERDPOS backend/database remains authoritative; Drupal does not become an operational data store.
+  - All destructive/write rehearsal is DUMMY-only and must restore its baseline before completion.
+  - Frozen rollback anchor remains 4dd4eb4546d22a33552168249d4c84001d2264b2.
+  - DevStudio remains excluded.
+validation:
+  - Local Drupal deployment validators pass 35/35 after implementation.
+  - JS/PHP syntax and git diff whitespace checks pass.
+next_action: Commit and merge the candidate, deploy exact merge SHA, then execute live acceptance, critical-write safety and rollback/restore rehearsal.
+updated_at: '2026-09-11T09:30:00+05:00'

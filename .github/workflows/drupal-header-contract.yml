@@ -1,4 +1,4 @@
-name: Drupal header contract
+name: Drupal global UI contract
 
 on:
   pull_request:
@@ -19,8 +19,8 @@ permissions:
   contents: read
 
 jobs:
-  global-page-header:
-    name: Global page-header contract
+  global-ui:
+    name: Global page-header and UI primitives
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -32,3 +32,5 @@ jobs:
           coverage: none
       - name: Validate global page headers
         run: php drupal/tools/validate_global_page_headers_v1.php
+      - name: Validate global UI primitives
+        run: php drupal/tools/validate_global_ui_primitives_v1.php

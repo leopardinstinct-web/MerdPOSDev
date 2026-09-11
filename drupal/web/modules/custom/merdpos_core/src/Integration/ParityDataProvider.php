@@ -180,7 +180,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       : $allowedKeys;
     $filterState = $this->map($payload['filters'] ?? []);
     $filters = [[
-      'name'=>'period', 'label'=>'Period', 'type'=>'select',
+      'name'=>'period', 'label'=>'Select View', 'type'=>'select',
       'value'=>(string)($filterState['period'] ?? 'current_week'),
       'options'=>[
         ['value'=>'current_week','label'=>'Working Week'],
@@ -192,7 +192,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $surface = $this->surface(
       'home', 'Home', 'Dashboard',
-      'A role-aware operational command centre using only widgets authorized by MERDPOS LOA policy.',
+      'Centralized view of your key metrics, activity, and controls. Monitor status in real time, catch issues early, and act without leaving the page.',
       $dashboard['status'], $kpis, [],
       ['source'=>'dashboard_data', 'business_date'=>$businessDate, 'currency_code'=>$currency],
       $filters,
