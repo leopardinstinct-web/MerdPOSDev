@@ -4,6 +4,7 @@ base:
     theme:
       css/design-tokens.css: {}
       css/page-header.css: {}
+      css/ui-primitives.css: {}
 
 dashboard:
   version: 2.x
@@ -18,6 +19,7 @@ dashboard:
       css/dashboard-layout-v1.css: {}
       css/attendance-scan.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
   js:
     js/attendance-scan.js: {}
     js/dashboard-layout-v1.js: {}
@@ -31,6 +33,7 @@ operations:
     theme:
       css/operations-v2.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
 
 reports:
   version: 2.x
@@ -41,6 +44,7 @@ reports:
     theme:
       css/reports-v2.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
   js:
     js/reports-v2.js: {}
 
@@ -54,6 +58,7 @@ finance:
     theme:
       css/finance-v2.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
   js:
     js/finance-v3.js: {}
 
@@ -66,6 +71,7 @@ dev:
     theme:
       css/dev-v2.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
 
 
 administration:
@@ -79,6 +85,7 @@ administration:
       css/administration-v1.css: {}
       css/legacy-migration-v1.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
   js:
     js/administration-v1.js: {}
     js/legacy-migration-v1.js: {}
@@ -93,5 +100,6 @@ disputes:
     theme:
       css/disputes-v1.css: {}
       css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
   js:
     js/disputes-v1.js: {}

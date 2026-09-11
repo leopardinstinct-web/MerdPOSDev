@@ -21,7 +21,7 @@
       <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
     {% if surface.filters %}
-      <form class="merdpos-page-header__actions merdpos-dashboard-filters merdpos-dashboard-filters--hero" method="get" aria-label="Dashboard period">
+      <form class="merdpos-page-header__actions merdpos-dashboard-filters merdpos-dashboard-filters--hero" method="get" aria-label="Dashboard view">
         {% for filter in surface.filters %}<label><span>{{ filter.label }}</span><select name="{{ filter.name }}" onchange="this.form.submit()">{% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}</select></label>{% endfor %}
       </form>
     {% endif %}

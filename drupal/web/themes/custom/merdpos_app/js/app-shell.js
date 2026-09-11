@@ -83,7 +83,9 @@
             const payload = await response.json().catch(() => null);
             if (!response.ok || !payload || payload.success !== true) throw new Error(payload?.error || `Working Role change failed (${response.status}).`);
             sessionStorage.setItem('merdposContextNotice', payload.message || 'Working Role changed.');
-            window.location.reload();
+            const onDevSurface = window.location.pathname.replace(/\/+$/, '') === '/merdpos/dev';
+            if (roleKey !== 'DEV' && onDevSurface) window.location.assign('/merdpos');
+            else window.location.reload();
           } catch (error) {
             select.value = prior;
             select.disabled = false;

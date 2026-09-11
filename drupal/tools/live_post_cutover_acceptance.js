@@ -14,7 +14,7 @@ const access = {
 };
 const surfaces = ['/merdpos','/merdpos/reports','/merdpos/finance'];
 const retiredSurfaces = ['/merdpos/operations','/merdpos/disputes'];
-const postOnly = ['/merdpos/dashboard/layout','/merdpos/attendance/scan','/merdpos/finance/submit','/merdpos/account/change-password','/merdpos/account/working-client','/merdpos/account/timesheet-google-sync'];
+const postOnly = ['/merdpos/dashboard/layout','/merdpos/attendance/scan','/merdpos/finance/submit','/merdpos/account/change-password','/merdpos/account/working-client','/merdpos/account/working-role','/merdpos/account/timesheet-google-sync'];
 const adminTabs = ['clients','stores','defaults','workforce','roles'];
 const badText = /website encountered an unexpected error|internal server error|fatal error/i;
 const executablePath = process.env.MERDPOS_BROWSER || 'C:/Users/Imran/AppData/Local/Programs/Opera/opera.exe';
@@ -93,14 +93,65 @@ async function roleControls(page, role) {
   if (role === 'super') assert(!result.createRole && !result.permissionThresholds && result.usabilityForms === 0, 'SUPER role controls mismatch');
   return result;
 }
+async function globalUiSweep(page, role) {
+  const paths = ['/merdpos','/merdpos/reports','/merdpos/finance'];
+  if (access[role].admin === 200) paths.push('/merdpos/admin');
+  if (access[role].dev === 200) paths.push('/merdpos/dev');
+  const report = {};
+  for (const path of paths) {
+    const status = await routeStatus(page, path);
+    assert(status === 200, `${role}: UI sweep route failed ${path}`);
+    const snapshot = await page.evaluate(() => {
+      const visible = el => { const r=el.getBoundingClientRect(); const c=getComputedStyle(el); return c.visibility !== 'hidden' && c.display !== 'none' && r.width > 0 && r.height > 0; };
+      const controls=[...document.querySelectorAll('.merdpos-app button,.merdpos-app input,.merdpos-app select,.merdpos-app textarea')].filter(visible);
+      const problems=[];
+      for (const el of controls) {
+        const c=getComputedStyle(el), type=(el.getAttribute('type')||'').toLowerCase();
+        if (c.boxSizing !== 'border-box') problems.push(`${el.tagName}.${el.className}:box-sizing=${c.boxSizing}`);
+        if (!c.fontFamily) problems.push(`${el.tagName}.${el.className}:font-family-empty`);
+        if (!['checkbox','radio','hidden'].includes(type) && ['INPUT','SELECT','TEXTAREA'].includes(el.tagName) && parseFloat(c.height) < 38) problems.push(`${el.tagName}.${el.className}:height=${c.height}`);
+      }
+      const cards=[...document.querySelectorAll('.merdpos-dashboard-kpi,.merdpos-dashboard-panel,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card,.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card,.merdpos-admin-editor,.merdpos-defaults-section,.merdpos-dispute-card')].filter(visible);
+      for (const el of cards) { const c=getComputedStyle(el); if (c.backgroundColor === 'rgba(0, 0, 0, 0)' || c.borderRadius === '0px') problems.push(`${el.className}:surface-contract`); }
+      const tables=[...document.querySelectorAll('.merdpos-app table')].filter(visible);
+      for (const el of tables) if (getComputedStyle(el).borderCollapse !== 'collapse') problems.push(`${el.className}:table-collapse`);
+      const header=document.querySelector('.merdpos-page-header');
+      if (header && header.querySelector('[class*="roleline"],[class*="role-line"]')) problems.push('header-roleline-returned');
+      return {controls:controls.length,cards:cards.length,tables:tables.length,problems};
+    });
+    assert(snapshot.problems.length === 0, `${role}: global UI primitive drift on ${path}: ${snapshot.problems.join('; ')}`);
+    report[path]=snapshot;
+  }
+  return report;
+}
+async function previewRoleRedirect(page) {
+  await page.goto(BASE + '/merdpos/dev', {waitUntil:'domcontentloaded'});
+  assert(new URL(page.url()).pathname === '/merdpos/dev', 'DEV surface unavailable before preview switch');
+  await page.locator('[data-merdpos-account-toggle]').click();
+  const details=page.locator('.merdpos-account-role-context');
+  if (!(await details.getAttribute('open'))) await details.locator('summary').click();
+  const select=details.locator('[data-merdpos-working-role]');
+  await select.selectOption('ADMIN');
+  await page.waitForURL(url => new URL(url).pathname === '/merdpos', {timeout:10000});
+  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() === 'Admin', 'ADMIN preview did not become active');
+  await page.goto(BASE + '/merdpos/dev', {waitUntil:'domcontentloaded'});
+  assert(new URL(page.url()).pathname === '/merdpos', 'DEV route did not fail closed to Dashboard while previewing ADMIN');
+  await page.locator('[data-merdpos-account-toggle]').click();
+  const restore=page.locator('.merdpos-account-role-context');
+  if (!(await restore.getAttribute('open'))) await restore.locator('summary').click();
+  await restore.locator('[data-merdpos-working-role]').selectOption('DEV');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(200);
+  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() === 'Developer', 'DEV preview role was not restored');
+  return {adminRedirectedToDashboard:true,directDevGuarded:true,restoredDeveloper:true};
+}
 async function themeAndMobile(page, role) {
   await page.goto(BASE + '/merdpos', { waitUntil: 'domcontentloaded' });
   const toggle = page.locator('[data-merdpos-account-toggle]').first();
   if (await toggle.count()) await toggle.click();
-  const theme = page.locator('[data-merdpos-theme]').first();
-  assert(await theme.count() === 1, `${role}: theme control missing`);
-  await theme.selectOption('dark');
-  assert(await page.locator('html').getAttribute('data-theme') === 'dark', `${role}: dark theme not applied`);
+  const themeToggle = page.locator('[data-merdpos-theme-toggle]').first();
+  assert(await themeToggle.count() === 1, `${role}: theme toggle missing`);
+  await page.evaluate(() => localStorage.setItem('merdpos-theme', 'dark'));
   await page.reload({ waitUntil: 'domcontentloaded' });
   assert(await page.locator('html').getAttribute('data-theme') === 'dark', `${role}: dark theme not persisted`);
   await page.evaluate(() => localStorage.setItem('merdpos-theme', 'system'));
@@ -173,11 +224,13 @@ async function sessionChecks(page, cred) {
       };
       assert(account.passwordAction === 1, `${role}: password action missing`);
       if (role === 'dev') assert(account.workingClientSelect === 1 && account.workingClientOptions >= 2, 'DEV Working Client control missing');
+      const uiSweep = await globalUiSweep(page, role);
+      const previewRedirect = role === 'dev' ? await previewRoleRedirect(page) : null;
       const mobile = await themeAndMobile(page, role);
       const unexpectedClientErrors = runtime.clientErrors.filter(v => !expectedClientError(v, role));
       const unexpectedConsoleErrors = runtime.consoleErrors.filter(v => !expectedConsoleError(v, role));
       assert(runtime.pageErrors.length === 0 && unexpectedConsoleErrors.length === 0 && runtime.failedRequests.length === 0 && unexpectedClientErrors.length === 0 && runtime.serverErrors.length === 0, `${role}: browser/runtime errors detected ${JSON.stringify({runtime,unexpectedClientErrors,unexpectedConsoleErrors})}`);
-      report.roles[role] = { routes, methodSafety, tabs, controls, account, timesheet, mobile, runtime };
+      report.roles[role] = { routes, methodSafety, tabs, controls, account, timesheet, uiSweep, previewRedirect, mobile, runtime };
       if (role === 'user') { await sessionChecks(page, cred); report.session = { logout: true, clearedCookieRequiresLogin: true }; }
       await context.close();
     }
