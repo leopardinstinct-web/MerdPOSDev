@@ -1,9 +1,9 @@
 id: MERD-20260912-drupal-ui-standardization-v2
-branch: feature/ui-standardization-v2
+branch: feature/ui-standardization-v2-dark-fix
 base_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
-last_seen_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
+last_seen_head: 570857a8705f2326c4723a73126e78643fa66406
 objective: Make equivalent Drupal Beta controls, KPI cards, filter surfaces and action states inherit one canonical global UI grammar across every live application surface.
-packet_state: IMPLEMENTATION_VALIDATED_LOCAL
+packet_state: LIVE_DRIFT_REPAIR_VALIDATED_LOCAL
 lifecycle: WIRED
 scope:
   - Enforce merdpos-app root scope on Administration, Financials, DEV and Disputes.
@@ -18,5 +18,6 @@ validation:
   - Global UI primitive validator passes locally.
   - Admin roles/shell validator passes locally.
   - git diff --check passes.
-next_action: Commit, PR/CI, merge, deploy exact merge SHA, then verify equivalent computed styles and route/mobile/runtime acceptance live.
-updated_at: '2026-09-12T01:20:00+05:00'
+  - First live computed-style proof caught a legacy dark-mode !important override on Operations/Reports filter submit buttons; repair removes it and validator now forbids its return.
+next_action: Merge and deploy the dark-mode repair, then rerun live cross-surface computed-style equivalence and authenticated route/runtime checks before VERIFIED.
+updated_at: '2026-09-12T01:35:00+05:00'
