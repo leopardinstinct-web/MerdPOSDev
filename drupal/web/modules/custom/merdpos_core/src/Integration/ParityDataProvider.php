@@ -747,7 +747,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       ['source'=>'dashboard_data + weeks + authoritative timesheet + disputes','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
       [],
     );
-    $surface['week_options'] = array_map(static fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>(string)($row['label'] ?? $row['value'] ?? '')],$weekRows);
+    $surface['week_options'] = array_map(fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>$this->weekRangeLabel((string)($row['value'] ?? ''))],$weekRows);
     $surface['action_stores'] = $actionStores;
     $surface['can_submit_disputes'] = $canSubmitOwn;
     $surface['can_review_disputes'] = $canReview;
@@ -1203,6 +1203,14 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       'key'=>$key,'type'=>$type,'labels'=>array_values($labels),'values'=>array_values($values),
       'series_label'=>$seriesLabel,'color'=>$color,'height'=>280,
     ];
+  }
+
+  private function weekRangeLabel(string $start): string {
+    $start = trim($start);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start)) return $start;
+    try { $from = new \DateTimeImmutable($start); $to = $from->modify('+6 days');
+      return $from->format('Y') === $to->format('Y') ? $from->format('d M') . ' - ' . $to->format('d M Y') : $from->format('d M Y') . ' - ' . $to->format('d M Y');
+    } catch (\Throwable) { return $start; }
   }
 
   private function localDateTime(mixed $value, string $timezone): string {
