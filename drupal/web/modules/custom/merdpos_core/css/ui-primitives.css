@@ -18,13 +18,42 @@
 .merdpos-app :where(button,a[href],input,select,textarea):focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:2px}
 
 /* Default submit/action grammar. Component-specific icon/menu buttons may override this deliberately. */
-.merdpos-app :where(button[type="submit"],input[type="submit"],.merdpos-ui-button){
-  min-height:var(--size-control);padding:.55rem 1rem;border:0;border-radius:var(--radius-control);
-  background:var(--gradient-brand);color:var(--color-text-inverse);font-weight:var(--weight-bold);box-shadow:var(--shadow-action)
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn){
+  min-height:var(--size-control);padding:var(--space-2) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);
+  background:var(--gradient-brand);color:var(--color-text-inverse);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
+  transition:box-shadow var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard),filter var(--duration-fast) var(--ease-standard)
 }
-.merdpos-app :where(.merdpos-ui-button--secondary){border:1px solid var(--color-border-default);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:none}
-.merdpos-app :where(.merdpos-ui-button--danger){border:1px solid color-mix(in srgb,var(--color-danger) 35%,var(--color-border-default));background:var(--color-danger-surface);color:var(--color-danger);box-shadow:none}
-.merdpos-app :where(.merdpos-ui-button--ghost){border:1px solid transparent;background:transparent;color:var(--color-text-secondary);box-shadow:none}
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(.98)}
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):active{box-shadow:none;transform:translateY(1px)}
+.merdpos-app :is(button.merdpos-ui-button--secondary,button.merdpos-btn--secondary,button.is-secondary){border-color:var(--color-border-default);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:none;filter:none}
+.merdpos-app :is(button.merdpos-ui-button--danger,button.merdpos-btn--danger,button.is-danger,button.is-reject){border-color:color-mix(in srgb,var(--color-danger) 35%,var(--color-border-default));background:var(--color-danger-surface);color:var(--color-danger);box-shadow:none;filter:none}
+.merdpos-app :is(button.merdpos-ui-button--success,button.is-approve){border-color:color-mix(in srgb,var(--color-success) 35%,var(--color-border-default));background:var(--color-success-surface);color:var(--color-success);box-shadow:none;filter:none}
+.merdpos-app :is(button.merdpos-ui-button--ghost){border-color:transparent;background:transparent;color:var(--color-text-secondary);box-shadow:none;filter:none}
+
+/* Shared form and summary grammar. Layout remains feature-owned; visual identity is global. */
+.merdpos-app :is(.merdpos-admin-form,.merdpos-onboard-grid,.merdpos-defaults-form,.merdpos-defaults-store-form,.merdpos-ops-filters,.merdpos-reports-filters,.merdpos-finance-filters,.merdpos-finance-action-fields,.merdpos-dispute-form) label>span{
+  color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-bold);line-height:var(--line-heading)
+}
+.merdpos-app :is(.merdpos-ops-filters,.merdpos-reports-filters,.merdpos-finance-filters,.merdpos-filter-bar){
+  border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-main);box-shadow:var(--shadow-card)
+}
+
+/* KPI grammar: one card, icon, label, value and meta treatment everywhere. */
+.merdpos-app :is(.merdpos-kpi,.merdpos-dashboard-kpi,.merdpos-ops-kpi,.merdpos-reports-kpi,.merdpos-finance-kpi,.merdpos-dev-kpi,.merdpos-disputes-kpis>article){
+  padding:var(--space-4);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:var(--shadow-card)
+}
+.merdpos-app :is(.merdpos-kpi-icon,.merdpos-dashboard-kpi-icon,.merdpos-ops-kpi-icon,.merdpos-reports-kpi-icon,.merdpos-finance-kpi-icon){
+  width:var(--size-control);height:var(--size-control);min-width:var(--size-control);border-radius:var(--radius-control)
+}
+.merdpos-app :is(.merdpos-kpi-label,.merdpos-dashboard-kpi-copy>span,.merdpos-ops-kpi div>span,.merdpos-reports-kpi div>span,.merdpos-finance-kpi small,.merdpos-dev-kpi small,.merdpos-disputes-kpis article>span){
+  color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-bold);line-height:var(--line-heading)
+}
+.merdpos-app :is(.merdpos-kpi-value,.merdpos-dashboard-kpi-copy>strong,.merdpos-ops-kpi div>strong,.merdpos-reports-kpi div>strong,.merdpos-finance-kpi div>strong,.merdpos-dev-kpi strong,.merdpos-disputes-kpis article>strong){
+  color:var(--color-text-primary);font-size:var(--type-2xl);font-weight:var(--weight-bold);line-height:var(--line-tight)
+}
+.merdpos-app :is(.merdpos-kpi-meta,.merdpos-dashboard-kpi-copy>small,.merdpos-ops-kpi div>small,.merdpos-reports-kpi div>small,.merdpos-finance-kpi div>span,.merdpos-dev-kpi span,.merdpos-disputes-kpis article>small){
+  color:var(--color-text-muted);font-size:var(--type-xs);line-height:var(--line-body)
+}
 
 /* Shared card/widget surface contract across Dashboard, Administration, Timesheets, Financials, DEV and retired parity surfaces. */
 .merdpos-app :is(.merdpos-dashboard-kpi,.merdpos-dashboard-panel,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card,.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card,.merdpos-admin-editor,.merdpos-defaults-section,.merdpos-dispute-card){

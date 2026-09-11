@@ -14,11 +14,20 @@ $required = [
   '.merdpos-report-table-card',
   '.merdpos-finance-panel',
   '.merdpos-admin-editor',
-  '.merdpos-ui-button--danger',
+  '.merdpos-btn',
+  'button.merdpos-btn--danger',
+  'button.is-secondary',
+  'button.is-approve',
   '.merdpos-ui-empty',
   '@media(max-width:51.25rem)',
 ];
 foreach ($required as $needle) if (!str_contains($css, $needle)) $errors[] = "global UI primitive missing: $needle";
+$surfaceTemplates = ['merdpos-dashboard.html.twig','merdpos-operations.html.twig','merdpos-reports.html.twig','merdpos-finance.html.twig','merdpos-dev.html.twig','merdpos-administration.html.twig','merdpos-disputes.html.twig','merdpos-surface.html.twig','merdpos-section.html.twig'];
+foreach ($surfaceTemplates as $template) {
+  $path = $root . '/web/modules/custom/merdpos_core/templates/' . $template;
+  $body = is_file($path) ? (string) file_get_contents($path) : '';
+  if (!preg_match('/<section\s+class="[^"]*\bmerdpos-app\b/', $body)) $errors[] = "surface root missing merdpos-app scope: $template";
+}
 $occurrences = substr_count($libs, 'css/ui-primitives.css: {}');
 if ($occurrences !== 8) $errors[] = "ui-primitives.css must be wired to base plus seven feature libraries; found $occurrences";
 foreach (['dashboard','operations','reports','finance','dev','administration','disputes'] as $name) {
@@ -37,4 +46,4 @@ foreach (['dashboard','operations','reports','finance','dev','administration','d
 }
 if (preg_match('/#[0-9a-fA-F]{3,8}\b/', $css)) $errors[] = 'global UI primitives must use semantic design tokens, not literal colours';
 if ($errors) { foreach ($errors as $error) fwrite(STDERR, "GLOBAL_UI_CONTRACT_FAIL: $error\n"); exit(1); }
-echo "Global UI primitive contract OK: controls, cards/widgets, tables, states and responsive touch targets are centrally governed.\n";
+echo "Global UI primitive contract OK: all live surfaces inherit canonical controls/actions, cards/widgets, tables, states and responsive touch targets.\n";
