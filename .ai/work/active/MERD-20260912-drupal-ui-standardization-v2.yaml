@@ -1,0 +1,22 @@
+id: MERD-20260912-drupal-ui-standardization-v2
+branch: feature/ui-standardization-v2
+base_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
+last_seen_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
+objective: Make equivalent Drupal Beta controls, KPI cards, filter surfaces and action states inherit one canonical global UI grammar across every live application surface.
+packet_state: IMPLEMENTATION_VALIDATED_LOCAL
+lifecycle: WIRED
+scope:
+  - Enforce merdpos-app root scope on Administration, Financials, DEV and Disputes.
+  - Centralize primary, secondary, danger/reject and approve action appearance.
+  - Centralize control labels, filter surfaces and KPI card/icon/value/meta grammar.
+  - Fail validation when any main surface escapes global UI scope.
+constraints:
+  - Feature CSS may own layout but not duplicate canonical control/surface appearance.
+  - Preserve role, authorization and backend behavior unchanged.
+  - DevStudio remains excluded.
+validation:
+  - Global UI primitive validator passes locally.
+  - Admin roles/shell validator passes locally.
+  - git diff --check passes.
+next_action: Commit, PR/CI, merge, deploy exact merge SHA, then verify equivalent computed styles and route/mobile/runtime acceptance live.
+updated_at: '2026-09-12T01:20:00+05:00'

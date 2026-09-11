@@ -1,10 +1,10 @@
 id: MERD-20260911-drupal-cutover-certification-v1
 branch: feature/drupal-cutover-certification-v1
 base_head: 49ad494e648254c8312bd098edac363eb5a3b530
-last_seen_head: 49ad494e648254c8312bd098edac363eb5a3b530
+last_seen_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
 objective: Apply final Drupal Beta UX/global-style corrections, run production-readiness regression and critical-write safety, execute rollback/restore rehearsal, and certify cutover.
-packet_state: IMPLEMENTATION_VALIDATED_LOCAL
-lifecycle: WIRED
+packet_state: CUTOVER_CERTIFIED
+lifecycle: VERIFIED
 scope:
   - Redirect actual DEV away from /merdpos/dev when Working Role previews ADMIN/SUPER/USER, with server-side fail-closed guard.
   - Centralize shared controls, cards/widgets, tables, states and responsive touch behavior in global UI primitives.
@@ -18,5 +18,5 @@ constraints:
 validation:
   - Local Drupal deployment validators pass 35/35 after implementation.
   - JS/PHP syntax and git diff whitespace checks pass.
-next_action: Commit and merge the candidate, deploy exact merge SHA, then execute live acceptance, critical-write safety and rollback/restore rehearsal.
-updated_at: '2026-09-11T09:30:00+05:00'
+next_action: Certified baseline frozen at bd837dc6306e0080b5e155c01f2fd636c82c0e6b; continue Drupal-first development from this anchor.
+updated_at: '2026-09-12T01:20:00+05:00'

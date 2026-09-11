@@ -1,11 +1,15 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-11T09:30:00+05:00'
+updated_at: '2026-09-12T01:20:00+05:00'
 active:
-- id: MERD-20260911-drupal-cutover-certification-v1
-  path: .ai/work/active/MERD-20260911-drupal-cutover-certification-v1.yaml
+- id: MERD-20260912-drupal-ui-standardization-v2
+  path: .ai/work/active/MERD-20260912-drupal-ui-standardization-v2.yaml
   lifecycle: WIRED
   packet_state: IMPLEMENTATION_VALIDATED_LOCAL
+- id: MERD-20260911-drupal-cutover-certification-v1
+  path: .ai/work/active/MERD-20260911-drupal-cutover-certification-v1.yaml
+  lifecycle: VERIFIED
+  packet_state: CUTOVER_CERTIFIED
 - id: MERD-20260909-drupal-production-readiness-v1
   path: .ai/work/active/MERD-20260909-drupal-production-readiness-v1.yaml
   lifecycle: ACTIVE
