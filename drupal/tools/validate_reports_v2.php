@@ -63,23 +63,26 @@ reports_v2_check(($dev['status']??'')==='ok','DEV Reports did not resolve OK.');
 reports_v2_check(($dev['role']['key']??'')==='DEV','DEV Reports role mismatch.');
 reports_v2_check(($dev['role']['loa']??0)===1000,'DEV Reports LOA mismatch.');
 reports_v2_check(($dev['payroll_visible']??false)===true,'DEV payroll visibility missing.');
-reports_v2_check(count($dev['filters']??[])===4,'Reports v2 filters missing.');
-reports_v2_check(count($dev['chart_specs']??[])===4,'DEV Reports chart set mismatch.');
+reports_v2_check(count($dev['week_options']??[])===2,'Header week selector options missing.');
+reports_v2_check(count($dev['filters']??[])===0,'Reporting lens filters must be retired.');
+reports_v2_check(count($dev['chart_specs']??[])===0,'Timesheets charts must be removed for now.');
 reports_v2_check(count($dev['export_rows']??[])===3,'DEV export row count mismatch.');
 reports_v2_check(in_array('wage',array_column($dev['export_columns']??[],'key'),true),'DEV export must include authorized wage column.');
 reports_v2_check(($dev['pending_disputes']??-1)===2,'DEV pending dispute count mismatch.');
+reports_v2_check(array_column($dev['metrics']??[],'label')===['Shifts','Queries'],'Timesheets must expose exactly the two simplified KPI cards.');
+reports_v2_check(($dev['metrics'][0]['lines'][0]['value']??'')==='3' && ($dev['metrics'][0]['lines'][1]['value']??'')==='20.67' && ($dev['metrics'][0]['lines'][2]['value']??'')==='516.75','Shifts summary card mismatch.');
+reports_v2_check(($dev['metrics'][1]['lines']??[])===[['value'=>'2','label'=>'Active'],['value'=>'1','label'=>'Closed'],['value'=>'0','label'=>'Rejected']],'Queries summary card mismatch.');
 $devShiftRows=$dev['groups'][2]['rows']??[];
 reports_v2_check(!empty($devShiftRows[1]['action']['dispute']['can_review']),'Reviewer pending-dispute action missing from Shift Detail.');
 $orphanReview=array_values(array_filter($devShiftRows,static fn(array $r): bool => ($r['action']['shift_id']??'')==='44444444-4444-4444-8444-444444444444'));
 reports_v2_check(count($orphanReview)===1 && ($orphanReview[0]['start']??'')==='Open shift · dispute' && !empty($orphanReview[0]['action']['dispute']['can_review']),'Open-shift dispute must remain visible in Shift Detail.');
 
-$filtered = (new ParityDataProvider(new ReportsGateway('DEV'), new ReportsWorkingNow()))->section('reports', [
+$hiddenQuery = (new ParityDataProvider(new ReportsGateway('DEV'), new ReportsWorkingNow()))->section('reports', [
   'store'=>'Store A','employee'=>'Bob','attendance'=>'late','week_start'=>'2026-08-31',
 ]);
-reports_v2_check(count($filtered['export_rows']??[])===1,'Reports filters did not constrain export rows.');
-reports_v2_check(($filtered['export_rows'][0]['employee']??'')==='Bob','Employee filter mismatch.');
-reports_v2_check(($filtered['export_rows'][0]['store']??'')==='Store A','Store filter mismatch.');
-reports_v2_check(($filtered['export_rows'][0]['start']??'')==='Late','Attendance filter mismatch.');
+reports_v2_check(count($hiddenQuery['export_rows']??[])===3,'Retired hidden filters must not silently constrain Timesheets.');
+reports_v2_check(($hiddenQuery['selected_store']??'x')==='' && ($hiddenQuery['selected_employee']??'x')==='' && ($hiddenQuery['selected_attendance']??'x')==='all','Only the week selector may control the Timesheets view.');
+reports_v2_check(($hiddenQuery['selected_week']??'')==='2026-08-31','Week selector must still control the report period.');
 
 $user = (new ParityDataProvider(new ReportsGateway('USER'), new ReportsWorkingNow()))->section('reports', []);
 reports_v2_check(($user['status']??'')==='ok','USER Reports must remain available.');
@@ -87,8 +90,10 @@ reports_v2_check(($user['role']['key']??'')==='USER','USER Reports role mismatch
 reports_v2_check(($user['payroll_visible']??true)===false,'USER payroll must remain redacted.');
 reports_v2_check(count($user['export_rows']??[])===2,'USER export scope mismatch.');
 reports_v2_check(!in_array('wage',array_column($user['export_columns']??[],'key'),true),'USER export must not reveal wage.');
-reports_v2_check(count($user['chart_specs']??[])===3,'USER payroll chart must be omitted.');
-$userShiftRows=$user['groups'][2]['rows']??[];
+reports_v2_check(count($user['chart_specs']??[])===0,'USER Timesheets charts must stay removed.');
+reports_v2_check(count($user['groups']??[])===1 && ($user['groups'][0]['title']??'')==='Filtered shifts','USER must only see Shift Detail, not Store or Employee summaries.');
+reports_v2_check(count($user['metrics'][0]['lines']??[])===2,'USER Shifts card must not reveal payroll.');
+$userShiftRows=$user['groups'][0]['rows']??[];
 reports_v2_check(!empty($userShiftRows[0]['action']['can_dispute']) && !empty($userShiftRows[0]['action']['can_add_missing']),'USER own-row dispute/missing-shift actions missing.');
 reports_v2_check(!empty($userShiftRows[1]['action']['dispute']['can_cancel']),'USER own pending dispute must be cancellable from Shift Detail.');
 $orphanOwn=array_values(array_filter($userShiftRows,static fn(array $r): bool => ($r['action']['shift_id']??'')==='44444444-4444-4444-8444-444444444444'));
@@ -99,23 +104,27 @@ $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/m
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['Print / PDF','Frozen reconciliation preserved','Missing shift','Cancel dispute','Payroll by store'] as $needle) {
+foreach (['>PDF<','data-timesheet-week-select','Frozen reconciliation preserved','Missing shift','Cancel dispute'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
 reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must not expose Export CSV.');
+reports_v2_check(!str_contains($template,'Reporting lens') && !str_contains($template,'merdpos-reports-filters'),'Reporting lens must be removed from every role.');
+reports_v2_check(!str_contains($template,'merdpos-reports-charts') && !str_contains($template,'Payroll by store'),'Timesheets chart surfaces must be removed for now.');
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
 reports_v2_check(str_contains($controller,"Content-Type','text/csv"),'CSV response content type missing.');
 reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'CSV response must be private/no-store.');
+reports_v2_check(str_contains($controller,"foreach (['week_start'] as \$key)") && !str_contains($controller,"url.query_args:store"),'Timesheets controller must expose only the week query selector.');
 $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
-reports_v2_check(str_contains($css,'.merdpos-reports-charts'),'Reports chart grid CSS missing.');
+reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-lines'),'Simplified Timesheets header/KPI styling missing.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
-reports_v2_check(str_contains($js,'window.print()'),'Reports print action missing.');
+reports_v2_check(str_contains($js,'window.print()'),'Reports PDF/print action missing.');
+reports_v2_check(str_contains($js,'data-timesheet-week-select') && str_contains($js,'requestSubmit'),'Week selector must update the report immediately.');
 reports_v2_check(str_contains($js,'openDialog') && str_contains($js,"'new_shift'") && !str_contains($js,'fetch('),'Integrated Shift Detail action dialog missing or bypassing server forms.');
 $provider = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');
 reports_v2_check(str_contains($provider,'Track attendance, review and process wages'),'Timesheets description missing.');
 reports_v2_check(($dev['title']??'')==='Attendance & Payroll','Timesheets title must present Attendance & Payroll.');
-reports_v2_check(count($dev['groups']??[])===3,'Standalone dispute table must stay retired.');
+reports_v2_check(count($dev['groups']??[])===3,'DEV/SUPER/Admin Store + Employee + Shift summaries must remain available.');
 reports_v2_check((end($dev['groups'][2]['columns'])['key']??'')==='action','Action must be the final Shift Detail column.');
 reports_v2_check(!in_array('action',array_column($dev['export_columns']??[],'key'),true),'UI Action column must not leak into CSV export.');
 reports_v2_check(!str_contains($template,'Dispute status') && !str_contains($template,'Current dispute queue'),'Standalone dispute report surfaces must stay retired.');
@@ -123,6 +132,8 @@ reports_v2_check(str_contains($template,'data-timesheet-menu-choice="missing"') 
 reports_v2_check(str_contains($template,'merdpos-timesheet-action-icon') && !str_contains($template,">{{ dispute ? dispute.status_label : 'Actions' }}</span>"),'Row Action trigger must remain icon-only.');
 $actionIcon=$root . '/web/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg';
 reports_v2_check(is_file($actionIcon) && str_contains((string)file_get_contents($actionIcon),'M508.5-291.5'),'User-supplied Shift Action icon asset missing or changed.');
+$downloadIcon=$root . '/web/themes/custom/merdpos_app/assets/download_for_offline_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg';
+reports_v2_check(is_file($downloadIcon) && str_contains((string)file_get_contents($downloadIcon),'M12 2C6.49 2 2 6.49 2 12'),'Requested Download For Offline PDF icon asset missing or changed.');
 reports_v2_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)"),'Context menu must select a workflow before opening the dialog.');
 reports_v2_check(str_contains($js,'focus({preventScroll:true})') && !str_contains($js,"window.addEventListener('scroll', closeMenu, true)"),'Shift Action menu must not close itself when focus causes scrolling.');
 reports_v2_check(str_contains($js,'it does not modify the row you clicked') && str_contains($js,"title.textContent = 'Dispute existing shift'"),'Missing-shift and existing-shift contexts must stay distinct.');

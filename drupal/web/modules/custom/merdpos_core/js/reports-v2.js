@@ -7,6 +7,13 @@
   const menu = q('[data-timesheet-menu]');
   let activeTrigger = null;
   let menuTrigger = null;
+  const weekSelect = q('[data-timesheet-week-select]');
+  weekSelect?.addEventListener('change', () => {
+    const form = weekSelect.form;
+    if (!form) return;
+    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+    else form.submit();
+  });
 
   const closeMenu = () => {
     if (!menu) return;

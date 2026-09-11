@@ -23,39 +23,32 @@
       <h1 class="merdpos-page-header__title" id="merdpos-reports-title">{{ surface.title }}</h1>
       <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
-    <button class="merdpos-page-header__actions merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
+    <div class="merdpos-page-header__actions merdpos-reports-header-actions">
+      <button class="merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print><span class="merdpos-report-download-icon" aria-hidden="true"></span><span>PDF</span></button>
+      <form class="merdpos-reports-week-form" method="get" aria-label="Timesheet week">
+        <label><span>Week</span><select name="week_start" data-timesheet-week-select>
+          {% for option in surface.week_options %}<option value="{{ option.value }}"{{ option.value == surface.selected_week ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
+        </select></label>
+        <noscript><button type="submit">Apply week</button></noscript>
+      </form>
+    </div>
   </header>
 
-  {% if surface.filters %}
-    <form class="merdpos-reports-filters" method="get" aria-label="Reports filters">
-      <div class="merdpos-reports-filter-intro"><strong>Reporting lens</strong><span>{{ surface.filter_summary }}</span></div>
-      {% for filter in surface.filters %}
-        <label><span>{{ filter.label }}</span><select name="{{ filter.name }}">
-          {% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}
-        </select></label>
-      {% endfor %}
-      <button type="submit">Apply view</button>
-    </form>
-  {% endif %}
-
-  <div class="merdpos-reports-kpis" aria-label="Reports summary">
+  <div class="merdpos-reports-kpis" aria-label="Timesheets summary">
     {% for metric in surface.metrics %}
-      {% set ml = metric.label|lower %}
+      {% set metric_icon = metric.label|lower == 'queries' ? 'message' : 'clock' %}
       <article class="merdpos-reports-kpi is-{{ metric.tone }}">
-        <span class="merdpos-reports-kpi-icon">{{ ui.icon('payroll' in ml ? 'wallet' : ('dispute' in ml ? 'message' : ('employee' in ml ? 'users' : ('week' in ml ? 'calendar' : 'clock')))) }}</span>
-        <div><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.meta }}</small></div>
+        <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
+        <div><span>{{ metric.label }}</span>
+          <div class="merdpos-reports-kpi-lines">
+            {% for line in metric.lines %}<strong><b>{{ line.value }}</b><small>{{ line.label }}</small></strong>{% endfor %}
+          </div>
+        </div>
       </article>
     {% endfor %}
   </div>
 
-  <div class="merdpos-reports-note"><span>{{ ui.icon('shield') }}</span><div><strong>Frozen reconciliation preserved</strong><p>Hours, lateness and wages come from the existing MERDPOS timesheet engine. Drupal only scopes, filters, charts and exports the already-authorized result.</p></div></div>
-  <div class="merdpos-reports-charts">
-    {% if attribute(charts, 'reports_store_hours') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('chart') }}</span><div><h2>Hours by store</h2><p>Filtered authoritative hours grouped by store.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_store_hours') }}</div></article>{% endif %}
-    {% if attribute(charts, 'reports_employee_hours') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('users') }}</span><div><h2>Employee hours</h2><p>Top employees in the current reporting view.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_employee_hours') }}</div></article>{% endif %}
-    {% if attribute(charts, 'reports_punctuality') %}<article class="merdpos-report-chart-card"><header><span>{{ ui.icon('clock') }}</span><div><h2>Punctuality</h2><p>On-time versus late starts using the existing MERDPOS late rule.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_punctuality') }}</div></article>{% endif %}
-    {% if surface.payroll_visible and attribute(charts, 'reports_payroll_store') %}<article class="merdpos-report-chart-card merdpos-report-chart-card--payroll"><header><span>{{ ui.icon('wallet') }}</span><div><h2>Payroll by store</h2><p>Shown only because MERDPOS granted payroll visibility.</p></div></header><div class="merdpos-report-chart">{{ attribute(charts, 'reports_payroll_store') }}</div></article>{% endif %}
-  </div>
-
+  <div class="merdpos-reports-note"><span>{{ ui.icon('shield') }}</span><div><strong>Frozen reconciliation preserved</strong><p>Hours, lateness, wages and queries come from the existing MERDPOS timesheet engine. Drupal renders only the already-authorized result for the selected week.</p></div></div>
   <div class="merdpos-reports-groups">
     {% for group in surface.groups %}
       <article class="merdpos-report-table-card"{% if group.title == 'Filtered shifts' %} id="merdpos-shift-detail"{% endif %}>
