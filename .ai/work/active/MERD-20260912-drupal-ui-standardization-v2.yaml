@@ -1,10 +1,10 @@
 id: MERD-20260912-drupal-ui-standardization-v2
 branch: feature/ui-standardization-v2-dark-fix
 base_head: bd837dc6306e0080b5e155c01f2fd636c82c0e6b
-last_seen_head: 570857a8705f2326c4723a73126e78643fa66406
+last_seen_head: 3c6626ca0bf41af536ff0c4997f446a1b90cb529
 objective: Make equivalent Drupal Beta controls, KPI cards, filter surfaces and action states inherit one canonical global UI grammar across every live application surface.
-packet_state: LIVE_DRIFT_REPAIR_VALIDATED_LOCAL
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
   - Enforce merdpos-app root scope on Administration, Financials, DEV and Disputes.
   - Centralize primary, secondary, danger/reject and approve action appearance.
@@ -18,6 +18,8 @@ validation:
   - Global UI primitive validator passes locally.
   - Admin roles/shell validator passes locally.
   - git diff --check passes.
-  - First live computed-style proof caught a legacy dark-mode !important override on Operations/Reports filter submit buttons; repair removes it and validator now forbids its return.
-next_action: Merge and deploy the dark-mode repair, then rerun live cross-surface computed-style equivalence and authenticated route/runtime checks before VERIFIED.
-updated_at: '2026-09-12T01:35:00+05:00'
+  - Final live dark-mode and cross-surface computed-style proof passes for primary actions, controls, filters, KPI cards, icons, labels, values and metadata.
+  - Create role and Create employee resolve to identical canonical action geometry and appearance.
+  - Deployed release marker verified at 3c6626ca0bf41af536ff0c4997f446a1b90cb529; backend unchanged at cb2f6a2.
+next_action: Continue Drupal-first development from the verified global UI primitive baseline; equivalent components must remain globally governed.
+updated_at: '2026-09-12T02:16:22+05:00'
