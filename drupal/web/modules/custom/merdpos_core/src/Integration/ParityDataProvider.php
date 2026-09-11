@@ -565,30 +565,14 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       }
     }
 
-    $storeNames = array_values(array_unique(array_filter(array_map(static fn(array $r): string => (string)($r['store'] ?? ''), $allShifts))));
-    $employeeNames = array_values(array_unique(array_filter(array_map(static fn(array $r): string => (string)($r['employee'] ?? ''), $allShifts))));
-    sort($storeNames, SORT_NATURAL | SORT_FLAG_CASE);
-    sort($employeeNames, SORT_NATURAL | SORT_FLAG_CASE);
-    $requestedStore = trim((string)($query['store'] ?? ''));
-    $requestedEmployee = trim((string)($query['employee'] ?? ''));
-    $requestedAttendance = strtolower(trim((string)($query['attendance'] ?? 'all')));
-    $selectedStore = in_array($requestedStore, $storeNames, true) ? $requestedStore : '';
-    $selectedEmployee = in_array($requestedEmployee, $employeeNames, true) ? $requestedEmployee : '';
-    $selectedAttendance = in_array($requestedAttendance, ['all','late','on_time'], true) ? $requestedAttendance : 'all';
+    // Timesheets uses a single week selector in the page header. Store, employee and attendance
+    // scoping remains backend-authoritative and is never silently controlled by hidden query params.
+    $selectedStore = '';
+    $selectedEmployee = '';
+    $selectedAttendance = 'all';
 
-    $filteredShifts = array_values(array_filter($allShifts, static function(array $row) use ($selectedStore,$selectedEmployee,$selectedAttendance): bool {
-      if ($selectedStore !== '' && (string)$row['store'] !== $selectedStore) return false;
-      if ($selectedEmployee !== '' && (string)$row['employee'] !== $selectedEmployee) return false;
-      if ($selectedAttendance === 'late' && empty($row['late'])) return false;
-      if ($selectedAttendance === 'on_time' && !empty($row['late'])) return false;
-      return true;
-    }));
-
-    $filteredDisputes = array_values(array_filter($disputeRows, static function(array $row) use ($selectedStore,$selectedEmployee): bool {
-      if ($selectedStore !== '' && (string)($row['store_name'] ?? '') !== $selectedStore) return false;
-      if ($selectedEmployee !== '' && (string)($row['full_name'] ?? '') !== $selectedEmployee) return false;
-      return true;
-    }));
+    $filteredShifts = $allShifts;
+    $filteredDisputes = $disputeRows;
 
     $disputesByShift = [];
     $newShiftDisputes = [];
@@ -637,7 +621,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $pendingDisputes = count(array_filter($filteredDisputes, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'pending'));
     $openDisputes = count(array_filter($filteredDisputes, static fn(array $r): bool => in_array(strtolower((string)($r['status'] ?? '')), ['pending','awaiting_employee'], true)));
-    $onTimeCount = max(0, count($filteredShifts) - $lateCount);
+    $closedQueries = count(array_filter($filteredDisputes, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'approved'));
+    $rejectedQueries = count(array_filter($filteredDisputes, static fn(array $r): bool => strtolower((string)($r['status'] ?? '')) === 'rejected'));
 
     $storeTable = [];
     foreach ($storeAgg as $store=>$totals) {
@@ -719,31 +704,6 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     }
 
     $chartSpecs = [];
-    if ($storeAgg) {
-      $labels = array_keys($storeAgg);
-      $values = array_map(static fn(array $v): float => round((float)$v['hours'],2), array_values($storeAgg));
-      $chartSpecs[] = $this->chartSpecValues('reports_store_hours','column',$labels,$values,'Hours','#1c4587');
-    }
-    if ($employeeAgg) {
-      $ranked = $employeeAgg;
-      uasort($ranked, static fn(array $a,array $b): int => ((float)$b['hours'] <=> (float)$a['hours']));
-      $names = array_slice(array_keys($ranked),0,12);
-      $values = array_map(static fn(string $name): float => round((float)$ranked[$name]['hours'],2), $names);
-      $chartSpecs[] = $this->chartSpecValues('reports_employee_hours','column',$names,$values,'Hours','#23a6a8');
-    }
-
-    if ($filteredShifts) {
-      $chartSpecs[] = [
-        'key'=>'reports_punctuality','type'=>'donut','labels'=>['On time','Late'],
-        'values'=>[$onTimeCount,$lateCount],'series_label'=>'Shifts','color'=>'#1c4587',
-        'colors'=>['#23a6a8','#e09b2d'],'height'=>280,
-      ];
-    }
-    if ($payrollVisible && $storeAgg) {
-      $labels = array_keys($storeAgg);
-      $values = array_map(static fn(array $v): float => round((float)$v['wage'],2), array_values($storeAgg));
-      $chartSpecs[] = $this->chartSpecValues('reports_payroll_store','column',$labels,$values,'Payroll','#6f42c1');
-    }
 
     $storeColumns = [['key'=>'store','label'=>'Store'],['key'=>'employees','label'=>'Employees'],['key'=>'hours','label'=>'Hours']];
     $employeeColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'stores','label'=>'Store(s)'],['key'=>'hours','label'=>'Hours']];
@@ -756,39 +716,38 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $exportColumns = $shiftColumns;
     $shiftColumns[] = ['key'=>'action','label'=>'Action'];
 
-    $metrics = [
-      $this->metric('Week',(string)($report['week_label'] ?? $selectedWeek ?: '-'),'Selected payroll week','brand'),
-      $this->metric('Total hours',$this->number($filteredHours),'Filtered authoritative shift hours','info'),
-      $this->metric('Shifts',(string)count($filteredShifts),'Returned shift rows','success'),
-      $this->metric('Late starts',(string)$lateCount,'Existing MERDPOS >10 minute rule','warning'),
-      $this->metric('Pending disputes',(string)$pendingDisputes,'Awaiting review','warning'),
-      $this->metric('Employees',(string)count($employeeAgg),'Employees in current view','success'),
+    $shiftLines = [
+      ['value'=>(string)count($filteredShifts),'label'=>'Shifts'],
+      ['value'=>$this->number($filteredHours),'label'=>'Hours'],
     ];
-    if ($payrollVisible) $metrics[] = $this->metric('Payroll',$this->money($filteredWages,$currency),'Visible by authoritative permission','brand');
+    if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>$currency];
+    $shiftMetric = $this->metric('Shifts',(string)count($filteredShifts),'Selected payroll week summary','success');
+    $shiftMetric['lines'] = $shiftLines;
+    $queryMetric = $this->metric('Queries',(string)$openDisputes,'Dispute/query outcomes','warning');
+    $queryMetric['lines'] = [
+      ['value'=>(string)$openDisputes,'label'=>'Active'],
+      ['value'=>(string)$closedQueries,'label'=>'Closed'],
+      ['value'=>(string)$rejectedQueries,'label'=>'Rejected'],
+    ];
+    $metrics = [$shiftMetric,$queryMetric];
 
-    $filters = [
-      ['name'=>'week_start','label'=>'Week','type'=>'select','value'=>$selectedWeek,'options'=>array_map(static fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>(string)($row['label'] ?? $row['value'] ?? '')],$weekRows)],
-      ['name'=>'store','label'=>'Store','type'=>'select','value'=>$selectedStore,'options'=>array_merge([['value'=>'','label'=>'All permitted stores']],array_map(static fn(string $name): array => ['value'=>$name,'label'=>$name],$storeNames))],
-      ['name'=>'employee','label'=>'Employee','type'=>'select','value'=>$selectedEmployee,'options'=>array_merge([['value'=>'','label'=>'All permitted employees']],array_map(static fn(string $name): array => ['value'=>$name,'label'=>$name],$employeeNames))],
-      ['name'=>'attendance','label'=>'Attendance','type'=>'select','value'=>$selectedAttendance,'options'=>[
-        ['value'=>'all','label'=>'All shifts'],['value'=>'late','label'=>'Late starts'],['value'=>'on_time','label'=>'On time'],
-      ]],
-    ];
+    $groups = [];
+    if ($roleKey !== 'USER') {
+      $groups[] = $this->table('Store summary','Hours by store',$storeColumns,$storeTable);
+      $groups[] = $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable);
+    }
+    $groups[] = $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable);
 
     $surface = $this->surface(
       'reports','Reports','Attendance & Payroll',
       'Track attendance, review and process wages, and raise or resolve pay disputes. Full history, clear records, and accurate results.',
       $this->status([$dashboard['status'],$state['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
       $metrics,
-      [
-        $this->table('Store summary','Hours by store',$storeColumns,$storeTable),
-        $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable),
-        $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable),
-      ],
+      $groups,
       ['source'=>'dashboard_data + weeks + authoritative timesheet + disputes','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
-      $filters,
+      [],
     );
-
+    $surface['week_options'] = array_map(static fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>(string)($row['label'] ?? $row['value'] ?? '')],$weekRows);
     $surface['action_stores'] = $actionStores;
     $surface['can_submit_disputes'] = $canSubmitOwn;
     $surface['can_review_disputes'] = $canReview;
@@ -806,11 +765,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['timesheet_action_stores'] = $actionStores;
     $surface['timesheet_can_submit_own'] = $canSubmitOwn;
     $surface['timesheet_can_review'] = $canReview;
-    $surface['filter_summary'] = implode(' · ', array_filter([
-      $selectedStore !== '' ? $selectedStore : 'All permitted stores',
-      $selectedEmployee !== '' ? $selectedEmployee : 'All permitted employees',
-      $selectedAttendance === 'all' ? 'All shifts' : ($selectedAttendance === 'late' ? 'Late starts' : 'On time'),
-    ]));
+    $surface['query_counts'] = ['active'=>$openDisputes,'closed'=>$closedQueries,'rejected'=>$rejectedQueries];
     return $surface;
   }
 

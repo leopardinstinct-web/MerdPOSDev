@@ -175,9 +175,9 @@ foreach ($surfaces as $key => $surface) {
   elseif ($key === 'reports') {
     parity_check(($surface['role']['key'] ?? '') === 'DEV', 'Reports role did not resolve DEV.');
     parity_check(($surface['role']['loa'] ?? 0) === 1000, 'Reports role LOA mismatch.');
-    parity_check(count($surface['metrics'] ?? []) >= 6, 'Reports rich metrics missing.');
-    parity_check(count($surface['filters'] ?? []) === 4, 'Reports filters missing.');
-    parity_check(count($surface['chart_specs'] ?? []) >= 4, 'Reports charts missing.');
+    parity_check(count($surface['metrics'] ?? []) === 2, 'Timesheets must expose exactly two summary KPI cards.');
+    parity_check(count($surface['filters'] ?? []) === 0, 'Reporting lens filters must stay retired.');
+    parity_check(count($surface['chart_specs'] ?? []) === 0, 'Timesheets charts must stay removed for now.');
     parity_check(!empty($surface['export_rows']), 'Reports export rows missing.');
     parity_check(!empty($surface['groups']), 'Reports surface groups missing.');
   }
@@ -208,9 +208,9 @@ foreach ($surfaces as $key => $surface) {
 
 parity_check(($surfaces['home']['metrics'][6]['value'] ?? '') === 'AUD 123.45', 'Home sales change current value mismatch.');
 parity_check(($surfaces['reports']['meta']['payroll_visible'] ?? '') === 'yes', 'Reports payroll visibility mismatch.');
-parity_check(count($surfaces['reports']['filters'] ?? []) === 4, 'Reports v2 filters missing.');
+parity_check(count($surfaces['reports']['filters'] ?? []) === 0, 'Timesheets must not expose the retired Reporting lens filters.');
 parity_check(($surfaces['reports']['payroll_visible'] ?? false) === true, 'Reports payroll visibility flag mismatch.');
-parity_check(count($surfaces['reports']['chart_specs'] ?? []) >= 4, 'Reports v2 charts missing.');
+parity_check(count($surfaces['reports']['chart_specs'] ?? []) === 0, 'Timesheets charts must stay removed for the simplified view.');
 parity_check(count($surfaces['finance']['filters'] ?? []) === 2, 'Finance filters missing.');
 $routes = array_map(static fn(array $call): string => (string)$call[0], $gateway->calls);
 foreach (['beta_state','dashboard_data','admin_directory','store_identity','store_timings','weeks','timesheet','disputes','financials','dev_status','clients','role_authority','client_context'] as $route) {

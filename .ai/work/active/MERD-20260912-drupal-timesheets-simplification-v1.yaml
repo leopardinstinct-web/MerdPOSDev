@@ -1,0 +1,26 @@
+id: MERD-20260912-drupal-timesheets-simplification-v1
+branch: feature/timesheets-page-simplification-v1
+base_head: 56e289112e2eac804b39ab1f46d3d4c953d3a36a
+last_seen_head: 56e289112e2eac804b39ab1f46d3d4c953d3a36a
+objective: Implement the user-supplied Timesheet changes workbook on Drupal Beta and verify the resulting Timesheets page across every actual role.
+packet_state: IMPLEMENTATION_VALIDATED_LOCAL
+lifecycle: WIRED
+scope:
+  - Remove Reporting lens and Store, Employee, Attendance and Apply-view controls for DEV, Admin, Super and User.
+  - Move the week selector into the page header under PDF and make week changes immediately refresh the report.
+  - Rename Print / PDF to PDF and use the supplied download-for-offline icon.
+  - Reduce KPI summary to Shifts and Queries; retain payroll only where authoritative permission grants it.
+  - Remove all Timesheets charts for now.
+  - Hide Store Summary and Employee Summary only for USER, exactly as specified in the workbook.
+  - Preserve Shift Detail and governed dispute/query workflows.
+constraints:
+  - Role and payroll visibility remain backend-authoritative.
+  - Retired hidden URL filters must not continue to constrain the view.
+  - Changes apply to all four roles except workbook rows explicitly marked USER-only.
+validation:
+  - Reports v2 validator passes locally.
+  - Five-surface parity provider validator passes locally.
+  - Global UI primitive validator passes locally.
+  - PHP/JS syntax and git diff --check pass.
+next_action: Commit, run GitHub CI, deploy exact merged Drupal SHA, then live-verify DEV, Admin, Super and User.
+updated_at: '2026-09-12T03:33:00+05:00'

@@ -47,7 +47,7 @@ final class ReportsController extends ControllerBase {
       '#dispute_post_url' => Url::fromRoute('merdpos_core.disputes')->toString(),
       '#attached' => ['library' => ['merdpos_core/reports']],
       '#cache' => [
-        'contexts' => ['user','url.query_args:week_start','url.query_args:store','url.query_args:employee','url.query_args:attendance'],
+        'contexts' => ['user','url.query_args:week_start'],
         'max-age' => 0,
       ],
     ];
@@ -80,7 +80,7 @@ final class ReportsController extends ControllerBase {
   private function reportQuery(): array {
     $request = $this->requestStack->getCurrentRequest();
     $query = [];
-    foreach (['week_start','store','employee','attendance'] as $key) {
+    foreach (['week_start'] as $key) {
       $value = $request?->query->get($key);
       if (is_scalar($value)) $query[$key] = (string)$value;
     }
