@@ -12,47 +12,14 @@
   padding-bottom: 2rem;
 }
 
-.merdpos-ops-hero {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2rem;
-  align-items: center;
-  padding: clamp(1.6rem, 3vw, 3rem);
-  border: 1px solid var(--ops-border);
-  border-radius: 2rem;
-  background: radial-gradient(circle at 88% 18%, rgba(25,184,229,.18), transparent 31%), radial-gradient(circle at 72% 4%, rgba(112,82,220,.16), transparent 34%), linear-gradient(135deg, #fff 0%, #f8faff 72%, #eefaff 100%);
-  box-shadow: 0 1.5rem 4rem rgba(24,54,98,.10);
-}
-.merdpos-ops-hero::after {
-  content: '';
-  position: absolute;
-  width: 18rem;
-  height: 18rem;
-  right: -7rem;
-  top: -8rem;
-  border: 2rem solid rgba(28,69,135,.06);
-  border-radius: 50%;
-  pointer-events: none;
-}
 
-.merdpos-ops-hero-copy { position: relative; z-index: 1; max-width: 58rem; }
-.merdpos-ops-hero h1 {
-  margin: .3rem 0 .55rem;
-  color: var(--ops-ink);
-  font-size: clamp(2.3rem, 5vw, 4.7rem);
-  line-height: .96;
-  letter-spacing: -.055em;
-}
-.merdpos-ops-hero-copy > p:not(.merdpos-eyebrow) {
-  margin: 0;
-  color: var(--ops-muted);
-  font-size: clamp(1rem, 1.5vw, 1.22rem);
-  line-height: 1.55;
-}
-.merdpos-ops-roleline { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.25rem; }
-.merdpos-ops-roleline span { padding: .5rem .85rem; border: 1px solid rgba(28,69,135,.2); border-radius: 999px; background: rgba(255,255,255,.78); color: var(--ops-blue); font-weight: 750; }
+
+
+
+
+
+
+
 .merdpos-ops-hero-actions { position: relative; z-index: 1; display: grid; gap: .75rem; min-width: 13rem; }
 .merdpos-ops-live, .merdpos-ops-dispute-bell {
   display: grid;
@@ -156,7 +123,7 @@
 .merdpos-ops-footer span { color: var(--ops-muted); font-size: .78rem; }
 
 @media (max-width: 70rem) {
-  .merdpos-ops-hero { grid-template-columns: 1fr; }
+
   .merdpos-ops-hero-actions { grid-template-columns: repeat(2,minmax(0,1fr)); min-width: 0; }
   .merdpos-ops-filters { grid-template-columns: 1fr 1fr; }
   .merdpos-ops-filters > div { grid-column: span 2; }
@@ -166,8 +133,8 @@
 
 @media (max-width: 42rem) {
   .merdpos-operations-v2 { gap: .85rem; }
-  .merdpos-ops-hero { padding: 1.15rem; border-radius: 1.45rem; }
-  .merdpos-ops-hero h1 { font-size: clamp(2.15rem,13vw,3.4rem); }
+
+
   .merdpos-ops-hero-actions { grid-template-columns: 1fr; }
   .merdpos-ops-filters { grid-template-columns: 1fr; padding: .9rem; }
   .merdpos-ops-filters > div { grid-column: auto; }
@@ -190,7 +157,7 @@
 
 @media (max-width: 24rem) {
   .merdpos-ops-kpis { grid-template-columns: 1fr; }
-  .merdpos-ops-roleline span { font-size: .78rem; }
+
   .merdpos-ops-bell-icon { width: 2.35rem; height: 2.35rem; }
   .merdpos-ops-panel > header { flex-wrap: wrap; }
   .merdpos-ops-panel-link { width: 100%; margin-left: 3.45rem; }

@@ -944,11 +944,11 @@ body.merdpos-login-route {
 
 /* Cross-surface semantic dark treatment. */
 :root[data-theme="dark"] :is(
-  .merdpos-dashboard-hero, .merdpos-dashboard-panel, .merdpos-dashboard-card,
-  .merdpos-ops-hero, .merdpos-ops-filters, .merdpos-ops-kpi, .merdpos-ops-panel,
-  .merdpos-report-hero, .merdpos-reports-filters, .merdpos-reports-kpi, .merdpos-report-chart-card, .merdpos-report-table-card,
-  .merdpos-finance-hero, .merdpos-finance-filters, .merdpos-finance-kpi, .merdpos-finance-chart-card, .merdpos-finance-panel, .merdpos-finance-table-card,
-  .merdpos-dev-hero, .merdpos-dev-live, .merdpos-dev-kpi, .merdpos-dev-card, .merdpos-dev-source-card, .merdpos-dev-chart-card, .merdpos-dev-table-card
+  .merdpos-dashboard-panel, .merdpos-dashboard-card,
+  .merdpos-ops-filters, .merdpos-ops-kpi, .merdpos-ops-panel,
+  .merdpos-reports-filters, .merdpos-reports-kpi, .merdpos-report-chart-card, .merdpos-report-table-card,
+  .merdpos-finance-filters, .merdpos-finance-kpi, .merdpos-finance-chart-card, .merdpos-finance-panel, .merdpos-finance-table-card,
+  .merdpos-dev-live, .merdpos-dev-kpi, .merdpos-dev-card, .merdpos-dev-source-card, .merdpos-dev-chart-card, .merdpos-dev-table-card
 ) {
   background: var(--color-surface-main);
   border-color: var(--color-border-subtle);

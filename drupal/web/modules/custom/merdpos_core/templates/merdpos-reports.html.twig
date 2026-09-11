@@ -17,14 +17,13 @@
 {% import _self as ui %}
 
 <section class="merdpos-app merdpos-reports-v2" aria-labelledby="merdpos-reports-title">
-  <header class="merdpos-reports-hero">
-    <div class="merdpos-reports-copy">
-      <p class="merdpos-eyebrow">Timesheets</p>
-      <h1 id="merdpos-reports-title">{{ surface.title }}</h1>
-      <p>{{ surface.description }}</p>
-      <div class="merdpos-reports-roleline merdpos-hero-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.payroll_visible ? 'Payroll visible' : 'Payroll redacted' }}</span></div>
+  <header class="merdpos-page-header merdpos-reports-hero">
+    <div class="merdpos-page-header__copy merdpos-reports-copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">Timesheets</p>
+      <h1 class="merdpos-page-header__title" id="merdpos-reports-title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
-    <button class="merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
+    <button class="merdpos-page-header__actions merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print>{{ ui.icon('print') }}<span>Print / PDF</span></button>
   </header>
 
   {% if surface.filters %}

@@ -8,6 +8,7 @@ $files = [
   'twig' => $root . '/web/modules/custom/merdpos_core/templates/merdpos-administration.html.twig',
   'libraries' => $root . '/web/modules/custom/merdpos_core/merdpos_core.libraries.yml',
   'dark' => $root . '/web/modules/custom/merdpos_core/css/dark-normalization.css',
+  'page_header' => $root . '/web/modules/custom/merdpos_core/css/page-header.css',
 ];
 foreach ($files as $label => $path) {
   if (!is_file($path)) { fwrite(STDERR, "Missing $label file: $path\n"); exit(1); }
@@ -36,8 +37,8 @@ if (substr_count($files['libraries'], 'css/dark-normalization.css') < 7) {
   fwrite(STDERR, "Dark normalization is not attached after every MERDPOS surface stylesheet.\n");
   exit(1);
 }
-if (!str_contains($files['dark'], '.merdpos-reports-hero') || str_contains($files['dark'], '.merdpos-report-hero,')) {
-  fwrite(STDERR, "Reports hero dark selector is missing or stale.\n");
+if (!str_contains($files['page_header'], ':root[data-theme="dark"] .merdpos-page-header') || str_contains($files['dark'], '.merdpos-reports-hero')) {
+  fwrite(STDERR, "Global page-header dark contract is missing or legacy hero dark styling returned.\n");
   exit(1);
 }
 if (!str_contains($files['dark'], '.merdpos-report-action span') || !str_contains($files['dark'], '.merdpos-finance-chart-card') || !str_contains($files['dark'], '.merdpos-ops-panel')) {

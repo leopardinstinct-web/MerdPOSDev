@@ -14,14 +14,14 @@
 {% import _self as ui %}
 
 <section class="merdpos-app merdpos-dashboard-v2" aria-labelledby="merdpos-dashboard-title">
-  <header class="merdpos-dashboard-hero">
-    <div class="merdpos-dashboard-hero-copy">
-      <p class="merdpos-eyebrow">Home</p>
-      <h1 id="merdpos-dashboard-title">{{ surface.title }}</h1>
-      <p>{{ surface.description }}</p>
+  <header class="merdpos-page-header merdpos-dashboard-hero">
+    <div class="merdpos-page-header__copy merdpos-dashboard-hero-copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">Home</p>
+      <h1 class="merdpos-page-header__title" id="merdpos-dashboard-title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
     {% if surface.filters %}
-      <form class="merdpos-dashboard-filters merdpos-dashboard-filters--hero" method="get" aria-label="Dashboard period">
+      <form class="merdpos-page-header__actions merdpos-dashboard-filters merdpos-dashboard-filters--hero" method="get" aria-label="Dashboard period">
         {% for filter in surface.filters %}<label><span>{{ filter.label }}</span><select name="{{ filter.name }}" onchange="this.form.submit()">{% for option in filter.options %}<option value="{{ option.value }}"{{ option.value == filter.value ? ' selected' : '' }}>{{ option.label }}</option>{% endfor %}</select></label>{% endfor %}
       </form>
     {% endif %}

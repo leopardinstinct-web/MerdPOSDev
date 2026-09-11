@@ -47,7 +47,7 @@ $routing=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/merdp
 finance_v2_check(str_contains($routing,'FinanceController::finance'),'Finance route is not wired to FinanceController.');
 $template=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/templates/merdpos-finance.html.twig');
 finance_v2_check(str_contains($template,'Financial command centre'),'Finance rich template missing.');
-finance_v2_check(str_contains($template,'Signed write parity'),'Finance signed write parity marker missing.');
+finance_v2_check(str_contains($template,'merdpos-page-header')&&!str_contains($template,'merdpos-finance-roleline'),'Finance must use the global page-header contract without a roleline.');
 finance_v2_check(str_contains($template,'Register vs petty cash'),'Finance cash-mix chart missing.');
 $css=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/css/finance-v2.css');
 finance_v2_check(str_contains($css,'.merdpos-finance-charts'),'Finance chart layout CSS missing.');

@@ -45,11 +45,7 @@
 :root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) tbody tr:hover {
   background: var(--color-surface-selected) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-hero,.merdpos-ops-hero,.merdpos-reports-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
-  background: radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--color-brand-violet) 18%,transparent),transparent 32%),radial-gradient(circle at 72% 0,color-mix(in srgb,var(--color-brand-cyan) 14%,transparent),transparent 34%),var(--color-surface-main) !important;
-  border-color: var(--color-border-subtle) !important;
-  box-shadow: var(--shadow-raised) !important;
-}
+
 :root[data-theme="dark"] :is(.merdpos-dashboard-live,.merdpos-ops-live,.merdpos-ops-dispute-bell,.merdpos-reports-live) {
   background: var(--color-surface-raised) !important;
   border-color: var(--color-border-default) !important;
@@ -82,20 +78,16 @@
 }
 
 :root[data-theme="dark"] .merdpos-finance-v2{--fin-ink:var(--color-text-primary);--fin-muted:var(--color-text-muted);--fin-border:var(--color-border-subtle);--fin-blue:var(--color-brand-cyan);--fin-cyan:var(--color-brand-cyan);--fin-green:var(--color-success);--fin-amber:var(--color-warning)}
-:root[data-theme="dark"] :is(.merdpos-finance-roleline span,.merdpos-finance-capabilities span,.merdpos-finance-state,.merdpos-finance-account,.merdpos-finance-account dl div,.merdpos-finance-alerts){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-primary)!important}
+:root[data-theme="dark"] :is(.merdpos-finance-capabilities span,.merdpos-finance-state,.merdpos-finance-account,.merdpos-finance-account dl div,.merdpos-finance-alerts){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-primary)!important}
 :root[data-theme="dark"] .merdpos-finance-alerts strong,:root[data-theme="dark"] .merdpos-finance-alerts ul{color:var(--color-warning)!important}
-:root[data-theme="dark"] :is(.merdpos-dev-roleline span,.merdpos-dev-context-flags span,.merdpos-dev-live,.merdpos-dev-source-grid>div,.merdpos-dev-chip){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-secondary)!important}
+:root[data-theme="dark"] :is(.merdpos-dev-context-flags span,.merdpos-dev-live,.merdpos-dev-source-grid>div,.merdpos-dev-chip){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-secondary)!important}
 :root[data-theme="dark"] .merdpos-dev-v2 :is(h1,h2,strong,dd,.merdpos-dev-context-code){color:var(--color-text-primary)!important}
 :root[data-theme="dark"] .merdpos-dev-v2 :is(p,small,span,dt,code){color:var(--color-text-muted)}
 :root[data-theme="dark"] :is(.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card){background:var(--color-surface-main)!important;border-color:var(--color-border-subtle)!important;box-shadow:var(--shadow-card)!important}
 :root[data-theme="dark"] .merdpos-dev-dl div,:root[data-theme="dark"] .merdpos-dev-table-card>header{border-color:var(--color-border-subtle)!important}
 
 /* Dark v2: normalize legacy light-only cards and the Reports hero typo. */
-:root[data-theme="dark"] :is(.merdpos-reports-hero,.merdpos-ops-hero,.merdpos-finance-hero,.merdpos-dev-hero) {
-  background: radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--color-brand-violet) 18%,transparent),transparent 32%),radial-gradient(circle at 72% 0,color-mix(in srgb,var(--color-brand-cyan) 14%,transparent),transparent 34%),var(--color-surface-main) !important;
-  border-color: var(--color-border-subtle) !important;
-  box-shadow: var(--shadow-raised) !important;
-}
+
 :root[data-theme="dark"] :is(.merdpos-reports-filters,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-ops-filters,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-finance-filters,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card) {
   background: var(--color-surface-main) !important;
   border-color: var(--color-border-subtle) !important;

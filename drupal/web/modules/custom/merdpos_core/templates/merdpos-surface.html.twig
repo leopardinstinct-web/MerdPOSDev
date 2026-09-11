@@ -1,11 +1,11 @@
 <section class="merdpos-app merdpos-parity-surface merdpos-parity-surface--{{ surface.key }}" aria-labelledby="merdpos-surface-title">
-  <header class="merdpos-hero merdpos-parity-hero">
-    <div>
-      <p class="merdpos-eyebrow">MERDPOS / {{ surface.eyebrow }}</p>
-      <h1 id="merdpos-surface-title">{{ surface.title }}</h1>
-      <p class="merdpos-lead">{{ surface.description }}</p>
+  <header class="merdpos-page-header merdpos-hero merdpos-parity-hero">
+    <div class="merdpos-page-header__copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">MERDPOS / {{ surface.eyebrow }}</p>
+      <h1 class="merdpos-page-header__title" id="merdpos-surface-title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description merdpos-lead">{{ surface.description }}</p>
     </div>
-    <div class="merdpos-parity-state merdpos-parity-state--{{ surface.status }}" aria-label="Integration status {{ surface.status_label }}">
+    <div class="merdpos-page-header__actions merdpos-parity-state merdpos-parity-state--{{ surface.status }}" aria-label="Integration status {{ surface.status_label }}">
       <span class="merdpos-parity-state-dot" aria-hidden="true"></span>
       <div>
         <strong>{{ surface.status_label }}</strong>
