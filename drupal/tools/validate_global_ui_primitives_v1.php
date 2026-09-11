@@ -5,6 +5,8 @@ $cssPath = $root . '/web/modules/custom/merdpos_core/css/ui-primitives.css';
 $libsPath = $root . '/web/modules/custom/merdpos_core/merdpos_core.libraries.yml';
 $css = is_file($cssPath) ? (string) file_get_contents($cssPath) : '';
 $libs = is_file($libsPath) ? (string) file_get_contents($libsPath) : '';
+$darkPath = $root . '/web/modules/custom/merdpos_core/css/dark-normalization.css';
+$darkCss = is_file($darkPath) ? (string) file_get_contents($darkPath) : '';
 $errors = [];
 $required = [
   '.merdpos-app :where(button,input,select,textarea,table)',
@@ -41,9 +43,10 @@ foreach (['dashboard','operations','reports','finance','dev','administration','d
   if ($global !== false && $feature !== false && $global !== $feature - strlen('css/ui-primitives.css: {}') + strlen('css/ui-primitives.css: {}')) {
     // Position is checked more directly below; this branch intentionally left semantic only.
   }
-  $dark = strpos($block, 'css/dark-normalization.css: {}');
-  if ($dark !== false && $global !== false && $global < $dark) $errors[] = "$name must load ui-primitives.css after dark-normalization.css";
+  $darkPos = strpos($block, 'css/dark-normalization.css: {}');
+  if ($darkPos !== false && $global !== false && $global < $darkPos) $errors[] = "$name must load ui-primitives.css after dark-normalization.css";
 }
+if (str_contains($darkCss, ':is(.merdpos-ops-filters button,.merdpos-reports-filters button)')) $errors[] = 'dark normalization must not override canonical primary filter actions';
 if (preg_match('/#[0-9a-fA-F]{3,8}\b/', $css)) $errors[] = 'global UI primitives must use semantic design tokens, not literal colours';
 if ($errors) { foreach ($errors as $error) fwrite(STDERR, "GLOBAL_UI_CONTRACT_FAIL: $error\n"); exit(1); }
 echo "Global UI primitive contract OK: all live surfaces inherit canonical controls/actions, cards/widgets, tables, states and responsive touch targets.\n";
