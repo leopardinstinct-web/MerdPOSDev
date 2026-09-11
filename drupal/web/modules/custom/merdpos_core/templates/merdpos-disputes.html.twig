@@ -11,14 +11,13 @@
 {% import _self as ui %}
 
 <section class="merdpos-disputes-v1" data-disputes-root aria-labelledby="merdpos-disputes-title">
-  <header class="merdpos-disputes-hero">
-    <div>
-      <p class="merdpos-eyebrow">MERDPOS / ATTENDANCE</p>
-      <h1 id="merdpos-disputes-title">Disputes</h1>
-      <p>Attendance corrections stay pending until MERDPOS applies the authorised workflow. Drupal never edits a shift directly.</p>
-      <div class="merdpos-disputes-role"><span>{{ role.label|default('MERDPOS') }}</span><span>LOA {{ role.loa|default(0) }}</span><span>{{ gateway_status == 'ok' ? 'Service connected' : 'Service unavailable' }}</span></div>
+  <header class="merdpos-page-header merdpos-disputes-hero">
+    <div class="merdpos-page-header__copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">MERDPOS / ATTENDANCE</p>
+      <h1 class="merdpos-page-header__title" id="merdpos-disputes-title">Disputes</h1>
+      <p class="merdpos-page-header__description">Attendance corrections stay pending until MERDPOS applies the authorised workflow. Drupal never edits a shift directly.</p>
     </div>
-    <a class="merdpos-disputes-back" href="{{ path('merdpos_core.operations') }}">Back to Operations</a>
+    <a class="merdpos-page-header__actions merdpos-disputes-back" href="{{ path('merdpos_core.operations') }}">Back to Operations</a>
   </header>
 
   <div class="merdpos-disputes-kpis" aria-label="Dispute summary">

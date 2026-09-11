@@ -1,0 +1,5 @@
+drupal_commit 4dd4eb4546d22a33552168249d4c84001d2264b2
+backend_commit cb2f6a29a5efb3695a00e542c022b13e3d83da65
+immutable_tag drupal-pr123-verified-20260911
+baseline_branch baseline/drupal-pr123-verified-20260911
+release_marker_deployed_at 2026-09-10T22:44:07Z

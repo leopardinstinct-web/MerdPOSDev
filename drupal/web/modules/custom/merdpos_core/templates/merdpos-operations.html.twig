@@ -13,14 +13,13 @@
 {% import _self as ui %}
 
 <section class="merdpos-app merdpos-operations-v2" aria-labelledby="merdpos-operations-title">
-  <header class="merdpos-ops-hero">
-    <div class="merdpos-ops-hero-copy">
-      <p class="merdpos-eyebrow">MERDPOS / OPERATIONS / HR</p>
-      <h1 id="merdpos-operations-title">{{ surface.title }}</h1>
-      <p>{{ surface.description }}</p>
-      <div class="merdpos-ops-roleline"><span>{{ surface.role.label }}</span><span>LOA {{ surface.role.loa }}</span><span>{{ surface.period_label }}</span></div>
+  <header class="merdpos-page-header merdpos-ops-hero">
+    <div class="merdpos-page-header__copy merdpos-ops-hero-copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">MERDPOS / OPERATIONS / HR</p>
+      <h1 class="merdpos-page-header__title" id="merdpos-operations-title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
-    <div class="merdpos-ops-hero-actions">
+    <div class="merdpos-page-header__actions merdpos-ops-hero-actions">
       <div class="merdpos-ops-live is-{{ surface.status }}"><span></span><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS service</small></div>
       <a class="merdpos-ops-dispute-bell" href="{{ path('merdpos_core.reports') }}#merdpos-disputes">
         <span class="merdpos-ops-bell-icon">{{ ui.icon('bell') }}</span>

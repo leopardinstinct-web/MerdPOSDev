@@ -1,0 +1,46 @@
+/* Canonical MERDPOS page-header contract. All top-level application headers use these classes. */
+.merdpos-page-header {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-6);
+  align-items: end;
+  min-height: 13rem;
+  padding: clamp(1.5rem, 3vw, 2.4rem);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.65rem;
+  background: radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--color-brand-violet) 16%, transparent), transparent 17rem), radial-gradient(circle at 96% 92%, color-mix(in srgb, var(--color-brand-cyan) 14%, transparent), transparent 20rem), linear-gradient(132deg, var(--color-surface-main) 0%, color-mix(in srgb, var(--color-brand-primary) 4%, var(--color-surface-main)) 58%, color-mix(in srgb, var(--color-brand-violet) 5%, var(--color-surface-main)) 100%);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-raised);
+}
+.merdpos-page-header::after {
+  content: "";
+  position: absolute;
+  width: 18rem;
+  height: 18rem;
+  right: -8rem;
+  top: -9rem;
+  border: 2.2rem solid color-mix(in srgb, var(--color-brand-primary) 6%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.merdpos-page-header__copy { position: relative; z-index: 1; min-width: 0; max-width: 64rem; }
+.merdpos-page-header__eyebrow { margin: 0 0 var(--space-2); color: var(--color-brand-cyan); font-size: var(--type-xs); font-weight: var(--weight-bold); letter-spacing: .08em; text-transform: uppercase; }
+.merdpos-page-header__title { margin: 0; color: var(--color-text-primary); font-family: var(--font-display); font-size: clamp(2.15rem, 5vw, 4.1rem); line-height: .98; letter-spacing: -.035em; }
+.merdpos-page-header__description { max-width: 55rem; margin: .9rem 0 0; color: var(--color-text-secondary); font-size: var(--type-md); line-height: 1.6; }
+.merdpos-page-header__actions { position: relative; z-index: 1; min-width: 0; align-self: end; }
+
+:root[data-theme="dark"] .merdpos-page-header {
+  background: radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--color-brand-violet) 20%, transparent), transparent 17rem), radial-gradient(circle at 96% 92%, color-mix(in srgb, var(--color-brand-cyan) 12%, transparent), transparent 20rem), var(--color-surface-main);
+  border-color: var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
+}
+@media (max-width: 51.25rem) {
+  .merdpos-page-header { grid-template-columns: 1fr; gap: var(--space-4); min-height: 0; padding: 1.2rem; border-radius: 1.45rem; }
+  .merdpos-page-header__actions { width: 100%; }
+}
+@media print {
+  .merdpos-page-header { min-height: 0; box-shadow: none; break-inside: avoid; }
+}

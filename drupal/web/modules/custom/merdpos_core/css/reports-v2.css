@@ -11,35 +11,13 @@
   gap: 1.3rem;
   padding-bottom: 2rem;
 }
-.merdpos-reports-hero {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  gap: 2rem;
-  align-items: center;
-  padding: clamp(1.6rem,3vw,3rem);
-  border: 1px solid var(--rep-border);
-  border-radius: 2rem;
-  background: radial-gradient(circle at 90% 20%,rgba(111,66,193,.16),transparent 29%), radial-gradient(circle at 76% 3%,rgba(35,166,168,.15),transparent 32%), linear-gradient(135deg,#fff 0%,#f8faff 68%,#f4f0ff 100%);
-  box-shadow: 0 1.5rem 4rem rgba(24,54,98,.10);
-}
-.merdpos-reports-hero::after {
-  content: '';
-  position: absolute;
-  width: 18rem;
-  height: 18rem;
-  right: -7rem;
-  top: -8rem;
-  border: 2rem solid rgba(28,69,135,.05);
-  border-radius: 50%;
-  pointer-events: none;
-}
-.merdpos-reports-copy { position: relative; z-index: 1; max-width: 60rem; }
-.merdpos-reports-copy h1 { margin: .3rem 0 .55rem; color: var(--rep-ink); font-size: clamp(2.35rem,5vw,4.8rem); line-height: .96; letter-spacing: -.055em; }
-.merdpos-reports-copy > p:not(.merdpos-eyebrow) { margin: 0; color: var(--rep-muted); font-size: clamp(1rem,1.5vw,1.2rem); line-height: 1.55; }
-.merdpos-reports-roleline { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.25rem; }
-.merdpos-reports-roleline span { padding: .5rem .85rem; border: 1px solid rgba(28,69,135,.2); border-radius: 999px; background: rgba(255,255,255,.8); color: var(--rep-blue); font-weight: 750; }
+
+
+
+
+
+
+
 .merdpos-reports-actions { position: relative; z-index: 1; display: grid; gap: .65rem; min-width: 14rem; }
 .merdpos-reports-live { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: center; padding: .9rem 1rem; border-radius: 1.2rem; background: rgba(255,255,255,.88); border: 1px solid var(--rep-border); box-shadow: 0 .7rem 1.8rem rgba(31,59,98,.08); }
 .merdpos-reports-live > span { width: .8rem; height: .8rem; border-radius: 50%; background: var(--rep-green); box-shadow: 0 0 0 .45rem rgba(23,133,87,.12); }
@@ -101,7 +79,7 @@
   .merdpos-reports-filters button { justify-self: start; }
 }
 @media (max-width: 58rem) {
-  .merdpos-reports-hero { grid-template-columns: 1fr; }
+
   .merdpos-reports-actions { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .merdpos-reports-live { min-width: 0; }
   .merdpos-reports-charts { grid-template-columns: 1fr; }
@@ -109,9 +87,9 @@
 }
 @media (max-width: 42rem) {
   .merdpos-reports-v2 { gap: .9rem; }
-  .merdpos-reports-hero { padding: 1.2rem; border-radius: 1.45rem; }
-  .merdpos-reports-copy h1 { font-size: clamp(2rem,12vw,3rem); }
-  .merdpos-reports-roleline span { font-size: .78rem; }
+
+
+
   .merdpos-reports-actions { grid-template-columns: 1fr 1fr; }
   .merdpos-reports-live { grid-column: 1 / -1; }
   .merdpos-report-action { font-size: .84rem; }
@@ -131,7 +109,7 @@
 @media print {
   .merdpos-reports-actions, .merdpos-reports-filters, .merdpos-bottom-nav, .merdpos-shell-nav, .merdpos-shell-topbar { display: none !important; }
   .merdpos-reports-v2 { gap: .6rem; }
-  .merdpos-reports-hero, .merdpos-report-chart-card, .merdpos-report-table-card, .merdpos-reports-note { box-shadow: none; break-inside: avoid; }
+  .merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-reports-note{ box-shadow: none; break-inside: avoid; }
   .merdpos-report-table-wrap { overflow: visible; }
   .merdpos-report-table-wrap table { min-width: 0; font-size: 8pt; }
 }
@@ -178,8 +156,8 @@
 }
 .merdpos-timesheet-action-icon {
   display:block !important; width:1.22rem; height:1.22rem; background:currentColor;
-  -webkit-mask:url('/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg') center/contain no-repeat;
-  mask:url('/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg') center/contain no-repeat;
+  -webkit-mask:url("/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;
+  mask:url("/themes/custom/merdpos_app/assets/error_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;
 }
 .merdpos-timesheet-dispute-dot {
   display:block !important; position:absolute; width:.46rem; height:.46rem; right:.18rem; top:.18rem;

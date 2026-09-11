@@ -1,14 +1,9 @@
 <section class="merdpos-finance-v2" aria-label="Financial command centre" data-finance-offline-root data-finance-queue-key="{{ surface.write.queue_key }}" data-finance-submit-url="{{ surface.write.submit_url }}" data-finance-token="{{ surface.write.form_token }}" data-finance-store-id="{{ surface.selected_store.id }}" data-finance-business-date="{{ surface.business_date }}" data-finance-day-status="{{ surface.day_status }}" data-finance-currency="{{ surface.currency }}">
-  <header class="merdpos-finance-hero">
-    <div class="merdpos-finance-copy">
-      <p class="merdpos-eyebrow">Financials</p>
-      <h1>{{ surface.title }}</h1>
-      <p>{{ surface.description }}</p>
-      <div class="merdpos-finance-roleline merdpos-hero-roleline">
-        <span>{{ surface.role.label ?: surface.role.key }}</span>
-        <span>LOA {{ surface.role.loa }}</span>
-        <span>Signed write parity</span>
-      </div>
+  <header class="merdpos-page-header merdpos-finance-hero">
+    <div class="merdpos-page-header__copy merdpos-finance-copy">
+      <p class="merdpos-page-header__eyebrow merdpos-eyebrow">Financials</p>
+      <h1 class="merdpos-page-header__title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description">{{ surface.description }}</p>
     </div>
   </header>
 
