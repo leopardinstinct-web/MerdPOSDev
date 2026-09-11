@@ -63,7 +63,9 @@ reports_v2_check(($dev['status']??'')==='ok','DEV Reports did not resolve OK.');
 reports_v2_check(($dev['role']['key']??'')==='DEV','DEV Reports role mismatch.');
 reports_v2_check(($dev['role']['loa']??0)===1000,'DEV Reports LOA mismatch.');
 reports_v2_check(($dev['payroll_visible']??false)===true,'DEV payroll visibility missing.');
-reports_v2_check(count($dev['week_options']??[])===2,'Header week selector options missing.');
+reports_v2_check(count($dev['week_options']??[])===2,'Header view selector options missing.');
+reports_v2_check(($dev['week_options'][0]['label']??'')==='31 Aug - 06 Sep 2026','View date range must use one consistent same-year format.');
+reports_v2_check(($dev['week_options'][1]['label']??'')==='24 Aug - 30 Aug 2026','View date range formatting drifted.');
 reports_v2_check(count($dev['filters']??[])===0,'Reporting lens filters must be retired.');
 reports_v2_check(count($dev['chart_specs']??[])===0,'Timesheets charts must be removed for now.');
 reports_v2_check(count($dev['export_rows']??[])===3,'DEV export row count mismatch.');
@@ -104,10 +106,12 @@ $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/m
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['>PDF<','data-timesheet-week-select','Frozen reconciliation preserved','Missing shift','Cancel dispute'] as $needle) {
+foreach (['>PDF<','data-timesheet-week-select','>Select View<',"ui.icon('download')",'Frozen reconciliation preserved','Missing shift','Cancel dispute'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
 reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must not expose Export CSV.');
+$viewPos=strpos($template,'data-timesheet-week-select'); $pdfPos=strpos($template,'data-merdpos-print');
+reports_v2_check($viewPos!==false && $pdfPos!==false && $viewPos < $pdfPos,'PDF action must render below Select View.');
 reports_v2_check(!str_contains($template,'Reporting lens') && !str_contains($template,'merdpos-reports-filters'),'Reporting lens must be removed from every role.');
 reports_v2_check(!str_contains($template,'merdpos-reports-charts') && !str_contains($template,'Payroll by store'),'Timesheets chart surfaces must be removed for now.');
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
@@ -115,7 +119,7 @@ reports_v2_check(str_contains($controller,"Content-Type','text/csv"),'CSV respon
 reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'CSV response must be private/no-store.');
 reports_v2_check(str_contains($controller,"foreach (['week_start'] as \$key)") && !str_contains($controller,"url.query_args:store"),'Timesheets controller must expose only the week query selector.');
 $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
-reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-lines'),'Simplified Timesheets header/KPI styling missing.');
+reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-lines') && str_contains($css,'.merdpos-reports-print-action svg'),'Simplified Timesheets header/KPI/icon styling missing.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
 reports_v2_check(str_contains($js,'window.print()'),'Reports PDF/print action missing.');

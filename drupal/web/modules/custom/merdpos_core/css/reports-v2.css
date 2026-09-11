@@ -31,7 +31,7 @@
 .merdpos-reports-week-form label { display:grid; gap:.35rem; }
 .merdpos-reports-week-form label > span { color:var(--color-text-muted); font-size:var(--type-xs); font-weight:var(--weight-bold); letter-spacing:.04em; text-transform:uppercase; }
 .merdpos-reports-week-form select { width:100%; }
-.merdpos-report-download-icon { display:block; width:1.2rem; height:1.2rem; background:currentColor; -webkit-mask:url("/themes/custom/merdpos_app/assets/download_for_offline_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat; mask:url("/themes/custom/merdpos_app/assets/download_for_offline_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat; }
+.merdpos-reports-print-action svg { width:1.2rem; height:1.2rem; fill:currentColor; stroke:none; flex:0 0 auto; }
 .merdpos-reports-filters { display: grid; grid-template-columns: minmax(13rem,1.25fr) repeat(4,minmax(10rem,.7fr)) auto; gap: .8rem; align-items: end; padding: 1rem 1.15rem; border: 1px solid var(--rep-border); border-radius: 1.4rem; background: #fff; box-shadow: 0 .7rem 2rem rgba(24,54,98,.06); }
 .merdpos-reports-filter-intro { align-self: center; min-width: 0; }
 .merdpos-reports-filter-intro strong, .merdpos-reports-filter-intro span { display: block; }

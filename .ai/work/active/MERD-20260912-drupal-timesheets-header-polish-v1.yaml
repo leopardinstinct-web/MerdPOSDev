@@ -1,0 +1,17 @@
+id: MERD-20260912-drupal-timesheets-header-polish-v1
+branch: feature/timesheets-header-polish-v1
+base_head: 04db26f0fd3f49b185ffb86a90f34ac18e8453aa
+objective: Correct the live Timesheets header control order, PDF icon visibility, selector label and week-range presentation.
+packet_state: CODED
+lifecycle: CODED
+scope:
+  - Rename WEEK to Select View.
+  - Render Select View above the PDF action.
+  - Render the supplied download-for-offline glyph inline so the PDF icon is reliably visible.
+  - Normalize week labels to consistent date-range formatting.
+  - Preserve all role permissions and Timesheets data behavior.
+validation:
+  - Reports v2 validator covers label, order, icon and normalized ranges.
+  - All-role live verification required after deployment.
+next_action: Validate locally, merge through CI, deploy exact SHA, verify DEV/Admin/Super/User and cleanup fixtures.
+updated_at: '2026-09-12T04:40:00+05:00'
