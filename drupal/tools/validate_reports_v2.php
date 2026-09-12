@@ -74,7 +74,7 @@ reports_v2_check(($dev['pending_disputes']??-1)===2,'DEV pending dispute count m
 reports_v2_check(array_column($dev['metrics']??[],'label')===['Shifts','Queries'],'Timesheets must expose exactly the two simplified KPI cards.');
 reports_v2_check(($dev['metrics'][0]['lines']??[])===[['value'=>'2','label'=>'People'],['value'=>'3','label'=>'Shifts'],['value'=>'20.67','label'=>'Hours'],['value'=>'516.75','label'=>'Payroll (AUD)']],'Shifts summary card mismatch.');
 reports_v2_check(($dev['metrics'][0]['lines'][3]['label']??'')==='Payroll (AUD)','Shifts payroll metric must include currency in its label.');
-reports_v2_check(($dev['metrics'][1]['lines']??[])===[['value'=>'2','label'=>'Active'],['value'=>'1','label'=>'Closed'],['value'=>'0','label'=>'Rejected']],'Queries summary card mismatch.');
+reports_v2_check(($dev['metrics'][1]['lines']??[])===[['value'=>'2','label'=>'Active'],['value'=>'0','label'=>'Rejected'],['value'=>'1','label'=>'Closed']],'Queries summary card must render Active, Rejected, Closed.');
 $devShiftRows=$dev['groups'][2]['rows']??[];
 reports_v2_check(!empty($devShiftRows[1]['action']['dispute']['can_review']),'Reviewer pending-dispute action missing from Shift Detail.');
 $orphanReview=array_values(array_filter($devShiftRows,static fn(array $r): bool => ($r['action']['shift_id']??'')==='44444444-4444-4444-8444-444444444444'));
@@ -117,7 +117,7 @@ reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must n
 $viewPos=strpos($template,'data-timesheet-week-select'); $pdfPos=strpos($template,'data-merdpos-print');
 reports_v2_check($viewPos!==false && $pdfPos!==false && $viewPos < $pdfPos,'PDF action must render below Select View.');
 reports_v2_check(!str_contains($template,'Reporting lens') && !str_contains($template,'merdpos-reports-filters'),'Reporting lens must be removed from every role.');
-reports_v2_check(str_contains($template,'merdpos-reports-kpi-rail') && str_contains($template,'merdpos-reports-kpi-stat') && str_contains($template,"line.label == 'People'") && str_contains($template,"name == 'payroll'") && str_contains($template,"name == 'closed'") && str_contains($template,"name == 'rejected'"),'Redesigned Shifts/Queries KPI markup or semantic icons missing.');
+reports_v2_check(str_contains($template,'merdpos-reports-kpi-rail') && str_contains($template,'merdpos-reports-kpi-stat') && str_contains($template,"line.label == 'People'") && str_contains($template,"line.label == 'Rejected'") && str_contains($template,"name == 'payroll'") && str_contains($template,"name == 'closed'") && str_contains($template,"name == 'rejected'"),'Redesigned Shifts/Queries KPI markup or semantic icons missing.');
 reports_v2_check(!str_contains($template,'merdpos-reports-kpi-art'),'Abstract KPI filler must remain removed.');
 reports_v2_check(!str_contains($template,'merdpos-reports-charts') && !str_contains($template,'Payroll by store'),'Timesheets chart surfaces must be removed for now.');
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
