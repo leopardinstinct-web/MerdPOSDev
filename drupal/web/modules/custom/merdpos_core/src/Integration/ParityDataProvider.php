@@ -730,8 +730,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $queryMetric = $this->metric('Queries',(string)$openDisputes,'Dispute/query outcomes','warning');
     $queryMetric['lines'] = [
       ['value'=>(string)$openDisputes,'label'=>'Active'],
-      ['value'=>(string)$closedQueries,'label'=>'Closed'],
       ['value'=>(string)$rejectedQueries,'label'=>'Rejected'],
+      ['value'=>(string)$closedQueries,'label'=>'Closed'],
     ];
     $metrics = [$shiftMetric,$queryMetric];
 

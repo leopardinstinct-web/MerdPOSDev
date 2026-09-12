@@ -53,8 +53,8 @@
               {% set line_icon = line.label == 'People' ? 'users' : (line.label == 'Shifts' ? 'list' : (line.label == 'Hours' ? 'clock' : 'payroll')) %}
               {% set line_key = line.label == 'People' ? 'people' : (line.label == 'Shifts' ? 'shifts' : (line.label == 'Hours' ? 'hours' : 'payroll')) %}
             {% else %}
-              {% set line_icon = loop.index == 1 ? 'message' : (loop.index == 2 ? 'closed' : 'rejected') %}
-              {% set line_key = loop.index == 1 ? 'active' : (loop.index == 2 ? 'closed' : 'rejected') %}
+              {% set line_icon = line.label == 'Active' ? 'message' : (line.label == 'Rejected' ? 'rejected' : 'closed') %}
+              {% set line_key = line.label == 'Active' ? 'active' : (line.label == 'Rejected' ? 'rejected' : 'closed') %}
             {% endif %}
             <div class="merdpos-reports-kpi-stat is-{{ line_key }}">
               <span class="merdpos-reports-kpi-stat-icon">{{ ui.icon(line_icon) }}</span>
