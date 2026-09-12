@@ -598,6 +598,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $storeAgg = [];
     $employeeAgg = [];
+    $peopleWorked = [];
     $lateCount = 0;
     $filteredHours = 0.0;
     $filteredWages = 0.0;
@@ -613,6 +614,8 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       $storeAgg[$store]['hours'] += $hours;
       $storeAgg[$store]['wage'] += $wage;
       $storeAgg[$store]['employees'][$employee] = true;
+      $personKey = (int)($row['employee_id'] ?? 0) > 0 ? 'employee:' . (int)$row['employee_id'] : ((string)($row['employee_user_id'] ?? '') !== '' ? 'user:' . (string)$row['employee_user_id'] : 'name:' . $employee);
+      $peopleWorked[$personKey] = true;
       if (!isset($employeeAgg[$employee])) $employeeAgg[$employee] = ['hours'=>0.0,'wage'=>0.0,'stores'=>[]];
       $employeeAgg[$employee]['hours'] += $hours;
       $employeeAgg[$employee]['wage'] += $wage;
@@ -717,6 +720,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $shiftColumns[] = ['key'=>'action','label'=>'Action'];
 
     $shiftLines = [
+      ['value'=>(string)count($peopleWorked),'label'=>'People'],
       ['value'=>(string)count($filteredShifts),'label'=>'Shifts'],
       ['value'=>$this->number($filteredHours),'label'=>'Hours'],
     ];

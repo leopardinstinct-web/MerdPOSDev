@@ -45,16 +45,13 @@
       <article class="merdpos-reports-kpi merdpos-reports-kpi--{{ metric_key }} is-{{ metric.tone }}" aria-label="{{ metric.label }} summary">
         <div class="merdpos-reports-kpi-rail">
           <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
-          <div class="merdpos-reports-kpi-rail-copy">
-            <span class="merdpos-reports-kpi-title">{{ metric.label }}</span>
-            <span class="merdpos-reports-kpi-art" aria-hidden="true"></span>
-          </div>
+          <span class="merdpos-reports-kpi-title">{{ metric.label }}</span>
         </div>
         <div class="merdpos-reports-kpi-metrics">
           {% for line in metric.lines %}
             {% if metric_key == 'shifts' %}
-              {% set line_icon = loop.index == 1 ? 'list' : (loop.index == 2 ? 'clock' : 'payroll') %}
-              {% set line_key = loop.index == 1 ? 'shifts' : (loop.index == 2 ? 'hours' : 'payroll') %}
+              {% set line_icon = line.label == 'People' ? 'users' : (line.label == 'Shifts' ? 'list' : (line.label == 'Hours' ? 'clock' : 'payroll')) %}
+              {% set line_key = line.label == 'People' ? 'people' : (line.label == 'Shifts' ? 'shifts' : (line.label == 'Hours' ? 'hours' : 'payroll')) %}
             {% else %}
               {% set line_icon = loop.index == 1 ? 'message' : (loop.index == 2 ? 'closed' : 'rejected') %}
               {% set line_key = loop.index == 1 ? 'active' : (loop.index == 2 ? 'closed' : 'rejected') %}

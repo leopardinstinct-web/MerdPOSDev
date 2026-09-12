@@ -1,0 +1,19 @@
+id: MERD-20260913-drupal-timesheets-kpi-equity-v1
+branch: feature/timesheets-kpi-equity-v1
+base_head: cf555d0d955bea622335e6ed4f7a90a2fa9d3fd6
+objective: Refine Timesheets KPI cards for horizontal desktop tiling, People visibility and cleaner heading alignment.
+packet_state: CODED
+lifecycle: CODED
+scope:
+  - Remove abstract filler artwork from Shifts and Queries.
+  - Vertically center each main heading with its main icon.
+  - Add People as the first Shifts KPI from unique employees represented in the selected view.
+  - Tile Shifts and Queries side by side at desktop widths with equal card width.
+  - Rebalance metric typography, icon scale and internal columns for four Shifts metrics versus three Queries metrics.
+  - Preserve Payroll currency label and USER payroll redaction.
+validation:
+  - Reports v2 contract covers People counts, filler removal, desktop tiling and aligned heading rail.
+  - Five-surface parity and global UI primitive contracts must remain green.
+  - Live DEV/Admin/Super/User runtime verification required after deployment.
+next_action: Validate locally, merge after CI, deploy exact SHA and complete live role/browser verification.
+updated_at: '2026-09-13T01:05:00+05:00'
