@@ -73,6 +73,7 @@ reports_v2_check(in_array('wage',array_column($dev['export_columns']??[],'key'),
 reports_v2_check(($dev['pending_disputes']??-1)===2,'DEV pending dispute count mismatch.');
 reports_v2_check(array_column($dev['metrics']??[],'label')===['Shifts','Queries'],'Timesheets must expose exactly the two simplified KPI cards.');
 reports_v2_check(($dev['metrics'][0]['lines'][0]['value']??'')==='3' && ($dev['metrics'][0]['lines'][1]['value']??'')==='20.67' && ($dev['metrics'][0]['lines'][2]['value']??'')==='516.75','Shifts summary card mismatch.');
+reports_v2_check(($dev['metrics'][0]['lines'][2]['label']??'')==='Payroll (AUD)','Shifts payroll metric must include currency in its label.');
 reports_v2_check(($dev['metrics'][1]['lines']??[])===[['value'=>'2','label'=>'Active'],['value'=>'1','label'=>'Closed'],['value'=>'0','label'=>'Rejected']],'Queries summary card mismatch.');
 $devShiftRows=$dev['groups'][2]['rows']??[];
 reports_v2_check(!empty($devShiftRows[1]['action']['dispute']['can_review']),'Reviewer pending-dispute action missing from Shift Detail.');
@@ -113,13 +114,14 @@ reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must n
 $viewPos=strpos($template,'data-timesheet-week-select'); $pdfPos=strpos($template,'data-merdpos-print');
 reports_v2_check($viewPos!==false && $pdfPos!==false && $viewPos < $pdfPos,'PDF action must render below Select View.');
 reports_v2_check(!str_contains($template,'Reporting lens') && !str_contains($template,'merdpos-reports-filters'),'Reporting lens must be removed from every role.');
+reports_v2_check(str_contains($template,'merdpos-reports-kpi-rail') && str_contains($template,'merdpos-reports-kpi-stat') && str_contains($template,"name == 'payroll'") && str_contains($template,"name == 'closed'") && str_contains($template,"name == 'rejected'"),'Redesigned Shifts/Queries KPI markup or semantic icons missing.');
 reports_v2_check(!str_contains($template,'merdpos-reports-charts') && !str_contains($template,'Payroll by store'),'Timesheets chart surfaces must be removed for now.');
 $controller = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Controller/ReportsController.php');
 reports_v2_check(str_contains($controller,"Content-Type','text/csv"),'CSV response content type missing.');
 reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'CSV response must be private/no-store.');
 reports_v2_check(str_contains($controller,"foreach (['week_start'] as \$key)") && !str_contains($controller,"url.query_args:store"),'Timesheets controller must expose only the week query selector.');
 $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
-reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-lines') && str_contains($css,'.merdpos-reports-print-action svg'),'Simplified Timesheets header/KPI/icon styling missing.');
+reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-rail') && str_contains($css,'.merdpos-reports-kpi-metrics') && str_contains($css,'.merdpos-reports-kpi-art') && str_contains($css,'.merdpos-reports-print-action svg'),'Redesigned Timesheets header/KPI/icon styling missing.');
 reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
