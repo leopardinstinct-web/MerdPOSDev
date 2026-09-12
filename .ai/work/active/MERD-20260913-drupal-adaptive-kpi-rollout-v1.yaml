@@ -1,0 +1,17 @@
+﻿version: 1
+id: MERD-20260913-drupal-adaptive-kpi-rollout-v1
+lifecycle: CODED
+packet_state: CODED
+scope: Drupal KPI permission-layout consistency pass after Timesheets adaptive KPI verification.
+base_sha: 14f5be2996f0ac1818ea0ff767a0ec15883db089
+changes:
+  - Disputes summary uses shared adaptive KPI grid and publishes visible count 3 or 4.
+  - Security Flags omission no longer reserves an empty fourth desktop slot.
+  - Shared adaptive card-collection modifier preserves 2-column tablet/mobile equity without affecting Timesheets internal KPI rows.
+  - Operations audited: existing auto-fit KPI grid already closes permission/data-driven gaps.
+  - Dashboard audited: custom widget-layout engine already owns dynamic placement.
+  - Financials audited: current KPI set is fixed at five; no permission-removal gap exists.
+validation:
+  - Global UI primitive validator requires adaptive card-collection contract.
+  - Disputes Twig validator requires the 3-to-4 permission-aware KPI count binding.
+  - Full local Drupal validator suite must pass before merge.
