@@ -120,6 +120,7 @@ reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'
 reports_v2_check(str_contains($controller,"foreach (['week_start'] as \$key)") && !str_contains($controller,"url.query_args:store"),'Timesheets controller must expose only the week query selector.');
 $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
 reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpi-lines') && str_contains($css,'.merdpos-reports-print-action svg'),'Simplified Timesheets header/KPI/icon styling missing.');
+reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
 reports_v2_check(str_contains($js,'window.print()'),'Reports PDF/print action missing.');
