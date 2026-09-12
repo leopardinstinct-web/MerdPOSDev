@@ -1,0 +1,20 @@
+id: MERD-20260913-drupal-adaptive-kpi-composition-v1
+lifecycle: CODED
+packet_state: CODED
+requested_at: '2026-09-13T01:01:00+05:00'
+scope: Drupal Beta adaptive KPI composition
+request:
+  - Hide KPI children when their authoritative permission is absent.
+  - Reflow remaining KPI children from 4 to 3 to 2 to 1 with no reserved empty slot.
+  - Apply the behavior through a reusable global KPI-grid primitive.
+  - In Timesheets, People is controlled by workforce.view and Payroll remains permission-gated.
+implementation:
+  - ParityDataProvider gates People on workforce.view.
+  - Timesheets markup publishes the visible metric count.
+  - ui-primitives.css owns count-aware 1-6 column composition and mobile fallback.
+  - Reports and global UI validators cover the permission boundary and adaptive layout contract.
+verification:
+  local: pending final commit checks
+  github_ci: pending
+  deploy: pending
+  runtime: pending

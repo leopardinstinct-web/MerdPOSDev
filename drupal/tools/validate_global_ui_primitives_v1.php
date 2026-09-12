@@ -21,6 +21,9 @@ $required = [
   'button.is-secondary',
   'button.is-approve',
   '.merdpos-ui-empty',
+  '.merdpos-ui-kpi-grid[data-kpi-count="1"]',
+  '.merdpos-ui-kpi-grid[data-kpi-count="3"]',
+  '.merdpos-ui-kpi-grid[data-kpi-count="6"]',
   '@media(max-width:51.25rem)',
 ];
 foreach ($required as $needle) if (!str_contains($css, $needle)) $errors[] = "global UI primitive missing: $needle";

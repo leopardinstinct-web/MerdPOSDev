@@ -47,7 +47,7 @@
           <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
           <span class="merdpos-reports-kpi-title">{{ metric.label }}</span>
         </div>
-        <div class="merdpos-reports-kpi-metrics">
+        <div class="merdpos-reports-kpi-metrics merdpos-ui-kpi-grid" data-kpi-count="{{ metric.lines|length }}">
           {% for line in metric.lines %}
             {% if metric_key == 'shifts' %}
               {% set line_icon = line.label == 'People' ? 'users' : (line.label == 'Shifts' ? 'list' : (line.label == 'Hours' ? 'clock' : 'payroll')) %}

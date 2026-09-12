@@ -537,6 +537,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $loa = (int)($role['authority_level'] ?? 0);
     $permissions = $this->permissionKeys($statePayload['permissions'] ?? []);
     $currentUserId = (string)($statePayload['current_user_id'] ?? '');
+    $canViewPeople = in_array('workforce.view', $permissions, true);
     $canSubmitOwn = in_array('disputes.submit_own', $permissions, true);
     $canReview = in_array('disputes.review', $permissions, true);
     $actionStores = [];
@@ -719,11 +720,10 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $exportColumns = $shiftColumns;
     $shiftColumns[] = ['key'=>'action','label'=>'Action'];
 
-    $shiftLines = [
-      ['value'=>(string)count($peopleWorked),'label'=>'People'],
-      ['value'=>(string)count($filteredShifts),'label'=>'Shifts'],
-      ['value'=>$this->number($filteredHours),'label'=>'Hours'],
-    ];
+    $shiftLines = [];
+    if ($canViewPeople) $shiftLines[] = ['value'=>(string)count($peopleWorked),'label'=>'People'];
+    $shiftLines[] = ['value'=>(string)count($filteredShifts),'label'=>'Shifts'];
+    $shiftLines[] = ['value'=>$this->number($filteredHours),'label'=>'Hours'];
     if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>'Payroll (' . $currency . ')'];
     $shiftMetric = $this->metric('Shifts',(string)count($filteredShifts),'Selected payroll week summary','success');
     $shiftMetric['lines'] = $shiftLines;
