@@ -720,7 +720,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       ['value'=>(string)count($filteredShifts),'label'=>'Shifts'],
       ['value'=>$this->number($filteredHours),'label'=>'Hours'],
     ];
-    if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>$currency];
+    if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>'Payroll (' . $currency . ')'];
     $shiftMetric = $this->metric('Shifts',(string)count($filteredShifts),'Selected payroll week summary','success');
     $shiftMetric['lines'] = $shiftLines;
     $queryMetric = $this->metric('Queries',(string)$openDisputes,'Dispute/query outcomes','warning');

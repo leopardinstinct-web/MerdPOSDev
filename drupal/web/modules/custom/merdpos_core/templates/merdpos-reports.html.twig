@@ -4,6 +4,10 @@
   {% elseif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
   {% elseif name == 'users' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   {% elseif name == 'message' %}<path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a8 8 0 1 1 18 0Z"/><path d="M8 11h8M8 15h5"/>
+  {% elseif name == 'list' %}<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>
+  {% elseif name == 'payroll' %}<path d="M8 3h8l-1 4c2 1.5 4 4.2 4 7.2A7 7 0 0 1 5 14.2C5 11.2 7 8.5 9 7L8 3Z"/><circle cx="12" cy="14" r="2"/>
+  {% elseif name == 'closed' %}<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>
+  {% elseif name == 'rejected' %}<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>
   {% elseif name == 'download' %}<path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm2.59-11.41L16 10l-4 4-4-4 1.41-1.41L11 10.17V6h2v4.17l1.59-1.58zM17 17H7v-2h10v2z"/>
   {% elseif name == 'print' %}<path d="M7 8V3h10v5"/><rect x="5" y="14" width="14" height="7"/><path d="M5 17H3v-7h18v7h-2"/>
   {% elseif name == 'wallet' %}<path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/>
@@ -36,13 +40,31 @@
 
   <div class="merdpos-reports-kpis" aria-label="Timesheets summary">
     {% for metric in surface.metrics %}
-      {% set metric_icon = metric.label|lower == 'queries' ? 'message' : 'clock' %}
-      <article class="merdpos-reports-kpi is-{{ metric.tone }}">
-        <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
-        <div><span>{{ metric.label }}</span>
-          <div class="merdpos-reports-kpi-lines">
-            {% for line in metric.lines %}<strong><b>{{ line.value }}</b><small>{{ line.label }}</small></strong>{% endfor %}
+      {% set metric_key = metric.label|lower %}
+      {% set metric_icon = metric_key == 'queries' ? 'message' : 'clock' %}
+      <article class="merdpos-reports-kpi merdpos-reports-kpi--{{ metric_key }} is-{{ metric.tone }}" aria-label="{{ metric.label }} summary">
+        <div class="merdpos-reports-kpi-rail">
+          <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
+          <div class="merdpos-reports-kpi-rail-copy">
+            <span class="merdpos-reports-kpi-title">{{ metric.label }}</span>
+            <span class="merdpos-reports-kpi-art" aria-hidden="true"></span>
           </div>
+        </div>
+        <div class="merdpos-reports-kpi-metrics">
+          {% for line in metric.lines %}
+            {% if metric_key == 'shifts' %}
+              {% set line_icon = loop.index == 1 ? 'list' : (loop.index == 2 ? 'clock' : 'payroll') %}
+              {% set line_key = loop.index == 1 ? 'shifts' : (loop.index == 2 ? 'hours' : 'payroll') %}
+            {% else %}
+              {% set line_icon = loop.index == 1 ? 'message' : (loop.index == 2 ? 'closed' : 'rejected') %}
+              {% set line_key = loop.index == 1 ? 'active' : (loop.index == 2 ? 'closed' : 'rejected') %}
+            {% endif %}
+            <div class="merdpos-reports-kpi-stat is-{{ line_key }}">
+              <span class="merdpos-reports-kpi-stat-icon">{{ ui.icon(line_icon) }}</span>
+              <strong class="merdpos-reports-kpi-stat-value">{{ line.value }}</strong>
+              <span class="merdpos-reports-kpi-stat-label">{{ line.label }}</span>
+            </div>
+          {% endfor %}
         </div>
       </article>
     {% endfor %}

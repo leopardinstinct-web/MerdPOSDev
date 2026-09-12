@@ -1,0 +1,19 @@
+id: MERD-20260912-drupal-timesheets-kpi-redesign-v1
+branch: feature/timesheets-kpi-redesign-v1
+base_head: 3b86b720489d732c74b897bbdfc5fd103acaea3b
+objective: Redesign Timesheets Shifts and Queries summary widgets for stronger visual hierarchy and usability.
+packet_state: CODED
+lifecycle: CODED
+scope:
+  - Shifts uses dedicated Shifts, Hours and permission-gated Payroll metrics.
+  - Payroll label includes authoritative currency, e.g. Payroll (AUD).
+  - Queries uses matching Active, Closed and Rejected metrics with semantic colors/icons.
+  - Add low-contrast abstract decorative filler beneath each widget heading.
+  - Preserve role scoping, payroll redaction, Timesheets data and dispute behavior.
+  - Preserve responsive usability and global UI primitive inheritance.
+validation:
+  - Reports v2 validator covers semantic KPI markup and Payroll (AUD).
+  - Global UI primitive validator must remain green.
+  - Live DEV/Admin/Super/User verification required after deployment.
+next_action: Validate locally, merge through CI, deploy exact SHA, verify all roles and cleanup fixtures.
+updated_at: '2026-09-12T22:18:00+05:00'
