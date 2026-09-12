@@ -20,7 +20,7 @@
     <a class="merdpos-page-header__actions merdpos-disputes-back" href="{{ path('merdpos_core.operations') }}">Back to Operations</a>
   </header>
 
-  <div class="merdpos-disputes-kpis" aria-label="Dispute summary">
+  <div class="merdpos-disputes-kpis merdpos-ui-kpi-grid merdpos-ui-kpi-grid--cards" data-kpi-count="{{ can_resolve_flags ? 4 : 3 }}" aria-label="Dispute summary">
     <article><span>Open</span><strong>{{ counts.open|default(0) }}</strong><small>Pending or awaiting employee</small></article>
     <article><span>Review queue</span><strong>{{ counts.pending|default(0) }}</strong><small>Ready for authorised decision</small></article>
     <article><span>Awaiting employee</span><strong>{{ counts.awaiting|default(0) }}</strong><small>Handover confirmation required</small></article>

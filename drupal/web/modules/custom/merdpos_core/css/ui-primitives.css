@@ -66,6 +66,9 @@
 @media(max-width:42rem){
   .merdpos-app .merdpos-ui-kpi-grid[data-kpi-count="4"],.merdpos-app .merdpos-ui-kpi-grid[data-kpi-count="5"],.merdpos-app .merdpos-ui-kpi-grid[data-kpi-count="6"]{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:var(--space-3)}
 }
+@media(max-width:65.625rem){
+  .merdpos-app .merdpos-ui-kpi-grid--cards[data-kpi-count="3"],.merdpos-app .merdpos-ui-kpi-grid--cards[data-kpi-count="4"],.merdpos-app .merdpos-ui-kpi-grid--cards[data-kpi-count="5"],.merdpos-app .merdpos-ui-kpi-grid--cards[data-kpi-count="6"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 
 /* Shared card/widget surface contract across Dashboard, Administration, Timesheets, Financials, DEV and retired parity surfaces. */
 .merdpos-app :is(.merdpos-dashboard-kpi,.merdpos-dashboard-panel,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card,.merdpos-dev-kpi,.merdpos-dev-card,.merdpos-dev-source-card,.merdpos-dev-chart-card,.merdpos-dev-table-card,.merdpos-admin-editor,.merdpos-defaults-section,.merdpos-dispute-card){

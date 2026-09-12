@@ -24,6 +24,7 @@ $required = [
   '.merdpos-ui-kpi-grid[data-kpi-count="1"]',
   '.merdpos-ui-kpi-grid[data-kpi-count="3"]',
   '.merdpos-ui-kpi-grid[data-kpi-count="6"]',
+  '.merdpos-ui-kpi-grid--cards[data-kpi-count="3"]',
   '@media(max-width:51.25rem)',
 ];
 foreach ($required as $needle) if (!str_contains($css, $needle)) $errors[] = "global UI primitive missing: $needle";
