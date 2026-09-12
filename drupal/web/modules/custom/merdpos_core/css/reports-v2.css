@@ -46,8 +46,6 @@
 .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.35rem; height:1.35rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-reports-kpi .merdpos-reports-kpi-title { display:block; min-width:0; color:var(--color-text-secondary); font-size:clamp(.9rem,1.05vw,1.02rem); font-weight:var(--weight-bold); letter-spacing:.045em; line-height:1.1; text-transform:uppercase; }
 .merdpos-reports-kpi-metrics { display:grid; align-items:stretch; min-width:0; }
-.merdpos-reports-kpi--shifts .merdpos-reports-kpi-metrics { grid-template-columns:.82fr .82fr .9fr 1.35fr; }
-.merdpos-reports-kpi--queries .merdpos-reports-kpi-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .merdpos-reports-kpi-stat { position:relative; display:grid; min-width:0; align-content:center; justify-items:center; padding:.3rem .48rem; text-align:center; }
 .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { content:""; position:absolute; left:0; top:12%; width:1px; height:76%; background:color-mix(in srgb,var(--color-text-muted) 36%,transparent); }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2.2rem; height:2.2rem; color:var(--color-brand-cyan); }
@@ -115,9 +113,7 @@
   .merdpos-reports-kpi { gap:.7rem; min-height:0; padding:.85rem; }
   .merdpos-reports-kpi-rail { gap:.6rem; }
   .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { width:2.35rem; height:2.35rem; min-width:2.35rem; }
-  .merdpos-reports-kpi--shifts .merdpos-reports-kpi-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:.65rem; }
-  .merdpos-reports-kpi--queries .merdpos-reports-kpi-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .merdpos-reports-kpi-stat { padding:.3rem .22rem; }
+    .merdpos-reports-kpi-stat { padding:.3rem .22rem; }
   .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { display:none; }
   .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { width:1.9rem; height:1.9rem; }
   .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.48rem; height:1.48rem; }

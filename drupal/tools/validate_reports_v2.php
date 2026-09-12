@@ -17,11 +17,11 @@ final class ReportsWorkingNow implements WorkingNowProviderInterface {
   public function load(): array { return ['status'=>'ok','count'=>0,'people'=>[],'message'=>'ok']; }
 }
 final class ReportsGateway implements PortalGatewayClientInterface {
-  public function __construct(private readonly string $role) {}
+  public function __construct(private readonly string $role, private readonly bool $workforceVisible = true) {}
   public function call(string $route, string $method = 'GET', array $query = [], array $body = [], ?int $contextClientId = NULL): array {
     $isUser = $this->role === 'USER';
     $payload = match ($route) {
-      'beta_state' => ['success'=>true,'permissions'=>$isUser?['disputes.submit_own']:['disputes.review'],'current_user_id'=>$isUser?'user-alice':'platform-dev','stores'=>[['id'=>1,'store_name'=>'Store A'],['id'=>2,'store_name'=>'Store B']],'recent_shifts'=>[['shift_id'=>'44444444-4444-4444-8444-444444444444','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>null,'status'=>'open','timezone'=>'Australia/Sydney']]],
+      'beta_state' => ['success'=>true,'permissions'=>$isUser?['disputes.submit_own']:array_values(array_filter(['disputes.review',$this->workforceVisible?'workforce.view':null])),'current_user_id'=>$isUser?'user-alice':'platform-dev','stores'=>[['id'=>1,'store_name'=>'Store A'],['id'=>2,'store_name'=>'Store B']],'recent_shifts'=>[['shift_id'=>'44444444-4444-4444-8444-444444444444','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>null,'status'=>'open','timezone'=>'Australia/Sydney']]],
       'dashboard_data' => [
         'success'=>true,'role'=>['role_key'=>$this->role,'role_label'=>$isUser?'User':'Developer','base_role'=>$this->role,'authority_level'=>$isUser?1:1000],
         'client_defaults'=>['currency_code'=>'AUD','timezone'=>'Australia/Sydney'],
@@ -95,7 +95,10 @@ reports_v2_check(count($user['export_rows']??[])===2,'USER export scope mismatch
 reports_v2_check(!in_array('wage',array_column($user['export_columns']??[],'key'),true),'USER export must not reveal wage.');
 reports_v2_check(count($user['chart_specs']??[])===0,'USER Timesheets charts must stay removed.');
 reports_v2_check(count($user['groups']??[])===1 && ($user['groups'][0]['title']??'')==='Filtered shifts','USER must only see Shift Detail, not Store or Employee summaries.');
-reports_v2_check(($user['metrics'][0]['lines']??[])===[['value'=>'1','label'=>'People'],['value'=>'2','label'=>'Shifts'],['value'=>'15.67','label'=>'Hours']],'USER Shifts card must show People/Shifts/Hours without payroll.');
+reports_v2_check(($user['metrics'][0]['lines']??[])===[['value'=>'2','label'=>'Shifts'],['value'=>'15.67','label'=>'Hours']],'USER without workforce permission must hide People and payroll while expanding remaining KPI cells.');
+$limited = (new ParityDataProvider(new ReportsGateway('SUPER', false), new ReportsWorkingNow()))->section('reports', []);
+reports_v2_check(array_column($limited['metrics'][0]['lines']??[],'label')===['Shifts','Hours','Payroll (AUD)'],'Workforce-hidden payroll role must evolve Shifts from four KPI cells to three.');
+
 $userShiftRows=$user['groups'][0]['rows']??[];
 reports_v2_check(!empty($userShiftRows[0]['action']['can_dispute']) && !empty($userShiftRows[0]['action']['can_add_missing']),'USER own-row dispute/missing-shift actions missing.');
 reports_v2_check(!empty($userShiftRows[1]['action']['dispute']['can_cancel']),'USER own pending dispute must be cancellable from Shift Detail.');
@@ -122,7 +125,7 @@ reports_v2_check(str_contains($controller,"Content-Type','text/csv"),'CSV respon
 reports_v2_check(str_contains($controller,"Cache-Control','private, no-store"),'CSV response must be private/no-store.');
 reports_v2_check(str_contains($controller,"foreach (['week_start'] as \$key)") && !str_contains($controller,"url.query_args:store"),'Timesheets controller must expose only the week query selector.');
 $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
-reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr))') && str_contains($css,'.merdpos-reports-kpi-rail { display:flex; align-items:center') && str_contains($css,'.merdpos-reports-kpi--shifts .merdpos-reports-kpi-metrics') && str_contains($css,'.merdpos-reports-print-action svg'),'Tiled Timesheets KPI/header styling missing.');
+reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr))') && str_contains($css,'.merdpos-reports-kpi-rail { display:flex; align-items:center') && str_contains($template,'merdpos-ui-kpi-grid') && str_contains($template,'data-kpi-count="{{ metric.lines|length }}"') && str_contains($css,'.merdpos-reports-print-action svg'),'Adaptive tiled Timesheets KPI/header styling missing.');
 reports_v2_check(!str_contains($css,'.merdpos-reports-kpi-art'),'Abstract KPI filler CSS must remain removed.');
 reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
