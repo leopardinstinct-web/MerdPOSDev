@@ -29,7 +29,7 @@
 .merdpos-reports-header-actions { display:grid; gap:.65rem; min-width:14rem; }
 .merdpos-reports-week-form { display:grid; gap:.35rem; }
 .merdpos-reports-week-form label { display:grid; gap:.35rem; }
-.merdpos-reports-week-form label > span { color:var(--color-text-muted); font-size:var(--type-xs); font-weight:var(--weight-bold); letter-spacing:.04em; text-transform:uppercase; }
+.merdpos-reports-week-form label > span { color:var(--color-text-muted); font-size:var(--type-xs); font-weight:var(--weight-bold); letter-spacing:.04em; text-transform:none; }
 .merdpos-reports-week-form select { width:100%; }
 .merdpos-reports-print-action svg { width:1.2rem; height:1.2rem; fill:currentColor; stroke:none; flex:0 0 auto; }
 .merdpos-reports-filters { display: grid; grid-template-columns: minmax(13rem,1.25fr) repeat(4,minmax(10rem,.7fr)) auto; gap: .8rem; align-items: end; padding: 1rem 1.15rem; border: 1px solid var(--rep-border); border-radius: 1.4rem; background: #fff; box-shadow: 0 .7rem 2rem rgba(24,54,98,.06); }
