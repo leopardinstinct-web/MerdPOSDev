@@ -34,6 +34,10 @@ services:
   merdpos_core.dashboard_chart_builder:
     class: Drupal\merdpos_core\Presentation\DashboardChartBuilder
 
+  merdpos_core.brand_palette:
+    class: Drupal\merdpos_core\Presentation\BrandPaletteManager
+    arguments: ['@state']
+
   merdpos_core.dashboard_controller:
     class: Drupal\merdpos_core\Controller\DashboardController
     arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack', '@merdpos_core.portal_gateway', '@csrf_token']
@@ -64,7 +68,7 @@ services:
 
   merdpos_core.dev_controller:
     class: Drupal\merdpos_core\Controller\DevController
-    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack']
+    arguments: ['@merdpos_core.parity_provider', '@merdpos_core.dashboard_chart_builder', '@request_stack', '@merdpos_core.brand_palette', '@merdpos_core.identity_manager', '@csrf_token']
 
   merdpos_core.theme_negotiator:
     class: Drupal\merdpos_core\Theme\MerdposThemeNegotiator
