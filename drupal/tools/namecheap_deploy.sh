@@ -53,6 +53,7 @@ php84 "$DRUPAL/tools/validate_legacy_migration_v1.php"
 php84 "$DRUPAL/tools/validate_defaults_v1.php"
 php84 "$DRUPAL/tools/validate_store_identity_v1.php"
 php84 "$DRUPAL/tools/validate_dev_v2.php"
+php84 "$DRUPAL/tools/validate_brand_palette_v1.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
 php84 "$DRUPAL/tools/validate_administration_twig.php"
@@ -187,6 +188,9 @@ DEV_V2_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$r=\Drupal::service("merdpos_core.parity_provider")->section("dev",[]); $role=$r["role"]??[]; echo json_encode(["status"=>$r["status"]??null,"role"=>$role["key"]??null,"loa"=>$role["loa"]??null,"metrics"=>count($r["metrics"]??[]),"charts"=>count($r["chart_specs"]??[]),"sources"=>count($r["source_statuses"]??[]),"sync_rows"=>count($r["sync_rows"]??[]),"security_rows"=>count($r["security_rows"]??[]),"read_only"=>!empty($r["read_only"]),"studio_excluded"=>!empty($r["studio_excluded"])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["status"]??"")!=="ok"||($p["role"]??"")!=="DEV"||($p["loa"]??0)!==1000||($p["metrics"]??0)<6||($p["charts"]??0)<3||($p["sources"]??0)!==6||empty($p["read_only"])||empty($p["studio_excluded"])){fwrite(STDERR,"DEV v2 self-test failed.\n");exit(1);}' "$DEV_V2_PROBE"
 
+BRAND_PALETTE_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
+  '$m=\Drupal::service("merdpos_core.brand_palette"); $p=$m->snapshot(); $v=$m->cssVariables(); $r=\Drupal::service("router.route_provider")->getRouteByName("merdpos_core.dev_palette"); echo json_encode(["entries"=>count($p["entries"]??[]),"roles"=>count(array_unique($p["roles"]??[])),"swatches"=>count($p["swatches"]??[]),"vars"=>count($v),"route"=>$r->getPath(),"methods"=>$r->getMethods()],JSON_UNESCAPED_SLASHES);')"
+php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["entries"]??0)<3||($p["roles"]??0)!==3||($p["swatches"]??0)!==7||($p["vars"]??0)!==3||($p["route"]??"")!=="/merdpos/dev/palette"||!in_array("POST",$p["methods"]??[],true)){fwrite(STDERR,"Brand Palette v1 self-test failed.\n");exit(1);}' "$BRAND_PALETTE_V1_PROBE"
 ADMIN_V1_PROBE="$(php84 "$DRUSH_PHP" --root="$WEB" php:eval \
   '$g=\Drupal::service("merdpos_core.portal_gateway"); $c=$g->call("clients","GET"); $x=$g->call("client_context","GET"); $cp=$c["payload"]??[]; $xp=$x["payload"]??[]; $home=(int)($xp["home_client_id"]??0); $target=$home; foreach(($xp["clients"]??[]) as $row){$id=(int)($row["id"]??0); if($id>0&&$id!==$home){$target=$id;break;}} $d=$g->call("admin_directory","GET",[],[],$target>0?$target:null); $dp=$d["payload"]??[]; echo json_encode(["clients_status"=>$c["status"]??null,"clients"=>count($cp["clients"]??[]),"directory_status"=>$d["status"]??null,"target_client_id"=>$target,"active_client_id"=>$dp["active_client_id"]??null,"stores_manage"=>!empty($dp["permissions"]["stores.manage"]),"workforce_manage"=>!empty($dp["permissions"]["workforce.manage"]),"stores"=>count($dp["stores"]??[]),"employees"=>count($dp["employees"]??[])],JSON_UNESCAPED_SLASHES);')"
 php84 -r '$p=json_decode($argv[1],true); if(!is_array($p)||($p["clients_status"]??"")!=="ok"||($p["directory_status"]??"")!=="ok"||($p["clients"]??0)<1||empty($p["stores_manage"])||empty($p["workforce_manage"])||($p["target_client_id"]??0)!==($p["active_client_id"]??-1)){fwrite(STDERR,"Administration v1 signed read/context self-test failed.\n");exit(1);}' "$ADMIN_V1_PROBE"

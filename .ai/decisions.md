@@ -345,3 +345,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - `docs/pos_latest/` and the older Flutter/full-POS M3.x roadmap remain valid historical/separate-product-track records, but they are not active Beta sequencing authority.
 - M3.3 Checkout & Tender must not be proposed as a Beta next step unless the product owner explicitly reopens full-POS work.
 - Current Beta sequencing is maintained in `.ai/BETA_SCOPE.md`; active work packets refine execution within that queue.
+
+## 2026-09-13 - DEV-managed logo-constrained master palette
+- Supersedes the fixed five-color product-standard portion of the 2026-09-01 palette decision; DevStudio remains a preview/inbox mechanism, while the Drupal DEV surface owns the applied master palette.
+- Actual DEV may add, rename, delete, reorder and assign master-palette entries, but selectable colours are restricted to representative swatches sampled from the approved MERDPOS logo artwork.
+- Foundation, Primary accent and Secondary accent are the three required global roles. White is a fixed neutral. Page canvas, cards, borders, interaction colours, charts and dark-mode treatments derive from those roles.
+- Red, green and amber remain the only non-brand semantic hue exceptions for danger/error, success and warning/attention states. Informational UI uses the active brand accent.
+- Palette writes are Drupal-local design-system state only: actual-DEV-only, POST-only and CSRF-protected; they do not modify operational MERDPOS business data or ordinary authorization state.

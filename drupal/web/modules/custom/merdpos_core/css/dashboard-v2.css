@@ -1,9 +1,9 @@
 .merdpos-dashboard-v2 {
-  --db-blue: #1c4587;
-  --db-cyan: #00a6c7;
-  --db-violet: #6f42c1;
-  --db-teal: #23a6a8;
-  --db-ink: #0f2747;
+  --db-blue: var(--color-brand-cyan);
+  --db-cyan: var(--color-brand-cyan);
+  --db-violet: var(--color-brand-violet);
+  --db-teal: var(--color-success);
+  --db-ink: var(--color-text-primary);
   padding-bottom: calc(var(--space-8) + 1rem);
 }
 

@@ -1,27 +1,7 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-13T01:12:00+05:00'
+updated_at: '2026-09-14T17:19:00+05:00'
 active:
-- id: MERD-20260913-drupal-adaptive-kpi-rollout-v1
-  path: .ai/work/active/MERD-20260913-drupal-adaptive-kpi-rollout-v1.yaml
-  lifecycle: CODED
-  packet_state: CODED
-- id: MERD-20260913-drupal-adaptive-kpi-composition-v1
-  path: .ai/work/active/MERD-20260913-drupal-adaptive-kpi-composition-v1.yaml
-  lifecycle: CODED
-  packet_state: CODED
-- id: MERD-20260913-drupal-timesheets-kpi-equity-v1
-  path: .ai/work/active/MERD-20260913-drupal-timesheets-kpi-equity-v1.yaml
-  lifecycle: CODED
-  packet_state: CODED
-- id: MERD-20260912-drupal-timesheets-kpi-redesign-v1
-  path: .ai/work/active/MERD-20260912-drupal-timesheets-kpi-redesign-v1.yaml
-  lifecycle: CODED
-  packet_state: CODED
-- id: MERD-20260912-drupal-timesheets-header-polish-v1
-  path: .ai/work/active/MERD-20260912-drupal-timesheets-header-polish-v1.yaml
-  lifecycle: CODED
-  packet_state: CODED
 - id: MERD-20260912-drupal-ui-standardization-v2
   path: .ai/work/active/MERD-20260912-drupal-ui-standardization-v2.yaml
   lifecycle: VERIFIED
@@ -98,3 +78,8 @@ active:
   path: .ai/work/active/MERD-20260904-drupal-portal-gateway.yaml
   lifecycle: VERIFIED
   packet_state: VERIFIED
+
+- id: MERD-20260913-drupal-dev-master-palette-v1
+  path: .ai/work/active/MERD-20260913-drupal-dev-master-palette-v1.yaml
+  lifecycle: WIRED
+  packet_state: TARGETED_CHECKS_PASSED

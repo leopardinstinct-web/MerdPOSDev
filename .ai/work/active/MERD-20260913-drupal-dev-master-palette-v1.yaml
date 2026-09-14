@@ -1,0 +1,32 @@
+id: MERD-20260913-drupal-dev-master-palette-v1
+objective: Compact Timesheets KPI cards, strengthen global light/dark canvas-to-widget separation, and add an actual-DEV-only logo-constrained master palette editor.
+base_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
+last_seen_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
+authoritative_branch: beta/drupal-webapp
+feature_branch: feature/dev-master-palette-v1
+lifecycle: CODED
+packet_state: IMPLEMENTING
+affected_paths:
+  - drupal/web/modules/custom/merdpos_core/src/Presentation/BrandPaletteManager.php
+  - drupal/web/modules/custom/merdpos_core/src/Controller/DevController.php
+  - drupal/web/modules/custom/merdpos_core/templates/merdpos-dev.html.twig
+  - drupal/web/modules/custom/merdpos_core/css/design-tokens.css
+  - drupal/web/modules/custom/merdpos_core/css/reports-v2.css
+  - drupal/web/themes/custom/merdpos_app/merdpos_app.theme
+acceptance:
+  - Timesheets desktop KPI heading/metrics share one compact horizontal composition with no clipped payroll value.
+  - Light and dark page canvases visibly separate from card/widget surfaces.
+  - Actual DEV can add/edit/delete/reorder palette entries and assign three required roles only from approved logo swatches.
+  - Red, green and amber remain semantic-only non-brand hue exceptions.
+  - POST is CSRF-protected and non-DEV identities cannot write palette state.
+  - Merge, deploy and live desktop/mobile light/dark verification complete with zero horizontal overflow.
+checks:
+  - validate_brand_palette_v1.php PASS
+  - validate_dev_v2.php PASS
+  - validate_reports_v2.php PASS
+  - validate_global_ui_primitives_v1.php PASS
+  - validate_source_encoding.php PASS
+  - validate_ai_continuity.php PASS
+  - namecheap_deploy.sh bash syntax PASS
+next_action: Commit and push feature branch, merge to beta/drupal-webapp, deploy exact merged SHA and complete live visual/write verification.
+updated_at: '2026-09-14T17:18:00+05:00'

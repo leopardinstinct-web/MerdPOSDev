@@ -72,6 +72,8 @@ dev:
       css/dev-v2.css: {}
       css/dark-normalization.css: {}
       css/ui-primitives.css: {}
+  js:
+    js/dev-v2.js: {}
 
 
 administration:

@@ -16,26 +16,24 @@ final class BrandPaletteManager {
     'secondary' => 'Secondary accent',
   ];
 
+  // Exact representative swatches sampled from the approved MERDPOS logo artwork.
   private const SWATCHES = [
-    'brand_navy' => ['label'=>'Brand Navy', 'hex'=>'#031B4B'],
     'logo_midnight' => ['label'=>'Logo Midnight', 'hex'=>'#01102B'],
     'logo_royal' => ['label'=>'Logo Royal Blue', 'hex'=>'#0747FC'],
     'logo_blue' => ['label'=>'Logo Electric Blue', 'hex'=>'#005FF7'],
     'logo_sky' => ['label'=>'Logo Sky Blue', 'hex'=>'#0A91FB'],
-    'brand_cyan' => ['label'=>'Brand Cyan', 'hex'=>'#12BDF3'],
     'logo_indigo' => ['label'=>'Logo Indigo', 'hex'=>'#3B3FA0'],
     'logo_violet' => ['label'=>'Logo Electric Violet', 'hex'=>'#591DE9'],
     'logo_orchid' => ['label'=>'Logo Orchid', 'hex'=>'#7943F5'],
-    'brand_violet' => ['label'=>'Brand Violet', 'hex'=>'#8B2EFF'],
   ];
 
   private const DEFAULT_STATE = [
     'entries' => [
-      ['id'=>'navy', 'label'=>'Brand Navy', 'swatch'=>'brand_navy'],
-      ['id'=>'cyan', 'label'=>'Brand Cyan', 'swatch'=>'brand_cyan'],
-      ['id'=>'violet', 'label'=>'Brand Violet', 'swatch'=>'brand_violet'],
+      ['id'=>'foundation', 'label'=>'Logo Midnight', 'swatch'=>'logo_midnight'],
+      ['id'=>'accent', 'label'=>'Logo Sky Blue', 'swatch'=>'logo_sky'],
+      ['id'=>'secondary', 'label'=>'Logo Electric Violet', 'swatch'=>'logo_violet'],
     ],
-    'roles' => ['foundation'=>'navy', 'accent'=>'cyan', 'secondary'=>'violet'],
+    'roles' => ['foundation'=>'foundation', 'accent'=>'accent', 'secondary'=>'secondary'],
   ];
 
   public function __construct(private readonly StateInterface $state) {}

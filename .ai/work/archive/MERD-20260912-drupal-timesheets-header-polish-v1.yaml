@@ -15,3 +15,7 @@ validation:
   - All-role live verification required after deployment.
 next_action: Validate locally, merge through CI, deploy exact SHA, verify DEV/Admin/Super/User and cleanup fixtures.
 updated_at: '2026-09-12T04:55:00+05:00'
+
+archived_at: '2026-09-14T17:12:00+05:00'
+archive_reason: Superseded by later merged Drupal Timesheets/KPI work already present in canonical beta/drupal-webapp.
+superseded_by_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
