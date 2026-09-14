@@ -1,12 +1,12 @@
 .merdpos-operations-v2 {
-  --ops-ink: #102a52;
-  --ops-muted: #60708e;
-  --ops-border: rgba(28, 69, 135, .14);
-  --ops-blue: #1c4587;
-  --ops-cyan: #19b8e5;
-  --ops-green: #178557;
-  --ops-amber: #c97912;
-  --ops-red: #b53a4a;
+  --ops-ink: var(--color-text-primary);
+  --ops-muted: var(--color-text-muted);
+  --ops-border: var(--color-border-subtle);
+  --ops-blue: var(--color-brand-cyan);
+  --ops-cyan: var(--color-brand-cyan);
+  --ops-green: var(--color-success);
+  --ops-amber: var(--color-warning);
+  --ops-red: var(--color-danger);
   display: grid;
   gap: 1.3rem;
   padding-bottom: 2rem;

@@ -1,12 +1,12 @@
 .merdpos-reports-v2 {
-  --rep-ink: #102a52;
-  --rep-muted: #60708e;
-  --rep-border: rgba(28,69,135,.14);
-  --rep-blue: #1c4587;
-  --rep-cyan: #23a6a8;
-  --rep-green: #178557;
-  --rep-amber: #c97912;
-  --rep-purple: #6f42c1;
+  --rep-ink: var(--color-text-primary);
+  --rep-muted: var(--color-text-muted);
+  --rep-border: var(--color-border-subtle);
+  --rep-blue: var(--color-brand-cyan);
+  --rep-cyan: var(--color-brand-cyan);
+  --rep-green: var(--color-success);
+  --rep-amber: var(--color-warning);
+  --rep-purple: var(--color-brand-violet);
   display: grid;
   gap: 1.3rem;
   padding-bottom: 2rem;
@@ -40,22 +40,22 @@
 .merdpos-reports-filters select { width: 100%; min-height: 2.8rem; padding: .55rem .65rem; border: 1px solid rgba(28,69,135,.2); border-radius: .85rem; background: #fbfcff; color: var(--rep-ink); font: inherit; }
 .merdpos-reports-filters button { min-height: 2.8rem; padding: .55rem 1rem; border: 0; border-radius: .85rem; background: var(--rep-blue); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; align-items:stretch; }
-.merdpos-reports-kpi { position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr; gap:.9rem; min-width:0; min-height:11rem; padding:1rem 1.05rem; }
-.merdpos-reports-kpi-rail { display:flex; align-items:center; gap:.72rem; min-width:0; }
-.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.65rem; height:2.65rem; min-width:2.65rem; border-radius:.85rem; background:color-mix(in srgb,var(--color-brand-cyan) 14%,var(--color-surface-muted)); color:var(--color-brand-cyan); }
-.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.35rem; height:1.35rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-.merdpos-reports-kpi .merdpos-reports-kpi-title { display:block; min-width:0; color:var(--color-text-secondary); font-size:clamp(.9rem,1.05vw,1.02rem); font-weight:var(--weight-bold); letter-spacing:.045em; line-height:1.1; text-transform:uppercase; }
+.merdpos-reports-v2 .merdpos-reports-kpi { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(6.4rem,7.2rem) minmax(0,1fr); gap:.35rem; align-items:stretch; min-width:0; min-height:8.6rem; padding:.82rem .86rem; }
+.merdpos-reports-kpi-rail { display:flex; align-items:center; align-self:stretch; gap:.55rem; min-width:0; padding-right:.25rem; }
+.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:.8rem; background:color-mix(in srgb,var(--color-brand-cyan) 14%,var(--color-surface-muted)); color:var(--color-brand-cyan); }
+.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.28rem; height:1.28rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.merdpos-reports-kpi .merdpos-reports-kpi-title { display:block; min-width:0; color:var(--color-text-secondary); font-size:clamp(.82rem,.92vw,.96rem); font-weight:var(--weight-bold); letter-spacing:.035em; line-height:1.1; text-transform:uppercase; }
 .merdpos-reports-kpi-metrics { display:grid; align-items:stretch; min-width:0; }
-.merdpos-reports-kpi-stat { position:relative; display:grid; min-width:0; align-content:center; justify-items:center; padding:.3rem .48rem; text-align:center; }
+.merdpos-reports-kpi-stat { position:relative; display:grid; min-width:0; align-content:center; justify-items:center; padding:.22rem .3rem; text-align:center; }
 .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { content:""; position:absolute; left:0; top:12%; width:1px; height:76%; background:color-mix(in srgb,var(--color-text-muted) 36%,transparent); }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2.2rem; height:2.2rem; color:var(--color-brand-cyan); }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.72rem; height:1.72rem; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.32rem 0 0; color:var(--color-text-primary); font-size:clamp(1.42rem,2.2vw,2.15rem); font-weight:800; line-height:.96; letter-spacing:-.03em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.48rem; color:var(--color-brand-cyan); font-size:clamp(.7rem,.86vw,.82rem); font-weight:750; line-height:1.18; text-align:center; }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.28rem,1.9vw,1.9rem); }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2rem; height:2rem; color:var(--color-brand-cyan); }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.55rem; height:1.55rem; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.24rem 0 0; color:var(--color-text-primary); font-size:clamp(1.32rem,1.85vw,1.92rem); font-weight:800; line-height:.96; letter-spacing:-.03em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; color:var(--color-brand-cyan); font-size:clamp(.68rem,.76vw,.78rem); font-weight:750; line-height:1.18; text-align:center; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.16rem,1.5vw,1.55rem); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:color-mix(in srgb,var(--color-brand-cyan) 88%,var(--color-text-primary)); }
-.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:color-mix(in srgb,#2fbf86 82%,var(--color-text-primary)); }
-.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-label { color:color-mix(in srgb,#ef5f6c 84%,var(--color-text-primary)); }
+.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:var(--color-success); }
+.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-label { color:var(--color-danger); }
 .merdpos-reports-note { display: grid; grid-template-columns: auto 1fr; gap: .85rem; align-items: start; padding: 1rem 1.15rem; border: 1px solid rgba(35,166,168,.2); border-radius: 1.25rem; background: linear-gradient(135deg,rgba(35,166,168,.07),rgba(28,69,135,.035)); color: var(--rep-ink); }
 .merdpos-reports-note > span { display: grid; place-items: center; width: 2.7rem; height: 2.7rem; border-radius: .9rem; background: rgba(35,166,168,.11); color: var(--rep-cyan); }
 .merdpos-reports-note svg { width: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -110,8 +110,8 @@
   .merdpos-reports-filter-intro { grid-column: auto; }
   .merdpos-reports-filters button { width: 100%; }
   .merdpos-reports-kpis { gap:.75rem; }
-  .merdpos-reports-kpi { gap:.7rem; min-height:0; padding:.85rem; }
-  .merdpos-reports-kpi-rail { gap:.6rem; }
+  .merdpos-reports-v2 .merdpos-reports-kpi { grid-template-columns:1fr; grid-template-rows:auto auto; gap:.55rem; min-height:0; padding:.8rem; }
+  .merdpos-reports-kpi-rail { gap:.6rem; padding-right:0; }
   .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { width:2.35rem; height:2.35rem; min-width:2.35rem; }
     .merdpos-reports-kpi-stat { padding:.3rem .22rem; }
   .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { display:none; }

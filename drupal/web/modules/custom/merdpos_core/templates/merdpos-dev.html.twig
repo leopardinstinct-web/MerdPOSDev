@@ -51,6 +51,24 @@
     </article>
   </section>
 
+  <section class="merdpos-dev-card merdpos-dev-palette" id="merdpos-master-palette" data-brand-palette>
+    <header><p>BRAND SYSTEM</p><h2>Master palette</h2></header>
+    <p class="merdpos-dev-palette-intro">DEV controls the global MERDPOS palette. Choices are restricted to approved logo-derived colours. White remains a fixed neutral; red, green and amber are reserved for semantic status states.</p>
+    <form method="post" action="{{ palette_post_url }}" data-brand-palette-form>
+      <input type="hidden" name="form_token" value="{{ palette_token }}">
+      <div class="merdpos-dev-palette-roles">{% for role, label in palette.role_labels %}<label><span>{{ label }}</span><select name="roles[{{ role }}]" data-palette-role="{{ role }}">{% for entry in palette.entries %}<option value="{{ entry.id }}"{{ palette.roles[role] == entry.id ? ' selected' : '' }}>{{ entry.label }}</option>{% endfor %}</select></label>{% endfor %}</div>
+      <div class="merdpos-dev-palette-list" data-palette-list>
+        {% for entry in palette.entries %}<article class="merdpos-dev-palette-row" data-palette-entry="{{ entry.id }}">
+          <span class="merdpos-dev-palette-swatch" style="--palette-swatch:{{ entry.hex }}"></span>
+          <label><span>Name</span><input name="labels[{{ entry.id }}]" value="{{ entry.label }}" maxlength="40" required></label>
+          <label><span>Logo colour</span><select name="swatches[{{ entry.id }}]" data-palette-swatch>{% for swatch in palette.swatches %}<option value="{{ swatch.key }}" data-hex="{{ swatch.hex }}"{{ entry.swatch == swatch.key ? ' selected' : '' }}>{{ swatch.label }} - {{ swatch.hex }}</option>{% endfor %}</select></label>
+          <div class="merdpos-dev-palette-order"><button type="submit" name="palette_action" value="move_up:{{ entry.id }}" formnovalidate{{ loop.first ? ' disabled' : '' }}>Up</button><button type="submit" name="palette_action" value="move_down:{{ entry.id }}" formnovalidate{{ loop.last ? ' disabled' : '' }}>Down</button><button type="submit" name="palette_action" value="delete:{{ entry.id }}" class="is-danger" formnovalidate{{ entry.in_use ? ' disabled' : '' }}>Delete</button></div>
+        </article>{% endfor %}
+      </div>
+      <div class="merdpos-dev-palette-actions"><button type="submit" name="palette_action" value="save">Apply master palette</button><button type="submit" name="palette_action" value="add" class="is-secondary" formnovalidate{{ palette.entries|length >= palette.swatches|length ? ' disabled' : '' }}>Add logo colour</button><button type="submit" name="palette_action" value="reset" class="is-secondary" formnovalidate>Reset defaults</button><span data-palette-preview-status>Changes preview live on this page until applied.</span></div>
+    </form>
+  </section>
+
   <section class="merdpos-dev-source-card">
     <header><div><p>SERVICE HEALTH</p><h2>Signed API diagnostics</h2></div><span>Fail-closed</span></header>
     <div class="merdpos-dev-source-grid">
@@ -109,5 +127,5 @@
     </tbody></table></div>
   </section>
 
-  <footer class="merdpos-dev-footer"><strong>DEV safety boundary</strong><span>Drupal exposes diagnostics only. DevStudio/UI Studio, operational SQL and write actions are not exposed through this surface.</span></footer>
+  <footer class="merdpos-dev-footer"><strong>DEV safety boundary</strong><span>Palette writes affect Drupal design-system state only. DevStudio/UI Studio, operational SQL, business data and ordinary authorization state are not writable through this surface.</span></footer>
 </section>

@@ -54,7 +54,7 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
       'template' => 'merdpos-finance',
     ],
     'merdpos_dev' => [
-      'variables' => ['surface' => [], 'charts' => [], 'release' => [], 'local_runtime' => []],
+      'variables' => ['surface' => [], 'charts' => [], 'release' => [], 'local_runtime' => [], 'palette' => [], 'palette_token' => '', 'palette_post_url' => ''],
       'template' => 'merdpos-dev',
     ],
   ];

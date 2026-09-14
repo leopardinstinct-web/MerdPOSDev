@@ -175,6 +175,12 @@ function merdpos_app_preprocess_page(array &$variables): void {
  * Adds a stable body class for the custom MERDPOS login route.
  */
 function merdpos_app_preprocess_html(array &$variables): void {
+  try {
+    $vars = \Drupal::service('merdpos_core.brand_palette')->cssVariables();
+    $style = implode(';', array_map(static fn(string $name, string $value): string => $name . ':' . $value, array_keys($vars), array_values($vars)));
+    $variables['html_attributes']->setAttribute('style', $style);
+  }
+  catch (Throwable) {}
   if ((string) \Drupal::routeMatch()->getRouteName() === 'user.login') {
     $variables['attributes']['class'][] = 'merdpos-login-route';
   }

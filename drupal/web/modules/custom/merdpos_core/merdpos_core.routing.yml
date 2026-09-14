@@ -126,3 +126,11 @@ merdpos_core.dev:
     _title: 'DEV'
   requirements:
     _permission: 'access merdpos dev tools'
+
+merdpos_core.dev_palette:
+  path: '/merdpos/dev/palette'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\DevController::palette'
+  requirements:
+    _permission: 'access merdpos dev tools'
+  methods: [POST]

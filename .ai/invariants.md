@@ -92,10 +92,12 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 
 ## Brand master palette
 
-- The canonical MERDPOS brand master palette is exactly: White `#FFFFFF`, App Background `#F5F7FC`, Brand Navy `#031B4B`, Brand Cyan `#12BDF3`, and Violet `#8B2EFF`.
-- Brand-facing CSS must consume these master tokens or derive interaction/dark/neutral treatments from them; do not add blue/indigo/purple/slate brand-master literals back into shared UI.
-- Operational success, warning, danger and information colors remain separate semantic status tokens and are not part of the brand master palette.
-- Approved raster logo artwork remains immutable; baked-in intermediate gradient pixels in the supplied logo are an artwork exception, not additional UI palette colors.
+- The canonical MERDPOS brand system is DEV-managed and logo-constrained. Actual DEV may add, rename, delete, reorder and assign active master-palette entries only from approved representative swatches sampled from `merdpos-logo-approved.png`.
+- The approved selectable swatches are Logo Midnight `#01102B`, Logo Royal Blue `#0747FC`, Logo Electric Blue `#005FF7`, Logo Sky Blue `#0A91FB`, Logo Indigo `#3B3FA0`, Logo Electric Violet `#591DE9`, and Logo Orchid `#7943F5`. Arbitrary color input is not permitted.
+- Three distinct active entries must always remain assigned to Foundation/navigation, Primary accent and Secondary accent. White `#FFFFFF` is a fixed neutral rather than a deletable palette entry; page/background, surface, border, interaction, chart and dark-mode treatments derive from the assigned master roles.
+- Red, green and amber are the only non-brand hue exceptions and are reserved for semantic danger/error, success and warning/attention states such as badges, status icons and state surfaces. Informational UI uses the active brand accent, not an independent blue semantic palette.
+- Brand-facing CSS must consume the runtime master roles or semantic tokens derived from them; do not introduce arbitrary blue/indigo/purple/slate brand literals outside the approved swatch source.
+- Approved raster logo artwork remains immutable; baked-in intermediate gradient pixels in the supplied logo are artwork data, not additional editable UI colors.
 
 ## DEV UI Studio safety
 
@@ -146,4 +148,4 @@ Do not restore a GitHub→Namecheap file-push deployment path unless the product
 
 ### Palette-standard escalation
 
-DevStudio may preview palette additions/deletions/reordering, but the binding canonical master palette remains the five colors above until the product owner explicitly accepts a standards change. A palette implementation that changes the master set must update the canonical tokens, this invariant, brand regressions, runtime/deploy validators and affected brand documentation together; do not weaken a failing five-color guard merely to accept an unapproved preview patch.
+The product owner approved the logo-constrained DEV-managed palette standard on 2026-09-13. Future palette changes must remain inside the approved logo swatch source unless the product owner explicitly approves another standards change. Any expansion of the allowed swatch source must update this invariant, canonical tokens/fallbacks, brand regressions, runtime/deploy validators and affected brand documentation together; do not weaken the logo-constrained guard merely to accept an arbitrary preview color.

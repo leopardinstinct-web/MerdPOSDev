@@ -18,3 +18,7 @@ verification:
   github_ci: pending
   deploy: pending
   runtime: pending
+
+archived_at: '2026-09-14T17:12:00+05:00'
+archive_reason: Superseded by later merged Drupal Timesheets/KPI work already present in canonical beta/drupal-webapp.
+superseded_by_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
