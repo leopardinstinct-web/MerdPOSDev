@@ -1,11 +1,11 @@
 id: MERD-20260913-drupal-dev-master-palette-v1
 objective: Compact Timesheets KPI cards, strengthen global light/dark canvas-to-widget separation, and add an actual-DEV-only logo-constrained master palette editor.
 base_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
-last_seen_head: 3eb9a05379662129dbe49387033dc877dc5f21e8
+last_seen_head: 35c365ee6681c11df3f545f561eb31f0b9b99077
 authoritative_branch: beta/drupal-webapp
 feature_branch: feature/dev-master-palette-v1
-lifecycle: CODED
-packet_state: IMPLEMENTING
+lifecycle: VERIFIED
+packet_state: VERIFIED
 affected_paths:
   - drupal/web/modules/custom/merdpos_core/src/Presentation/BrandPaletteManager.php
   - drupal/web/modules/custom/merdpos_core/src/Controller/DevController.php
@@ -28,5 +28,15 @@ checks:
   - validate_source_encoding.php PASS
   - validate_ai_continuity.php PASS
   - namecheap_deploy.sh bash syntax PASS
-next_action: Commit and push feature branch, merge to beta/drupal-webapp, deploy exact merged SHA and complete live visual/write verification.
-updated_at: '2026-09-14T17:18:00+05:00'
+verification:
+  - PR #138 merged at 48bb364af2dc26ca51514eb4d6e5d0d9c0071ace after CI, secret scan and global UI contract passed.
+  - Canonical resource sync PR #139 merged at 35c365ee6681c11df3f545f561eb31f0b9b99077 after CI and secret scan passed.
+  - Namecheap deployment verified exact Drupal SHA 35c365ee6681.
+  - Live desktop light/dark Timesheets: card height 137.59px, rail-to-metrics gap 5.59px, Payroll unclipped, no horizontal overflow.
+  - Live mobile light/dark Timesheets: People/Shifts/Hours/Payroll (AUD) and Active/Rejected/Closed intact with no clipping or horizontal overflow.
+  - Actual DEV palette editor: 3 role selectors, 7 logo-only swatches, no arbitrary color input; reversible add/delete write restored the exact baseline.
+  - SUPER palette POST denied with HTTP 403.
+  - Temporary DUMMY role fixture cleaned; final attendance E2E audit returned none.
+  - Evidence: .tools/evidence/master-palette-20260914/.
+next_action: No follow-up required; implementation and live verification are complete.
+updated_at: '2026-09-14T17:30:00+05:00'
