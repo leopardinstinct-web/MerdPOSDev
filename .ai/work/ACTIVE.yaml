@@ -1,6 +1,6 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-14T17:19:00+05:00'
+updated_at: '2026-09-14T17:30:00+05:00'
 active:
 - id: MERD-20260912-drupal-ui-standardization-v2
   path: .ai/work/active/MERD-20260912-drupal-ui-standardization-v2.yaml
@@ -81,5 +81,5 @@ active:
 
 - id: MERD-20260913-drupal-dev-master-palette-v1
   path: .ai/work/active/MERD-20260913-drupal-dev-master-palette-v1.yaml
-  lifecycle: WIRED
-  packet_state: TARGETED_CHECKS_PASSED
+  lifecycle: VERIFIED
+  packet_state: VERIFIED
