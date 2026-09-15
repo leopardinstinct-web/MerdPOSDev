@@ -69,7 +69,13 @@ try {
     $contextClientId=$request['context_client_id'] ?? null;
     $contextRoleRaw=$request['context_role_key'] ?? null;
     $contextRoleKey=$contextRoleRaw === null ? null : strtoupper(trim((string)$contextRoleRaw));
+    $contextEmployeeId=$request['context_employee_id'] ?? null;
     if ($contextRoleKey !== null && !in_array($contextRoleKey,['DEV','ADMIN','SUPER','USER'],true)) throw new MerdRequestException('invalid_request',400,'Invalid role context.');
+    if ($contextEmployeeId !== null) {
+        $validatedEmployee=filter_var($contextEmployeeId,FILTER_VALIDATE_INT);
+        if ($validatedEmployee===false || $validatedEmployee<=0) throw new MerdRequestException('invalid_request',400,'Invalid user context.');
+        $contextEmployeeId=(int)$validatedEmployee;
+    }
     if ($contextClientId !== null) {
         $validated=filter_var($contextClientId,FILTER_VALIDATE_INT);
         if ($validated===false || $validated<=0) throw new MerdRequestException('invalid_request',400,'Invalid client context.');
@@ -82,6 +88,7 @@ try {
     $actor=merd_service_actor($pdo,(int)$service['client_id'],(string)$service['actor_user_id']);
     $role=$actor['role'];
     $isPlatform=($actor['identity_scope'] ?? '') === 'platform';
+    $impersonatedActor=null;
     $baseRole=strtoupper((string)$role['base_role']);
     if ($contextRoleKey === null) $contextRoleKey=$isPlatform ? 'DEV' : $baseRole;
     if (!$isPlatform && $contextRoleKey !== $baseRole) throw new MerdRequestException('forbidden',403,'Client employees cannot select another role context.');
@@ -94,24 +101,38 @@ try {
         $clientStmt=$pdo->prepare("SELECT id FROM clients WHERE id=? AND status='active' LIMIT 1");
         $clientStmt->execute([$contextClientId]);
         if (!$clientStmt->fetchColumn()) throw new MerdRequestException('client_not_found',404,'Active client not found.');
+        if ($contextEmployeeId !== null) $impersonatedActor=merd_service_employee_actor_by_id($pdo,$contextClientId,$contextEmployeeId);
     } else {
         if ($contextClientId !== null && $contextClientId !== (int)$service['client_id']) {
             throw new MerdRequestException('forbidden',403,'Client employees cannot select another client context.');
         }
+        if ($contextEmployeeId !== null) throw new MerdRequestException('forbidden',403,'Client employees cannot select another user context.');
         $contextClientId=(int)$service['client_id'];
     }
 
     require_once $portalRoot . '/includes/beta_api.php';
     start_app_session();
-    if ($isPlatform) {
+    if ($isPlatform && is_array($impersonatedActor)) {
+        $platform=$actor['platform_identity'];$employee=$impersonatedActor['employee'];$effectiveRole=$impersonatedActor['role'];
+        $storeStmt=$pdo->prepare('SELECT store_id FROM employees WHERE id=? AND client_id=? LIMIT 1');
+        $storeStmt->execute([(int)$employee['id'],$contextClientId]);$storeId=$storeStmt->fetchColumn();
+        $_SESSION['user']=[
+            'id'=>(int)$employee['id'],'identity_scope'=>'employee','client_id'=>$contextClientId,'active_client_id'=>$contextClientId,'auth_client_id'=>$contextClientId,'home_client_id'=>$contextClientId,
+            'store_id'=>$storeId===false||$storeId===null?null:(int)$storeId,'name'=>(string)$employee['full_name'],'full_name'=>(string)$employee['full_name'],'user_id'=>(string)$employee['user_id'],
+            'role'=>(string)$effectiveRole['base_role'],'actual_employee_type'=>(string)$effectiveRole['base_role'],'employee_type'=>(string)$effectiveRole['base_role'],'role_name'=>(string)$effectiveRole['role_label'],
+            'client_role_id'=>(int)$effectiveRole['id'],'role_key'=>(string)$effectiveRole['role_key'],'role_label'=>(string)$effectiveRole['role_label'],'authority_level'=>(int)$effectiveRole['authority_level'],'is_dev'=>false,
+            'actor_identity_scope'=>'platform','actor_platform_identity_id'=>(int)$platform['id'],'actor_user_id'=>(string)$platform['user_id'],'actor_full_name'=>(string)$platform['full_name'],'actor_role_key'=>'DEV','actor_role_label'=>'Developer','actor_authority_level'=>1000,
+            'is_user_impersonation'=>true,'impersonated_employee_id'=>(int)$employee['id'],
+        ];
+        $_SESSION['dev_active_client_id']=$contextClientId;
+    } elseif ($isPlatform) {
         $platform=$actor['platform_identity'];
         $_SESSION['user']=[
             'id'=>(int)$platform['id'],'platform_identity_id'=>(int)$platform['id'],'identity_scope'=>'platform',
             'client_id'=>$contextClientId,'active_client_id'=>$contextClientId,'auth_client_id'=>0,'home_client_id'=>0,'store_id'=>null,
             'name'=>(string)$platform['full_name'],'full_name'=>(string)$platform['full_name'],'user_id'=>(string)$platform['user_id'],
-            'role'=>'DEV','actual_employee_type'=>'DEV','employee_type'=>'DEV','role_name'=>'Developer',
-            'client_role_id'=>null,'role_key'=>'DEV','role_label'=>'Developer','authority_level'=>1000,
-            'is_dev'=>true,'is_super'=>true,'is_management'=>true,'is_admin'=>false,
+            'role'=>'DEV','actual_employee_type'=>'DEV','employee_type'=>'DEV','role_name'=>'Developer','client_role_id'=>null,'role_key'=>'DEV','role_label'=>'Developer','authority_level'=>1000,
+            'is_dev'=>true,'is_super'=>true,'is_management'=>true,'is_admin'=>false,'actor_identity_scope'=>'platform','actor_platform_identity_id'=>(int)$platform['id'],'actor_user_id'=>(string)$platform['user_id'],'actor_full_name'=>(string)$platform['full_name'],'actor_role_key'=>'DEV','actor_role_label'=>'Developer','actor_authority_level'=>1000,'is_user_impersonation'=>false,
         ];
         $_SESSION['dev_active_client_id']=$contextClientId;
         $_COOKIE['merdpos_dev_view_role']=$contextRoleKey;
@@ -133,6 +154,12 @@ try {
     $_SESSION['login_at_utc']=gmdate(DateTimeInterface::ATOM);
     $_SESSION['csrf']=bin2hex(random_bytes(32));
 
+    if (!empty($_SESSION['user']['is_user_impersonation']) && $route==='change_password') {
+        throw new MerdRequestException('forbidden',403,'Password changes are unavailable while DEV is impersonating a client user.');
+    }
+    if ($method==='POST' && !empty($_SESSION['user']['is_user_impersonation'])) {
+        beta_admin_audit($pdo,$_SESSION['user'],'dev.impersonation.request','portal_route',$route,['route'=>$route,'action'=>(string)($body['action'] ?? $body['submission_type'] ?? '')]);
+    }
     if ($method==='POST') $body['csrf']=csrf_token();
     $_GET=$query;
     $_POST=$method==='POST' ? $body : [];

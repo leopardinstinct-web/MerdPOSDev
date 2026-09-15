@@ -62,5 +62,9 @@ try {
     } else {
         throw new MerdWorkforceException('invalid_action', 'Invalid dispute action.');
     }
+    if (beta_actor_is_platform_dev($user) && !empty($user['is_user_impersonation'])) {
+        $auditId=(string)($result['dispute_id'] ?? $input['dispute_id'] ?? '');
+        beta_admin_audit($pdo,$user,'dev.impersonation.dispute.' . $action,'attendance_dispute',$auditId !== '' ? $auditId : null,['result_status'=>(string)($result['status'] ?? '')]);
+    }
     json_response(['success' => true, 'result' => $result]);
 } catch (Throwable $e) { beta_api_error($e); }

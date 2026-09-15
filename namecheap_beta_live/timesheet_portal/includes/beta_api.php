@@ -57,8 +57,17 @@ function beta_user_is_platform_identity(array $user): bool
         && (int)($user['platform_identity_id'] ?? $user['id'] ?? 0) > 0;
 }
 
+function beta_actor_is_platform_dev(array $user): bool
+{
+    if (strtolower(trim((string)($user['actor_identity_scope'] ?? ''))) === 'platform'
+        && (int)($user['actor_platform_identity_id'] ?? 0) > 0
+        && strtoupper(trim((string)($user['actor_role_key'] ?? ''))) === 'DEV') return true;
+    return beta_user_is_platform_identity($user) && beta_actual_user_is_dev($user);
+}
+
 function beta_actor_employee_id(array $user): ?int
 {
+    if (beta_actor_is_platform_dev($user)) return null;
     if (beta_user_is_platform_identity($user)) return null;
     $id = (int)($user['id'] ?? 0);
     return $id > 0 ? $id : null;
@@ -66,6 +75,8 @@ function beta_actor_employee_id(array $user): ?int
 
 function beta_actor_platform_identity_id(array $user): ?int
 {
+    $actorId = (int)($user['actor_platform_identity_id'] ?? 0);
+    if ($actorId > 0 && beta_actor_is_platform_dev($user)) return $actorId;
     if (!beta_user_is_platform_identity($user)) return null;
     $id = (int)($user['platform_identity_id'] ?? $user['id'] ?? 0);
     return $id > 0 ? $id : null;
@@ -73,6 +84,9 @@ function beta_actor_platform_identity_id(array $user): ?int
 
 function beta_admin_audit(PDO $pdo, array $actor, string $action, string $entityType, ?string $entityId, array $details): void
 {
+    if (!empty($actor['is_user_impersonation'])) {
+        $details = ['impersonated_employee_id'=>(int)($actor['impersonated_employee_id'] ?? $actor['id'] ?? 0), 'impersonated_user_id'=>(string)($actor['user_id'] ?? ''), 'effective_role_key'=>(string)($actor['role_key'] ?? $actor['role'] ?? '')] + $details;
+    }
     $stmt = $pdo->prepare(
         'INSERT INTO admin_audit_logs (client_id,employee_id,platform_identity_id,action,entity_type,entity_id,details,ip_address) VALUES (?,?,?,?,?,?,?,?)'
     );
@@ -229,7 +243,7 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             if ($action === 'save_permissions') { beta_require_permission($user, 'permissions.manage', $pdo); return; }
             beta_require_permission($user, 'roles.define', $pdo); return;
         case 'client_context.php':
-            if ($method === 'POST' && !beta_actual_user_is_dev($user)) beta_require_permission($user, 'client_context.switch', $pdo);
+            if ($method === 'POST' && !beta_actor_is_platform_dev($user)) beta_require_permission($user, 'client_context.switch', $pdo);
             return;
         case 'timesheet_google_refresh.php':
             if (!beta_actual_user_is_dev($user)) throw new MerdWorkforceException('forbidden', 'Only the actual DEV identity can refresh Google Time Sheet data.');
@@ -335,7 +349,7 @@ function beta_require_active_user(): array
     $authority=max(1,min(999,$authority));
     $user['identity_scope']='employee';$user['role']=$baseRole;$user['actual_employee_type']=$baseRole;$user['employee_type']=$baseRole;$user['role_name']=$roleLabel;
     $user['client_role_id']=$clientRoleId;$user['role_key']=$roleKey;$user['role_label']=$roleLabel;$user['authority_level']=$authority;$user['is_dev']=false;
-    clear_dev_active_client_id();$user['client_id']=$authClientId;$user['active_client_id']=$authClientId;$user['is_cross_client_context']=false;
+    if (!beta_actor_is_platform_dev($user)) clear_dev_active_client_id();$user['client_id']=$authClientId;$user['active_client_id']=$authClientId;$user['is_cross_client_context']=false;
     $user['auth_client_id']=$authClientId;$user['home_client_id']=$authClientId;
     [$permissions,$levels]=beta_permission_snapshot($pdo,$user);$user['permissions']=$permissions;$user['permission_levels']=$levels;
     $user['is_management']=!empty($permissions['workforce.view'])||!empty($permissions['timesheets.view_all'])||!empty($permissions['disputes.review'])||!empty($permissions['finance.cross_store']);

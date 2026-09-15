@@ -74,7 +74,7 @@ async function mountShell(page, width = 1280) {
   await expect(page.locator('.rail-client-section')).toHaveCount(1);
   return pageErrors;
 }
-test('DEV role preview is universal across shell and API permission context', async () => {
+test('DEV user impersonation preserves platform actor and client user context', async () => {
   const source = fs.readFileSync(dashboardPath, 'utf8');
   const betaApi = fs.readFileSync(betaApiPath, 'utf8');
   const dashboardData = fs.readFileSync(dashboardDataPath, 'utf8');
@@ -101,7 +101,8 @@ test('DEV role preview is universal across shell and API permission context', as
   expect(dashboardData).toContain("merd_dashboard_dependency_enabled($allowed, 'workforce.view')");
   expect(dashboardData).toContain("'working_count'=>$workingCount");
   expect(dashboardData).toContain("'pending_disputes_count'=>$pendingDisputesCount");
-  expect(clientContext).toContain('$canSelect = beta_actual_user_is_dev($user) && beta_user_is_platform_identity($user);');
+  expect(clientContext).toContain('$canSelect = beta_actor_is_platform_dev($user);');
+  expect(clientContext).toContain("'can_select_user'=>$canSelect");
   expect(betaApi).toContain("case 'timesheet_google_refresh.php':");
   expect(timesheetRefresh).toContain('beta_actual_user_is_dev($user)');
   expect(timesheetRefresh).toContain("legacy_parse_known_csv_rows($csv, 'timesheet', $sheetName)");
