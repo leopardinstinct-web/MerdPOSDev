@@ -43,8 +43,8 @@ final class DevController extends ControllerBase {
   public function dev(): array|RedirectResponse {
     $request = $this->requestStack->getCurrentRequest();
     if (!$this->isActualDev()) return new RedirectResponse('/merdpos', 302);
-    $previewRole = strtoupper((string) ($request?->getSession()->get('merdpos_context_role_key', 'DEV') ?? 'DEV'));
-    if ($previewRole !== 'DEV') return new RedirectResponse('/merdpos', 302);
+    $impersonatedEmployeeId = (int) ($request?->getSession()->get('merdpos_context_employee_id', 0) ?? 0);
+    if ($impersonatedEmployeeId > 0) return new RedirectResponse('/merdpos', 302);
     $surface = $this->parity->section('dev');
     return [
       '#theme' => 'merdpos_dev',
@@ -63,8 +63,8 @@ final class DevController extends ControllerBase {
   public function palette(): RedirectResponse {
     $request = $this->requestStack->getCurrentRequest();
     if (!$request || !$this->isActualDev()) throw new AccessDeniedHttpException();
-    $previewRole = strtoupper((string) $request->getSession()->get('merdpos_context_role_key', 'DEV'));
-    if ($previewRole !== 'DEV') throw new AccessDeniedHttpException();
+    $impersonatedEmployeeId = (int) $request->getSession()->get('merdpos_context_employee_id', 0);
+    if ($impersonatedEmployeeId > 0) throw new AccessDeniedHttpException();
     if (!$this->csrf->validate((string) $request->request->get('form_token', ''), self::PALETTE_TOKEN_ID)) {
       $this->messenger()->addError($this->t('Your palette session expired. Refresh DEV and try again.'));
       return new RedirectResponse('/merdpos/dev#merdpos-master-palette', 303);

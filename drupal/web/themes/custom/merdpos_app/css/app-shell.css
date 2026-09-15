@@ -1006,7 +1006,7 @@ body.merdpos-login-route {
 
 :root[data-theme="dark"] .merdpos-login-brand{width:fit-content;max-width:100%;padding:.7rem .85rem;border:1px solid rgba(255,255,255,.72);border-radius:1rem;background:rgba(255,255,255,.94);box-shadow:0 .75rem 2rem rgba(0,0,0,.18)}
 
-/* Collapsed account contexts: Working client and DEV-only Working Role. */
+/* Collapsed account contexts: Working client and DEV-only Working User. */
 .merdpos-account-context{border-bottom:1px solid var(--color-border-subtle)}
 .merdpos-account-context>summary{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:2.75rem;padding:0 var(--space-3);list-style:none;cursor:pointer;color:var(--color-text-secondary);font-size:var(--type-xs);font-weight:var(--weight-semibold)}
 .merdpos-account-context>summary::-webkit-details-marker{display:none}
@@ -1031,3 +1031,11 @@ body.merdpos-login-route {
 
 /* DS Working Context + uploaded dark-theme shell assets. */
 .merdpos-account{display:flex;align-items:center;gap:.5rem}.merdpos-account-pills{display:flex;align-items:center;gap:.35rem}.merdpos-account-context-pill{display:inline-flex;align-items:center;min-height:1.75rem;padding:.15rem .55rem;border:1px solid var(--color-border-subtle);border-radius:var(--radius-pill);background:var(--color-surface-muted);color:var(--color-text-secondary);font-size:var(--type-xs);font-weight:var(--weight-bold);white-space:nowrap}:root[data-theme="dark"] .merdpos-shell-brand{padding:0;border:0;background:transparent;box-shadow:none}@media(max-width:35rem){.merdpos-account-context-pill{padding:.12rem .4rem;font-size:.65rem}.merdpos-account-pills{gap:.2rem}}
+
+
+/* Persistent safety context while DEV is acting as a real client user. */
+.merdpos-impersonation-banner{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin:var(--space-3) var(--space-4) 0;padding:var(--space-3) var(--space-4);border:1px solid color-mix(in srgb,var(--color-brand-cyan) 42%,var(--color-border-default));border-radius:var(--radius-card);background:color-mix(in srgb,var(--color-brand-cyan) 9%,var(--color-surface-raised));box-shadow:var(--shadow-subtle)}
+.merdpos-impersonation-banner>div{display:grid;gap:.2rem;min-width:0}.merdpos-impersonation-banner strong{color:var(--color-text-primary);font-size:var(--type-sm)}.merdpos-impersonation-banner span{color:var(--color-text-secondary);font-size:var(--type-xs);line-height:var(--line-body)}
+.merdpos-impersonation-banner button{min-height:2.4rem;padding:.45rem .8rem;border:1px solid var(--color-border-default);border-radius:var(--radius-control);background:var(--color-surface-main);color:var(--color-text-primary);font:inherit;font-size:var(--type-xs);font-weight:var(--weight-bold);cursor:pointer;white-space:nowrap}
+.merdpos-impersonation-banner button:hover,.merdpos-impersonation-banner button:focus-visible{border-color:var(--color-focus);box-shadow:0 0 0 .2rem var(--color-focus-soft);outline:none}
+@media(max-width:35rem){.merdpos-impersonation-banner{align-items:stretch;flex-direction:column;margin:var(--space-2) var(--space-3) 0}.merdpos-impersonation-banner button{width:100%}}

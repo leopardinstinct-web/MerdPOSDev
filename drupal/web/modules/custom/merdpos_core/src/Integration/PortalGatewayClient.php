@@ -36,8 +36,8 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
 
     $envelope = ['route'=>$route, 'method'=>$method, 'query'=>(object) $query, 'body'=>(object) $body];
     if ($contextClientId !== NULL) $envelope['context_client_id'] = $contextClientId;
-    $contextRoleKey = $this->sessionContextRoleKey();
-    if ($contextRoleKey !== NULL) $envelope['context_role_key'] = $contextRoleKey;
+    $contextEmployeeId = $this->sessionContextEmployeeId();
+    if ($contextEmployeeId !== NULL) $envelope['context_employee_id'] = $contextEmployeeId;
     try {
       $raw = json_encode($envelope, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
       if (strlen($raw) > 4 * 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
@@ -84,12 +84,12 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     return $value === false || $value <= 0 ? NULL : (int) $value;
   }
 
-  private function sessionContextRoleKey(): ?string {
+  private function sessionContextEmployeeId(): ?int {
     if (!$this->currentUser?->isAuthenticated() || $this->requestStack === NULL) return NULL;
     $request = $this->requestStack->getCurrentRequest();
     if ($request === NULL || !$request->hasSession()) return NULL;
-    $value = strtoupper(trim((string) $request->getSession()->get('merdpos_context_role_key', '')));
-    return in_array($value, ['DEV','ADMIN','SUPER','USER'], true) ? $value : NULL;
+    $value = filter_var($request->getSession()->get('merdpos_context_employee_id'), FILTER_VALIDATE_INT);
+    return $value === false || $value <= 0 ? NULL : (int) $value;
   }
 
   private function environmentConfig(): ?array {
