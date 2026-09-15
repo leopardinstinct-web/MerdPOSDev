@@ -72,19 +72,19 @@
         });
         select.dataset.activeValue = select.value;
       });
-      once('merdpos-working-role', '[data-merdpos-working-role]', context).forEach((select) => {
+      once('merdpos-working-user', '[data-merdpos-working-user]', context).forEach((select) => {
         select.addEventListener('change', async () => {
           const prior = select.dataset.activeValue || select.value;
-          const roleKey = String(select.value || '').toUpperCase();
-          if (!['DEV','ADMIN','SUPER','USER'].includes(roleKey)) return;
+          const employeeId = Number.parseInt(select.value || '0', 10);
+          if (!Number.isInteger(employeeId) || employeeId < 0) return;
           select.disabled = true;
           try {
-            const response = await fetch(select.dataset.endpoint || '', {method:'POST', credentials:'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json','X-MERDPOS-CSRF':select.dataset.csrf || ''}, body:JSON.stringify({role_key:roleKey})});
+            const response = await fetch(select.dataset.endpoint || '', {method:'POST', credentials:'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json','X-MERDPOS-CSRF':select.dataset.csrf || ''}, body:JSON.stringify({employee_id:employeeId})});
             const payload = await response.json().catch(() => null);
-            if (!response.ok || !payload || payload.success !== true) throw new Error(payload?.error || `Working Role change failed (${response.status}).`);
-            sessionStorage.setItem('merdposContextNotice', payload.message || 'Working Role changed.');
+            if (!response.ok || !payload || payload.success !== true) throw new Error(payload?.error || `Working User change failed (${response.status}).`);
+            sessionStorage.setItem('merdposContextNotice', payload.message || 'Working User changed.');
             const onDevSurface = window.location.pathname.replace(/\/+$/, '') === '/merdpos/dev';
-            if (roleKey !== 'DEV' && onDevSurface) window.location.assign('/merdpos');
+            if (employeeId > 0 && onDevSurface) window.location.assign('/merdpos');
             else window.location.reload();
           } catch (error) {
             select.value = prior;
@@ -93,6 +93,21 @@
           }
         });
         select.dataset.activeValue = select.value;
+      });
+      once('merdpos-exit-impersonation', '[data-merdpos-exit-impersonation]', context).forEach((button) => {
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          try {
+            const response = await fetch(button.dataset.endpoint || '', {method:'POST', credentials:'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json','X-MERDPOS-CSRF':button.dataset.csrf || ''}, body:JSON.stringify({employee_id:0})});
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload || payload.success !== true) throw new Error(payload?.error || `Exit impersonation failed (${response.status}).`);
+            sessionStorage.setItem('merdposContextNotice', payload.message || 'Returned to the Developer identity.');
+            window.location.reload();
+          } catch (error) {
+            button.disabled = false;
+            window.alert(error.message);
+          }
+        });
       });
       once('merdpos-timesheet-sync', '[data-merdpos-timesheet-sync]', context).forEach((button) => {
         button.addEventListener('click', async () => {

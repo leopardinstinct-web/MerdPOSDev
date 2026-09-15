@@ -10,8 +10,8 @@ $home=strpos($theme,"['key'=>'home'");$admin=strpos($theme,"['key'=>'admin'");$f
 roles_shell_check($home!==false&&$admin>$home&&$finance>$admin&&$reports>$finance,'Bottom navigation order must be Dashboard, Admin, Financials, Timesheets.');
 roles_shell_check(str_contains($theme,"['key'=>'home','label'=>'Dashboard'")&&str_contains($theme,"['key'=>'reports','label'=>'Timesheets'")&&!str_contains($theme,"'label'=>'Reports'"),'Dashboard/Timesheets primary labels regressed.');
 roles_shell_check(!str_contains($theme,"['key'=>'operations'")&&!str_contains($theme,"['key'=>'dev'"),'Operations or DEV returned to bottom navigation.');
-roles_shell_check(str_contains($theme,"$"."variables['merdpos_can_select_role']")&&str_contains($page,'data-merdpos-working-role'),'DEV-only Working Role selector missing.');
-roles_shell_check(str_contains($shellJs,"roleKey !== 'DEV' && onDevSurface")&&str_contains($shellJs,"window.location.assign('/merdpos')")&&str_contains($devController,"$"."previewRole !== 'DEV'")&&str_contains($devController,"new RedirectResponse('/merdpos', 302)"),'Working Role must leave DEV-only surface when previewing a client role.');
+roles_shell_check(str_contains($theme,"$"."variables['merdpos_can_select_user']")&&str_contains($page,'data-merdpos-working-user'),'DEV-only Working User selector missing.');
+roles_shell_check(str_contains($shellJs,'employeeId > 0 && onDevSurface')&&str_contains($shellJs,"window.location.assign('/merdpos')")&&str_contains($devController,'merdpos_context_employee_id')&&str_contains($devController,"new RedirectResponse('/merdpos', 302)"),'Working User impersonation must leave DEV-only surfaces.');
 roles_shell_check(str_contains($page,'<span>DEV</span>')&&str_contains($page,'m8 9-4 3 4 3'),'DEV account action must remain icon + DEV.');
 roles_shell_check(str_contains($page,"item.key == 'home'")&&str_contains($page,'<rect x="3" y="3" width="7"')&&str_contains($page,"item.key == 'reports'")&&str_contains($page,'<circle cx="12" cy="12" r="9"'),'Dashboard/Timesheets navigation icons regressed.');
 echo "MERDPOS Admin Roles + role-aware four-item shell contract validated.\n";

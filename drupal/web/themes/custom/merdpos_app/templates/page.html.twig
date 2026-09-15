@@ -80,17 +80,15 @@
           <span class="merdpos-account-context-notice" data-merdpos-context-notice aria-live="polite"></span>
         </details>
         {% endif %}
-        {% if merdpos_can_select_role %}
-        {% set merdpos_working_role_label = merdpos_active_role_key == 'DEV' ? 'Developer' : (merdpos_active_role_key|lower|capitalize) %}
-        <details class="merdpos-account-context merdpos-account-role-context" data-merdpos-context-section>
-          <summary><span>Working Role</span><small>{{ merdpos_working_role_label }}</small></summary>
+        {% if merdpos_can_select_user %}
+        {% set merdpos_working_user_label = merdpos_impersonating ? merdpos_effective_user.full_name|default('Client user') : 'Developer identity' %}
+        <details class="merdpos-account-context merdpos-account-user-context" data-merdpos-context-section>
+          <summary><span>Working User</span><small>{{ merdpos_working_user_label }}</small></summary>
           <div class="merdpos-account-context-row">
-            <span class="merdpos-account-context-label">Working Role</span>
-            <select data-merdpos-working-role data-endpoint="{{ merdpos_working_role_url }}" data-csrf="{{ merdpos_working_role_token }}" aria-label="Select Working Role">
-              <option value="DEV"{{ merdpos_active_role_key == 'DEV' ? ' selected' : '' }}>Developer</option>
-              <option value="ADMIN"{{ merdpos_active_role_key == 'ADMIN' ? ' selected' : '' }}>Admin</option>
-              <option value="SUPER"{{ merdpos_active_role_key == 'SUPER' ? ' selected' : '' }}>Super</option>
-              <option value="USER"{{ merdpos_active_role_key == 'USER' ? ' selected' : '' }}>User</option>
+            <span class="merdpos-account-context-label">View as</span>
+            <select data-merdpos-working-user data-endpoint="{{ merdpos_working_user_url }}" data-csrf="{{ merdpos_working_user_token }}" aria-label="Select Working User">
+              <option value="0"{{ not merdpos_impersonating ? ' selected' : '' }}>Developer identity</option>
+              {% for user in merdpos_users %}<option value="{{ user.id }}"{{ user.id == merdpos_active_user_id ? ' selected' : '' }}>{{ user.full_name }} &middot; {{ user.role_label|default(user.role_key) }}{% if user.user_id %} &middot; {{ user.user_id }}{% endif %}</option>{% endfor %}
             </select>
           </div>
         </details>
@@ -109,6 +107,14 @@
       </div>
     </div>
   </header>
+
+  {% if merdpos_impersonating %}
+  <aside class="merdpos-impersonation-banner" data-merdpos-impersonation-banner aria-label="Developer impersonation active">
+    <div><strong>DEV acting as {{ merdpos_effective_user.full_name|default(merdpos_user_name) }}</strong>
+      <span>{{ merdpos_effective_role_label|default(merdpos_active_role_key) }} &middot; {{ merdpos_active_client.name|default('Working client') }} &middot; real user permissions and store scope</span></div>
+    <button type="button" data-merdpos-exit-impersonation data-endpoint="{{ merdpos_working_user_url }}" data-csrf="{{ merdpos_working_user_token }}">Exit impersonation</button>
+  </aside>
+  {% endif %}
 
   {% if merdpos_can_change_password %}
   <dialog class="merdpos-password-dialog" data-merdpos-password-dialog aria-labelledby="merdpos-password-title">

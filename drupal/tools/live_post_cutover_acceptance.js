@@ -14,7 +14,7 @@ const access = {
 };
 const surfaces = ['/merdpos','/merdpos/reports','/merdpos/finance'];
 const retiredSurfaces = ['/merdpos/operations','/merdpos/disputes'];
-const postOnly = ['/merdpos/dashboard/layout','/merdpos/attendance/scan','/merdpos/finance/submit','/merdpos/account/change-password','/merdpos/account/working-client','/merdpos/account/working-role','/merdpos/account/timesheet-google-sync'];
+const postOnly = ['/merdpos/dashboard/layout','/merdpos/attendance/scan','/merdpos/finance/submit','/merdpos/account/change-password','/merdpos/account/working-client','/merdpos/account/working-user','/merdpos/account/timesheet-google-sync'];
 const adminTabs = ['clients','stores','defaults','workforce','roles'];
 const badText = /website encountered an unexpected error|internal server error|fatal error/i;
 const executablePath = process.env.MERDPOS_BROWSER || 'C:/Users/Imran/AppData/Local/Programs/Opera/opera.exe';
@@ -59,7 +59,7 @@ async function consolidatedTimesheet(page, role) {
     assert(status === 200 && url.pathname === '/merdpos/reports' && url.hash === '#merdpos-shift-detail', `${role}: ${legacy} did not retire into Shift Detail`);
   }
   await page.goto(BASE + '/merdpos/reports', { waitUntil: 'domcontentloaded' });
-  assert((await page.locator('h1').first().innerText()).trim() === 'Timesheets Report', `${role}: consolidated Timesheets Report title missing`);
+  const reportTitle=page.locator('#merdpos-reports-title'); await reportTitle.waitFor({state:'visible'}); assert((await reportTitle.innerText()).trim().length>0, `${role}: consolidated Timesheets header missing`);
   const navLabels = (await page.locator('.merdpos-bottom-nav-label').allTextContents()).map(v => v.trim());
   assert(navLabels.includes('Timesheets') && !navLabels.includes('Reports'), `${role}: primary navigation must expose Timesheets and retire Reports`);
   assert(await page.locator('#merdpos-shift-detail').count() === 1, `${role}: Shift Detail table missing`);
@@ -124,26 +124,33 @@ async function globalUiSweep(page, role) {
   }
   return report;
 }
-async function previewRoleRedirect(page) {
+async function impersonationRedirect(page) {
   await page.goto(BASE + '/merdpos/dev', {waitUntil:'domcontentloaded'});
-  assert(new URL(page.url()).pathname === '/merdpos/dev', 'DEV surface unavailable before preview switch');
+  assert(new URL(page.url()).pathname === '/merdpos/dev', 'DEV surface unavailable before impersonation');
   await page.locator('[data-merdpos-account-toggle]').click();
-  const details=page.locator('.merdpos-account-role-context');
+  const details=page.locator('.merdpos-account-user-context');
   if (!(await details.getAttribute('open'))) await details.locator('summary').click();
-  const select=details.locator('[data-merdpos-working-role]');
-  await select.selectOption('ADMIN');
+  const select=details.locator('[data-merdpos-working-user]');
+  const target=await select.locator('option').evaluateAll(options => options.map(o => ({value:o.value,text:(o.textContent||'').trim()})).find(o => o.value !== '0' && /User/i.test(o.text)) || options.map(o => ({value:o.value,text:(o.textContent||'').trim()})).find(o => o.value !== '0'));
+  assert(target?.value, 'DEV Working User list has no client user');
+  await select.selectOption(target.value);
   await page.waitForURL(url => new URL(url).pathname === '/merdpos', {timeout:10000});
-  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() === 'Admin', 'ADMIN preview did not become active');
+  assert(await page.locator('[data-merdpos-impersonation-banner]').count() === 1, 'Impersonation banner missing');
+  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() !== 'Developer', 'Effective client role did not become active');
+  assert(await page.locator('[data-merdpos-password-open]').count() === 0, 'Password change remained available during impersonation');
   await page.goto(BASE + '/merdpos/dev', {waitUntil:'domcontentloaded'});
-  assert(new URL(page.url()).pathname === '/merdpos', 'DEV route did not fail closed to Dashboard while previewing ADMIN');
-  await page.locator('[data-merdpos-account-toggle]').click();
-  const restore=page.locator('.merdpos-account-role-context');
-  if (!(await restore.getAttribute('open'))) await restore.locator('summary').click();
-  await restore.locator('[data-merdpos-working-role]').selectOption('DEV');
+  assert(new URL(page.url()).pathname === '/merdpos', 'DEV route did not fail closed during impersonation');
+  const exit=page.locator('[data-merdpos-exit-impersonation]');
+  assert(await exit.count() === 1, 'Exit impersonation control missing');
+  await exit.click();
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(200);
-  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() === 'Developer', 'DEV preview role was not restored');
-  return {adminRedirectedToDashboard:true,directDevGuarded:true,restoredDeveloper:true};
+  await page.waitForFunction(
+    () => !document.querySelector('[data-merdpos-impersonation-banner]') && document.querySelector('[data-merdpos-role-pill]')?.textContent?.trim() === 'Developer',
+    null,
+    {timeout:10000},
+  );
+  assert((await page.locator('[data-merdpos-role-pill]').innerText()).trim() === 'Developer', 'Developer identity was not restored');
+  return {target:target.text,banner:true,directDevGuarded:true,restoredDeveloper:true};
 }
 async function themeAndMobile(page, role) {
   await page.goto(BASE + '/merdpos', { waitUntil: 'domcontentloaded' });
@@ -221,16 +228,18 @@ async function sessionChecks(page, cred) {
         passwordAction: await page.locator('[data-merdpos-password-open]').count(),
         workingClientSelect: await page.locator('[data-merdpos-working-client]').count(),
         workingClientOptions: await page.locator('[data-merdpos-working-client] option').count(),
+        workingUserSelect: await page.locator('[data-merdpos-working-user]').count(),
+        workingUserOptions: await page.locator('[data-merdpos-working-user] option').count(),
       };
       assert(account.passwordAction === 1, `${role}: password action missing`);
-      if (role === 'dev') assert(account.workingClientSelect === 1 && account.workingClientOptions >= 2, 'DEV Working Client control missing');
+      if (role === 'dev') { assert(account.workingClientSelect === 1 && account.workingClientOptions >= 2, 'DEV Working Client control missing'); assert(account.workingUserSelect === 1 && account.workingUserOptions >= 2, 'DEV Working User control missing'); }
       const uiSweep = await globalUiSweep(page, role);
-      const previewRedirect = role === 'dev' ? await previewRoleRedirect(page) : null;
+      const impersonationRedirect = role === 'dev' ? await impersonationRedirect(page) : null;
       const mobile = await themeAndMobile(page, role);
       const unexpectedClientErrors = runtime.clientErrors.filter(v => !expectedClientError(v, role));
       const unexpectedConsoleErrors = runtime.consoleErrors.filter(v => !expectedConsoleError(v, role));
       assert(runtime.pageErrors.length === 0 && unexpectedConsoleErrors.length === 0 && runtime.failedRequests.length === 0 && unexpectedClientErrors.length === 0 && runtime.serverErrors.length === 0, `${role}: browser/runtime errors detected ${JSON.stringify({runtime,unexpectedClientErrors,unexpectedConsoleErrors})}`);
-      report.roles[role] = { routes, methodSafety, tabs, controls, account, timesheet, uiSweep, previewRedirect, mobile, runtime };
+      report.roles[role] = { routes, methodSafety, tabs, controls, account, timesheet, uiSweep, impersonationRedirect, mobile, runtime };
       if (role === 'user') { await sessionChecks(page, cred); report.session = { logout: true, clearedCookieRequiresLogin: true }; }
       await context.close();
     }

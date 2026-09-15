@@ -28,11 +28,16 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_active_client'] = [];
   $variables['merdpos_working_client_url'] = '';
   $variables['merdpos_working_client_token'] = '';
-  $variables['merdpos_can_select_role'] = false;
+  $variables['merdpos_can_select_user'] = false;
+  $variables['merdpos_users'] = [];
+  $variables['merdpos_active_user_id'] = 0;
+  $variables['merdpos_effective_user'] = [];
+  $variables['merdpos_actor'] = [];
+  $variables['merdpos_impersonating'] = false;
   $variables['merdpos_active_role_key'] = '';
   $variables['merdpos_effective_role_label'] = '';
-  $variables['merdpos_working_role_url'] = '';
-  $variables['merdpos_working_role_token'] = '';
+  $variables['merdpos_working_user_url'] = '';
+  $variables['merdpos_working_user_token'] = '';
   $variables['merdpos_can_timesheet_sync'] = false;
   $variables['merdpos_timesheet_sync_url'] = '';
   $variables['merdpos_timesheet_sync_token'] = '';
@@ -66,14 +71,23 @@ function merdpos_app_preprocess_page(array &$variables): void {
         $variables['merdpos_active_client'] = is_array($contextPayload['client'] ?? NULL) ? $contextPayload['client'] : [];
         $actualRoleKey = strtoupper(trim((string) ($contextPayload['actual_role'] ?? '')));
         $effectiveRoleKey = strtoupper(trim((string) ($contextPayload['role'] ?? '')));
-        $variables['merdpos_can_select_role'] = $variables['merdpos_can_select_client'] && $actualRoleKey === 'DEV';
-        $variables['merdpos_active_role_key'] = in_array($effectiveRoleKey, ['DEV','ADMIN','SUPER','USER'], true) ? $effectiveRoleKey : ($variables['merdpos_can_select_role'] ? 'DEV' : '');
+        $variables['merdpos_can_select_user'] = $variables['merdpos_can_select_client'] && $actualRoleKey === 'DEV' && !empty($contextPayload['can_select_user']);
+        $variables['merdpos_users'] = is_array($contextPayload['users'] ?? NULL) ? $contextPayload['users'] : [];
+        $variables['merdpos_active_user_id'] = max(0, (int) ($contextPayload['active_user_id'] ?? 0));
+        $variables['merdpos_effective_user'] = is_array($contextPayload['effective_user'] ?? NULL) ? $contextPayload['effective_user'] : [];
+        $variables['merdpos_actor'] = is_array($contextPayload['actor'] ?? NULL) ? $contextPayload['actor'] : [];
+        $variables['merdpos_impersonating'] = !empty($contextPayload['impersonating']);
+        $variables['merdpos_active_role_key'] = in_array($effectiveRoleKey, ['DEV','ADMIN','SUPER','USER'], true) ? $effectiveRoleKey : ($actualRoleKey === 'DEV' ? 'DEV' : '');
         $variables['merdpos_effective_role_label'] = trim((string) ($contextPayload['role_label'] ?? ''));
         if ($variables['merdpos_can_select_client']) {
           $variables['merdpos_working_client_url'] = Url::fromRoute('merdpos_core.working_client')->toString();
           $variables['merdpos_working_client_token'] = \Drupal::service('csrf_token')->get('merdpos_working_client_v1');
-          $variables['merdpos_working_role_url'] = Url::fromRoute('merdpos_core.working_role')->toString();
-          $variables['merdpos_working_role_token'] = \Drupal::service('csrf_token')->get('merdpos_working_role_v1');
+        }
+        if ($variables['merdpos_can_select_user']) {
+          $variables['merdpos_working_user_url'] = Url::fromRoute('merdpos_core.working_user')->toString();
+          $variables['merdpos_working_user_token'] = \Drupal::service('csrf_token')->get('merdpos_working_user_v1');
+        }
+        if ($variables['merdpos_can_select_client'] && !$variables['merdpos_impersonating']) {
           $variables['merdpos_can_timesheet_sync'] = $variables['merdpos_active_client_id'] > 0;
           $variables['merdpos_timesheet_sync_url'] = Url::fromRoute('merdpos_core.timesheet_google_sync')->toString();
           $variables['merdpos_timesheet_sync_token'] = \Drupal::service('csrf_token')->get('merdpos_timesheet_google_sync_v1');
@@ -89,7 +103,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
       $payload = is_array($state['payload'] ?? NULL) ? $state['payload'] : [];
       $variables['merdpos_permission_map'] = is_array($payload['permissions'] ?? NULL) ? $payload['permissions'] : [];
       if (trim((string) ($payload['role_label'] ?? '')) !== '') $variables['merdpos_effective_role_label'] = trim((string) $payload['role_label']);
-      $variables['merdpos_can_change_password'] = !empty($variables['merdpos_permission_map']['password.change_own']);
+      $variables['merdpos_can_change_password'] = !$variables['merdpos_impersonating'] && !empty($variables['merdpos_permission_map']['password.change_own']);
       if ($variables['merdpos_can_change_password']) {
         $variables['merdpos_password_url'] = Url::fromRoute('merdpos_core.change_password')->toString();
         $variables['merdpos_password_token'] = \Drupal::service('csrf_token')->get('merdpos_change_password_v1');
@@ -120,6 +134,9 @@ function merdpos_app_preprocess_page(array &$variables): void {
   if ($variables['merdpos_effective_role_label'] !== '') {
     $variables['merdpos_role_labels'] = [$variables['merdpos_effective_role_label']];
   }
+  if ($variables['merdpos_impersonating'] && trim((string) ($variables['merdpos_effective_user']['full_name'] ?? '')) !== '') {
+    $variables['merdpos_user_name'] = trim((string) $variables['merdpos_effective_user']['full_name']);
+  }
 
   $items = [
     ['key'=>'home','label'=>'Dashboard','route'=>'merdpos_core.dashboard','permission'=>'view merdpos management dashboard','backend_any'=>['dashboard.view']],
@@ -127,7 +144,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
     ['key'=>'finance','label'=>'Financials','route'=>'merdpos_core.finance','permission'=>'access merdpos portal','backend_any'=>['finance.view']],
     ['key'=>'reports','label'=>'Timesheets','route'=>'merdpos_core.reports','permission'=>'access merdpos portal','backend_any'=>['timesheets.view_own','timesheets.view_all','disputes.view_own','disputes.review'],'badge'=>$variables['merdpos_pending_disputes']],
   ];
-  if ($account->hasPermission('access merdpos dev tools') && (!$variables['merdpos_can_select_role'] || $variables['merdpos_active_role_key'] === 'DEV')) $variables['merdpos_dev_url'] = Url::fromRoute('merdpos_core.dev')->toString();
+  if ($account->hasPermission('access merdpos dev tools') && !$variables['merdpos_impersonating']) $variables['merdpos_dev_url'] = Url::fromRoute('merdpos_core.dev')->toString();
 
   $variables['merdpos_nav'] = [];
   foreach ($items as $item) {

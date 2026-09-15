@@ -103,10 +103,10 @@ merdpos_core.working_client:
     _permission: 'access merdpos portal'
   methods: [POST]
 
-merdpos_core.working_role:
-  path: '/merdpos/account/working-role'
+merdpos_core.working_user:
+  path: '/merdpos/account/working-user'
   defaults:
-    _controller: 'Drupal\merdpos_core\Controller\AccountController::selectWorkingRole'
+    _controller: 'Drupal\merdpos_core\Controller\AccountController::selectWorkingUser'
   requirements:
     _permission: 'access merdpos portal'
   methods: [POST]

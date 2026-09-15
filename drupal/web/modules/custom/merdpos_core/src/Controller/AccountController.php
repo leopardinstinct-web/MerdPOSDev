@@ -19,7 +19,7 @@ final class AccountController extends ControllerBase {
 
   public const PASSWORD_TOKEN_ID = 'merdpos_change_password_v1';
   public const WORKING_CLIENT_TOKEN_ID = 'merdpos_working_client_v1';
-  public const WORKING_ROLE_TOKEN_ID = 'merdpos_working_role_v1';
+  public const WORKING_USER_TOKEN_ID = 'merdpos_working_user_v1';
   public const TIMESHEET_SYNC_TOKEN_ID = 'merdpos_timesheet_google_sync_v1';
 
   public function __construct(
@@ -116,30 +116,51 @@ final class AccountController extends ControllerBase {
     $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
     if (($result['status'] ?? '') === 'ok' && !empty($payload['success'])) {
       $request->getSession()->set('merdpos_context_client_id', (int) $clientId);
+      $request->getSession()->remove('merdpos_context_employee_id');
+      $request->getSession()->remove('merdpos_context_role_key');
       $name = trim((string) ($selected['name'] ?? ('Client ' . $clientId)));
       return new JsonResponse(['success'=>true, 'active_client_id'=>(int) $clientId, 'client'=>$selected, 'message'=>'Working client changed to ' . $name . '.']);
     }
     return $this->gatewayError($result, $payload, 'Working client could not be changed.');
   }
 
-  public function selectWorkingRole(): JsonResponse {
+  public function selectWorkingUser(): JsonResponse {
     $request = $this->requestStack->getCurrentRequest();
     if (!$request instanceof Request || !$request->isMethod('POST')) throw new AccessDeniedHttpException();
-    if (!$this->csrf->validate(trim((string) $request->headers->get('X-MERDPOS-CSRF', '')), self::WORKING_ROLE_TOKEN_ID)) {
-      return new JsonResponse(['success'=>false, 'error'=>'Your role selection session expired. Refresh and try again.'], 403);
+    if (!$this->csrf->validate(trim((string) $request->headers->get('X-MERDPOS-CSRF', '')), self::WORKING_USER_TOKEN_ID)) {
+      return new JsonResponse(['success'=>false, 'error'=>'Your user selection session expired. Refresh and try again.'], 403);
     }
     $input = $this->jsonInput($request);
-    if ($input === NULL) return new JsonResponse(['success'=>false, 'error'=>'Invalid Working Role request.'], 400);
-    $roleKey = strtoupper(trim((string) ($input['role_key'] ?? '')));
-    if (!in_array($roleKey, ['DEV','ADMIN','SUPER','USER'], true)) return new JsonResponse(['success'=>false, 'error'=>'Choose a valid Working Role.'], 422);
+    if ($input === NULL) return new JsonResponse(['success'=>false, 'error'=>'Invalid Working User request.'], 400);
+    $employeeId = filter_var($input['employee_id'] ?? 0, FILTER_VALIDATE_INT);
+    if ($employeeId === false || $employeeId < 0) return new JsonResponse(['success'=>false, 'error'=>'Choose a valid Working User.'], 422);
 
     $contextResult = $this->gateway->call('client_context', 'GET');
     $context = is_array($contextResult['payload'] ?? NULL) ? $contextResult['payload'] : [];
-    if (($contextResult['status'] ?? '') !== 'ok' || empty($context['can_select_client']) || strtoupper((string) ($context['actual_role'] ?? '')) !== 'DEV') {
-      throw new AccessDeniedHttpException('Only the actual DEV identity can switch the Working Role.');
+    if (($contextResult['status'] ?? '') !== 'ok' || empty($context['can_select_user']) || strtoupper((string) ($context['actual_role'] ?? '')) !== 'DEV') {
+      throw new AccessDeniedHttpException('Only the actual DEV identity can select a Working User.');
     }
-    $request->getSession()->set('merdpos_context_role_key', $roleKey);
-    return new JsonResponse(['success'=>true, 'role_key'=>$roleKey, 'message'=>'Working Role changed to ' . ucfirst(strtolower($roleKey)) . '.']);
+    if ((int) $employeeId === 0) {
+      $result = $this->gateway->call('client_context', 'POST', [], ['action'=>'exit_user']);
+      $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
+      if (($result['status'] ?? '') !== 'ok' || empty($payload['success'])) return $this->gatewayError($result, $payload, 'Working User could not be cleared.');
+      $request->getSession()->remove('merdpos_context_employee_id');
+      $request->getSession()->remove('merdpos_context_role_key');
+      return new JsonResponse(['success'=>true, 'employee_id'=>0, 'message'=>'Returned to the Developer identity.']);
+    }
+    $selected = NULL;
+    foreach (($context['users'] ?? []) as $candidate) {
+      if (is_array($candidate) && (int) ($candidate['id'] ?? 0) === (int) $employeeId) { $selected = $candidate; break; }
+    }
+    if ($selected === NULL) return new JsonResponse(['success'=>false, 'error'=>'Active Working User not found.'], 404);
+    $result = $this->gateway->call('client_context', 'POST', [], ['action'=>'select_user', 'employee_id'=>(int) $employeeId]);
+    $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
+    if (($result['status'] ?? '') !== 'ok' || empty($payload['success'])) return $this->gatewayError($result, $payload, 'Working User could not be changed.');
+    $request->getSession()->set('merdpos_context_employee_id', (int) $employeeId);
+    $request->getSession()->remove('merdpos_context_role_key');
+    $name = trim((string) ($selected['full_name'] ?? $selected['user_id'] ?? ('User ' . $employeeId)));
+    $role = trim((string) ($selected['role_label'] ?? $selected['role_key'] ?? 'User'));
+    return new JsonResponse(['success'=>true, 'employee_id'=>(int) $employeeId, 'user'=>$selected, 'message'=>'Viewing MERDPOS as ' . $name . ' (' . $role . ').']);
   }
 
   public function syncGoogleTimeSheet(): JsonResponse {

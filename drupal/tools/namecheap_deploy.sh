@@ -71,6 +71,7 @@ php84 "$DRUPAL/tools/validate_admin_client_context_v1.php"
 php84 "$DRUPAL/tools/validate_admin_roles_shell_v1.php"
 php84 "$DRUPAL/tools/validate_admin_role_usability_v1.php"
 php84 "$DRUPAL/tools/validate_search_account_financials_v1.php"
+php84 "$DRUPAL/tools/validate_dev_user_impersonation_v1.php"
 php84 "$DRUPAL/tools/sync_merdpos_resources.php" --check
 php84 "$DRUPAL/tools/namecheap_resolve_runtime.php"
 mkdir -p "$PRIVATE" "$SYNC" "$WEB/sites/default/files"

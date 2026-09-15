@@ -14,7 +14,7 @@ saf_check(str_contains($page,'data-merdpos-theme-toggle')&&str_contains($page,'d
 saf_check(str_contains($page,'merdpos-theme-control--login'),'Login theme control must remain available.');
 saf_check(!str_contains($page,'merdpos-account-brand-glass'),'Account-menu brand glass must not return.');
 saf_check(str_contains($page,'merdpos-account-pills')&&str_contains($page,'data-merdpos-client-code')&&str_contains($page,'data-merdpos-role-pill'),'Working client/role pills missing beside account trigger.');
-saf_check(substr_count($page,'<details class="merdpos-account-context')>=2&&str_contains($page,'data-merdpos-working-role'),'Collapsed Working Client/Working Role contexts missing.');
+saf_check(substr_count($page,'<details class="merdpos-account-context')>=2&&str_contains($page,'data-merdpos-working-user'),'Collapsed Working Client/Working User contexts missing.');
 saf_check(str_contains($page,'M-dark-theme.png')&&str_contains($page,'MERDPOS-dark-theme.png'),'Uploaded dark-theme shell assets are not wired.');
 saf_check(str_contains($theme,"['key'=>'finance','label'=>'Financials'")&&str_contains($provider,"'finance','Financials','Cashflow Transactions'")&&str_contains($routing,"_title: 'Financials'"),'Financials naming contract regressed.');
 echo "MERDPOS application search + compact account context + Financials contract validated.\n";
