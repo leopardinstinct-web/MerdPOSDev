@@ -146,7 +146,6 @@ echo "Drupal Working Now service secret configured.\n";
 php "$LIVE/backend/cli/apply_014_device_token_security.php"
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
 php "$LIVE/backend/cli/validate_drupal_portal_gateway.php"
-php "$LIVE/backend/cli/validate_dev_user_impersonation_v1.php"
 
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
