@@ -306,7 +306,7 @@ beta_contract_require_contains($betaApi, '$user=beta_apply_dev_role_preview($pdo
 beta_contract_require_contains($dashboard, '$permissions = (array)($user[\'permissions\'] ?? []);', 'dashboard consumes universal effective permissions', $errors);
 beta_contract_require_contains($dashboardDataApi, '$effectiveRole = merd_dashboard_user_role($pdo, $user);', 'dashboard data follows effective preview role', $errors);
 beta_contract_require_contains($dashboardDataApi, 'beta_require_permission($user, \'dashboard.configure\', $pdo);', 'cross-role dashboard inspection requires effective configure permission', $errors);
-beta_contract_require_contains($clientContextApi, '$canSelect = beta_actual_user_is_dev($user) && beta_user_is_platform_identity($user);', 'working-client selector is platform DEV-only', $errors);
+beta_contract_require_contains($clientContextApi, '$canSelect = beta_actor_is_platform_dev($user);', 'working-client/user selector is actual platform DEV-only, including an active impersonation context', $errors);
 beta_contract_require_contains($dashboard, '\'actual_role_key\'=>$actualRole', 'DEV presentation preserves actual role metadata', $errors);
 beta_contract_require_contains($betaApi, 'if ($viewRoleKey === \'DEV\')', 'Developer selector restores actual DEV website view', $errors);
 beta_contract_require_contains($dashboardLayoutApi, 'function dashboard_dev_studio_mode', 'actual-DEV dashboard Studio mode resolver', $errors);
