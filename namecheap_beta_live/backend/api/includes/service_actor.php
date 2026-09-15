@@ -77,6 +77,20 @@ function merd_service_actor(PDO $pdo, int $clientId, string $actorUserId): array
     return ['identity_scope'=>'employee','platform_identity'=>null,'employee'=>$actor,'role'=>$role];
 }
 
+function merd_service_employee_actor_by_id(PDO $pdo, int $clientId, int $employeeId): array
+{
+    if ($employeeId <= 0) throw new MerdRequestException('service_actor_unavailable', 403, 'Service actor is unavailable.');
+    $stmt = $pdo->prepare("SELECT user_id FROM employees WHERE id=? AND client_id=? AND status='active' AND UPPER(TRIM(employee_type))<>'DEV' LIMIT 1");
+    $stmt->execute([$employeeId, $clientId]);
+    $userId = trim((string)$stmt->fetchColumn());
+    if ($userId === '') throw new MerdRequestException('service_actor_unavailable', 403, 'Service actor is unavailable.');
+    $actor = merd_service_actor($pdo, $clientId, $userId);
+    if (($actor['identity_scope'] ?? '') !== 'employee' || (int)($actor['employee']['id'] ?? 0) !== $employeeId) {
+        throw new MerdRequestException('service_actor_unavailable', 403, 'Service actor is unavailable.');
+    }
+    return $actor;
+}
+
 function merd_service_role_has_permission(PDO $pdo, int $clientId, array $role, string $permission): bool
 {
     $catalog = merd_portal_permission_catalog();

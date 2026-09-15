@@ -1,0 +1,31 @@
+version: 1
+id: MERD-20260915-dev-user-impersonation-v1
+objective: Replace DEV Working Role preview with secure impersonation of an actual active user from the selected Working Client, preserving the DEV platform identity as the auditable actor.
+branch: feature/backend-dev-user-impersonation-v1
+base_head: cb2f6a29a5efb3695a00e542c022b13e3d83da65
+last_seen_head: cb2f6a29a5efb3695a00e542c022b13e3d83da65
+packet_state: LOCAL_VALIDATED
+lifecycle: WIRED
+scope:
+- Signed gateway employee-context resolution and effective-user reconstruction.
+- Working Client user directory, select-user and exit-user context actions.
+- DEV actor attribution for impersonated writes, including integrated Timesheet disputes.
+- Drupal Working User selector, persistent impersonation banner, DEV-surface guard and exit control.
+constraints:
+- Only the actual platform DEV identity may choose another user context.
+- Impersonation targets must be active, non-DEV employees in the active Working Client.
+- Effective permissions, role/LOA and store scope come from the selected employee; DEV privileges must not bleed into the effective user.
+- Password changes remain unavailable during impersonation.
+- Live write verification is DUMMY-only and must finish with zero residue.
+completed:
+- Backend and Drupal implementation is coded and relevant local source/security validators pass.
+- Deployment scripts include fail-closed impersonation validators.
+checks:
+- Backend impersonation, gateway, platform-identity, beta-state, permission-policy and continuity validators pass.
+- Drupal impersonation, shell, reports/dispute, UI primitive, encoding and JavaScript syntax checks pass locally.
+remaining:
+- Merge and deploy backend first, then Drupal.
+- Run four-role live acceptance and targeted DUMMY user impersonation/dispute/audit/restore verification.
+- Clean the DUMMY fixture and require zero-residue audit.
+next_action: Commit and merge the backend branch, deploy exact SHA, then merge/deploy Drupal and execute live verification.
+updated_at: '2026-09-15T16:45:00+05:00'
