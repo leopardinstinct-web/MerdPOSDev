@@ -195,3 +195,13 @@
 .merdpos-timesheet-action-menu button:hover,.merdpos-timesheet-action-menu button:focus-visible { background:rgba(28,69,135,.07); outline:none; }
 .merdpos-timesheet-action-menu svg { width:1.05rem; height:1.05rem; fill:none; stroke:currentColor; stroke-width:1.8; }
 .merdpos-timesheet-create-help { margin:0; color:var(--rep-muted); line-height:1.45; }
+
+/* Query submission state and selected-shift context. */
+.merdpos-query-sync-badge { margin-left:auto; padding:.22rem .45rem; border-radius:999px; background:color-mix(in srgb,var(--rep-amber) 12%,transparent); color:var(--rep-amber); font-size:.68rem; font-weight:800; white-space:nowrap; }
+.merdpos-query-notice { margin-top:.75rem; padding:.72rem .9rem; border:1px solid color-mix(in srgb,var(--rep-green) 28%,var(--rep-border)); border-radius:.85rem; background:color-mix(in srgb,var(--rep-green) 8%,#fff); color:var(--rep-ink); font-size:.86rem; font-weight:750; }
+.merdpos-query-notice.is-error { border-color:color-mix(in srgb,var(--color-danger) 32%,var(--rep-border)); background:color-mix(in srgb,var(--color-danger) 7%,#fff); }
+.merdpos-query-shift-preview { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.55rem; padding:.75rem; border:1px solid var(--rep-border); border-radius:.9rem; background:var(--color-surface-muted,#f8faff); }
+.merdpos-query-shift-preview > div { min-width:0; display:grid; gap:.2rem; }
+.merdpos-query-shift-preview span { color:var(--rep-muted); font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; }
+.merdpos-query-shift-preview strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.82rem; color:var(--rep-ink); }
+@media (max-width:42rem) { .merdpos-query-shift-preview { grid-template-columns:repeat(2,minmax(0,1fr)); } }

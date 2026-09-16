@@ -21,9 +21,9 @@
     </div>
     <div class="merdpos-page-header__actions merdpos-ops-hero-actions">
       <div class="merdpos-ops-live is-{{ surface.status }}"><span></span><strong>{{ surface.status_label }}</strong><small>Signed MERDPOS service</small></div>
-      <a class="merdpos-ops-dispute-bell" href="{{ path('merdpos_core.reports') }}#merdpos-disputes">
+      <a class="merdpos-ops-dispute-bell" href="{{ path('merdpos_core.reports') }}#merdpos-shift-detail">
         <span class="merdpos-ops-bell-icon">{{ ui.icon('bell') }}</span>
-        <span><strong>{{ surface.pending_dispute_count }}</strong><small>Open disputes</small></span>
+        <span><strong>{{ surface.pending_dispute_count }}</strong><small>Open Queries</small></span>
       </a>
     </div>
   </header>
@@ -75,14 +75,14 @@
     {% endif %}
 
     <article class="merdpos-ops-panel merdpos-ops-panel--disputes" id="operations-disputes">
-      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('message') }}</span><div><h2>Pending disputes</h2><p>{{ surface.role.label }}-scoped attendance correction queue.</p></div><a class="merdpos-ops-panel-link" href="{{ path('merdpos_core.disputes') }}">Open dispute workspace</a></header>
+      <header><span class="merdpos-ops-panel-icon">{{ ui.icon('message') }}</span><div><h2>Pending Queries</h2><p>{{ surface.role.label }}-scoped attendance correction queue.</p></div><a class="merdpos-ops-panel-link" href="{{ path('merdpos_core.reports') }}#merdpos-shift-detail">Open Queries</a></header>
       {% if surface.pending_disputes %}
         <div class="merdpos-ops-disputes">
           {% for item in surface.pending_disputes %}
             <div class="merdpos-ops-dispute"><span class="status is-{{ item.status|lower }}"></span><div><strong>{{ item.employee }}</strong><span>{{ item.type }} · {{ item.store }}</span>{% if item.reason %}<small>{{ item.reason }}</small>{% endif %}</div><time>{{ item.submitted }}</time></div>
           {% endfor %}
         </div>
-      {% else %}<p class="merdpos-ops-empty">No open disputes in your authorized queue.</p>{% endif %}
+      {% else %}<p class="merdpos-ops-empty">No open Queries in your authorized queue.</p>{% endif %}
     </article>
 
     {% if surface.attendance_flags or 'attendance_flags.resolve' in surface.permissions %}

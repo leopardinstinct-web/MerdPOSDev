@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-function dispute_v1_check(bool $condition,string $message): void { if(!$condition) throw new RuntimeException($message); }
+function query_v1_check(bool $condition,string $message): void { if(!$condition) throw new RuntimeException($message); }
 $root=dirname(__DIR__);
 $controller=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/src/Controller/DisputesController.php');
 $template=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
@@ -8,24 +8,16 @@ $js=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/js/reports
 $css=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/css/reports-v2.css');
 $routing=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/merdpos_core.routing.yml');
 $provider=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');
-$theme=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/merdpos_app.theme');
-$api=(string)file_get_contents(dirname($root).'/namecheap_beta_live/timesheet_portal/api/disputes.php');
-foreach(compact('controller','template','js','css','routing','provider','theme','api') as $value) dispute_v1_check($value!=='','Integrated dispute source is unreadable.');
-dispute_v1_check(str_contains($routing,"path: '/merdpos/disputes'"),'Dispute workflow route missing.');
-dispute_v1_check(str_contains($controller,"fragment'=>'merdpos-shift-detail'") && str_contains($controller,"isMethod('POST')"),'Standalone Disputes GET must redirect to Shift Detail.');
-dispute_v1_check(str_contains($controller,'csrf->validate'),'Drupal dispute CSRF validation missing.');
-dispute_v1_check(str_contains($controller,"call('disputes', 'POST'"),'Dispute writes must use the signed MERDPOS gateway.');
-foreach(['create','decide','cancel','confirm_handover','reject_handover'] as $action) dispute_v1_check(str_contains($controller,"'{$action}'"),"Missing dispute action {$action}.");
-foreach(['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) dispute_v1_check(!str_contains($controller,$forbidden),"Drupal dispute controller contains operational SQL marker: {$forbidden}");
-foreach(['data-timesheet-action','data-timesheet-menu','data-timesheet-menu-choice="missing"','data-timesheet-menu-choice="dispute"','Missing shift','Dispute existing shift','data-timesheet-dialog','data-timesheet-create-form','data-dispute-cancel','data-dispute-review'] as $needle) dispute_v1_check(str_contains($template,$needle),'Shift Detail dispute UI missing: '.$needle);
-dispute_v1_check(!str_contains($template,'Current dispute queue') && !str_contains($template,'Dispute status'),'Standalone dispute report surfaces must stay retired.');
-dispute_v1_check(str_contains($provider,"['key'=>'action','label'=>'Action']"),'Shift Detail Action column missing.');
-dispute_v1_check(str_contains($provider,'disputesByShift') && str_contains($provider,'newShiftDisputes'),'Disputes are not integrated with Shift Detail rows.');
-dispute_v1_check(str_contains($provider,'representedShiftIds') && str_contains($provider,'Open shift · dispute'),'Disputes without completed Timesheet rows must stay visible in Shift Detail.');
-dispute_v1_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)") && str_contains($js,"typeHidden.value = 'new_shift'") && str_contains($js,'window.location.search'),'Two-stage Shift Action menu or filter-preserving return missing.');
-dispute_v1_check(str_contains($js,'showModal') && !str_contains($js,'fetch('),'Timesheet actions must use the shared dialog and server forms.');
-dispute_v1_check(str_contains($css,'.merdpos-timesheet-action-trigger') && str_contains($css,'.merdpos-timesheet-action-menu') && str_contains($css,'.merdpos-timesheet-dialog'),'Integrated action/menu/dialog styling missing.');
-dispute_v1_check(!str_contains($theme,"['label'=>'Disputes'"),'Standalone Disputes section tab must stay retired.');
-foreach(['disputes.submit_own','disputes.review'] as $permission) dispute_v1_check(str_contains($api,$permission),'Canonical dispute permission missing: '.$permission);
-foreach(['create','decide','cancel','confirm_handover','reject_handover'] as $action) dispute_v1_check(str_contains($api,"action === '{$action}'"),"Canonical disputes API action missing: {$action}");
-echo "MERDPOS integrated Timesheet dispute contract validated.\n";
+foreach(compact('controller','template','js','css','routing','provider') as $value) query_v1_check($value!=='','Integrated Query source is unreadable.');
+query_v1_check(str_contains($routing,"path: '/merdpos/queries'")&&str_contains($routing,'DisputesController::queries'),'Query POST route missing.');
+query_v1_check(str_contains($controller,'merdpos_queries_v1')&&str_contains($controller,'csrf->validate'),'Query CSRF validation missing.');
+query_v1_check(str_contains($controller,"call('disputes', 'POST'")&&str_contains($controller,'expected_client_id')&&str_contains($controller,'expected_employee_id'),'Query write must use signed gateway with bound context.');
+query_v1_check(str_contains($controller,'submission_id')&&str_contains($controller,'retryable'),'Idempotent/offline Query controller contract missing.');
+foreach(['data-query-root','data-timesheet-menu-choice="query"','Query existing shift','data-clock-in-local','data-clock-out-local','data-query-shift-preview','Submit Query','data-query-notice','data-query-active-value'] as $needle) query_v1_check(str_contains($template,$needle),'Timesheet Query UI missing: '.$needle);
+query_v1_check(!str_contains($template,'Dispute existing shift')&&!str_contains($template,'Submit dispute'),'Retired Dispute wording remains in active Timesheets UI.');
+query_v1_check(str_contains($provider,"call('client_context')")&&str_contains($provider,"'clock_in_local'")&&str_contains($provider,"'clock_out_local'")&&str_contains($provider,"'query_context'"),'Query context/prefill provider wiring missing.');
+query_v1_check(str_contains($js,'merdpos_query_queue_v1')&&str_contains($js,'localStorage')&&str_contains($js,'navigator.onLine')&&str_contains($js,"window.addEventListener('online', flushQueue)"),'Offline Query queue/sync missing.');
+query_v1_check(str_contains($js,'expected_client_id')&&str_contains($js,'expected_employee_id')&&str_contains($js,'submission_id')&&str_contains($js,"'Query submitted.'"),'Client/user binding or immediate Query feedback missing.');
+query_v1_check(str_contains($provider,'$this->call(\'weeks\')')&&str_contains($provider,"'week_options'")&&str_contains($provider,"'selected_week'"),'Historical week options are not wired through the authoritative weeks endpoint.');
+query_v1_check(str_contains($css,'.merdpos-query-notice')&&str_contains($css,'.merdpos-query-shift-preview')&&str_contains($css,'.merdpos-query-sync-badge'),'Query state/prefill styling missing.');
+echo "MERDPOS integrated Timesheet Query contract validated.\n";

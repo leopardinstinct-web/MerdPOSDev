@@ -9,7 +9,7 @@ $page=saf_read($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');
 $routing=saf_read($root.'/web/modules/custom/merdpos_core/merdpos_core.routing.yml');$provider=saf_read($root.'/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');$css=saf_read($root.'/web/themes/custom/merdpos_app/css/app-shell.css');
 saf_check(substr_count($admin,'data-admin-search=')===3 && substr_count($admin,'data-search-text=')>=3,'Administration search contract regressed.');
 saf_check(str_contains($adminJs,'item.dataset.searchText')&&!str_contains($adminJs,'item.textContent.toLowerCase().includes(query)'),'Admin search scans hidden controls.');
-saf_check(str_contains($reports,'data-timesheet-action')&&str_contains($reports,'data-timesheet-dialog')&&str_contains($reportsJs,'openDialog')&&!str_contains($reportsJs,'fetch('),'Timesheet row actions regressed.');
+saf_check(str_contains($reports,'data-timesheet-action')&&str_contains($reports,'data-timesheet-dialog')&&str_contains($reports,'data-timesheet-menu-choice="query"')&&str_contains($reportsJs,'openDialog')&&str_contains($reportsJs,'merdpos_query_queue_v1')&&str_contains($reportsJs,'fetch(root.dataset.queryPostUrl'),'Timesheet Query row actions/offline submit contract regressed.');
 saf_check(str_contains($page,'data-merdpos-theme-toggle')&&str_contains($page,'data-merdpos-theme-label')&&!str_contains($page,'class="merdpos-account-theme"'),'Authenticated theme must be the compact icon action.');
 saf_check(str_contains($page,'merdpos-theme-control--login'),'Login theme control must remain available.');
 saf_check(!str_contains($page,'merdpos-account-brand-glass'),'Account-menu brand glass must not return.');

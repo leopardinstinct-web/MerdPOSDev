@@ -140,10 +140,13 @@ final class AccountController extends ControllerBase {
     if (($contextResult['status'] ?? '') !== 'ok' || empty($context['can_select_user']) || strtoupper((string) ($context['actual_role'] ?? '')) !== 'DEV') {
       throw new AccessDeniedHttpException('Only the actual DEV identity can select a Working User.');
     }
+    $activeClientId = (int) ($context['active_client_id'] ?? 0);
+    if ($activeClientId <= 0) return new JsonResponse(['success'=>false, 'error'=>'Choose a Working Client before selecting a Working User.'], 409);
     if ((int) $employeeId === 0) {
       $result = $this->gateway->call('client_context', 'POST', [], ['action'=>'exit_user']);
       $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
       if (($result['status'] ?? '') !== 'ok' || empty($payload['success'])) return $this->gatewayError($result, $payload, 'Working User could not be cleared.');
+      $request->getSession()->set('merdpos_context_client_id', $activeClientId);
       $request->getSession()->remove('merdpos_context_employee_id');
       $request->getSession()->remove('merdpos_context_role_key');
       return new JsonResponse(['success'=>true, 'employee_id'=>0, 'message'=>'Returned to the Developer identity.']);
@@ -156,11 +159,12 @@ final class AccountController extends ControllerBase {
     $result = $this->gateway->call('client_context', 'POST', [], ['action'=>'select_user', 'employee_id'=>(int) $employeeId]);
     $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
     if (($result['status'] ?? '') !== 'ok' || empty($payload['success'])) return $this->gatewayError($result, $payload, 'Working User could not be changed.');
+    $request->getSession()->set('merdpos_context_client_id', $activeClientId);
     $request->getSession()->set('merdpos_context_employee_id', (int) $employeeId);
     $request->getSession()->remove('merdpos_context_role_key');
     $name = trim((string) ($selected['full_name'] ?? $selected['user_id'] ?? ('User ' . $employeeId)));
     $role = trim((string) ($selected['role_label'] ?? $selected['role_key'] ?? 'User'));
-    return new JsonResponse(['success'=>true, 'employee_id'=>(int) $employeeId, 'user'=>$selected, 'message'=>'Viewing MERDPOS as ' . $name . ' (' . $role . ').']);
+    return new JsonResponse(['success'=>true, 'active_client_id'=>$activeClientId, 'employee_id'=>(int) $employeeId, 'user'=>$selected, 'message'=>'Viewing MERDPOS as ' . $name . ' (' . $role . ').']);
   }
 
   public function syncGoogleTimeSheet(): JsonResponse {

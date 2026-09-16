@@ -14,13 +14,13 @@
   <header class="merdpos-page-header merdpos-disputes-hero">
     <div class="merdpos-page-header__copy">
       <p class="merdpos-page-header__eyebrow merdpos-eyebrow">MERDPOS / ATTENDANCE</p>
-      <h1 class="merdpos-page-header__title" id="merdpos-disputes-title">Disputes</h1>
+      <h1 class="merdpos-page-header__title" id="merdpos-disputes-title">Queries</h1>
       <p class="merdpos-page-header__description">Attendance corrections stay pending until MERDPOS applies the authorised workflow. Drupal never edits a shift directly.</p>
     </div>
     <a class="merdpos-page-header__actions merdpos-disputes-back" href="{{ path('merdpos_core.operations') }}">Back to Operations</a>
   </header>
 
-  <div class="merdpos-disputes-kpis merdpos-ui-kpi-grid merdpos-ui-kpi-grid--cards" data-kpi-count="{{ can_resolve_flags ? 4 : 3 }}" aria-label="Dispute summary">
+  <div class="merdpos-disputes-kpis merdpos-ui-kpi-grid merdpos-ui-kpi-grid--cards" data-kpi-count="{{ can_resolve_flags ? 4 : 3 }}" aria-label="Query summary">
     <article><span>Open</span><strong>{{ counts.open|default(0) }}</strong><small>Pending or awaiting employee</small></article>
     <article><span>Review queue</span><strong>{{ counts.pending|default(0) }}</strong><small>Ready for authorised decision</small></article>
     <article><span>Awaiting employee</span><strong>{{ counts.awaiting|default(0) }}</strong><small>Handover confirmation required</small></article>
@@ -45,17 +45,17 @@
       <label data-dispute-in hidden><span>Requested clock-in</span><input type="datetime-local" name="requested_clock_in"></label>
       <label data-dispute-out><span>Requested clock-out</span><input type="datetime-local" name="requested_clock_out"></label>
       <label class="is-wide"><span>Reason</span><textarea name="reason" minlength="5" maxlength="1000" required placeholder="Explain what needs correcting and why."></textarea></label>
-      <div class="merdpos-dispute-form-note is-wide"><strong>Approval controls the attendance record.</strong><span>Submitting this form creates a dispute only. Payroll/timesheet rules are unchanged until the authoritative MERDPOS approval service applies the correction.</span></div>
+      <div class="merdpos-dispute-form-note is-wide"><strong>Approval controls the attendance record.</strong><span>Submitting this form creates a Query only. Payroll/timesheet rules are unchanged until the authoritative MERDPOS approval service applies the correction.</span></div>
       <div class="merdpos-dispute-actions is-wide"><button type="submit">Send for approval</button></div>
     </form>
   </section>
   {% endif %}
 
   <section class="merdpos-disputes-panel merdpos-disputes-queue">
-    <header class="merdpos-disputes-queue-head"><span class="merdpos-disputes-icon">{{ ui.icon('message') }}</span><div><h2>{{ can_review ? 'Review queue' : 'My disputes' }}</h2><p>{{ can_review ? 'Approve or reject pending attendance corrections.' : 'Track your submitted attendance corrections.' }}</p></div></header>
+    <header class="merdpos-disputes-queue-head"><span class="merdpos-disputes-icon">{{ ui.icon('message') }}</span><div><h2>{{ can_review ? 'Review queue' : 'My Queries' }}</h2><p>{{ can_review ? 'Approve or reject pending attendance corrections.' : 'Track your submitted attendance corrections.' }}</p></div></header>
     <div class="merdpos-disputes-toolbar">
       <label><span class="merdpos-disputes-search-icon">{{ ui.icon('search') }}</span><input type="search" data-dispute-search placeholder="Search employee, store, issue or reason"></label>
-      <div class="merdpos-disputes-filters" role="group" aria-label="Filter disputes">
+      <div class="merdpos-disputes-filters" role="group" aria-label="Filter Queries">
         <button type="button" class="is-active" data-dispute-filter="all">All</button><button type="button" data-dispute-filter="open">Open</button><button type="button" data-dispute-filter="approved">Approved</button><button type="button" data-dispute-filter="rejected">Rejected</button>
       </div>
     </div>
@@ -79,7 +79,7 @@
           <div><button type="submit" name="decision" value="approved" class="is-approve">Approve</button><button type="submit" name="decision" value="rejected" class="is-reject">Reject</button></div>
         </form>
         {% elseif can_submit and not can_review and dispute.status == 'pending' %}
-        <form method="post" action="{{ post_url }}" class="merdpos-dispute-inline-action" data-confirm="Cancel this pending dispute?">
+        <form method="post" action="{{ post_url }}" class="merdpos-dispute-inline-action" data-confirm="Cancel this pending Query?">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="dispute_action" value="cancel"><input type="hidden" name="dispute_id" value="{{ dispute.id }}"><button type="submit" class="is-reject">Cancel request</button>
         </form>
         {% elseif can_submit and dispute.status == 'awaiting_employee' and dispute.origin == 'pos_handover' %}
@@ -93,7 +93,7 @@
         </div>
         {% endif %}
       </article>
-      {% else %}<div class="merdpos-disputes-empty">No disputes are visible in your authorised queue.</div>{% endfor %}
+      {% else %}<div class="merdpos-disputes-empty">No Queries are visible in your authorised queue.</div>{% endfor %}
     </div>
   </section>
 
