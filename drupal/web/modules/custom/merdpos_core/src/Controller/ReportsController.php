@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReportsController extends ControllerBase {
 
-  private const DISPUTE_CSRF_ID = 'merdpos_disputes_v1';
+  private const QUERY_CSRF_ID = 'merdpos_queries_v1';
 
   public function __construct(
     private readonly ParityDataProviderInterface $parity,
@@ -43,8 +43,8 @@ final class ReportsController extends ControllerBase {
       '#surface' => $surface,
       '#charts' => $this->chartBuilder->build($surface['chart_specs'] ?? []),
       '#export_url' => $exportUrl,
-      '#form_token' => $this->csrf->get(self::DISPUTE_CSRF_ID),
-      '#dispute_post_url' => Url::fromRoute('merdpos_core.disputes')->toString(),
+      '#form_token' => $this->csrf->get(self::QUERY_CSRF_ID),
+      '#query_post_url' => Url::fromRoute('merdpos_core.queries')->toString(),
       '#attached' => ['library' => ['merdpos_core/reports']],
       '#cache' => [
         'contexts' => ['user','url.query_args:week_start'],

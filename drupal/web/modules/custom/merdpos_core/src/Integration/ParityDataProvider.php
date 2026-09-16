@@ -445,7 +445,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $metrics = [
       $this->metric('Working now', (string) count($workingPeople), $canViewWorkforce ? 'Open shifts in selected scope' : 'Your current open shift', 'info'),
-      $this->metric('Pending disputes', (string) count($pendingDisputes), $canReviewDisputes ? 'Awaiting management review' : 'Your open requests', 'warning'),
+      $this->metric('Pending Queries', (string) count($pendingDisputes), $canReviewDisputes ? 'Awaiting management review' : 'Your open requests', 'warning'),
       $this->metric('Late starts', (string) count($lateRows), (string) ($report['week_label'] ?? $currentWeek ?: 'Current week'), count($lateRows) > 0 ? 'warning' : 'success'),
     ];
     if ($canResolveFlags || $flagRows) {
@@ -480,11 +480,11 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $surface = $this->surface(
       'operations', 'Operations', 'Operations & HR command centre',
-      'Role-aware workforce, attendance, disputes and store operations from authoritative MERDPOS Beta services.',
+      'Role-aware workforce, attendance, Queries and store operations from authoritative MERDPOS Beta services.',
       $this->status([$state['status'], $dashboard['status'], $disputes['status']]),
       $metrics, [],
       [
-        'source' => 'beta_state + dashboard_data + disputes + authoritative timesheet + permission-scoped management APIs',
+        'source' => 'beta_state + dashboard_data + queries + authoritative timesheet + permission-scoped management APIs',
         'week' => (string) ($report['week_label'] ?? $currentWeek),
       ],
       $filters,
@@ -512,6 +512,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
   private function reports(array $query): array {
     $dashboard = $this->call('dashboard_data');
     $state = $this->call('beta_state');
+    $context = $this->call('client_context');
     $weeks = $this->call('weeks');
     $weekRows = $this->rows($weeks['payload']['weeks'] ?? []);
     $currentWeek = (string)($weeks['payload']['current_week'] ?? '');
@@ -525,6 +526,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $payrollVisible = (bool)($report['payroll_visible'] ?? false);
     $currency = (string)($dashboard['payload']['client_defaults']['currency_code'] ?? 'AUD');
     $statePayload = $this->map($state['payload'] ?? []);
+    $contextPayload = $this->map($context['payload'] ?? []);
     $timezone = (string)($statePayload['client_defaults']['timezone'] ?? $dashboard['payload']['client_defaults']['timezone'] ?? 'Australia/Sydney');
     $recentShiftsById = [];
     foreach ($this->rows($statePayload['recent_shifts'] ?? []) as $recentShift) {
@@ -537,6 +539,9 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $loa = (int)($role['authority_level'] ?? 0);
     $permissions = $this->permissionKeys($statePayload['permissions'] ?? []);
     $currentUserId = (string)($statePayload['current_user_id'] ?? '');
+    $effectiveContextUser = $this->map($contextPayload['effective_user'] ?? []);
+    $queryContextClientId = (int)($contextPayload['active_client_id'] ?? 0);
+    $queryContextEmployeeId = (int)($effectiveContextUser['id'] ?? 0);
     $canViewPeople = in_array('workforce.view', $permissions, true);
     $canSubmitOwn = in_array('disputes.submit_own', $permissions, true);
     $canReview = in_array('disputes.review', $permissions, true);
@@ -554,7 +559,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
           'employee'=>$employeeName,'employee_user_id'=>$employeeUserId,
           'employee_id'=>(int)($row['employee_id'] ?? 0),'store_id'=>(int)($row['store_id'] ?? 0),'shift_id'=>(string)($row['shift_id'] ?? ''),
           'store'=>(string)($row['store_name'] ?? ''),
-          'date'=>(string)($row['in_date'] ?? ''),
+          'date'=>(string)($row['in_date'] ?? ''),'out_date'=>(string)($row['out_date'] ?? $row['in_date'] ?? ''),
           'in'=>$this->clock((string)($row['actual_in_time'] ?? '')),
           'out'=>$this->clock((string)($row['actual_out_time'] ?? '')),
           'hours'=>(float)($row['total_hours'] ?? 0),
@@ -659,12 +664,19 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       if ($shiftId !== '') $representedShiftIds[$shiftId] = true;
       $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
       $isOwn = $currentUserId !== '' && hash_equals($currentUserId, (string)($row['employee_user_id'] ?? ''));
+      $recent = $shiftId !== '' ? ($recentShiftsById[$shiftId] ?? []) : [];
+      $shiftTimezone = (string)($recent['timezone'] ?? $timezone);
+      $inParts = $this->localDateTimeParts($recent['clock_in_at'] ?? '', $shiftTimezone);
+      $outParts = $this->localDateTimeParts($recent['clock_out_at'] ?? '', $shiftTimezone);
+      $clockInLocal = $inParts['date'] !== '' && $inParts['time'] !== '—' ? $inParts['date'] . 'T' . $inParts['time'] : ((string)$row['date'] !== '' && (string)$row['in'] !== '—' ? (string)$row['date'] . 'T' . (string)$row['in'] : '');
+      $clockOutLocal = $outParts['date'] !== '' && $outParts['time'] !== '—' ? $outParts['date'] . 'T' . $outParts['time'] : ((string)($row['out_date'] ?? $row['date']) !== '' && (string)$row['out'] !== '—' ? (string)($row['out_date'] ?? $row['date']) . 'T' . (string)$row['out'] : '');
       $item = [
         'employee'=>$row['employee'],'store'=>$row['store'],'date'=>$row['date'],'in'=>$row['in'],'out'=>$row['out'],
         'hours'=>$this->number($row['hours']),'start'=>$row['start'],
         'action'=>[
-          'shift_id'=>$shiftId,'store_id'=>(int)($row['store_id'] ?? 0),'employee'=>(string)$row['employee'],'date'=>(string)$row['date'],
-          'in'=>(string)$row['in'],'out'=>(string)$row['out'],'can_dispute'=>$canSubmitOwn && $isOwn && $shiftId !== '',
+          'shift_id'=>$shiftId,'store_id'=>(int)($row['store_id'] ?? 0),'store'=>(string)$row['store'],'employee'=>(string)$row['employee'],'date'=>(string)$row['date'],
+          'in'=>(string)$row['in'],'out'=>(string)$row['out'],'clock_in_local'=>$clockInLocal,'clock_out_local'=>$clockOutLocal,
+          'can_dispute'=>$canSubmitOwn && $isOwn && $shiftId !== '',
           'can_add_missing'=>$canSubmitOwn && $isOwn,'dispute'=>$dispute,
         ],
       ];
@@ -682,7 +694,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
         if ($selectedWeek !== '' && ($parts['date'] < $selectedWeek || $parts['date'] > $selectedWeekEnd)) continue;
         $outParts = $this->localDateTimeParts($recent['clock_out_at'] ?? $row['clock_out_at'] ?? '', (string)($recent['timezone'] ?? $timezone));
         $detail = $presentDispute($row);
-        $item = ['employee'=>(string)($row['full_name'] ?? ''),'store'=>(string)($row['store_name'] ?? ''),'date'=>$parts['date'],'in'=>$parts['time'],'out'=>$outParts['time'],'hours'=>'—','start'=>strtolower((string)($recent['status'] ?? '')) === 'open' ? 'Open shift · dispute' : 'Dispute status',
+        $item = ['employee'=>(string)($row['full_name'] ?? ''),'store'=>(string)($row['store_name'] ?? ''),'date'=>$parts['date'],'in'=>$parts['time'],'out'=>$outParts['time'],'hours'=>'—','start'=>strtolower((string)($recent['status'] ?? '')) === 'open' ? 'Open shift · query' : 'Query status',
           'action'=>['shift_id'=>$shiftId,'store_id'=>0,'employee'=>(string)($row['full_name'] ?? ''),'date'=>$parts['date'],'in'=>$parts['time'],'out'=>$outParts['time'],'can_dispute'=>false,'can_add_missing'=>false,'dispute'=>$detail],];
         if ($payrollVisible) $item['wage']='—';
         $shiftTable[]=$item; $representedShiftIds[$shiftId]=true;
@@ -727,7 +739,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>'Payroll (' . $currency . ')'];
     $shiftMetric = $this->metric('Shifts',(string)count($filteredShifts),'Selected payroll week summary','success');
     $shiftMetric['lines'] = $shiftLines;
-    $queryMetric = $this->metric('Queries',(string)$openDisputes,'Dispute/query outcomes','warning');
+    $queryMetric = $this->metric('Queries',(string)$openDisputes,'Query outcomes','warning');
     $queryMetric['lines'] = [
       ['value'=>(string)$openDisputes,'label'=>'Active'],
       ['value'=>(string)$rejectedQueries,'label'=>'Rejected'],
@@ -744,11 +756,11 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $surface = $this->surface(
       'reports','Reports','Attendance & Payroll',
-      'Track attendance, review and process wages, and raise or resolve pay disputes. Full history, clear records, and accurate results.',
-      $this->status([$dashboard['status'],$state['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
+      'Track attendance, review and process wages, and raise or resolve Timesheet queries. Full history, clear records, and accurate results.',
+      $this->status([$dashboard['status'],$state['status'],$context['status'],$weeks['status'],$timesheet['status'],$disputes['status']]),
       $metrics,
       $groups,
-      ['source'=>'dashboard_data + weeks + authoritative timesheet + disputes','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
+      ['source'=>'dashboard_data + authoritative weeks + timesheet + queries','payroll_visible'=>$payrollVisible ? 'yes' : 'no','scope'=>(string)($report['scope'] ?? '')],
       [],
     );
     $surface['week_options'] = array_map(fn(array $row): array => ['value'=>(string)($row['value'] ?? ''),'label'=>$this->weekRangeLabel((string)($row['value'] ?? ''))],$weekRows);
@@ -770,6 +782,13 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $surface['timesheet_can_submit_own'] = $canSubmitOwn;
     $surface['timesheet_can_review'] = $canReview;
     $surface['query_counts'] = ['active'=>$openDisputes,'closed'=>$closedQueries,'rejected'=>$rejectedQueries];
+    $surface['query_context'] = [
+      'client_id'=>$queryContextClientId,
+      'employee_id'=>$queryContextEmployeeId,
+      'impersonating'=>!empty($contextPayload['impersonating']),
+      'client_name'=>(string)($contextPayload['client']['name'] ?? ''),
+      'employee_name'=>(string)($effectiveContextUser['full_name'] ?? ''),
+    ];
     return $surface;
   }
 

@@ -30,11 +30,20 @@ merdpos_core.operations:
   requirements:
     _permission: 'access merdpos portal'
 
+merdpos_core.queries:
+  path: '/merdpos/queries'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\DisputesController::queries'
+    _title: 'Queries'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
 merdpos_core.disputes:
   path: '/merdpos/disputes'
   defaults:
     _controller: 'Drupal\merdpos_core\Controller\DisputesController::disputes'
-    _title: 'Disputes'
+    _title: 'Queries'
   requirements:
     _permission: 'access merdpos portal'
   methods: [GET, POST]
