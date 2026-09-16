@@ -96,6 +96,8 @@ echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Drupal generalized portal ga
 php "$REPO/namecheap_beta_live/backend/cli/validate_drupal_portal_gateway.php"
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating DEV real-user impersonation contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_dev_user_impersonation_v1.php"
+echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating Timesheet Query workflow contract"
+php "$REPO/namecheap_beta_live/backend/cli/validate_query_workflow_v1.php"
 
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating portal multi-tenant login + DUMMY preflight contract"
 php "$REPO/namecheap_beta_live/backend/cli/validate_portal_multitenant_login.php"
@@ -202,6 +204,7 @@ php "$LIVE/backend/cli/validate_dashboard_write_audit.php"
 php "$LIVE/backend/cli/validate_atomic_store_write.php"
 php "$LIVE/backend/cli/validate_platform_dev_identity_v1.php"
 php "$LIVE/backend/cli/validate_dev_user_impersonation_v1.php"
+php "$LIVE/backend/cli/validate_query_workflow_v1.php"
 
 # Live-copy gate. The marker is not written unless the canonical design/runtime
 # contract survived rsync to Namecheap.
@@ -254,6 +257,7 @@ for live_file in \
   "$LIVE/backend/cli/validate_drupal_working_now_service.php" \
   "$LIVE/backend/cli/validate_drupal_portal_gateway.php" \
   "$LIVE/backend/cli/validate_dev_user_impersonation_v1.php" \
+  "$LIVE/backend/cli/validate_query_workflow_v1.php" \
   "$LIVE/backend/README.md"; do
   if [[ ! -r "$live_file" ]]; then
     echo "ERROR: required live beta runtime/README file missing after deploy: $(basename "$live_file")" >&2
