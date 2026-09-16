@@ -297,15 +297,31 @@ function merd_create_dispute(
     ?int $proposedStoreId,
     string $reason,
     string $initialStatus = 'pending',
-    string $origin = 'employee'
+    string $origin = 'employee',
+    ?string $submissionId = null
 ): array {
     $allowed = ['missing_out', 'wrong_in', 'wrong_out', 'wrong_store', 'delete_shift', 'new_shift', 'other'];
     if (!in_array($type, $allowed, true) || !in_array($initialStatus, ['awaiting_employee','pending'], true)
         || !in_array($origin, ['employee','pos_handover'], true) || strlen($reason) < 5 || strlen($reason) > 1000) {
-        throw new MerdWorkforceException('invalid_dispute', 'Provide a dispute type and a clear reason.');
+        throw new MerdWorkforceException('invalid_dispute', 'Provide a query type and a clear reason.');
+    }
+    if ($submissionId !== null && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $submissionId)) {
+        throw new MerdWorkforceException('invalid_submission', 'Invalid query submission reference.');
     }
     $pdo->beginTransaction();
     try {
+        if ($submissionId !== null) {
+            $existingSubmission = $pdo->prepare('SELECT public_id,client_id,employee_id,status FROM attendance_disputes WHERE public_id=? LIMIT 1 FOR UPDATE');
+            $existingSubmission->execute([$submissionId]);
+            $existingRow = $existingSubmission->fetch(PDO::FETCH_ASSOC);
+            if (is_array($existingRow)) {
+                if ((int)$existingRow['client_id'] !== (int)$employee['client_id'] || (int)$existingRow['employee_id'] !== (int)$employee['id']) {
+                    throw new MerdWorkforceException('submission_conflict', 'Query submission reference conflict.');
+                }
+                $pdo->commit();
+                return ['dispute_id'=>(string)$existingRow['public_id'],'status'=>(string)$existingRow['status'],'duplicate'=>true];
+            }
+        }
         $shift = null;
         if ($type === 'new_shift') {
             if (!$proposedStoreId || !$requestedInUtc || !$requestedOutUtc
@@ -329,7 +345,7 @@ function merd_create_dispute(
             $existing = $pending->fetch(PDO::FETCH_ASSOC);
             if (is_array($existing)) { $pdo->commit(); return ['dispute_id'=>$existing['public_id'],'status'=>$existing['status'],'duplicate'=>true]; }
         }
-        $publicId = merd_uuid_v4();
+        $publicId = $submissionId ?? merd_uuid_v4();
         $before = json_encode($shift ? ['clock_in_at'=>$shift['clock_in_at'],'clock_out_at'=>$shift['clock_out_at'],'store_id'=>(int)$shift['store_id'],'status'=>$shift['status']] : ['proposal'=>true], JSON_THROW_ON_ERROR);
         $insert = $pdo->prepare(
             'INSERT INTO attendance_disputes '
@@ -382,8 +398,8 @@ function merd_cancel_dispute(PDO $pdo,array $employee,string $disputeId): array
     try{
         $stmt=$pdo->prepare("SELECT id,status FROM attendance_disputes WHERE public_id=? AND client_id=? AND employee_id=? FOR UPDATE");
         $stmt->execute([$disputeId,(int)$employee['client_id'],(int)$employee['id']]);$row=$stmt->fetch(PDO::FETCH_ASSOC);
-        if(!is_array($row)) throw new MerdWorkforceException('dispute_not_found','Dispute not found.');
-        if(!in_array($row['status'],['awaiting_employee','pending'],true)) throw new MerdWorkforceException('dispute_not_pending','Only an open dispute can be cancelled.');
+        if(!is_array($row)) throw new MerdWorkforceException('dispute_not_found','Query not found.');
+        if(!in_array($row['status'],['awaiting_employee','pending'],true)) throw new MerdWorkforceException('dispute_not_pending','Only an open Query can be cancelled.');
         $pdo->prepare("UPDATE attendance_disputes SET status='cancelled',decided_at=UTC_TIMESTAMP(),decision_note='Cancelled by employee' WHERE id=?")->execute([(int)$row['id']]);
         merd_sheet_outbox($pdo,(int)$employee['client_id'],'dispute_audit','attendance_dispute',$disputeId.':cancelled',['dispute_id'=>$disputeId,'employee_name'=>$employee['full_name'],'status'=>'cancelled','decided_by'=>$employee['full_name'],'decided_at_utc'=>gmdate('Y-m-d H:i:s'),'decision_note'=>'Cancelled by employee']);
         $pdo->commit();return ['dispute_id'=>$disputeId,'status'=>'cancelled'];
@@ -396,7 +412,7 @@ function merd_confirm_handover_dispute(PDO $pdo,array $employee,string $disputeI
     try{
         $stmt=$pdo->prepare("SELECT id,status,origin FROM attendance_disputes WHERE public_id=? AND client_id=? AND employee_id=? FOR UPDATE");
         $stmt->execute([$disputeId,(int)$employee['client_id'],(int)$employee['id']]);$row=$stmt->fetch(PDO::FETCH_ASSOC);
-        if(!is_array($row)||$row['origin']!=='pos_handover') throw new MerdWorkforceException('dispute_not_found','Handover dispute not found.');
+        if(!is_array($row)||$row['origin']!=='pos_handover') throw new MerdWorkforceException('dispute_not_found','Handover Query not found.');
         if($row['status']!=='awaiting_employee'){$pdo->commit();return ['dispute_id'=>$disputeId,'status'=>$row['status'],'duplicate'=>true];}
         $status=$confirmed?'pending':'cancelled';$note=$confirmed?'Confirmed by employee; sent to SUPER':'Employee said the handover report is incorrect';
         if($confirmed) $pdo->prepare("UPDATE attendance_disputes SET status='pending',employee_confirmed_at=UTC_TIMESTAMP(),decided_at=NULL,decision_note=? WHERE id=?")->execute([$note,(int)$row['id']]);
@@ -415,7 +431,7 @@ function merd_decide_dispute(PDO $pdo, array $super, string $disputePublicId, st
         throw new MerdWorkforceException('forbidden', 'SUPER approval is required.');
     }
     if (!in_array($decision, ['approved', 'rejected'], true) || strlen($note) > 1000) {
-        throw new MerdWorkforceException('invalid_decision', 'Invalid dispute decision.');
+        throw new MerdWorkforceException('invalid_decision', 'Invalid Query decision.');
     }
     $pdo->beginTransaction();
     try {
@@ -428,7 +444,7 @@ function merd_decide_dispute(PDO $pdo, array $super, string $disputePublicId, st
         );
         $stmt->execute([$disputePublicId, (int)$super['client_id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($row)) throw new MerdWorkforceException('dispute_not_found', 'Dispute not found.');
+        if (!is_array($row)) throw new MerdWorkforceException('dispute_not_found', 'Query not found.');
         if ($row['status'] !== 'pending') {
             $pdo->commit();
             return ['dispute_id' => $disputePublicId, 'status' => $row['status'], 'duplicate' => true];

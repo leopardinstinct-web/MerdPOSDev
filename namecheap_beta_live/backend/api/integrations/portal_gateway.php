@@ -94,6 +94,9 @@ try {
     if (!$isPlatform && $contextRoleKey !== $baseRole) throw new MerdRequestException('forbidden',403,'Client employees cannot select another role context.');
     if ($isPlatform) {
         $platform=$actor['platform_identity'];
+        if ($contextEmployeeId !== null && $contextClientId === null) {
+            throw new MerdRequestException('invalid_context',409,'Working User context requires an explicit Working Client context.');
+        }
         if ($contextClientId === null) {
             $preferred=merd_platform_identity_selected_client($pdo,(int)$platform['id']);
             $contextClientId=$preferred ?: (int)$service['client_id'];

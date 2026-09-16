@@ -21,6 +21,18 @@ try {
 
     if ($action === 'create') {
         beta_require_permission($user, 'disputes.submit_own', $pdo);
+        $expectedClient = filter_var($input['expected_client_id'] ?? null, FILTER_VALIDATE_INT);
+        $expectedEmployee = filter_var($input['expected_employee_id'] ?? null, FILTER_VALIDATE_INT);
+        if (array_key_exists('expected_client_id', $input) && ($expectedClient === false || $expectedClient <= 0)) {
+            throw new MerdWorkforceException('invalid_query_context', 'Invalid Query client context.');
+        }
+        if (array_key_exists('expected_employee_id', $input) && ($expectedEmployee === false || $expectedEmployee <= 0)) {
+            throw new MerdWorkforceException('invalid_query_context', 'Invalid Query user context.');
+        }
+        if (($expectedClient !== false && $expectedClient !== null && (int)$expectedClient !== (int)$user['client_id'])
+            || ($expectedEmployee !== false && $expectedEmployee !== null && (int)$expectedEmployee !== (int)$user['id'])) {
+            throw new MerdWorkforceException('query_context_changed', 'Working Client or Working User changed. Reload Timesheets before submitting this Query.');
+        }
         $helperUser['employee_type'] = 'USER';
         $helperUser['role_name'] = 'USER';
         $result = merd_create_dispute(
@@ -29,7 +41,8 @@ try {
             parse_utc_datetime($input['requested_clock_in'] ?? null),
             parse_utc_datetime($input['requested_clock_out'] ?? null),
             isset($input['proposed_store_id']) && $input['proposed_store_id']!=='' ? (int)$input['proposed_store_id'] : null,
-            trim((string)($input['reason'] ?? ''))
+            trim((string)($input['reason'] ?? '')), 'pending', 'employee',
+            trim((string)($input['submission_id'] ?? '')) ?: null
         );
     } elseif ($action === 'decide') {
         beta_require_permission($user, 'disputes.review', $pdo);
@@ -60,7 +73,7 @@ try {
         $helperUser['role_name'] = 'USER';
         $result=merd_confirm_handover_dispute($pdo,$helperUser,trim((string)($input['dispute_id']??'')),false);
     } else {
-        throw new MerdWorkforceException('invalid_action', 'Invalid dispute action.');
+        throw new MerdWorkforceException('invalid_action', 'Invalid Query action.');
     }
     if (beta_actor_is_platform_dev($user) && !empty($user['is_user_impersonation'])) {
         $auditId=(string)($result['dispute_id'] ?? $input['dispute_id'] ?? '');

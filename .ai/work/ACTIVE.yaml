@@ -1,7 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-15T16:45:00+05:00'
+updated_at: '2026-09-16T11:30:00+05:00'
 active:
+- id: MERD-20260916-query-workflow-repair-v1
+  path: .ai/work/active/MERD-20260916-query-workflow-repair-v1.yaml
+  lifecycle: WIRED
+  packet_state: LOCAL_VALIDATED
 - id: MERD-20260915-dev-user-impersonation-v1
   path: .ai/work/active/MERD-20260915-dev-user-impersonation-v1.yaml
   lifecycle: WIRED
