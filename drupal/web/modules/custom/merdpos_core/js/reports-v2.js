@@ -58,6 +58,15 @@
     if (typeof form.requestSubmit === 'function') form.requestSubmit(); else form.submit();
   });
 
+  const viewSearch = q('[data-timesheet-view-search]');
+  const applyViewSearch = () => {
+    const term = (viewSearch?.value || '').trim().toLocaleLowerCase();
+    qa('.merdpos-reports-groups tbody tr').forEach((row) => {
+      row.hidden = term !== '' && !row.textContent.toLocaleLowerCase().includes(term);
+    });
+  };
+  viewSearch?.addEventListener('input', applyViewSearch);
+
   const closeMenu = () => {
     if (!menu) return;
     menu.hidden = true;
