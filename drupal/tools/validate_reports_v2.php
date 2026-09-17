@@ -111,7 +111,7 @@ $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/m
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['>PDF<','data-timesheet-week-select','data-timesheet-view-search','Search current view','>Select View<',"ui.icon('download')",'Missing shift','Cancel Query'] as $needle) {
+foreach (['>PDF<','data-timesheet-week-select','data-timesheet-view-search','Filter current view','>Select View<',"ui.icon('download')",'Missing shift','Cancel Query'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
 reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must not expose Export CSV.');
