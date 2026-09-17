@@ -31,6 +31,10 @@
 .merdpos-reports-week-form label { display:grid; gap:.35rem; }
 .merdpos-reports-week-form label > span { color:var(--color-text-muted); font-size:var(--type-xs); font-weight:var(--weight-bold); letter-spacing:.04em; text-transform:none; }
 .merdpos-reports-week-form select { width:100%; }
+.merdpos-reports-search { display:grid; gap:.35rem; }
+.merdpos-reports-search > span { color:var(--color-text-muted); font-size:var(--type-xs); font-weight:var(--weight-bold); letter-spacing:.04em; }
+.merdpos-reports-search input { width:100%; min-height:2.8rem; }
+.merdpos-reports-print-action { margin-top:.55rem; }
 .merdpos-reports-print-action svg { width:1.2rem; height:1.2rem; fill:currentColor; stroke:none; flex:0 0 auto; }
 .merdpos-reports-filters { display: grid; grid-template-columns: minmax(13rem,1.25fr) repeat(4,minmax(10rem,.7fr)) auto; gap: .8rem; align-items: end; padding: 1rem 1.15rem; border: 1px solid var(--rep-border); border-radius: 1.4rem; background: #fff; box-shadow: 0 .7rem 2rem rgba(24,54,98,.06); }
 .merdpos-reports-filter-intro { align-self: center; min-width: 0; }
@@ -56,11 +60,6 @@
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:color-mix(in srgb,var(--color-brand-cyan) 88%,var(--color-text-primary)); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:var(--color-success); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-label { color:var(--color-danger); }
-.merdpos-reports-note { display: grid; grid-template-columns: auto 1fr; gap: .85rem; align-items: start; padding: 1rem 1.15rem; border: 1px solid rgba(35,166,168,.2); border-radius: 1.25rem; background: linear-gradient(135deg,rgba(35,166,168,.07),rgba(28,69,135,.035)); color: var(--rep-ink); }
-.merdpos-reports-note > span { display: grid; place-items: center; width: 2.7rem; height: 2.7rem; border-radius: .9rem; background: rgba(35,166,168,.11); color: var(--rep-cyan); }
-.merdpos-reports-note svg { width: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.merdpos-reports-note strong { display: block; margin-bottom: .15rem; }
-.merdpos-reports-note p { margin: 0; color: var(--rep-muted); line-height: 1.45; }
 .merdpos-reports-charts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
 .merdpos-report-chart-card, .merdpos-report-table-card { overflow: hidden; border: 1px solid var(--rep-border); border-radius: 1.5rem; background: #fff; box-shadow: 0 .9rem 2.5rem rgba(24,54,98,.06); }
 .merdpos-report-chart-card > header, .merdpos-report-table-card > header { display: flex; align-items: center; gap: .75rem; min-height: 4.7rem; padding: 1rem 1.1rem; border-bottom: 1px solid rgba(28,69,135,.09); background: linear-gradient(180deg,#fff,#fbfcff); }
@@ -80,10 +79,6 @@
 .merdpos-report-table-wrap td { padding: .8rem .9rem; border-top: 1px solid rgba(28,69,135,.07); color: #273f62; vertical-align: top; }
 .merdpos-report-table-wrap tbody tr:hover { background: rgba(28,69,135,.025); }
 .merdpos-report-empty { margin: 0; padding: 1.3rem; color: var(--rep-muted); }
-.merdpos-reports-footer { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 1.15rem; border: 1px solid var(--rep-border); border-radius: 1.25rem; background: #fff; color: var(--rep-muted); }
-.merdpos-reports-footer div { display: grid; gap: .18rem; }
-.merdpos-reports-footer strong { color: var(--rep-ink); }
-.merdpos-reports-footer div:last-child { text-align: right; }
 
 @media (max-width: 78rem) {
   .merdpos-reports-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -120,16 +115,13 @@
   .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { font-size:clamp(1.28rem,6.5vw,1.85rem); }
   .merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.18rem,5.7vw,1.65rem); }
   .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { font-size:.69rem; }
-  .merdpos-reports-note { padding: .9rem; }
   .merdpos-report-chart-card, .merdpos-report-table-card { border-radius: 1.15rem; }
   .merdpos-report-chart { min-height: 15rem; padding: .25rem; }
-  .merdpos-reports-footer { display: grid; }
-  .merdpos-reports-footer div:last-child { text-align: left; }
 }
 @media print {
   .merdpos-reports-actions, .merdpos-reports-filters, .merdpos-reports-header-actions, .merdpos-bottom-nav, .merdpos-shell-nav, .merdpos-shell-topbar { display: none !important; }
   .merdpos-reports-v2 { gap: .6rem; }
-  .merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-reports-note{ box-shadow: none; break-inside: avoid; }
+  .merdpos-report-chart-card,.merdpos-report-table-card{ box-shadow: none; break-inside: avoid; }
   .merdpos-report-table-wrap { overflow: visible; }
   .merdpos-report-table-wrap table { min-width: 0; font-size: 8pt; }
 }

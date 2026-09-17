@@ -111,12 +111,13 @@ $routing = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/m
 reports_v2_check(str_contains($routing,'ReportsController::reports'),'Reports route is not wired to v2 controller.');
 reports_v2_check(str_contains($routing,'ReportsController::exportCsv'),'Reports CSV export route missing.');
 $template = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
-foreach (['>PDF<','data-timesheet-week-select','>Select View<',"ui.icon('download')",'Frozen reconciliation preserved','Missing shift','Cancel Query'] as $needle) {
+foreach (['>PDF<','data-timesheet-week-select','data-timesheet-view-search','Search current view','>Select View<',"ui.icon('download')",'Missing shift','Cancel Query'] as $needle) {
   reports_v2_check(str_contains($template,$needle),'Reports template missing: ' . $needle);
 }
 reports_v2_check(!str_contains($template,'>Export CSV<'),'Timesheets hero must not expose Export CSV.');
-$viewPos=strpos($template,'data-timesheet-week-select'); $pdfPos=strpos($template,'data-merdpos-print');
-reports_v2_check($viewPos!==false && $pdfPos!==false && $viewPos < $pdfPos,'PDF action must render below Select View.');
+$viewPos=strpos($template,'data-timesheet-week-select'); $searchPos=strpos($template,'data-timesheet-view-search'); $pdfPos=strpos($template,'data-merdpos-print');
+reports_v2_check($viewPos!==false && $searchPos!==false && $pdfPos!==false && $viewPos < $searchPos && $searchPos < $pdfPos,'Timesheets controls must render Select View, Search, then PDF.');
+reports_v2_check(!str_contains($template,'merdpos-reports-note') && !str_contains($template,'merdpos-reports-footer'),'Timesheets note and footer must remain removed.');
 reports_v2_check(!str_contains($template,'Reporting lens') && !str_contains($template,'merdpos-reports-filters'),'Reporting lens must be removed from every role.');
 reports_v2_check(str_contains($template,'merdpos-reports-kpi-rail') && str_contains($template,'merdpos-reports-kpi-stat') && str_contains($template,"line.label == 'People'") && str_contains($template,"line.label == 'Rejected'") && str_contains($template,"name == 'payroll'") && str_contains($template,"name == 'closed'") && str_contains($template,"name == 'rejected'"),'Redesigned Shifts/Queries KPI markup or semantic icons missing.');
 reports_v2_check(!str_contains($template,'merdpos-reports-kpi-art'),'Abstract KPI filler must remain removed.');
@@ -129,10 +130,12 @@ $css = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/css/r
 reports_v2_check(str_contains($css,'.merdpos-reports-header-actions') && str_contains($css,'.merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr))') && str_contains($css,'grid-template-columns:minmax(6.4rem,7.2rem) minmax(0,1fr)') && str_contains($css,'min-height:8.6rem') && str_contains($css,'.merdpos-reports-kpi-rail { display:flex; align-items:center') && str_contains($template,'merdpos-ui-kpi-grid') && str_contains($template,'data-kpi-count="{{ metric.lines|length }}"') && str_contains($css,'.merdpos-reports-print-action svg'),'Adaptive compact Timesheets KPI/header styling missing.');
 reports_v2_check(!str_contains($css,'.merdpos-reports-kpi-art'),'Abstract KPI filler CSS must remain removed.');
 reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
+reports_v2_check(str_contains($css,'.merdpos-reports-search') && str_contains($css,'.merdpos-reports-print-action { margin-top:.55rem; }'),'Timesheets search styling and PDF spacing missing.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
 reports_v2_check(str_contains($js,'window.print()'),'Reports PDF/print action missing.');
 reports_v2_check(str_contains($js,'data-timesheet-week-select') && str_contains($js,'requestSubmit'),'Week selector must update the report immediately.');
+reports_v2_check(str_contains($js,'data-timesheet-view-search') && str_contains($js,"qa('.merdpos-reports-groups tbody tr')") && str_contains($js,'row.hidden = term'),'Timesheets search must filter the rendered view immediately.');
 reports_v2_check(str_contains($js,'openDialog') && str_contains($js,"'new_shift'") && str_contains($js,'fetch(') && str_contains($js,'merdpos_query_queue_v1'),'Integrated Shift Detail Query dialog/offline submission wiring missing.');
 $provider = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');
 reports_v2_check(str_contains($provider,'Track attendance, review and process wages'),'Timesheets description missing.');

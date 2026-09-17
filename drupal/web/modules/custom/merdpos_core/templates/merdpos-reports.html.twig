@@ -34,6 +34,7 @@
         </select></label>
         <noscript><button type="submit">Apply view</button></noscript>
       </form>
+      <label class="merdpos-reports-search"><span>Search</span><input type="search" data-timesheet-view-search placeholder="Search current view" autocomplete="off" aria-label="Search Timesheets view"></label>
       <button class="merdpos-report-action merdpos-reports-print-action" type="button" data-merdpos-print>{{ ui.icon('download') }}<span>PDF</span></button>
     </div>
   </header>
@@ -68,7 +69,6 @@
   </div>
   <div class="merdpos-query-notice" data-query-notice role="status" aria-live="polite" hidden></div>
 
-  <div class="merdpos-reports-note"><span>{{ ui.icon('shield') }}</span><div><strong>Frozen reconciliation preserved</strong><p>Hours, lateness, wages and queries come from the existing MERDPOS timesheet engine. Drupal renders only the already-authorized result for the selected week.</p></div></div>
   <div class="merdpos-reports-groups">
     {% for group in surface.groups %}
       <article class="merdpos-report-table-card"{% if group.title == 'Filtered shifts' %} id="merdpos-shift-detail"{% endif %}>
@@ -118,5 +118,4 @@
       </section>
     </div>
   </dialog>
-  <footer class="merdpos-reports-footer"><div><strong>Authoritative source</strong><span>{{ surface.meta.source }}</span></div><div><span>{{ surface.meta.scope }}</span><span>No direct operational DB access</span></div></footer>
 </section>
