@@ -69,9 +69,7 @@
   color: var(--color-text-secondary) !important;
 }
 :root[data-theme="dark"] dialog,
-:root[data-theme="dark"] .merdpos-admin-editor,
-:root[data-theme="dark"] .merdpos-attendance-panel,
-:root[data-theme="dark"] .merdpos-attendance-result {
+:root[data-theme="dark"] .merdpos-admin-editor {
   background: var(--color-surface-main);
   color: var(--color-text-primary);
   border-color: var(--color-border-subtle);

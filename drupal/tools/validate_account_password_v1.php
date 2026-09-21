@@ -43,6 +43,7 @@ account_password_check(str_contains($js, 'merdpos-password-close'), 'Password di
 account_password_check(str_contains($template, 'merdpos-dialog-close') && str_contains($template, '<svg viewBox="0 0 24 24"'), 'Password dialog must use the shared icon close control.');
 account_password_check(!str_contains($template, '>Cancel</button>'), 'Password dialog must not duplicate the close control with a Cancel button.');
 account_password_check(str_contains($css, '.merdpos-btn{') && str_contains($css, '.merdpos-dialog-close{'), 'Shell-level MERDPOS button/close primitives missing for dialogs outside .merdpos-app.');
+account_password_check(str_contains($css, 'width:2.4rem;height:2.4rem') && str_contains($css, 'border-radius:.8rem;background:var(--color-surface-raised)'), 'Shared dialog close control must match the Shift Detail rounded-square geometry.');
 account_password_check(str_contains($css, '.merdpos-password-dialog'), 'Password dialog styling missing.');
 account_password_check(str_contains($css, '@media(max-width:35rem)'), 'Password dialog mobile adaptation missing.');
 account_password_check(!str_contains($template, 'merdpos-shell-tagline'), 'Authenticated shell tagline must remain removed.');

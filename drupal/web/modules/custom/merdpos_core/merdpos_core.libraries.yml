@@ -21,6 +21,7 @@ dashboard:
       css/dark-normalization.css: {}
       css/ui-primitives.css: {}
   js:
+    js/vendor/jsQR.js: {}
     js/attendance-scan.js: {}
     js/dashboard-layout-v1.js: {}
 

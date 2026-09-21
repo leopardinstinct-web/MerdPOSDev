@@ -23,8 +23,10 @@ shell_check(!str_contains($dashboard, 'merdpos-attendance-widget-main'), 'Standa
 shell_check(!str_contains($dashboard, 'LOG IN STORE'), 'Retired Current Shift LOG IN STORE action returned.');
 shell_check(!str_contains($dashboard, 'merdpos-current-shift-action'), 'Retired Current Shift scanner wrapper returned.');
 shell_check(str_contains($dashboard, 'Shop Log IN / OUT'), 'Header Shop Log IN / OUT control is missing.');
-shell_check(str_contains($dashboard, 'merdpos-dashboard-shop-login'), 'Header Shop login wrapper is missing.');
-shell_check(str_contains($dashboard, 'merdpos-attendance-open--icon'), 'Header Shop QR scan action missing.');
+shell_check(str_contains($dashboard, 'merdpos-dashboard-shop-control'), 'Header Shop control wrapper is missing.');
+shell_check(str_contains($dashboard, 'merdpos-dashboard-shop-heading'), 'Shop Log IN / OUT heading must sit outside the scan field.');
+shell_check(str_contains($dashboard, 'class="merdpos-attendance-open"') && str_contains($dashboard, 'merdpos-attendance-scanner-glyph'), 'Plain Shop QR scan action missing.');
+shell_check(!str_contains($dashboard, 'merdpos-attendance-open--icon'), 'Retired blue circular Shop QR action returned.');
 shell_check(str_contains($dashboard, 'data-attendance-scan'), 'Shop scanner is not wired into the Home header.');
 
 echo "MERDPOS shell declutter + header Shop scan v1 contract validated.\n";
