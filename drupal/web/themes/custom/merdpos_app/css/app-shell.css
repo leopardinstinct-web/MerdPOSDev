@@ -489,6 +489,16 @@ body.merd-drupal-shell {
   color: var(--color-brand-white);
 }
 
+.merdpos-bottom-nav .merdpos-bottom-nav-item.is-disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  color: color-mix(in srgb, var(--color-brand-white) 58%, var(--color-brand-navy));
+  background: transparent;
+}
+.merdpos-bottom-nav .merdpos-bottom-nav-item.is-disabled:hover {
+  color: color-mix(in srgb, var(--color-brand-white) 58%, var(--color-brand-navy));
+  background: transparent;
+}
 
 /* MERDPOS authoritative login: approved Beta branding with richer app context. */
 body.merdpos-login-route {

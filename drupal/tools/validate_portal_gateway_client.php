@@ -63,6 +63,9 @@ gateway_client_check($client->call('../ui_studio_history')['status'] === 'invali
 $source=(string)file_get_contents(dirname(__DIR__).'/web/modules/custom/merdpos_core/src/Integration/PortalGatewayClient.php');
 gateway_client_check(str_contains($source,'sessionContextEmployeeId') && str_contains($source,"context_employee_id"), 'Signed Working User context forwarding missing.');
 gateway_client_check(str_contains($source,'FILTER_VALIDATE_INT') && str_contains($source,'merdpos_context_employee_id'), 'Working User context must be a positive integer session value.');
+gateway_client_check(str_contains($source,'sessionShopContext') && str_contains($source,"context_shop"), 'Signed Shop context forwarding missing.');
+gateway_client_check(str_contains($source,"merdpos_shop_context") && str_contains($source,"'mode'=>'finance'"), 'Shop context must come from the Drupal server session.');
+gateway_client_check(str_contains($source,'$contextClientId !== NULL && (int) $clientId !== $contextClientId'), 'Shop context must be pinned to the Working Client.');
 
 putenv('MERDPOS_DRUPAL_GATEWAY_URL');
 putenv('MERDPOS_DRUPAL_SERVICE_URL');

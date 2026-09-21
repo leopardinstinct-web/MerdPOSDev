@@ -43,7 +43,7 @@ final class DashboardController extends ControllerBase {
     $request = $this->requestStack->getCurrentRequest();
     $query = $request ? $request->query->all() : [];
     $surface = $this->parity->home($query);
-    if (!empty($surface['can_scan_attendance'])) {
+    if (!empty($surface['can_scan_shop'])) {
       $surface['attendance_scan'] = [
         'endpoint' => Url::fromRoute('merdpos_core.attendance_scan')->toString(),
         'csrf' => $this->csrf->get(self::ATTENDANCE_TOKEN_ID),
@@ -140,18 +140,44 @@ final class DashboardController extends ControllerBase {
     if (!is_array($input)) return new JsonResponse(['success'=>false, 'error'=>'Invalid scan request.'], 400);
     $token = $this->extractAttendanceToken(trim((string) ($input['qr'] ?? $input['token'] ?? '')));
     if ($token === NULL) {
-      return new JsonResponse(['success'=>false, 'error'=>'This is not a valid MERDPOS attendance QR.'], 422);
+      return new JsonResponse(['success'=>false, 'error'=>'This is not a valid MERDPOS Shop QR.'], 422);
     }
 
     $result = $this->gateway->call('attendance_scan', 'POST', [], ['token'=>$token]);
     $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
     $attendance = is_array($payload['result'] ?? NULL) ? $payload['result'] : [];
     if (($result['status'] ?? '') === 'ok' && !empty($payload['success']) && $attendance) {
+      $attendanceMode = !empty($attendance['attendance']);
+      $shopActive = !empty($attendance['shop_active']);
+      if (!$attendanceMode && $request->hasSession()) {
+        if ($shopActive) {
+          $clientId = filter_var($attendance['client_id'] ?? NULL, FILTER_VALIDATE_INT);
+          $storeId = filter_var($attendance['store_id'] ?? NULL, FILTER_VALIDATE_INT);
+          $deviceId = filter_var($attendance['device_id'] ?? NULL, FILTER_VALIDATE_INT);
+          $loggedInAt = trim((string) ($attendance['occurred_at'] ?? ''));
+          if ($clientId !== false && $clientId > 0 && $storeId !== false && $storeId > 0
+              && $deviceId !== false && $deviceId > 0 && $loggedInAt !== '' && strlen($loggedInAt) <= 40) {
+            $request->getSession()->set('merdpos_shop_context', [
+              'client_id'=>(int) $clientId, 'store_id'=>(int) $storeId, 'device_id'=>(int) $deviceId,
+              'logged_in_at'=>$loggedInAt, 'mode'=>'finance',
+            ]);
+          }
+          else {
+            $request->getSession()->remove('merdpos_shop_context');
+          }
+        }
+        else {
+          $request->getSession()->remove('merdpos_shop_context');
+        }
+      }
       return new JsonResponse(['success'=>true, 'result'=>[
         'action'=>(string) ($attendance['action'] ?? ''),
         'store_name'=>(string) ($attendance['store_name'] ?? ''),
         'occurred_at'=>(string) ($attendance['occurred_at'] ?? ''),
         'duplicate'=>!empty($attendance['duplicate']),
+        'attendance'=>$attendanceMode,
+        'shop_active'=>$shopActive,
+        'device_code'=>(string) ($attendance['device_code'] ?? ''),
       ]]);
     }
 

@@ -54,6 +54,15 @@ finance_v2_check(str_contains($css,'.merdpos-finance-charts'),'Finance chart lay
 finance_v2_check(str_contains($css,'@media'),'Finance responsive CSS missing.');
 $provider=(string)file_get_contents($root.'/web/modules/custom/merdpos_core/src/Integration/ParityDataProvider.php');
 finance_v2_check(!str_contains($provider,'SELECT '),'Drupal finance provider must not query the operational DB directly.');
+$theme=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/merdpos_app.theme');
+$page=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');
+$shellCss=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/css/app-shell.css');
+finance_v2_check(str_contains($theme, "\$variables['merdpos_shop_active']"), 'Shell Shop context state missing.');
+finance_v2_check(str_contains($theme, "if (\$item['key'] === 'finance' && !\$variables['merdpos_shop_active'])"), 'Financials nav Shop-login gate missing.');
+finance_v2_check(str_contains($theme, "if (\$variables['merdpos_active_role_key'] !== 'USER') continue;"), 'ADMIN/SUPER Financials must remain hidden until Shop login.');
+finance_v2_check(str_contains($theme, "\$item['disabled'] = true;"), 'USER Financials disabled state missing before Shop login.');
+finance_v2_check(str_contains($page, 'aria-disabled="true"') && str_contains($page, 'is-disabled'), 'Disabled USER Financials nav rendering missing.');
+finance_v2_check(str_contains($shellCss, '.merdpos-bottom-nav .merdpos-bottom-nav-item.is-disabled'), 'Disabled USER Financials nav styling missing.');
 $deploy=(string)file_get_contents($root.'/tools/namecheap_deploy.sh');
 finance_v2_check(str_contains($deploy,'Finance v2 self-test failed.'),'Finance deployment fail-closed probe missing.');
 finance_v2_check(str_contains($deploy,'finance_v2'),'Finance release marker evidence missing.');

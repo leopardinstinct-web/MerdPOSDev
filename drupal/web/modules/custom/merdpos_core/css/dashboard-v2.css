@@ -359,12 +359,9 @@
     width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
   }
   .merdpos-dashboard-kpis,
-  .merdpos-dashboard-kpi--my-shift,
-  .merdpos-current-shift-action,
-  .merdpos-current-shift-action > div {
+  .merdpos-dashboard-kpi--my-shift {
     min-width: 0; max-width: 100%; box-sizing: border-box;
   }
-  .merdpos-current-shift-action strong { max-width: min(11rem, 58vw); }
 }
 
 /* Header-review dashboard simplification. */

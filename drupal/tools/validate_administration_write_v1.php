@@ -27,19 +27,21 @@ foreach ([$controller,$template,$routing,$libraries] as $source) admin_write_che
 admin_write_check(str_contains($routing, "path: '/merdpos/admin'"), 'Administration route missing.');
 admin_write_check(str_contains($routing, "_permission: 'manage merdpos operations'"), 'Administration Drupal permission guard missing.');
 admin_write_check(str_contains($controller, "csrf->validate"), 'Drupal CSRF validation missing.');
-foreach (['save_client','save_store','save_employee'] as $action) {
+foreach (['save_client','save_store','save_employee','add_store_device','save_store_device'] as $action) {
   admin_write_check(str_contains($controller, "'{$action}'"), "Administration action missing: {$action}");
 }
-foreach (['clients','admin_directory'] as $route) {
+foreach (['clients','admin_directory','store_devices'] as $route) {
   admin_write_check(str_contains($controller, "call('{$route}'"), "Signed gateway call missing: {$route}");
 }
 foreach (['PDO','SELECT ','INSERT ','UPDATE ','DELETE '] as $forbidden) {
   admin_write_check(!str_contains($controller, $forbidden), "Drupal administration must not contain operational SQL: {$forbidden}");
 }
-foreach (['data-admin-panel="clients"','data-admin-panel="stores"','data-admin-panel="workforce"','name="form_token"'] as $marker) {
+foreach (['data-admin-panel="clients"','data-admin-panel="stores"','data-admin-panel="workforce"','name="form_token"','merdpos-store-devices','stores.devices.manage','name="public_key_b64"'] as $marker) {
   admin_write_check(str_contains($template, $marker), "Administration template marker missing: {$marker}");
 }
 admin_write_check(!str_contains($template, '|raw'), 'Administration template must not bypass Twig escaping.');
+admin_write_check(str_contains($template, 'POS {{ device.device_code') && str_contains($template, 'readonly tabindex="-1"'), 'POS four-digit identity must be visible and immutable in Stores.');
+admin_write_check(str_contains($controller, "\$canManageDevices = !empty(\$directory['permissions']['stores.devices.manage']);"), 'Store-device UI must mirror named ADMIN permission authority.');
 admin_write_check(str_contains($libraries, 'css/administration-v1.css'), 'Administration CSS library missing.');
 admin_write_check(str_contains($libraries, 'js/administration-v1.js'), 'Administration JS library missing.');
 

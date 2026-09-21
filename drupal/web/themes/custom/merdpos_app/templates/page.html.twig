@@ -151,10 +151,16 @@
 
   <nav class="merdpos-bottom-nav" aria-label="MERDPOS primary navigation">
     {% for item in merdpos_nav %}
+      {% if item.disabled|default(false) %}
+      <span class="merdpos-bottom-nav-item is-disabled"
+            data-nav-section="{{ item.key }}" aria-disabled="true"
+            title="{{ item.disabled_reason|default('Unavailable') }}">
+      {% else %}
       <a class="merdpos-bottom-nav-item{{ item.active ? ' is-active' : '' }}"
          href="{{ item.url }}"
          data-nav-section="{{ item.key }}"
          {% if item.active %}aria-current="page"{% endif %}>
+      {% endif %}
         <span class="merdpos-bottom-nav-icon" aria-hidden="true">
           {% if item.key == 'home' %}
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -172,7 +178,7 @@
         </span>
         <span class="merdpos-bottom-nav-label">{{ item.label }}</span>
         {% if item.badge|default(0) > 0 %}<span class="merdpos-bottom-nav-badge" aria-label="{{ item.badge }} open disputes">{{ item.badge > 99 ? '99+' : item.badge }}</span>{% endif %}
-      </a>
+      {% if item.disabled|default(false) %}</span>{% else %}</a>{% endif %}
     {% endfor %}
   </nav>
 </div>

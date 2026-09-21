@@ -42,20 +42,38 @@
           if (video) { video.pause(); video.srcObject = null; }
         };
 
-        const showResult = (attendance) => {
-          const action = String(attendance.action || '').toUpperCase();
-          root.querySelector('[data-attendance-result-action]').textContent = action === 'IN' ? 'CLOCKED IN' : 'CLOCKED OUT';
-          root.querySelector('[data-attendance-result-store]').textContent = attendance.store_name || 'MERDPOS store';
-          root.querySelector('[data-attendance-result-time]').textContent = attendance.occurred_at ? `Recorded ${attendance.occurred_at} UTC` : 'Attendance recorded';
+        const showResult = (scan) => {
+          const action = String(scan.action || '').toUpperCase();
+          const attendanceMode = !!scan.attendance;
+          const shopActive = !!scan.shop_active;
+          root.querySelector('[data-attendance-result-action]').textContent = action === 'IN'
+            ? (attendanceMode ? 'CLOCKED IN' : 'SHOP LOGGED IN')
+            : (attendanceMode ? 'CLOCKED OUT' : 'SHOP LOGGED OUT');
+          root.querySelector('[data-attendance-result-store]').textContent = scan.store_name || 'MERDPOS store';
+          root.querySelector('[data-attendance-result-time]').textContent = scan.occurred_at
+            ? `Recorded ${scan.occurred_at} UTC`
+            : (attendanceMode ? 'Attendance recorded' : 'Shop access updated');
           result.classList.toggle('is-in', action === 'IN');
           result.classList.toggle('is-out', action === 'OUT');
           result.hidden = false;
-          setStatus(attendance.duplicate ? 'This QR was already processed.' : 'Attendance recorded successfully.', 'success');
+          root.dataset.shopActive = shopActive ? '1' : '0';
+          root.classList.toggle('is-shop-active', shopActive);
+          const shopName = root.querySelector('.merdpos-dashboard-shop-name');
+          if (shopName) {
+            shopName.textContent = shopActive ? (scan.store_name || 'Current shop') : '';
+            shopName.hidden = !shopActive;
+          }
+          setStatus(
+            scan.duplicate
+              ? 'This QR was already processed.'
+              : (attendanceMode ? 'Attendance recorded successfully.' : (shopActive ? 'Shop access is active.' : 'Shop access closed.')),
+            'success',
+          );
         };
 
         const submitQr = async (raw) => {
           const qr = extractQr(raw);
-          if (!qr) { setStatus('Scan or paste a MERDPOS attendance QR first.', 'error'); return; }
+          if (!qr) { setStatus('Scan or paste a MERDPOS Shop QR first.', 'error'); return; }
           if (state.busy) return;
           state.busy = true;
           stopCamera();
@@ -108,7 +126,7 @@
             });
             video.srcObject = state.stream;
             await video.play();
-            setStatus('Point the camera at the current POS attendance QR.');
+            setStatus('Point the camera at the current MERDPOS Shop QR.');
             scanFrame();
           } catch (error) {
             stopCamera();

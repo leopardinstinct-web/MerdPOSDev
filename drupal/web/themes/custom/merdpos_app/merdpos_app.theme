@@ -36,6 +36,7 @@ function merdpos_app_preprocess_page(array &$variables): void {
   $variables['merdpos_impersonating'] = false;
   $variables['merdpos_active_role_key'] = '';
   $variables['merdpos_effective_role_label'] = '';
+  $variables['merdpos_shop_active'] = false;
   $variables['merdpos_working_user_url'] = '';
   $variables['merdpos_working_user_token'] = '';
   $variables['merdpos_can_timesheet_sync'] = false;
@@ -102,6 +103,10 @@ function merdpos_app_preprocess_page(array &$variables): void {
       $state = \Drupal::service('merdpos_core.portal_gateway')->call('beta_state', 'GET');
       $payload = is_array($state['payload'] ?? NULL) ? $state['payload'] : [];
       $variables['merdpos_permission_map'] = is_array($payload['permissions'] ?? NULL) ? $payload['permissions'] : [];
+      $stateRoleKey = strtoupper(trim((string) ($payload['role_key'] ?? $payload['role'] ?? '')));
+      if (in_array($stateRoleKey, ['DEV','ADMIN','SUPER','USER'], true)) $variables['merdpos_active_role_key'] = $stateRoleKey;
+      $currentUser = is_array($payload['current_user'] ?? NULL) ? $payload['current_user'] : [];
+      $variables['merdpos_shop_active'] = !empty($currentUser['shop_active']);
       if (trim((string) ($payload['role_label'] ?? '')) !== '') $variables['merdpos_effective_role_label'] = trim((string) $payload['role_label']);
       $variables['merdpos_can_change_password'] = !$variables['merdpos_impersonating'] && !empty($variables['merdpos_permission_map']['password.change_own']);
       if ($variables['merdpos_can_change_password']) {
@@ -154,8 +159,18 @@ function merdpos_app_preprocess_page(array &$variables): void {
       foreach ($item['backend_any'] as $backendPermission) if (!empty($variables['merdpos_permission_map'][$backendPermission])) { $backendAllowed = true; break; }
       if (!$backendAllowed) continue;
     }
+    if ($item['key'] === 'finance' && !$variables['merdpos_shop_active']) {
+      if ($variables['merdpos_active_role_key'] !== 'USER') continue;
+      $item['url'] = '';
+      $item['active'] = false;
+      $item['disabled'] = true;
+      $item['disabled_reason'] = 'Shop Log IN is required before Financials.';
+      $variables['merdpos_nav'][] = $item;
+      continue;
+    }
     $item['url'] = Url::fromRoute($item['route'])->toString();
     $item['active'] = $route_name === $item['route'];
+    $item['disabled'] = false;
     $variables['merdpos_nav'][] = $item;
   }
 

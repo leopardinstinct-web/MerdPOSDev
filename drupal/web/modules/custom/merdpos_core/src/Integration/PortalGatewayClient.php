@@ -38,6 +38,8 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     if ($contextClientId !== NULL) $envelope['context_client_id'] = $contextClientId;
     $contextEmployeeId = $this->sessionContextEmployeeId();
     if ($contextEmployeeId !== NULL) $envelope['context_employee_id'] = $contextEmployeeId;
+    $shopContext = $this->sessionShopContext($contextClientId);
+    if ($shopContext !== NULL) $envelope['context_shop'] = $shopContext;
     try {
       $raw = json_encode($envelope, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
       if (strlen($raw) > 4 * 1024 * 1024) return $this->result('invalid', null, null, 'MERDPOS gateway request is too large.');
@@ -90,6 +92,25 @@ final class PortalGatewayClient implements PortalGatewayClientInterface {
     if ($request === NULL || !$request->hasSession()) return NULL;
     $value = filter_var($request->getSession()->get('merdpos_context_employee_id'), FILTER_VALIDATE_INT);
     return $value === false || $value <= 0 ? NULL : (int) $value;
+  }
+
+  private function sessionShopContext(?int $contextClientId): ?array {
+    if (!$this->currentUser?->isAuthenticated() || $this->requestStack === NULL) return NULL;
+    $request = $this->requestStack->getCurrentRequest();
+    if ($request === NULL || !$request->hasSession()) return NULL;
+    $context = $request->getSession()->get('merdpos_shop_context');
+    if (!is_array($context)) return NULL;
+    $clientId = filter_var($context['client_id'] ?? NULL, FILTER_VALIDATE_INT);
+    $storeId = filter_var($context['store_id'] ?? NULL, FILTER_VALIDATE_INT);
+    $deviceId = filter_var($context['device_id'] ?? NULL, FILTER_VALIDATE_INT);
+    $loggedInAt = trim((string) ($context['logged_in_at'] ?? ''));
+    if ($clientId === false || $clientId <= 0 || $storeId === false || $storeId <= 0 || $deviceId === false || $deviceId <= 0) return NULL;
+    if ($contextClientId !== NULL && (int) $clientId !== $contextClientId) return NULL;
+    if ($loggedInAt === '' || strlen($loggedInAt) > 40) return NULL;
+    return [
+      'client_id'=>(int) $clientId, 'store_id'=>(int) $storeId, 'device_id'=>(int) $deviceId,
+      'logged_in_at'=>$loggedInAt, 'mode'=>'finance',
+    ];
   }
 
   private function environmentConfig(): ?array {
