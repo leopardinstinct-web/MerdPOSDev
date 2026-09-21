@@ -40,6 +40,7 @@ attendance_widget_check(!str_contains($template, 'merdpos-attendance-widget-main
 attendance_widget_check(str_contains($template, '<dialog class="merdpos-shop-dialog"'), 'Shop scanner must open as a native modal dialog.');
 attendance_widget_check(str_contains($template, 'merdpos-dialog-close') && str_contains($template, 'aria-label="Close Shop QR scanner"'), 'Shop scanner modal close control missing.');
 attendance_widget_check(str_contains($template, 'data-attendance-video') && str_contains($template, 'data-attendance-canvas'), 'Shop camera preview/decoder canvas missing.');
+attendance_widget_check(str_contains($template, 'data-attendance-status') && str_contains($template, 'data-state="searching"') && str_contains($template, '>Searching</div>'), 'Visible Searching status label must be present inside the camera.');
 attendance_widget_check(!str_contains($template, 'data-attendance-manual') && !str_contains($template, 'Shop QR fallback'), 'Manual Shop QR fallback UI must remain removed.');
 attendance_widget_check(!str_contains($template, 'data-attendance-result') && !str_contains($template, 'Refresh Home'), 'Shop QR result/Refresh Home controls must remain removed.');
 attendance_widget_check(!str_contains($template, 'paste it below') && !str_contains($template, 'Paste the scanned'), 'Shop QR modal must remain camera-only.');
@@ -51,7 +52,10 @@ attendance_widget_check(str_contains($js, "canvas.getContext('2d'") && str_conta
 attendance_widget_check(str_contains($js, 'drawScanFrame') && str_contains($js, 'cropSide') && str_contains($js, 'maxDecodeWidth = 720'), 'Automatic camera QR loop must center-crop/downscale frames for reliable decoding.');
 attendance_widget_check(str_contains($js, "facingMode: { exact: 'environment' }") && str_contains($js, "facingMode: { ideal: 'environment' }"), 'Shop scanner must prefer the rear/environment camera with fallback.');
 attendance_widget_check(str_contains($js, "capabilities.focusMode") && str_contains($js, "focusMode = 'continuous'"), 'Shop scanner must request continuous camera focus when supported.');
-attendance_widget_check(str_contains($js, "setTargetState('is-detected')") && str_contains($js, "setTargetState('is-invalid')") && str_contains($js, "setTargetState('is-accepted')"), 'Automatic QR detection must provide non-text target feedback.');
+attendance_widget_check(str_contains($js, "setTargetState('is-detected')") && str_contains($js, "setTargetState('is-invalid')") && str_contains($js, "setTargetState('is-accepted')"), 'Automatic QR detection must provide target feedback.');
+attendance_widget_check(str_contains($js, "setStatus('Invalid QR', 'invalid')"), 'Invalid QR visible status state missing.');
+attendance_widget_check(str_contains($js, "loggingOut ? 'Logging Out' : 'Logging In'") && str_contains($js, "loggingOut ? 'logging-out' : 'logging-in'"), 'Valid Shop QR must show separate Logging In / Logging Out labels based on pre-scan Shop state.');
+attendance_widget_check(str_contains($js, "setStatus('Searching', 'searching')"), 'Searching visible status state missing.');
 attendance_widget_check(!str_contains($js, 'Live QR scanning is not supported by this browser'), 'Retired unsupported-browser fallback copy must not return.');
 attendance_widget_check(!str_contains($js, 'data-attendance-manual') && !str_contains($js, 'data-attendance-result') && !str_contains($js, 'data-attendance-refresh'), 'Removed fallback/result control bindings must not return.');
 attendance_widget_check(str_contains($js, "'X-MERDPOS-CSRF': csrf"), 'Attendance browser CSRF header missing.');
@@ -67,6 +71,10 @@ attendance_widget_check(str_contains($css, '.merdpos-dashboard-header-actions') 
 attendance_widget_check(str_contains($css, '.merdpos-dashboard-shop-control .merdpos-attendance-open') && str_contains($css, 'color:var(--color-danger)') && str_contains($css, '.merdpos-dashboard-shop-control.is-shop-active .merdpos-attendance-open{color:var(--color-success)'), 'Shop QR icon must override global button inheritance: red logged-out and green logged-in.');
 attendance_widget_check(str_contains($css, 'qr-code-scanner.svg'), 'Approved QR scanner icon binding missing.');
 attendance_widget_check(str_contains($css, '.merdpos-attendance-target.is-detected') && str_contains($css, '.merdpos-attendance-target.is-invalid') && str_contains($css, '.merdpos-attendance-target.is-accepted'), 'Shop QR camera target detection feedback styling missing.');
+attendance_widget_check(str_contains($css, '.merdpos-attendance-target.is-invalid::before') && str_contains($css, 'border-color:var(--color-danger)!important'), 'Invalid QR must render a full red frame that survives dark-mode cascade.');
+attendance_widget_check(str_contains($css, '.merdpos-attendance-target.is-accepted::before') && str_contains($css, 'border-color:var(--color-success)!important'), 'Valid QR must render a full green frame.');
+attendance_widget_check(str_contains($css, '.merdpos-attendance-status{') && str_contains($css, 'top:9%') && str_contains($css, 'left:50%') && str_contains($css, 'translate(-50%,-50%)'), 'Scanner status label must be horizontally centered halfway between camera top and the 18% scan-frame top edge.');
+attendance_widget_check(str_contains($css, '[data-state="invalid"]') && str_contains($css, '[data-state="logging-in"]') && str_contains($css, '[data-state="logging-out"]'), 'Scanner status colors for Invalid QR / Logging In / Logging Out missing.');
 attendance_widget_check(!str_contains($css, '.merdpos-current-shift-action'), 'Retired Current Shift scanner CSS must not return.');
 attendance_widget_check(str_contains($css, 'max-width:35rem'), 'Shop scanner phone layout CSS missing.');
 attendance_widget_check(str_contains($libraries, 'js/vendor/jsQR.js') && str_contains($libraries, 'js/attendance-scan.js'), 'Local jsQR fallback and scanner JS must both be attached to Home.');
