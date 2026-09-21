@@ -3,7 +3,7 @@
 .merdpos-dashboard-shop-control{display:grid;gap:.3rem;min-width:10rem}
 .merdpos-dashboard-shop-heading{color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-semibold)}
 .merdpos-dashboard-shop-login{display:grid;min-height:2.65rem;border:1px solid var(--color-border-default);border-radius:.7rem;background:var(--color-surface-main);overflow:hidden}
-.merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:2.65rem;padding:0;border:0;background:transparent;color:var(--color-danger);cursor:pointer;box-shadow:none;transition:background-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
+.merdpos-dashboard-shop-control .merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:2.65rem;padding:0;border:0;background:transparent;color:var(--color-danger);cursor:pointer;box-shadow:none;transition:background-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
 .merdpos-attendance-open:hover{background:var(--color-surface-muted)}
 .merdpos-attendance-open:focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:-3px}
 .merdpos-dashboard-shop-control.is-shop-active .merdpos-attendance-open{color:var(--color-success)}
