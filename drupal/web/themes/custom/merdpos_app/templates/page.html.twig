@@ -123,14 +123,13 @@
       <input type="hidden" name="return_url" value="{{ merdpos_password_return }}">
       <header>
         <div><p>ACCOUNT SECURITY</p><h2 id="merdpos-password-title">Change password</h2></div>
-        <button type="button" class="merdpos-password-close" data-merdpos-password-close aria-label="Close password dialog">×</button>
+        <button type="button" class="merdpos-dialog-close merdpos-password-close" data-merdpos-password-close aria-label="Close password dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </header>
       <p class="merdpos-password-note">Use your current MERDPOS password. The new password must contain 6–20 digits.</p>
       <label>Current password<input name="current_password" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="20" required autocomplete="current-password"></label>
       <label>New password<input name="new_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required autocomplete="new-password"></label>
       <label>Confirm new password<input name="confirm_password" type="password" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required autocomplete="new-password"></label>
       <div class="merdpos-password-actions">
-        <button type="button" class="merdpos-btn" data-merdpos-password-close>Cancel</button>
         <button type="submit" class="merdpos-btn merdpos-btn--primary">Change password</button>
       </div>
     </form>

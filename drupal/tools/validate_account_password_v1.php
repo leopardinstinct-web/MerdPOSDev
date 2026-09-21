@@ -40,6 +40,9 @@ account_password_check(!str_contains($template, '|raw'), 'Account template must 
 account_password_check(str_contains($theme, "password.change_own"), 'Account menu is not permission-scoped.');
 account_password_check(str_contains($js, 'showModal'), 'Password dialog open behavior missing.');
 account_password_check(str_contains($js, 'merdpos-password-close'), 'Password dialog close behavior missing.');
+account_password_check(str_contains($template, 'merdpos-dialog-close') && str_contains($template, '<svg viewBox="0 0 24 24"'), 'Password dialog must use the shared icon close control.');
+account_password_check(!str_contains($template, '>Cancel</button>'), 'Password dialog must not duplicate the close control with a Cancel button.');
+account_password_check(str_contains($css, '.merdpos-btn{') && str_contains($css, '.merdpos-dialog-close{'), 'Shell-level MERDPOS button/close primitives missing for dialogs outside .merdpos-app.');
 account_password_check(str_contains($css, '.merdpos-password-dialog'), 'Password dialog styling missing.');
 account_password_check(str_contains($css, '@media(max-width:35rem)'), 'Password dialog mobile adaptation missing.');
 account_password_check(!str_contains($template, 'merdpos-shell-tagline'), 'Authenticated shell tagline must remain removed.');
