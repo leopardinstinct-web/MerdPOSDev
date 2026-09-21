@@ -19,11 +19,12 @@ function admin_write_check(bool $ok, string $message): void {
 $root = dirname(__DIR__);
 $module = $root . '/web/modules/custom/merdpos_core';
 $controller = file_get_contents($module . '/src/Controller/AdministrationController.php');
+$hook = file_get_contents($module . '/merdpos_core.module');
 $template = file_get_contents($module . '/templates/merdpos-administration.html.twig');
 $routing = file_get_contents($module . '/merdpos_core.routing.yml');
 $libraries = file_get_contents($module . '/merdpos_core.libraries.yml');
 
-foreach ([$controller,$template,$routing,$libraries] as $source) admin_write_check(is_string($source), 'Administration source is unreadable.');
+foreach ([$controller,$hook,$template,$routing,$libraries] as $source) admin_write_check(is_string($source), 'Administration source is unreadable.');
 admin_write_check(str_contains($routing, "path: '/merdpos/admin'"), 'Administration route missing.');
 admin_write_check(str_contains($routing, "_permission: 'manage merdpos operations'"), 'Administration Drupal permission guard missing.');
 admin_write_check(str_contains($controller, "csrf->validate"), 'Drupal CSRF validation missing.');
@@ -42,6 +43,7 @@ foreach (['data-admin-panel="clients"','data-admin-panel="stores"','data-admin-p
 admin_write_check(!str_contains($template, '|raw'), 'Administration template must not bypass Twig escaping.');
 admin_write_check(str_contains($template, 'POS {{ device.device_code') && str_contains($template, 'readonly tabindex="-1"'), 'POS four-digit identity must be visible and immutable in Stores.');
 admin_write_check(str_contains($controller, "\$canManageDevices = !empty(\$directory['permissions']['stores.devices.manage']);"), 'Store-device UI must mirror named ADMIN permission authority.');
+admin_write_check(str_contains($hook, "'can_manage_devices' => false") && str_contains($hook, "'device_state' => []"), 'Administration theme hook must expose store-device variables to Twig.');
 admin_write_check(str_contains($libraries, 'css/administration-v1.css'), 'Administration CSS library missing.');
 admin_write_check(str_contains($libraries, 'js/administration-v1.js'), 'Administration JS library missing.');
 
