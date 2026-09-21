@@ -3,9 +3,9 @@ id: MERD-20260915-dev-user-impersonation-v1
 objective: Replace DEV Working Role preview with secure impersonation of an actual active user from the selected Working Client, preserving the DEV platform identity as the auditable actor.
 branch: feature/backend-dev-user-impersonation-v1
 base_head: cb2f6a29a5efb3695a00e542c022b13e3d83da65
-last_seen_head: cb2f6a29a5efb3695a00e542c022b13e3d83da65
-packet_state: LOCAL_VALIDATED
-lifecycle: WIRED
+last_seen_head: 301b44310d68ccaa3875fef966e1e4f5a694065e
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
 - Signed gateway employee-context resolution and effective-user reconstruction.
 - Working Client user directory, select-user and exit-user context actions.
@@ -20,12 +20,10 @@ constraints:
 completed:
 - Backend and Drupal implementation is coded and relevant local source/security validators pass.
 - Deployment scripts include fail-closed impersonation validators.
+- Live DUMMY acceptance and cleanup are complete; the verified implementation is present in live backend 301b443 and live Drupal b02267e.
 checks:
 - Backend impersonation, gateway, platform-identity, beta-state, permission-policy and continuity validators pass.
 - Drupal impersonation, shell, reports/dispute, UI primitive, encoding and JavaScript syntax checks pass locally.
-remaining:
-- Merge and deploy backend first, then Drupal.
-- Run four-role live acceptance and targeted DUMMY user impersonation/dispute/audit/restore verification.
-- Clean the DUMMY fixture and require zero-residue audit.
-next_action: Commit and merge the backend branch, deploy exact SHA, then merge/deploy Drupal and execute live verification.
-updated_at: '2026-09-15T16:45:00+05:00'
+remaining: []
+next_action: Preserve regression coverage; no further work remains in this packet.
+updated_at: '2026-09-21T14:04:00+05:00'
