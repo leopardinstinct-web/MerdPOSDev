@@ -20,8 +20,11 @@ shell_check(str_contains($shellCss, '.merdpos-section-tabs a.is-active'), 'Share
 shell_check(!str_contains($admin, 'merdpos-admin-editor--new" open'), 'Create client/store/workforce panels must start collapsed.');
 shell_check(!str_contains($admin, '<div class="merdpos-admin-tabs"'), 'Admin tabs are duplicated inside page content.');
 shell_check(!str_contains($dashboard, 'merdpos-attendance-widget-main'), 'Standalone attendance widget remains on Home.');
-shell_check(str_contains($dashboard, 'LOG IN STORE'), 'My current shift does not expose LOG IN STORE.');
-shell_check(str_contains($dashboard, 'merdpos-attendance-open--icon'), 'My current shift QR scan action missing.');
-shell_check(str_contains($dashboard, 'data-attendance-scan'), 'Attendance scanner is not integrated into current shift.');
+shell_check(!str_contains($dashboard, 'LOG IN STORE'), 'Retired Current Shift LOG IN STORE action returned.');
+shell_check(!str_contains($dashboard, 'merdpos-current-shift-action'), 'Retired Current Shift scanner wrapper returned.');
+shell_check(str_contains($dashboard, 'Shop Log IN / OUT'), 'Header Shop Log IN / OUT control is missing.');
+shell_check(str_contains($dashboard, 'merdpos-dashboard-shop-login'), 'Header Shop login wrapper is missing.');
+shell_check(str_contains($dashboard, 'merdpos-attendance-open--icon'), 'Header Shop QR scan action missing.');
+shell_check(str_contains($dashboard, 'data-attendance-scan'), 'Shop scanner is not wired into the Home header.');
 
-echo "MERDPOS shell declutter + integrated attendance v1 contract validated.\n";
+echo "MERDPOS shell declutter + header Shop scan v1 contract validated.\n";

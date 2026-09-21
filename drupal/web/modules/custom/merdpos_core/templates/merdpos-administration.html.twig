@@ -2,6 +2,7 @@
 {% set actor = directory.actor|default({}) %}
 {% set stores = directory.stores|default([]) %}
 {% set employees = directory.employees|default([]) %}
+{% set devices = device_state.devices|default([]) %}
 {% set store_fields = directory.store_edit_fields|default([]) %}
 {% set roles = actor.roles|default([]) %}
 {% set authority_roles = role_state.roles|default([]) %}
@@ -164,6 +165,42 @@
       </details>
       {% else %}<div class="merdpos-admin-empty">No stores are available in this client context.</div>{% endfor %}
     </div>
+
+    {% if can_manage_devices %}
+    <section class="merdpos-store-devices" aria-labelledby="merdpos-store-devices-title">
+      <div class="merdpos-store-devices-head">
+        <div><p>POS ACCESS</p><h3 id="merdpos-store-devices-title">Store devices</h3><span>Issue four-digit POS IDs and register the Ed25519 public key used to sign Shop QR codes.</span></div>
+        <span class="merdpos-admin-permission">ADMIN &middot; stores.devices.manage</span>
+      </div>
+      <details class="merdpos-admin-editor merdpos-admin-editor--new">
+        <summary><strong>New POS device</strong><span>Assign a device to an active store</span></summary>
+        <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide merdpos-device-form">
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="add_store_device">
+          <label><span>Store</span><select name="store_id" required><option value="">Choose store</option>{% for store in stores %}{% if store.status == 'active' %}<option value="{{ store.id }}">{{ store.store_name }}</option>{% endif %}{% endfor %}</select></label>
+          <label><span>Device name</span><input name="device_name" maxlength="150" placeholder="Front counter POS" required></label>
+          <label><span>Status</span><select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+          <label class="is-wide"><span>Ed25519 public key</span><textarea name="public_key_b64" rows="3" maxlength="64" spellcheck="false" autocomplete="off" placeholder="Base64 public key"></textarea><small>Optional at creation; a device cannot produce accepted Shop QR codes until a valid key is registered.</small></label>
+          <div class="merdpos-admin-form-actions"><button type="submit">Add POS device</button></div>
+        </form>
+      </details>
+      <div class="merdpos-device-list">
+        {% for device in devices %}
+        <details class="merdpos-admin-editor" data-search-text="{{ device.device_code }} {{ device.device_name }} {{ device.store_name }} {{ device.status }}">
+          <summary><div><strong>POS {{ device.device_code|default('—') }} &middot; {{ device.device_name }}</strong><span>{{ device.store_name }} &middot; {{ device.key_status|default('key not registered')|replace({'_':' '}) }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ device.status }}</b><span>Key v{{ device.key_version|default(0) }}</span></div></summary>
+          <form method="post" action="{{ post_url }}" class="merdpos-admin-form merdpos-admin-form--wide merdpos-device-form">
+            <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_store_device"><input type="hidden" name="device_id" value="{{ device.id }}">
+            <label><span>POS ID</span><input value="{{ device.device_code }}" readonly tabindex="-1"></label>
+            <label><span>Store</span><input value="{{ device.store_name }}" readonly tabindex="-1"></label>
+            <label><span>Device name</span><input name="device_name" maxlength="150" value="{{ device.device_name }}" required></label>
+            <label><span>Status</span><select name="status"><option value="active"{{ device.status == 'active' ? ' selected' : '' }}>Active</option><option value="inactive"{{ device.status == 'inactive' ? ' selected' : '' }}>Inactive</option></select></label>
+            <label class="is-wide"><span>Ed25519 public key</span><textarea name="public_key_b64" rows="3" maxlength="64" spellcheck="false" autocomplete="off" placeholder="Leave blank to keep the registered key"></textarea><small>Paste a key only when registering or rotating it. Inactivating the POS revokes its key; reactivating a revoked POS requires a valid key to be pasted again.</small></label>
+            <div class="merdpos-admin-form-actions"><button type="submit">Save POS device</button></div>
+          </form>
+        </details>
+        {% else %}<div class="merdpos-admin-empty">No POS devices are registered for this client.</div>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
   </section>
 
   {% if can_manage_defaults %}

@@ -118,6 +118,7 @@ final class AccountController extends ControllerBase {
       $request->getSession()->set('merdpos_context_client_id', (int) $clientId);
       $request->getSession()->remove('merdpos_context_employee_id');
       $request->getSession()->remove('merdpos_context_role_key');
+      $request->getSession()->remove('merdpos_shop_context');
       $name = trim((string) ($selected['name'] ?? ('Client ' . $clientId)));
       return new JsonResponse(['success'=>true, 'active_client_id'=>(int) $clientId, 'client'=>$selected, 'message'=>'Working client changed to ' . $name . '.']);
     }
@@ -149,6 +150,7 @@ final class AccountController extends ControllerBase {
       $request->getSession()->set('merdpos_context_client_id', $activeClientId);
       $request->getSession()->remove('merdpos_context_employee_id');
       $request->getSession()->remove('merdpos_context_role_key');
+      $request->getSession()->remove('merdpos_shop_context');
       return new JsonResponse(['success'=>true, 'employee_id'=>0, 'message'=>'Returned to the Developer identity.']);
     }
     $selected = NULL;
@@ -162,6 +164,7 @@ final class AccountController extends ControllerBase {
     $request->getSession()->set('merdpos_context_client_id', $activeClientId);
     $request->getSession()->set('merdpos_context_employee_id', (int) $employeeId);
     $request->getSession()->remove('merdpos_context_role_key');
+    $request->getSession()->remove('merdpos_shop_context');
     $name = trim((string) ($selected['full_name'] ?? $selected['user_id'] ?? ('User ' . $employeeId)));
     $role = trim((string) ($selected['role_label'] ?? $selected['role_key'] ?? 'User'));
     return new JsonResponse(['success'=>true, 'active_client_id'=>$activeClientId, 'employee_id'=>(int) $employeeId, 'user'=>$selected, 'message'=>'Viewing MERDPOS as ' . $name . ' (' . $role . ').']);

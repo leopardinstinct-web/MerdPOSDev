@@ -54,7 +54,9 @@ final class AdministrationController extends ControllerBase {
       foreach ($selectableClients as $client) {
         if ((int) ($client['id'] ?? 0) === (int) $requestedClientId) {
           $selectedClientId = (int) $requestedClientId;
+          $previousClientId = (int) $request->getSession()->get('merdpos_context_client_id', 0);
           $request->getSession()->set('merdpos_context_client_id', $selectedClientId);
+          if ($previousClientId !== $selectedClientId) $request->getSession()->remove('merdpos_shop_context');
           break;
         }
       }
@@ -99,6 +101,13 @@ final class AdministrationController extends ControllerBase {
       $day = max(0, (int) ($row['day_of_week'] ?? 0));
       if ($sid > 0 && $day >= 1 && $day <= 7) $storeTimings[$sid][$day] = $row;
     }
+
+    $canManageDevices = !empty($directory['permissions']['stores.devices.manage']);
+    $devicesResult = $canManageDevices && $selectedClientId > 0
+      ? $this->gateway->call('store_devices', 'GET', [], [], $selectedClientId)
+      : ['status'=>'forbidden','payload'=>[]];
+    $deviceState = ($devicesResult['status'] ?? '') === 'ok' && is_array($devicesResult['payload'] ?? null)
+      ? $devicesResult['payload'] : [];
 
     $clientsResult = $this->gateway->call('clients');
     $clientsPayload = $clientsResult['status'] === 'ok' && is_array($clientsResult['payload'] ?? null)
@@ -153,6 +162,8 @@ final class AdministrationController extends ControllerBase {
       '#gateway_status' => $directoryResult['status'] ?? 'unavailable',
       '#store_timings' => $storeTimings,
       '#timings_available' => $timingsResult['status'] === 'ok',
+      '#can_manage_devices' => $canManageDevices && ($devicesResult['status'] ?? '') === 'ok',
+      '#device_state' => $deviceState,
       '#timezone_options' => \DateTimeZone::listIdentifiers(),
       '#currency_options' => $this->currencyOptions(),
       '#attached' => ['library' => ['merdpos_core/administration']],
@@ -212,6 +223,7 @@ final class AdministrationController extends ControllerBase {
       'onboard_client' => $this->onboardClient($request),
       'save_client' => $this->saveClient($request),
       'save_store' => $this->saveStore($request, $selectedClientId, $directory),
+      'add_store_device', 'save_store_device' => $this->saveStoreDevice($request, $selectedClientId, $action),
       'save_client_defaults' => $this->saveClientDefaults($request, $selectedClientId),
       'save_store_defaults' => $this->saveStoreDefaults($request, $selectedClientId),
       'save_employee' => $this->saveEmployee($request, $selectedClientId),
@@ -330,6 +342,22 @@ final class AdministrationController extends ControllerBase {
       $saveResult['payload']['message'] = 'Store settings and logo saved.';
     }
     return $saveResult;
+  }
+
+  private function saveStoreDevice(Request $request, int $selectedClientId, string $entityAction): array {
+    $body = [
+      'action' => $entityAction === 'add_store_device' ? 'add_device' : 'save_device',
+      'device_name' => trim((string) $request->request->get('device_name', '')),
+      'status' => strtolower(trim((string) $request->request->get('status', 'active'))),
+      'public_key_b64' => trim((string) $request->request->get('public_key_b64', '')),
+    ];
+    if ($body['action'] === 'add_device') $body['store_id'] = $this->nullablePositiveInt($request->request->get('store_id'));
+    else $body['device_id'] = $this->nullablePositiveInt($request->request->get('device_id'));
+    $result = $this->gateway->call('store_devices', 'POST', [], $body, $selectedClientId ?: NULL);
+    if (($result['status'] ?? '') === 'ok' && !empty($result['payload']['success'])) {
+      $result['payload']['redirect_tab'] = 'stores';
+    }
+    return $result;
   }
 
   private function currencyOptions(): array {
