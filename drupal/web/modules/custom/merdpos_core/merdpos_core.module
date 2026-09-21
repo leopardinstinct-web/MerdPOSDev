@@ -41,6 +41,7 @@ function merdpos_core_theme(array $existing, string $type, string $theme, string
         'can_select_client' => false, 'selectable_clients' => [],
         'selected_client_id' => 0, 'selected_client' => [], 'current_tab' => 'stores', 'form_token' => '',
         'gateway_status' => 'unavailable', 'store_timings' => [], 'timings_available' => false,
+        'can_manage_devices' => false, 'device_state' => [],
         'timezone_options' => [], 'currency_options' => [], 'role_state' => [], 'can_manage_roles' => false,
       ],
       'template' => 'merdpos-administration',
