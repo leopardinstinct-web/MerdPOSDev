@@ -18,7 +18,7 @@ function merd_drupal_gateway_routes(): array
         'admin_directory'=>['GET','POST'],'weeks'=>['GET'],'timesheet'=>['GET'],'disputes'=>['GET','POST'],
         'financials'=>['GET','POST'],'dev_status'=>['GET'],'clients'=>['GET','POST'],
         'legacy_migration'=>['GET','POST'],'defaults'=>['GET','POST'],'store_identity'=>['GET','POST'],
-        'store_timings'=>['GET','POST'],'store_logo'=>['POST'],'role_authority'=>['GET','POST'],
+        'store_timings'=>['GET','POST'],'store_logo'=>['POST'],'store_devices'=>['GET','POST'],'role_authority'=>['GET','POST'],
         'client_context'=>['GET','POST'],'check_sheet'=>['GET'],'timesheet_google_refresh'=>['POST'],
         'change_password'=>['POST'],'attendance_scan'=>['POST'],
     ];
@@ -53,6 +53,34 @@ function merd_drupal_gateway_scalar_map(mixed $value, string $field): array
     return $result;
 }
 
+function merd_drupal_gateway_shop_context(PDO $pdo, mixed $value, int $clientId): ?array
+{
+    if ($value === null || $value === []) return null;
+    if (!is_array($value) || array_is_list($value) || count($value) > 8) {
+        throw new MerdRequestException('invalid_request',400,'Invalid Shop context.');
+    }
+    $shopClientId=filter_var($value['client_id'] ?? null,FILTER_VALIDATE_INT);
+    $storeId=filter_var($value['store_id'] ?? null,FILTER_VALIDATE_INT);
+    $deviceId=filter_var($value['device_id'] ?? null,FILTER_VALIDATE_INT);
+    $loggedInAt=trim((string)($value['logged_in_at'] ?? ''));
+    if ($shopClientId===false || $storeId===false || $deviceId===false
+        || $shopClientId<=0 || $storeId<=0 || $deviceId<=0 || $loggedInAt==='' || strlen($loggedInAt)>40) {
+        throw new MerdRequestException('invalid_request',400,'Invalid Shop context.');
+    }
+    if ((int)$shopClientId !== $clientId) throw new MerdRequestException('invalid_context',409,'Shop context does not match the Working Client.');
+    $stmt=$pdo->prepare(
+        "SELECT s.store_name FROM devices d INNER JOIN stores s ON s.id=d.store_id AND s.client_id=d.client_id " .
+        "WHERE d.id=? AND d.client_id=? AND d.store_id=? AND d.status='active' AND s.status='active' LIMIT 1"
+    );
+    $stmt->execute([(int)$deviceId,$clientId,(int)$storeId]);
+    $storeName=$stmt->fetchColumn();
+    if ($storeName===false) return null;
+    return [
+        'client_id'=>$clientId,'store_id'=>(int)$storeId,'device_id'=>(int)$deviceId,
+        'store_name'=>(string)$storeName,'logged_in_at'=>$loggedInAt,'mode'=>'finance',
+    ];
+}
+
 try {
     merd_request_require_method($_SERVER,'POST');
     merd_request_require_json_content_type($_SERVER);
@@ -70,6 +98,7 @@ try {
     $contextRoleRaw=$request['context_role_key'] ?? null;
     $contextRoleKey=$contextRoleRaw === null ? null : strtoupper(trim((string)$contextRoleRaw));
     $contextEmployeeId=$request['context_employee_id'] ?? null;
+    $contextShopRaw=$request['context_shop'] ?? null;
     if ($contextRoleKey !== null && !in_array($contextRoleKey,['DEV','ADMIN','SUPER','USER'],true)) throw new MerdRequestException('invalid_request',400,'Invalid role context.');
     if ($contextEmployeeId !== null) {
         $validatedEmployee=filter_var($contextEmployeeId,FILTER_VALIDATE_INT);
@@ -113,8 +142,12 @@ try {
         $contextClientId=(int)$service['client_id'];
     }
 
+    $validatedShopContext=merd_drupal_gateway_shop_context($pdo,$contextShopRaw,(int)$contextClientId);
+
     require_once $portalRoot . '/includes/beta_api.php';
     start_app_session();
+    if ($validatedShopContext !== null) $_SESSION['shop_context']=$validatedShopContext;
+    else unset($_SESSION['shop_context']);
     if ($isPlatform && is_array($impersonatedActor)) {
         $platform=$actor['platform_identity'];$employee=$impersonatedActor['employee'];$effectiveRole=$impersonatedActor['role'];
         $storeStmt=$pdo->prepare('SELECT store_id FROM employees WHERE id=? AND client_id=? LIMIT 1');

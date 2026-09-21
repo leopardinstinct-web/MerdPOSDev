@@ -46,6 +46,51 @@ function merd_verify_attendance_qr(PDO $pdo, int $clientId, string $token, ?Date
     if (!function_exists('sodium_crypto_sign_verify_detached')) {
         throw new MerdWorkforceException('crypto_unavailable', 'Attendance verification is temporarily unavailable.');
     }
+    $now ??= new DateTimeImmutable('now', new DateTimeZone('UTC'));
+
+    // Compact offline POS QR v2:
+    // DDDD + MMDDYYYYhhmmss + 16 hex nonce + "." + Ed25519 signature.
+    if (preg_match('/^([0-9]{4})([0-9]{14})([A-Fa-f0-9]{16})\.([A-Za-z0-9_-]{80,100})$/D', $token, $match)) {
+        $deviceCode = $match[1];
+        $timestamp = $match[2];
+        $payload = $deviceCode . $timestamp . $match[3];
+        $signature = merd_b64url_decode($match[4]);
+        if ($signature === false || strlen($signature) !== SODIUM_CRYPTO_SIGN_BYTES) {
+            throw new MerdWorkforceException('invalid_qr', 'This shop QR is invalid.');
+        }
+        $stmt = $pdo->prepare(
+            "SELECT d.id AS device_id,d.device_uuid,d.store_id,s.store_name," .
+            "COALESCE(s.timezone,c.default_timezone,'Australia/Sydney') AS timezone,k.public_key_b64 " .
+            "FROM devices d INNER JOIN stores s ON s.id=d.store_id AND s.client_id=d.client_id " .
+            "INNER JOIN clients c ON c.id=d.client_id " .
+            "INNER JOIN attendance_device_keys k ON k.device_id=d.id AND k.status='active' " .
+            "WHERE d.client_id=? AND d.device_code=? AND d.status='active' AND s.status='active' LIMIT 1"
+        );
+        $stmt->execute([$clientId,$deviceCode]);
+        $device = $stmt->fetch(PDO::FETCH_ASSOC);
+        $publicKey = is_array($device) ? base64_decode((string)$device['public_key_b64'], true) : false;
+        if (!is_array($device) || $publicKey === false || strlen($publicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
+            || !sodium_crypto_sign_verify_detached($signature, $payload, $publicKey)) {
+            throw new MerdWorkforceException('invalid_qr', 'This shop QR is not from an authorised POS.');
+        }
+        try { $timezone = new DateTimeZone((string)$device['timezone']); }
+        catch (Throwable) { $timezone = new DateTimeZone('Australia/Sydney'); }
+        $issued = DateTimeImmutable::createFromFormat('!mdYHis', $timestamp, $timezone);
+        if (!$issued || $issued->format('mdYHis') !== $timestamp) {
+            throw new MerdWorkforceException('invalid_qr', 'This shop QR has an invalid timestamp.');
+        }
+        $age = abs($now->getTimestamp() - $issued->setTimezone(new DateTimeZone('UTC'))->getTimestamp());
+        if ($age > 90) {
+            throw new MerdWorkforceException('expired_qr', 'This shop QR has expired. Scan the current QR.');
+        }
+        return [
+            'token_hash'=>hash('sha256',$token),'device_id'=>(int)$device['device_id'],
+            'device_uuid'=>(string)$device['device_uuid'],'device_code'=>$deviceCode,
+            'store_id'=>(int)$device['store_id'],'store_name'=>(string)$device['store_name'],
+            'expires_at'=>$issued->getTimestamp()+90,'format'=>'compact_v2',
+        ];
+    }
+
     if (strlen($token) > 1400 || substr_count($token, '.') !== 1) {
         throw new MerdWorkforceException('invalid_qr', 'This attendance QR is invalid.');
     }

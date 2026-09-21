@@ -52,6 +52,7 @@ function merd_portal_permission_catalog(): array
         'stores.timings.manage' => ['label'=>'Manage store weekly timings','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>30],
         'stores.profile.manage' => ['label'=>'Manage store code, address and Maps profile','category'=>'Operations','min_loa'=>1000,'dev_only'=>true,'order'=>40],
         'stores.logo.manage' => ['label'=>'Upload / remove store logos','category'=>'Operations','min_loa'=>1000,'dev_only'=>true,'order'=>50],
+        'stores.devices.manage' => ['label'=>'Manage store POS devices','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'allowed_role_keys'=>['ADMIN'],'order'=>55],
         'workforce.view' => ['label'=>'View workforce directory','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>60],
         'workforce.manage' => ['label'=>'Add / edit employees and assignments','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>70],
         'workforce.payrates.manage' => ['label'=>'View / manage employee pay rates','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>80],

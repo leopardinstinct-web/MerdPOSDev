@@ -29,6 +29,10 @@ Use a remote/local development machine only when it adds concrete value, such as
 
 Tool choice should minimise hops while preserving verification. The repository remains canonical regardless of which execution environment is used.
 
+### Windows Drupal PHP CLI
+
+The MERDPOS Windows development workstation has a persistent PHP 8.4 CLI installed through WinGet. Use `php84` for Drupal validators and Composer/runtime checks that require PHP >=8.3. The old XAMPP CLI is PHP 8.2 and must not be used as evidence that Drupal validation is blocked. Before diagnosing a PHP compatibility issue, run `php84 -v`; normal PowerShell shells also alias `php` to PHP 8.4, but `php84` is the unambiguous automation command.
+
 ## 2. Implementation-state discipline
 
 Use exactly:
