@@ -3,9 +3,9 @@ id: MERD-20260916-query-workflow-repair-v1
 objective: Repair the Timesheets Queries workflow so existing shifts prefill authoritative log data, submissions give immediate/queued feedback, week history stays available, and DEV impersonation cannot drift into another client.
 branch: feature/query-tenancy-repair-v1
 base_head: 8a33bed280c56ce40c499c3e2a556a2231012802
-last_seen_head: 8a33bed280c56ce40c499c3e2a556a2231012802
-packet_state: LOCAL_VALIDATED
-lifecycle: WIRED
+last_seen_head: 301b44310d68ccaa3875fef966e1e4f5a694065e
+packet_state: VERIFIED
+lifecycle: VERIFIED
 scope:
 - Query terminology and integrated Timesheets form behavior.
 - Existing-shift clock-in/out prefill with editable corrections.
@@ -21,14 +21,16 @@ constraints:
 completed:
 - Backend Query write helper accepts a client submission UUID and safely deduplicates retries.
 - Query API validates expected client/employee against the effective authenticated or impersonated user.
-- Weeks endpoint derives historical options from the same SQL employee-log source as Timesheets.
+- Weeks endpoint derives historical options from the same SQL Timesheet source used for the effective employee.
 - Drupal Query form carries authoritative shift context and browser-side offline queue state.
+- Backend PR #144 merged to namecheap-beta-live and deployed at 301b44310d68ccaa3875fef966e1e4f5a694065e.
+- Drupal Query release PR #145 merged at 572a8c09553148ebda4e0c1984665dc5c75037ca; current live Drupal b02267e89d486e4984ad413aa33ac971e28adb05 contains that release.
 checks:
-- Query workflow, DEV impersonation, generalized gateway, platform DEV identity, beta-state, AI continuity, Drupal Reports, Query UI, encoding and JavaScript syntax checks pass locally.
-remaining:
-- Commit, push and merge backend then deploy exact canonical SHA.
-- Commit, push and merge Drupal then deploy exact canonical SHA.
-- Live verify normal USER and DEV impersonation Query flow, audit attribution, week history, offline/reconnect and zero cross-client leakage.
-- Clean all temporary DUMMY verification data and require zero residue.
-next_action: Commit and merge backend first, deploy and verify its live marker, then merge/deploy Drupal and run targeted browser/database verification.
-updated_at: '2026-09-16T11:30:00+05:00'
+- Backend Query, DEV impersonation, generalized gateway, platform DEV identity, beta-state, permission-policy and AI continuity guards passed.
+- Live DUMMY API acceptance passed for actual USER and DEV impersonation: historical weeks, authoritative clock prefill, Query create/list, idempotent retry, context mismatch rejection, password blocking and DEV actor/effective-user audit separation.
+- Live Drupal DUMMY browser acceptance passed existing-shift prefill, offline saved-for-sync feedback, immediate Active Queries KPI update, reconnect submission confirmation and queue clear.
+- Query create/cancel verification completed without cross-client leakage; final DUMMY cleanup returned ATTENDANCE_E2E_AUDIT none.
+- Live preflight on 2026-09-21 confirmed backend 301b443 and Drupal b02267e.
+remaining: []
+next_action: Preserve regression coverage; no further Query repair work remains in this packet.
+updated_at: '2026-09-21T14:04:00+05:00'
