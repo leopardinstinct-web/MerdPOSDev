@@ -66,6 +66,8 @@ finance_v2_check(str_contains($shellCss, '.merdpos-bottom-nav .merdpos-bottom-na
 $deploy=(string)file_get_contents($root.'/tools/namecheap_deploy.sh');
 finance_v2_check(str_contains($deploy,'Finance v2 self-test failed.'),'Finance deployment fail-closed probe missing.');
 finance_v2_check(str_contains($deploy,'finance_guard_status') && str_contains($deploy,'guard_status'), 'Finance deployment must verify the backend Shop-login guard directly.');
+finance_v2_check(str_contains($deploy,'finance_guard_error_code') && str_contains($deploy,'guard_error_code'), 'Finance deployment must assert the Shop-login business-rule error code.');
+finance_v2_check(str_contains($deploy,'shop_login_required'), 'Finance deployment must require the no-Shop financials guard result.');
 finance_v2_check(str_contains($deploy,'$gw->call("financials","GET")'), 'Finance deployment guard probe must call authoritative financials directly.');
 finance_v2_check(str_contains($deploy,'$o["finance"]="ok"'), 'Five-surface release parity must normalize a correctly guarded no-Shop Finance state as healthy.');
 finance_v2_check(str_contains($deploy,'finance_v2'),'Finance release marker evidence missing.');
