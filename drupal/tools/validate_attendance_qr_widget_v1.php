@@ -59,7 +59,7 @@ attendance_widget_check(str_contains($css, '.merdpos-shop-dialog::backdrop'), 'S
 attendance_widget_check(str_contains($css, '.merdpos-shop-dialog-body'), 'Shop scanner modal layout missing.');
 attendance_widget_check(!str_contains($css, '.merdpos-attendance-panel--header'), 'Retired inline header scanner panel styling must not return.');
 attendance_widget_check(str_contains($css, '.merdpos-dashboard-shop-control') && str_contains($css, '.merdpos-dashboard-shop-heading'), 'Select View-style Shop control wrapper/heading missing.');
-attendance_widget_check(str_contains($css, 'color:var(--color-danger)') && str_contains($css, '.merdpos-dashboard-shop-control.is-shop-active .merdpos-attendance-open{color:var(--color-success)'), 'Shop QR icon must be red logged-out and green logged-in.');
+attendance_widget_check(str_contains($css, '.merdpos-dashboard-shop-control .merdpos-attendance-open') && str_contains($css, 'color:var(--color-danger)') && str_contains($css, '.merdpos-dashboard-shop-control.is-shop-active .merdpos-attendance-open{color:var(--color-success)'), 'Shop QR icon must override global button inheritance: red logged-out and green logged-in.');
 attendance_widget_check(str_contains($css, 'qr-code-scanner.svg'), 'Approved QR scanner icon binding missing.');
 attendance_widget_check(!str_contains($css, '.merdpos-current-shift-action'), 'Retired Current Shift scanner CSS must not return.');
 attendance_widget_check(str_contains($css, 'max-width:35rem'), 'Shop scanner phone layout CSS missing.');
