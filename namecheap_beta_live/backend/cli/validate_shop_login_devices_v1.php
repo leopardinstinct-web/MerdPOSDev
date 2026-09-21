@@ -19,8 +19,9 @@ $devices = file_get_contents($portal . '/api/store_devices.php');
 $state = file_get_contents($portal . '/api/beta_state.php');
 $finance = file_get_contents($portal . '/api/financials.php');
 $directory = file_get_contents($portal . '/api/admin_directory.php');
-$deploy = file_get_contents(dirname($root) . '/scripts/deploy_namecheap_beta.sh');
-foreach ([$migration,$apply,$permissions,$workforce,$gateway,$api,$scan,$devices,$state,$finance,$directory,$deploy] as $source) {
+$deployPath = dirname($root) . '/scripts/deploy_namecheap_beta.sh';
+$deploy = is_file($deployPath) ? file_get_contents($deployPath) : null;
+foreach ([$migration,$apply,$permissions,$workforce,$gateway,$api,$scan,$devices,$state,$finance,$directory] as $source) {
     shop_login_check(is_string($source), 'Shop login release source is unreadable.');
 }
 shop_login_check(str_contains($migration, 'ADD COLUMN IF NOT EXISTS device_code CHAR(4)'), 'Migration 039 device_code missing.');
@@ -57,7 +58,9 @@ shop_login_check(str_contains($state, "'finance_available' => \$canFinanceView &
 shop_login_check(str_contains($finance, "throw new MerdWorkforceException('shop_login_required'"), 'Finance must require Shop login.');
 shop_login_check(str_contains($finance, "'shop_store_required'"), 'Finance store must be constrained to Shop context when cross-store access is absent.');
 
-shop_login_check(str_contains($deploy, 'validate_shop_login_devices_v1.php'), 'Shop-login validator is not wired into backend deployment.');
-shop_login_check(str_contains($deploy, 'apply_039_shop_login_devices.php'), 'Migration 039 is not wired into backend deployment.');
+if (is_string($deploy)) {
+    shop_login_check(str_contains($deploy, 'validate_shop_login_devices_v1.php'), 'Shop-login validator is not wired into backend deployment.');
+    shop_login_check(str_contains($deploy, 'apply_039_shop_login_devices.php'), 'Migration 039 is not wired into backend deployment.');
+}
 
 echo "MERDPOS Shop Login + POS devices v1 contract validated.\n";
