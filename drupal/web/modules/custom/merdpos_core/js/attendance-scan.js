@@ -28,33 +28,25 @@
           stream: null,
           detector: null,
           timer: null,
-          feedbackTimer: null,
           busy: false,
           frame: 0,
         };
 
-        const setStatus = (message) => {
-          if (status) status.textContent = message || '';
+        const setStatus = (message, stateName = 'searching') => {
+          if (!status) return;
+          status.textContent = message || '';
+          status.dataset.state = stateName;
         };
 
-        const setTargetState = (name = '') => {
+        const setTargetState = (name = 'is-searching') => {
           if (!target) return;
-          target.classList.remove('is-detected', 'is-invalid', 'is-accepted');
+          target.classList.remove('is-searching', 'is-detected', 'is-invalid', 'is-accepted');
           if (name) target.classList.add(name);
-          if (state.feedbackTimer) window.clearTimeout(state.feedbackTimer);
-          if (name && name !== 'is-accepted') {
-            state.feedbackTimer = window.setTimeout(() => {
-              target.classList.remove('is-detected', 'is-invalid');
-              state.feedbackTimer = null;
-            }, 800);
-          }
         };
 
         const stopCamera = () => {
           if (state.timer) window.clearTimeout(state.timer);
-          if (state.feedbackTimer) window.clearTimeout(state.feedbackTimer);
           state.timer = null;
-          state.feedbackTimer = null;
           if (state.stream) state.stream.getTracks().forEach((track) => track.stop());
           state.stream = null;
           state.detector = null;
@@ -63,7 +55,8 @@
             video.pause();
             video.srcObject = null;
           }
-          setTargetState('');
+          setTargetState('is-searching');
+          setStatus('Searching', 'searching');
         };
 
         const syncHeaderState = (scan) => {
@@ -92,8 +85,9 @@
           const qr = extractQr(raw);
           if (!qr || state.busy) return;
           state.busy = true;
+          const loggingOut = root.dataset.shopActive === '1';
           setTargetState('is-detected');
-          setStatus('QR detected. Validating Shop QR.');
+          setStatus('Searching', 'searching');
           try {
             const response = await fetch(endpoint, {
               method: 'POST',
@@ -109,16 +103,22 @@
             if (!response.ok || !data.success) throw new Error(data.error || 'Shop QR scan failed.');
             syncHeaderState(data.result || {});
             setTargetState('is-accepted');
-            setStatus('Shop QR accepted.');
+            setStatus(loggingOut ? 'Logging Out' : 'Logging In', loggingOut ? 'logging-out' : 'logging-in');
             window.setTimeout(() => {
               closeDialog();
               window.location.reload();
-            }, 180);
+            }, 700);
           } catch (_) {
             setTargetState('is-invalid');
-            setStatus('QR detected but it is not a valid current MERDPOS Shop QR.');
+            setStatus('Invalid QR', 'invalid');
             state.busy = false;
-            if (state.stream) state.timer = window.setTimeout(scanFrame, 850);
+            if (state.stream) {
+              state.timer = window.setTimeout(() => {
+                setTargetState('is-searching');
+                setStatus('Searching', 'searching');
+                scanFrame();
+              }, 1400);
+            }
           }
         };
 
@@ -223,10 +223,11 @@
 
           stopCamera();
           state.busy = false;
-          setStatus('Starting camera.');
+          setTargetState('is-searching');
+          setStatus('Searching', 'searching');
 
           if (!navigator.mediaDevices?.getUserMedia) {
-            setStatus('Camera unavailable.');
+            setStatus('Camera unavailable', 'error');
             return;
           }
 
@@ -243,7 +244,7 @@
             }
 
             if (!state.detector && typeof window.jsQR !== 'function') {
-              setStatus('QR scanner unavailable.');
+              setStatus('QR scanner unavailable', 'error');
               return;
             }
 
@@ -251,11 +252,12 @@
             await optimizeCamera(state.stream);
             video.srcObject = state.stream;
             await video.play();
-            setStatus('Camera ready. Point it at a MERDPOS Shop QR.');
+            setTargetState('is-searching');
+            setStatus('Searching', 'searching');
             scanFrame();
           } catch (_) {
             stopCamera();
-            setStatus('Camera unavailable.');
+            setStatus('Camera unavailable', 'error');
           }
         };
 
