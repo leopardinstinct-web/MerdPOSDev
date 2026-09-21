@@ -8,16 +8,16 @@ acceptance:
   - "Financials fails closed without shop context and non-cross-store users are pinned to the logged-in shop."
   - "ADMIN-only Stores device management issues immutable four-digit POS IDs and registers/rotates Ed25519 public keys."
   - "Migration 039, deploy validators, live runtime checks and visual role variants pass before VERIFIED."
-packet_state: EXECUTING
-lifecycle: WIRED
+packet_state: VERIFIED
+lifecycle: VERIFIED
 authoritative_backend_branch: namecheap-beta-live
 drupal_branch: beta/drupal-webapp
 base_head: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
-last_seen_head: "ef543a9de7a3df4b20fd869fb501f4a7d4270278"
+last_seen_head: "e33764fbbede9610a9d9f4b5fd7ce3b898ae5a16"
 base_head_backend: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
-last_seen_head_backend: "ef543a9de7a3df4b20fd869fb501f4a7d4270278"
+last_seen_head_backend: "e33764fbbede9610a9d9f4b5fd7ce3b898ae5a16"
 base_head_drupal: "4f5a11ced03a77844d631be8e9ef17294358a987"
-last_seen_head_drupal: "27e45a3a7d99a141ccf0bbb4e5c4eb153e6ac766"
+last_seen_head_drupal: "75c4a386569ef7891212bc23b86e83b2486d9bad"
 affected_paths:
   - "namecheap_beta_live/backend/api/includes/portal_permissions.php"
   - "namecheap_beta_live/backend/api/includes/workforce_beta.php"
@@ -44,6 +44,10 @@ completed:
   - "Wired migration 039 and Shop/POS validator into backend deploy; made Drupal deploy probes shop-guard-aware."
   - "Focused PHP lint, diff check, shell syntax, JS syntax, permission policy, gateway, role delegation, runtime, scanner, Finance, source encoding and shell-declutter checks passed."
   - "Fixed corrupted QR icon asset; valid SVG is now staged in Drupal source."
+  - "Backend deployed successfully at e33764fbbede9610a9d9f4b5fd7ce3b898ae5a16 with migration 039 applied and live validators green."
+  - "Drupal deployed successfully at 75c4a386569ef7891212bc23b86e83b2486d9bad after live acceptance found and fixed missing Administration hook_theme device variables."
+  - "Authenticated DUMMY DEV/ADMIN/SUPER/USER acceptance passed 30/30, including desktop/mobile Shop scanner, Finance gating, POS creation, management Shop IN/OUT and USER attendance IN/OUT."
+  - "DUMMY Finance and Attendance fixtures plus Shop POS/key/replay/outbox residue cleaned; final audits report Finance stores=0 employees=0 outbox=0 and Attendance none."
 checks:
   - name: "validate_shop_login_devices_v1.php"
     result: PASS
@@ -63,6 +67,12 @@ checks:
   - name: "Drupal pre-deploy validator inventory"
     result: PASS
     evidence: "All Drupal validators invoked by namecheap_deploy.sh pass locally under php84."
+  - name: "Live DUMMY Shop Login acceptance"
+    result: PASS
+    evidence: "30/30 checks passed across ADMIN, SUPER, DEV and USER on desktop and 390x844 mobile; ADMIN POS 0001 creation, management Shop login/logout, Finance hide/enable gating, USER attendance OUT/IN and mobile overflow/state checks all passed."
+  - name: "DUMMY cleanup audit"
+    result: PASS
+    evidence: "FINANCE_E2E_AUDIT stores=0 employees=0 outbox=0; ATTENDANCE_E2E_AUDIT none."
 notes:
   - "Installed persistent WinGet PHP 8.4.25 CLI; normal PowerShell php and explicit php84 resolve to it."
   - "Added persistent php.ini with Drupal/test extensions including mbstring, pdo_sqlite, sqlite3, sodium, curl, intl, gd and zip."
@@ -72,12 +82,12 @@ notes:
   - "Backend PR #149 merged to namecheap-beta-live as ef543a9de7a3; Drupal PR #150 merged to beta/drupal-webapp as 27e45a3a7d99."
   - "First backend deploy copied ef543a9 and applied migration 039 successfully, then stopped before the release marker because validate_shop_login_devices_v1.php incorrectly required the repository deploy script from the live-copy tree."
   - "Hotfix makes deploy-script wiring assertions repository-only while keeping all runtime Shop/POS assertions mandatory in the live-copy validator."
-remaining:
-  - "Merge the live-validator hotfix and rerun backend deployment to a successful release marker."
-  - "Deploy Drupal exact merged SHA after backend deployment completes."
-  - "Run authenticated DUMMY DEV/ADMIN/SUPER/USER acceptance, including visual desktop/mobile checks and cleanup."
-  - "Verify release markers/exact SHAs and zero tracked drift; then close/archive this packet."
-next_action: "Commit/push/merge the live-validator hotfix, then rerun backend deployment."
+  - "Live DUMMY acceptance exposed a Drupal hook_theme omission: can_manage_devices/device_state were computed but dropped before Twig; PR #154 fixed it and added a regression assertion."
+  - "PR #154 merged as 75c4a386569ef7891212bc23b86e83b2486d9bad and was deployed/verified live."
+remaining: []
+next_action: "Archived VERIFIED; no further Shop Login release work remains."
 blocked: false
 blocker: null
-updated_at: "2026-09-21T19:02:22+05:00"
+closed_reason: "Acceptance criteria met with exact live backend/Drupal releases, 30/30 authenticated DUMMY role/mobile acceptance, and zero scoped test residue."
+closed_at: "2026-09-21T20:43:39+05:00"
+updated_at: "2026-09-21T20:43:39+05:00"
