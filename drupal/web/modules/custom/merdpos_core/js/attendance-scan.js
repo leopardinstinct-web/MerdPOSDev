@@ -109,8 +109,12 @@
         };
 
         const openCamera = async () => {
-          panel.hidden = false;
           result.hidden = true;
+          if (typeof panel.showModal === 'function') {
+            if (!panel.open) panel.showModal();
+          } else {
+            panel.setAttribute('open', '');
+          }
           setStatus('Starting camera…');
           stopCamera();
           if (!navigator.mediaDevices?.getUserMedia || !('BarcodeDetector' in window)) {
@@ -136,8 +140,16 @@
           }
         };
 
+        const closeDialog = () => {
+          stopCamera();
+          if (typeof panel.close === 'function' && panel.open) panel.close();
+          else panel.removeAttribute('open');
+        };
+
         open?.addEventListener('click', openCamera);
-        stop?.addEventListener('click', () => { stopCamera(); setStatus('Camera closed. You can restart it or paste the QR link.'); });
+        stop?.addEventListener('click', closeDialog);
+        panel?.addEventListener('click', (event) => { if (event.target === panel) closeDialog(); });
+        panel?.addEventListener('close', stopCamera);
         manual?.addEventListener('submit', (event) => { event.preventDefault(); submitQr(input?.value || ''); });
         refresh?.addEventListener('click', () => window.location.reload());
         window.addEventListener('pagehide', stopCamera, { once: true });

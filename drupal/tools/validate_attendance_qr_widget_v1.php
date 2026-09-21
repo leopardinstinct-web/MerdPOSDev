@@ -37,6 +37,8 @@ attendance_widget_check(str_contains($template, 'data-attendance-scan') && str_c
 attendance_widget_check(!str_contains($template, 'merdpos-current-shift-action'), 'Retired Current Shift scanner markup must not return.');
 attendance_widget_check(!str_contains($template, 'LOG IN STORE'), 'Retired Current Shift store action must not return.');
 attendance_widget_check(!str_contains($template, 'merdpos-attendance-widget-main'), 'Standalone attendance widget must remain retired.');
+attendance_widget_check(str_contains($template, '<dialog class="merdpos-shop-dialog"'), 'Shop scanner must open as a native modal dialog.');
+attendance_widget_check(str_contains($template, 'merdpos-dialog-close') && str_contains($template, 'aria-label="Close Shop QR scanner"'), 'Shop scanner modal close control missing.');
 attendance_widget_check(str_contains($template, 'data-attendance-video'), 'Shop camera preview missing.');
 attendance_widget_check(str_contains($template, 'data-attendance-manual'), 'Shop QR fallback input missing.');
 attendance_widget_check(!str_contains($template, '|raw'), 'Attendance widget must preserve Twig escaping.');
@@ -48,7 +50,11 @@ attendance_widget_check(str_contains($js, 'SHOP LOGGED IN') && str_contains($js,
 attendance_widget_check(str_contains($js, 'attendanceMode = !!scan.attendance'), 'Attendance versus management scan state split missing.');
 attendance_widget_check(str_contains($js, "root.classList.toggle('is-shop-active', shopActive)"), 'Header Shop active state update missing.');
 attendance_widget_check(!str_contains($js, 'innerHTML'), 'Shop scan result rendering must not use innerHTML.');
-attendance_widget_check(str_contains($css, '.merdpos-attendance-panel--header[hidden]'), 'Header Shop scanner hidden-state CSS guard missing.');
+attendance_widget_check(str_contains($js, 'panel.showModal') && str_contains($js, 'panel.close'), 'Shop scanner must use native modal open/close behavior.');
+attendance_widget_check(str_contains($js, "event.target === panel") && str_contains($js, "addEventListener('close', stopCamera)"), 'Shop scanner backdrop/Escape close cleanup missing.');
+attendance_widget_check(str_contains($css, '.merdpos-shop-dialog::backdrop'), 'Shop scanner modal backdrop styling missing.');
+attendance_widget_check(str_contains($css, '.merdpos-shop-dialog-body'), 'Shop scanner modal layout missing.');
+attendance_widget_check(!str_contains($css, '.merdpos-attendance-panel--header'), 'Retired inline header scanner panel styling must not return.');
 attendance_widget_check(str_contains($css, '.merdpos-dashboard-shop-login.is-shop-active'), 'Header Shop active styling missing.');
 attendance_widget_check(str_contains($css, 'qr-code-scanner.svg'), 'Approved QR scanner icon binding missing.');
 attendance_widget_check(!str_contains($css, '.merdpos-current-shift-action'), 'Retired Current Shift scanner CSS must not return.');
