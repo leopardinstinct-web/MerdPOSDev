@@ -1,5 +1,5 @@
 .merdpos-dashboard-kpi--my-shift{grid-column:span 2}
-.merdpos-dashboard-header-actions{position:relative;z-index:2;display:grid;grid-template-columns:minmax(10rem,1fr) minmax(10rem,1fr);gap:.8rem;align-self:end;width:min(31rem,100%);align-items:end}
+.merdpos-dashboard-header-actions{position:relative;z-index:2;display:grid;grid-template-columns:1fr;gap:.65rem;align-self:end;width:min(16rem,100%);min-width:14rem;align-items:end}
 .merdpos-dashboard-shop-control{display:grid;gap:.3rem;min-width:10rem}
 .merdpos-dashboard-shop-heading{color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-semibold)}
 .merdpos-dashboard-shop-login{display:grid;min-height:2.65rem;border:1px solid var(--color-border-default);border-radius:.7rem;background:var(--color-surface-main);overflow:hidden}
@@ -27,8 +27,14 @@
 .merdpos-attendance-target span:nth-child(2){right:0;top:0;border-width:3px 3px 0 0}
 .merdpos-attendance-target span:nth-child(3){left:0;bottom:0;border-width:0 0 3px 3px}
 .merdpos-attendance-target span:nth-child(4){right:0;bottom:0;border-width:0 3px 3px 0}
+.merdpos-attendance-target.is-detected span{border-color:var(--color-brand-cyan)}
+.merdpos-attendance-target.is-invalid span{border-color:var(--color-danger)}
+.merdpos-attendance-target.is-accepted span{border-color:var(--color-success)}
+.merdpos-attendance-target.is-detected{filter:drop-shadow(0 0 .45rem color-mix(in srgb,var(--color-brand-cyan) 35%,transparent))}
+.merdpos-attendance-target.is-invalid{filter:drop-shadow(0 0 .45rem color-mix(in srgb,var(--color-danger) 38%,transparent))}
+.merdpos-attendance-target.is-accepted{filter:drop-shadow(0 0 .45rem color-mix(in srgb,var(--color-success) 38%,transparent))}
 .merdpos-attendance-status{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
 @media(max-width:72rem){.merdpos-dashboard-kpi--my-shift{grid-column:1/-1}}
-@media(max-width:51.25rem){.merdpos-dashboard-header-actions{width:100%;grid-template-columns:1fr 1fr}.merdpos-shop-dialog{width:min(36rem,calc(100vw - 1rem));max-height:calc(100dvh - 1rem)}.merdpos-dashboard-kpi--my-shift{grid-column:1}}
+@media(max-width:51.25rem){.merdpos-dashboard-header-actions{width:100%;min-width:0;grid-template-columns:1fr}.merdpos-shop-dialog{width:min(36rem,calc(100vw - 1rem));max-height:calc(100dvh - 1rem)}.merdpos-dashboard-kpi--my-shift{grid-column:1}}
 @media(max-width:35rem){.merdpos-dashboard-header-actions{grid-template-columns:1fr}.merdpos-shop-dialog{width:calc(100vw - .75rem);max-height:calc(100dvh - .75rem);border-radius:1rem}.merdpos-shop-dialog-head,.merdpos-shop-dialog-body{padding:var(--space-4)}.merdpos-attendance-camera,.merdpos-attendance-camera video{min-height:0}.merdpos-attendance-camera{aspect-ratio:3/4}}

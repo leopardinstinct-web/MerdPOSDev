@@ -58,11 +58,10 @@ $theme=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/merdpos_a
 $page=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/templates/page.html.twig');
 $shellCss=(string)file_get_contents($root.'/web/themes/custom/merdpos_app/css/app-shell.css');
 finance_v2_check(str_contains($theme, "\$variables['merdpos_shop_active']"), 'Shell Shop context state missing.');
-finance_v2_check(str_contains($theme, "if (\$item['key'] === 'finance' && !\$variables['merdpos_shop_active'])"), 'Financials nav Shop-login gate missing.');
-finance_v2_check(str_contains($theme, "if (\$variables['merdpos_active_role_key'] !== 'USER') continue;"), 'ADMIN/SUPER Financials must remain hidden until Shop login.');
-finance_v2_check(str_contains($theme, "\$item['disabled'] = true;"), 'USER Financials disabled state missing before Shop login.');
-finance_v2_check(str_contains($page, 'aria-disabled="true"') && str_contains($page, 'is-disabled'), 'Disabled USER Financials nav rendering missing.');
-finance_v2_check(str_contains($shellCss, '.merdpos-bottom-nav .merdpos-bottom-nav-item.is-disabled'), 'Disabled USER Financials nav styling missing.');
+finance_v2_check(str_contains($theme, "if (\$item['key'] === 'finance' && !\$variables['merdpos_shop_active']) continue;"), 'Financials must be hidden for every role until Shop login.');
+finance_v2_check(!str_contains($theme, "if (\$variables['merdpos_active_role_key'] !== 'USER') continue;"), 'USER must not retain a disabled Financials exception before Shop login.');
+finance_v2_check(!str_contains($theme, 'Shop Log IN is required before Financials.'), 'Retired disabled Financials nav item must not return.');
+
 $deploy=(string)file_get_contents($root.'/tools/namecheap_deploy.sh');
 finance_v2_check(str_contains($deploy,'Finance v2 self-test failed.'),'Finance deployment fail-closed probe missing.');
 finance_v2_check(str_contains($deploy,'finance_guard_status') && str_contains($deploy,'guard_status'), 'Finance deployment must verify the backend Shop-login guard directly.');
