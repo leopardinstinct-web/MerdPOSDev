@@ -214,7 +214,11 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
     $action = (string)($input['action'] ?? '');
 
     switch ($script) {
-        case 'attendance_scan.php': beta_require_permission($user, 'attendance.scan', $pdo); return;
+        case 'attendance_scan.php':
+            $scanRole = strtoupper((string)($user['role_key'] ?? $user['employee_type'] ?? $user['role'] ?? 'USER'));
+            if ($scanRole === 'USER') beta_require_permission($user, 'attendance.scan', $pdo);
+            else beta_require_permission($user, 'finance.view', $pdo);
+            return;
         case 'beta_state.php':
             beta_require_any_permission($user, ['dashboard.view','disputes.view_own','disputes.review','finance.view','password.change_own'], $pdo); return;
         case 'dashboard_data.php': beta_require_permission($user, 'dashboard.view', $pdo); return;
@@ -236,6 +240,7 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'defaults.php': beta_require_permission($user, 'defaults.manage', $pdo); return;
         case 'store_identity.php': beta_require_permission($user, 'stores.profile.manage', $pdo); return;
         case 'store_logo.php': beta_require_permission($user, 'stores.logo.manage', $pdo); return;
+        case 'store_devices.php': beta_require_permission($user, 'stores.devices.manage', $pdo); return;
         case 'store_timings.php': beta_require_permission($user, 'stores.timings.manage', $pdo); return;
         case 'role_authority.php':
             if ($method === 'GET') { beta_require_any_permission($user, ['roles.define','roles.manage'], $pdo); return; }
@@ -268,6 +273,47 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
         case 'me.php': return;
         default: throw new MerdWorkforceException('permission_policy_missing', 'This beta API is not registered in the portal permission policy.');
     }
+}
+
+function beta_shop_context(PDO $pdo, array $user): ?array
+{
+    $clientId = (int)($user['auth_client_id'] ?? $user['client_id'] ?? 0);
+    $roleKey = strtoupper((string)($user['role_key'] ?? $user['employee_type'] ?? $user['role'] ?? 'USER'));
+    if ($roleKey === 'USER' && !beta_actual_user_is_dev($user)) {
+        $stmt = $pdo->prepare(
+            "SELECT s.store_id,s.device_id,st.store_name,s.clock_in_at FROM attendance_shifts s " .
+            "INNER JOIN stores st ON st.id=s.store_id AND st.client_id=s.client_id " .
+            "WHERE s.client_id=? AND s.employee_id=? AND s.status='open' LIMIT 1"
+        );
+        $stmt->execute([$clientId,(int)($user['id'] ?? 0)]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) return null;
+        return [
+            'client_id'=>$clientId,'store_id'=>(int)$row['store_id'],'device_id'=>(int)$row['device_id'],
+            'store_name'=>(string)$row['store_name'],'logged_in_at'=>(string)$row['clock_in_at'],
+            'mode'=>'attendance',
+        ];
+    }
+
+    start_app_session();
+    $context = $_SESSION['shop_context'] ?? null;
+    if (!is_array($context) || (int)($context['client_id'] ?? 0) !== (int)($user['client_id'] ?? 0)) return null;
+    $storeId = (int)($context['store_id'] ?? 0);
+    $deviceId = (int)($context['device_id'] ?? 0);
+    if ($storeId < 1 || $deviceId < 1) return null;
+    $stmt = $pdo->prepare(
+        "SELECT s.store_name FROM devices d INNER JOIN stores s ON s.id=d.store_id AND s.client_id=d.client_id " .
+        "WHERE d.id=? AND d.client_id=? AND d.store_id=? AND d.status='active' AND s.status='active' LIMIT 1"
+    );
+    $stmt->execute([$deviceId,(int)$user['client_id'],$storeId]);
+    $storeName = $stmt->fetchColumn();
+    if ($storeName === false) {
+        unset($_SESSION['shop_context']);
+        return null;
+    }
+    $context['store_name'] = (string)$storeName;
+    $context['mode'] = 'finance';
+    return $context;
 }
 
 function beta_require_active_user(): array

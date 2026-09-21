@@ -28,6 +28,10 @@ Before planning or changing MERDPOS Beta, read in this order:
 
 Do not eagerly load every durable project document into context when a narrow task does not need it. The repository must remain fully discoverable, but active reasoning context should stay task-scoped.
 
+### MERDPOS Windows Drupal PHP CLI
+
+On the MERDPOS Windows development workstation, Drupal CLI validation must use PHP >= 8.3. The persistent `php84` launcher is the canonical command and currently resolves to the installed PHP 8.4 CLI. Do not fall back to the legacy XAMPP PHP 8.2 executable or report a Drupal PHP-version blocker before checking `php84 -v`. Normal PowerShell sessions also alias `php` to the same PHP 8.4 executable, but automation should prefer the explicit `php84` command.
+
 ## Mandatory task preflight
 
 Before every substantive code change:

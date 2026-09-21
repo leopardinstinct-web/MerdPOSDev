@@ -112,6 +112,7 @@ php "$REPO/namecheap_beta_live/backend/cli/validate_atomic_store_write.php"
 
 echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] validating platform DEV identity architecture"
 php "$REPO/namecheap_beta_live/backend/cli/validate_platform_dev_identity_v1.php"
+php "$REPO/namecheap_beta_live/backend/cli/validate_shop_login_devices_v1.php"
 
 rsync -az \
   --exclude='config.php' \
@@ -166,6 +167,7 @@ php "$LIVE/backend/cli/apply_035_ui_studio_global_history.php"
 php "$LIVE/backend/cli/apply_036_store_week_start_day.php"
 php "$LIVE/backend/cli/apply_037_admin_role_delegation.php"
 php "$LIVE/backend/cli/apply_038_platform_dev_identity.php"
+php "$LIVE/backend/cli/apply_039_shop_login_devices.php"
 
 php -r '
 require $argv[1];
@@ -203,6 +205,7 @@ php "$LIVE/backend/cli/validate_admin_role_delegation_v1.php"
 php "$LIVE/backend/cli/validate_dashboard_write_audit.php"
 php "$LIVE/backend/cli/validate_atomic_store_write.php"
 php "$LIVE/backend/cli/validate_platform_dev_identity_v1.php"
+php "$LIVE/backend/cli/validate_shop_login_devices_v1.php"
 php "$LIVE/backend/cli/validate_dev_user_impersonation_v1.php"
 php "$LIVE/backend/cli/validate_query_workflow_v1.php"
 

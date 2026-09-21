@@ -65,6 +65,8 @@ try {
     if (is_array($ownShift) && !empty($ownShift['clock_in_at'])) {
         try { $ownClockInAt = (new DateTimeImmutable((string)$ownShift['clock_in_at'], new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM); } catch (Throwable) {}
     }
+    $shopContext = beta_shop_context($pdo, $user);
+    $shopActive = is_array($shopContext);
 
     $recentShifts = [];
     $canReadRecentShifts = $canViewOwnTimesheets || $canViewAllTimesheets || $canViewOwnDisputes;
@@ -99,10 +101,10 @@ try {
     if (!$canEnumerateStores) {
         if ($canSubmitDisputes) {
             // New-shift disputes intentionally allow selection from active stores.
-        } elseif ($canFinanceView) {
-            $workingStoreNames = array_fill_keys(array_map(static fn(array $row): string => (string)$row['store_name'], $working), true);
-            $storeRows = array_values(array_filter($storeRows, static fn(array $row): bool => isset($workingStoreNames[(string)$row['store_name']])));
-            $storeIdentityRows = array_values(array_filter($storeIdentityRows, static fn(array $row): bool => isset($workingStoreNames[(string)$row['store_name']])));
+        } elseif ($canFinanceView && $shopActive) {
+            $shopStoreId = (int)($shopContext['store_id'] ?? 0);
+            $storeRows = array_values(array_filter($storeRows, static fn(array $row): bool => (int)($row['id'] ?? 0) === $shopStoreId));
+            $storeIdentityRows = array_values(array_filter($storeIdentityRows, static fn(array $row): bool => (int)($row['id'] ?? 0) === $shopStoreId));
         } else {
             $storeRows = [];
             $storeIdentityRows = [];
@@ -192,9 +194,13 @@ try {
             'user_id' => (string)$user['user_id'],
             'portal_active' => true,
             'portal_login_at' => portal_login_at_utc(),
-            'shop_active' => is_array($ownShift),
-            'shop_name' => is_array($ownShift) ? (string)($ownShift['store_name'] ?? '') : null,
-            'shop_clock_in_at' => $ownClockInAt,
+            'shop_active' => $shopActive,
+            'shop_name' => $shopActive ? (string)($shopContext['store_name'] ?? '') : null,
+            'shop_store_id' => $shopActive ? (int)($shopContext['store_id'] ?? 0) : null,
+            'shop_device_id' => $shopActive ? (int)($shopContext['device_id'] ?? 0) : null,
+            'shop_mode' => $shopActive ? (string)($shopContext['mode'] ?? '') : null,
+            'shop_clock_in_at' => $shopActive ? (string)($shopContext['logged_in_at'] ?? $ownClockInAt ?? '') : null,
+            'finance_available' => $canFinanceView && $shopActive,
         ],
         'client' => [
             'id' => (int)$clientDefaultsRow['id'],

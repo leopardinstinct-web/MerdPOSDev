@@ -1,0 +1,81 @@
+version: 1
+id: MERD-20260921-shop-login-finance-v1
+objective: "Add role-aware Shop Log IN / OUT via signed POS QR, gate Financials on active shop context, and manage POS devices from Admin > Stores."
+acceptance:
+  - "Home header exposes Shop Log IN / OUT; the retired Current Shift scanner does not return."
+  - "USER Shop scan records attendance IN/OUT; management Shop scan changes shop context without creating attendance."
+  - "Before Shop login, USER sees Financials disabled while ADMIN/SUPER do not see Financials; valid Shop login restores permitted Financials navigation."
+  - "Financials fails closed without shop context and non-cross-store users are pinned to the logged-in shop."
+  - "ADMIN-only Stores device management issues immutable four-digit POS IDs and registers/rotates Ed25519 public keys."
+  - "Migration 039, deploy validators, live runtime checks and visual role variants pass before VERIFIED."
+packet_state: CHECKED
+lifecycle: WIRED
+authoritative_backend_branch: namecheap-beta-live
+drupal_branch: beta/drupal-webapp
+base_head: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
+last_seen_head: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
+base_head_backend: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
+last_seen_head_backend: "4cdf38bfa3bb1e383f7a831acdac63c00323b46c"
+base_head_drupal: "4f5a11ced03a77844d631be8e9ef17294358a987"
+last_seen_head_drupal: "4f5a11ced03a77844d631be8e9ef17294358a987"
+affected_paths:
+  - "namecheap_beta_live/backend/api/includes/portal_permissions.php"
+  - "namecheap_beta_live/backend/api/includes/workforce_beta.php"
+  - "namecheap_beta_live/backend/api/integrations/portal_gateway.php"
+  - "namecheap_beta_live/backend/cli/apply_039_shop_login_devices.php"
+  - "namecheap_beta_live/backend/cli/validate_shop_login_devices_v1.php"
+  - "namecheap_beta_live/backend/sql/039_shop_login_devices.sql"
+  - "namecheap_beta_live/timesheet_portal/api/{admin_directory,attendance_scan,beta_state,financials,store_devices}.php"
+  - "namecheap_beta_live/timesheet_portal/includes/beta_api.php"
+  - "scripts/deploy_namecheap_beta.sh"
+  - "drupal/tools/{namecheap_deploy,validate_administration_write_v1,validate_attendance_qr_widget_v1,validate_finance_v2,validate_shell_declutter_v1}.php"
+  - "drupal/web/modules/custom/merdpos_core/{css,images,js,src,templates}"
+  - "drupal/web/themes/custom/merdpos_app/{css,merdpos_app.theme,templates}"
+constraints:
+  - "Backend authority stays namecheap-beta-live; Drupal presentation authority stays beta/drupal-webapp."
+  - "No Finance access may be granted by navigation visibility; backend shop-context enforcement remains authoritative."
+  - "stores.devices.manage is ADMIN-only through the named permission catalogue, including DEV effective-role preview semantics."
+  - "Do not mutate live data with DUMMY fixtures until release commits pass local/static gates."
+completed:
+  - "Reconciled backend with origin/namecheap-beta-live at 4cdf38b and Drupal with origin/beta/drupal-webapp at 4f5a11c."
+  - "Implemented compact signed Shop QR verification, replay ledger, management shop session, USER attendance path, Finance guard and store pinning."
+  - "Implemented Admin > Stores POS device management and four-digit per-client device codes."
+  - "Moved scanner UI to Home header; removed Current Shift scanner markup/CSS; added role-aware result state and Financials navigation gating."
+  - "Wired migration 039 and Shop/POS validator into backend deploy; made Drupal deploy probes shop-guard-aware."
+  - "Focused PHP lint, diff check, shell syntax, JS syntax, permission policy, gateway, role delegation, runtime, scanner, Finance, source encoding and shell-declutter checks passed."
+  - "Fixed corrupted QR icon asset; valid SVG is now staged in Drupal source."
+checks:
+  - name: "validate_shop_login_devices_v1.php"
+    result: PASS
+    evidence: "Contract validator passes locally."
+  - name: "validate_attendance_qr_widget_v1.php"
+    result: PASS
+    evidence: "Header Shop scanner contract passes and rejects retired Current Shift scanner."
+  - name: "validate_finance_v2.php"
+    result: PASS
+    evidence: "Finance Shop-login navigation/source contract passes."
+  - name: "validate_administration_write_v1.php / validate_administration_twig.php"
+    result: PASS
+    evidence: "Persistent PHP 8.4.25 CLI installed and both validators pass against canonical Drupal vendor dependencies."
+  - name: "backend pre-deploy validator inventory"
+    result: PASS
+    evidence: "All backend source/preflight validators invoked by deploy_namecheap_beta.sh pass locally under php84."
+  - name: "Drupal pre-deploy validator inventory"
+    result: PASS
+    evidence: "All Drupal validators invoked by namecheap_deploy.sh pass locally under php84."
+notes:
+  - "Installed persistent WinGet PHP 8.4.25 CLI; normal PowerShell php and explicit php84 resolve to it."
+  - "Added persistent php.ini with Drupal/test extensions including mbstring, pdo_sqlite, sqlite3, sodium, curl, intl, gd and zip."
+  - "Documented the php84 workstation rule in AGENTS.md and .ai/playbook.md so new sessions do not fall back to XAMPP PHP 8.2."
+  - "Completed signed Drupal server-session Shop context bridge with backend device/store revalidation and context clearing on client/user switches."
+  - "Kept POS reactivation fail-closed: revoked keys are not silently restored."
+remaining:
+  - "Run final clean-diff/lint gate and commit/push backend + Drupal feature branches."
+  - "Merge through namecheap-beta-live and beta/drupal-webapp release flows."
+  - "Deploy backend first so migration 039 and APIs are live, then deploy Drupal exact merged SHA."
+  - "Run authenticated DUMMY DEV/ADMIN/SUPER/USER acceptance, including visual desktop/mobile checks and cleanup."
+  - "Verify release markers/exact SHAs and zero tracked drift; then close/archive this packet."
+next_action: "Run final clean-diff/lint gate, then commit and push the backend and Drupal feature branches."
+blocked: false
+blocker: null
+updated_at: "2026-09-21T18:52:33+05:00"

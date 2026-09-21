@@ -222,7 +222,7 @@ function directory_valid_date(string $value): bool
 function directory_permissions(PDO $pdo, array $actor): array
 {
     $keys = [
-        'stores.view','stores.manage','stores.timings.manage','stores.profile.manage','stores.logo.manage',
+        'stores.view','stores.manage','stores.timings.manage','stores.profile.manage','stores.logo.manage','stores.devices.manage',
         'workforce.view','workforce.manage','workforce.payrates.manage','workforce.credentials.reset',
     ];
     $out = [];
