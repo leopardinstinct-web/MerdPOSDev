@@ -1,7 +1,7 @@
 {
     "snapshot_kind": "schema_metadata_only",
     "server_version": "11.4.13-MariaDB-cll-lve-log",
-    "table_count": 52,
+    "table_count": 53,
     "tables": [
         {
             "name": "admin_audit_logs",
@@ -2730,8 +2730,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "device_uuid",
+                    "name": "device_code",
                     "position": 4,
+                    "data_type": "char",
+                    "column_type": "char(4)",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "device_uuid",
+                    "position": 5,
                     "data_type": "varchar",
                     "column_type": "varchar(150)",
                     "nullable": false,
@@ -2740,15 +2749,6 @@
                 },
                 {
                     "name": "device_name",
-                    "position": 5,
-                    "data_type": "varchar",
-                    "column_type": "varchar(150)",
-                    "nullable": true,
-                    "default": "NULL",
-                    "extra": ""
-                },
-                {
-                    "name": "activation_token",
                     "position": 6,
                     "data_type": "varchar",
                     "column_type": "varchar(150)",
@@ -2757,16 +2757,16 @@
                     "extra": ""
                 },
                 {
-                    "name": "token_hash",
+                    "name": "activation_token",
                     "position": 7,
-                    "data_type": "char",
-                    "column_type": "char(64)",
+                    "data_type": "varchar",
+                    "column_type": "varchar(150)",
                     "nullable": true,
                     "default": "NULL",
                     "extra": ""
                 },
                 {
-                    "name": "previous_token_hash",
+                    "name": "token_hash",
                     "position": 8,
                     "data_type": "char",
                     "column_type": "char(64)",
@@ -2775,16 +2775,16 @@
                     "extra": ""
                 },
                 {
-                    "name": "token_expires_at",
+                    "name": "previous_token_hash",
                     "position": 9,
-                    "data_type": "datetime",
-                    "column_type": "datetime",
+                    "data_type": "char",
+                    "column_type": "char(64)",
                     "nullable": true,
                     "default": "NULL",
                     "extra": ""
                 },
                 {
-                    "name": "previous_token_valid_until",
+                    "name": "token_expires_at",
                     "position": 10,
                     "data_type": "datetime",
                     "column_type": "datetime",
@@ -2793,7 +2793,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "token_rotated_at",
+                    "name": "previous_token_valid_until",
                     "position": 11,
                     "data_type": "datetime",
                     "column_type": "datetime",
@@ -2802,7 +2802,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "revoked_at",
+                    "name": "token_rotated_at",
                     "position": 12,
                     "data_type": "datetime",
                     "column_type": "datetime",
@@ -2811,7 +2811,7 @@
                     "extra": ""
                 },
                 {
-                    "name": "activated_at",
+                    "name": "revoked_at",
                     "position": 13,
                     "data_type": "datetime",
                     "column_type": "datetime",
@@ -2820,8 +2820,17 @@
                     "extra": ""
                 },
                 {
-                    "name": "status",
+                    "name": "activated_at",
                     "position": 14,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": true,
+                    "default": "NULL",
+                    "extra": ""
+                },
+                {
+                    "name": "status",
+                    "position": 15,
                     "data_type": "enum",
                     "column_type": "enum('active','inactive')",
                     "nullable": true,
@@ -2830,7 +2839,7 @@
                 },
                 {
                     "name": "last_sync",
-                    "position": 15,
+                    "position": 16,
                     "data_type": "datetime",
                     "column_type": "datetime",
                     "nullable": true,
@@ -2839,7 +2848,7 @@
                 },
                 {
                     "name": "created_at",
-                    "position": 16,
+                    "position": 17,
                     "data_type": "timestamp",
                     "column_type": "timestamp",
                     "nullable": true,
@@ -2848,17 +2857,6 @@
                 }
             ],
             "indexes": [
-                {
-                    "name": "client_id",
-                    "unique": false,
-                    "type": "BTREE",
-                    "columns": [
-                        {
-                            "name": "client_id",
-                            "prefix_length": null
-                        }
-                    ]
-                },
                 {
                     "name": "device_uuid",
                     "unique": true,
@@ -2888,6 +2886,21 @@
                     "columns": [
                         {
                             "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_devices_client_device_code",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "device_code",
                             "prefix_length": null
                         }
                     ]
@@ -8088,6 +8101,184 @@
                     "constraint": "shifts_ibfk_3",
                     "column": "employee_id",
                     "references_table": "employees",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                }
+            ]
+        },
+        {
+            "name": "shop_qr_uses",
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "columns": [
+                {
+                    "name": "id",
+                    "position": 1,
+                    "data_type": "bigint",
+                    "column_type": "bigint(20) unsigned",
+                    "nullable": false,
+                    "default": null,
+                    "extra": "auto_increment"
+                },
+                {
+                    "name": "token_hash",
+                    "position": 2,
+                    "data_type": "char",
+                    "column_type": "char(64)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "client_id",
+                    "position": 3,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "actor_key",
+                    "position": 4,
+                    "data_type": "varchar",
+                    "column_type": "varchar(191)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "device_id",
+                    "position": 5,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "store_id",
+                    "position": 6,
+                    "data_type": "int",
+                    "column_type": "int(11)",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "action",
+                    "position": 7,
+                    "data_type": "enum",
+                    "column_type": "enum('IN','OUT')",
+                    "nullable": false,
+                    "default": null,
+                    "extra": ""
+                },
+                {
+                    "name": "used_at",
+                    "position": 8,
+                    "data_type": "datetime",
+                    "column_type": "datetime",
+                    "nullable": false,
+                    "default": "current_timestamp()",
+                    "extra": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "fk_shop_qr_store",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "store_id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_shop_qr_device",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "device_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "used_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "idx_shop_qr_scope",
+                    "unique": false,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "client_id",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "actor_key",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "used_at",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "PRIMARY",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "prefix_length": null
+                        }
+                    ]
+                },
+                {
+                    "name": "uq_shop_qr_actor",
+                    "unique": true,
+                    "type": "BTREE",
+                    "columns": [
+                        {
+                            "name": "token_hash",
+                            "prefix_length": null
+                        },
+                        {
+                            "name": "actor_key",
+                            "prefix_length": null
+                        }
+                    ]
+                }
+            ],
+            "foreign_keys": [
+                {
+                    "constraint": "fk_shop_qr_client",
+                    "column": "client_id",
+                    "references_table": "clients",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_shop_qr_device",
+                    "column": "device_id",
+                    "references_table": "devices",
+                    "references_column": "id",
+                    "update_rule": "RESTRICT",
+                    "delete_rule": "RESTRICT"
+                },
+                {
+                    "constraint": "fk_shop_qr_store",
+                    "column": "store_id",
+                    "references_table": "stores",
                     "references_column": "id",
                     "update_rule": "RESTRICT",
                     "delete_rule": "RESTRICT"
