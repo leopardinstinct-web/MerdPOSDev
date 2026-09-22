@@ -537,8 +537,9 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $statePayload = $this->map($state['payload'] ?? []);
     $contextPayload = $this->map($context['payload'] ?? []);
     $timezone = (string)($statePayload['client_defaults']['timezone'] ?? $dashboard['payload']['client_defaults']['timezone'] ?? 'Australia/Sydney');
+    $recentShiftRows = $this->rows($statePayload['recent_shifts'] ?? []);
     $recentShiftsById = [];
-    foreach ($this->rows($statePayload['recent_shifts'] ?? []) as $recentShift) {
+    foreach ($recentShiftRows as $recentShift) {
       $recentId = trim((string)($recentShift['shift_id'] ?? ''));
       if ($recentId !== '') $recentShiftsById[$recentId] = $recentShift;
     }
@@ -554,6 +555,44 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $canViewPeople = in_array('workforce.view', $permissions, true);
     $canSubmitOwn = in_array('disputes.submit_own', $permissions, true);
     $canReview = in_array('disputes.review', $permissions, true);
+
+    $clockMinutes = static function(string $value): ?int {
+      if (!preg_match('/^(\d{1,2}):(\d{2})$/', trim($value), $match)) return NULL;
+      $hour = (int)$match[1];
+      $minute = (int)$match[2];
+      if ($hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) return NULL;
+      return ($hour * 60) + $minute;
+    };
+    $resolveRecentShiftId = function(string $employeeUserId, string $storeName, string $date, string $in, string $out) use ($recentShiftRows, $timezone, $clockMinutes): string {
+      if ($employeeUserId === '' || $storeName === '' || $date === '') return '';
+      $candidates = [];
+      foreach ($recentShiftRows as $recentShift) {
+        $recentId = trim((string)($recentShift['shift_id'] ?? ''));
+        if ($recentId === '' || !hash_equals($employeeUserId, (string)($recentShift['user_id'] ?? ''))) continue;
+        if (strcasecmp($storeName, trim((string)($recentShift['store_name'] ?? ''))) !== 0) continue;
+        $shiftTimezone = (string)($recentShift['timezone'] ?? $timezone);
+        $recentIn = $this->localDateTimeParts($recentShift['clock_in_at'] ?? '', $shiftTimezone);
+        $recentOut = $this->localDateTimeParts($recentShift['clock_out_at'] ?? '', $shiftTimezone);
+        $recentDate = $recentIn['date'] !== '' ? $recentIn['date'] : $recentOut['date'];
+        if ($recentDate !== $date) continue;
+
+        $score = 0;
+        $compared = 0;
+        foreach ([[$in, $recentIn['time']], [$out, $recentOut['time']]] as [$rowTime, $recentTime]) {
+          $rowMinutes = $clockMinutes((string)$rowTime);
+          $recentMinutes = $clockMinutes((string)$recentTime);
+          if ($rowMinutes === NULL || $recentMinutes === NULL) continue;
+          $score += abs($rowMinutes - $recentMinutes);
+          $compared++;
+        }
+        $candidates[] = ['id'=>$recentId,'score'=>$compared > 0 ? $score : 9999];
+      }
+      if (!$candidates) return '';
+      usort($candidates, static fn(array $a, array $b): int => ($a['score'] <=> $b['score']) ?: strcmp((string)$a['id'], (string)$b['id']));
+      if (count($candidates) === 1) return (string)$candidates[0]['id'];
+      return $candidates[0]['score'] < $candidates[1]['score'] && $candidates[0]['score'] <= 180 ? (string)$candidates[0]['id'] : '';
+    };
+
     $actionStores = [];
     foreach ($this->rows($statePayload['stores'] ?? []) as $store) {
       if ((int)($store['id'] ?? 0) > 0) $actionStores[] = ['id'=>(int)$store['id'],'name'=>(string)($store['store_name'] ?? '')];
@@ -680,6 +719,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       $date = (string)($row['date'] ?? '');
       $in = $this->clock((string)($row['actual_in_time'] ?? ''));
       $out = $this->clock((string)($row['actual_out_time'] ?? ''));
+      if ($shiftId === '') $shiftId = $resolveRecentShiftId($employeeUserId, (string)($row['store_name'] ?? ''), $date, $in, $out);
       $clockInLocal = $inParts['date'] !== '' && $inParts['time'] !== '—' ? $inParts['date'] . 'T' . $inParts['time'] : ($date !== '' && $in !== '—' ? $date . 'T' . $in : '');
       $clockOutLocal = $outParts['date'] !== '' && $outParts['time'] !== '—' ? $outParts['date'] . 'T' . $outParts['time'] : ($date !== '' && $out !== '—' ? $date . 'T' . $out : '');
       $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
@@ -711,9 +751,11 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $representedShiftIds = [];
     foreach (array_slice($filteredShifts, 0, 250) as $row) {
       $shiftId = trim((string)($row['shift_id'] ?? ''));
+      $employeeUserId = (string)($row['employee_user_id'] ?? '');
+      if ($shiftId === '') $shiftId = $resolveRecentShiftId($employeeUserId, (string)($row['store'] ?? ''), (string)($row['date'] ?? ''), (string)($row['in'] ?? ''), (string)($row['out'] ?? ''));
       if ($shiftId !== '') $representedShiftIds[$shiftId] = true;
       $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
-      $isOwn = $currentUserId !== '' && hash_equals($currentUserId, (string)($row['employee_user_id'] ?? ''));
+      $isOwn = $currentUserId !== '' && $employeeUserId !== '' && hash_equals($currentUserId, $employeeUserId);
       $recent = $shiftId !== '' ? ($recentShiftsById[$shiftId] ?? []) : [];
       $shiftTimezone = (string)($recent['timezone'] ?? $timezone);
       $inParts = $this->localDateTimeParts($recent['clock_in_at'] ?? '', $shiftTimezone);
