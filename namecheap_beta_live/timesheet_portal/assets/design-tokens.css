@@ -46,6 +46,8 @@
   --color-success-surface: #ECF8F3;
   --color-warning: #8A5300;
   --color-warning-surface: #FFF6DF;
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #B42318;
   --color-danger-surface: #FFF0EF;
   --color-info: #175CD3;
@@ -219,6 +221,8 @@
   --color-success-surface: #14382B;
   --color-warning: #FEC84B;
   --color-warning-surface: #3B2E10;
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #FDA29B;
   --color-danger-surface: #492126;
   --color-info: #84CAFF;
