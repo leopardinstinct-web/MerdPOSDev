@@ -200,7 +200,17 @@ function attach_authoritative_shift_ids(PDO $pdo, int $clientId, array &$report,
         foreach(($employee['rows'] ?? []) as &$row){
             if(trim((string)($row['shift_id'] ?? ''))!=='') continue;
             $key=implode('|',[(int)($row['employee_id']??0),(int)($row['store_id']??0),(string)($row['in_date']??''),(string)($row['actual_in_time']??''),(string)($row['out_date']??''),(string)($row['actual_out_time']??'')]);
-            if(isset($map[$key])) $row['shift_id']=$map[$key];
+            if(isset($map[$key])) {
+                $row['shift_id']=$map[$key];
+            } elseif ((int)($row['employee_id']??0) > 0 && (int)($row['store_id']??0) > 0
+                && preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)($row['in_date']??''))
+                && preg_match('/^\d{2}:\d{2}:\d{2}$/',(string)($row['actual_in_time']??''))
+                && preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)($row['out_date']??''))
+                && preg_match('/^\d{2}:\d{2}:\d{2}$/',(string)($row['actual_out_time']??''))) {
+                $inStamp=str_replace(['-',':'],'',(string)$row['in_date'].(string)$row['actual_in_time']);
+                $outStamp=str_replace(['-',':'],'',(string)$row['out_date'].(string)$row['actual_out_time']);
+                $row['shift_id']='logpair:'.(int)$row['employee_id'].':'.(int)$row['store_id'].':'.$inStamp.':'.$outStamp;
+            }
         } unset($row);
     } unset($employee);
 }
