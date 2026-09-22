@@ -44,14 +44,14 @@ shop_login_check(str_contains($devices, "str_pad((string)\$i, 4, '0'"), 'POS IDs
 shop_login_check(str_contains($devices, 'SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES'), 'POS Ed25519 public-key validation missing.');
 shop_login_check(str_contains($devices, 'attendance_device_keys'), 'POS key registration binding missing.');
 shop_login_check(str_contains($grantRequest, "'version' => 'activation-grant-v2'"), 'Activation grant v2 pairing discovery missing.');
-shop_login_check(str_contains($grantRequest, "'devices' => $devices"), 'Activation grant must expose selectable POS devices.');
-shop_login_check(str_contains($grantRequest, "'pairing_status' => $paired ? 'paired' : 'available'"), 'Activation grant must expose POS pairing availability.');
+shop_login_check(str_contains($grantRequest, "'devices' => \$devices"), 'Activation grant must expose selectable POS devices.');
+shop_login_check(str_contains($grantRequest, "'pairing_status' => \$paired ? 'paired' : 'available'"), 'Activation grant must expose POS pairing availability.');
 shop_login_check(str_contains($pairing, "preg_match('/^[0-9]{4}$/'"), 'Pairing endpoint must require a four-digit POS ID.');
 shop_login_check(str_contains($pairing, 'SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES'), 'Pairing endpoint Ed25519 public-key validation missing.');
 shop_login_check(str_contains($pairing, 'merd_activation_grant_consume'), 'Pairing endpoint must consume the one-time activation grant.');
 shop_login_check(str_contains($pairing, "'device_already_paired'"), 'Pairing endpoint must prevent silent POS takeover.');
 shop_login_check(str_contains($pairing, 'attendance_device_keys'), 'Pairing endpoint must register the attendance public key.');
-shop_login_check(str_contains($pairing, "merd_device_token_hash($token)"), 'Pairing endpoint must issue a device credential.');
+shop_login_check(str_contains($pairing, "merd_device_token_hash(\$token)"), 'Pairing endpoint must issue a device credential.');
 shop_login_check(str_contains($pairing, "'attendance_device_pairing'"), 'Pairing endpoint security audit logging missing.');
 shop_login_check(str_contains($devices, 'beta_admin_audit'), 'POS administration audit missing.');
 shop_login_check(str_contains($devices, "SET status='revoked',revoked_at=UTC_TIMESTAMP()"), 'Inactivating a POS must revoke its registered key.');
