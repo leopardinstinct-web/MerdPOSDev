@@ -253,6 +253,7 @@ for live_file in \
   "$LIVE/timesheet_portal/studio_context_asset.php" \
   "$LIVE/timesheet_portal/includes/legacy_known_fetch.php" \
   "$LIVE/timesheet_portal/README.md" \
+  "$LIVE/backend/api/pair_attendance_device.php" \
   "$LIVE/backend/api/includes/service_auth.php" \
   "$LIVE/backend/api/includes/service_actor.php" \
   "$LIVE/backend/api/integrations/working_now.php" \

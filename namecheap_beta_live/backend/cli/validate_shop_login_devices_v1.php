@@ -12,6 +12,8 @@ $migration = file_get_contents($backend . '/sql/039_shop_login_devices.sql');
 $apply = file_get_contents($backend . '/cli/apply_039_shop_login_devices.php');
 $permissions = file_get_contents($backend . '/api/includes/portal_permissions.php');
 $workforce = file_get_contents($backend . '/api/includes/workforce_beta.php');
+$grantRequest = file_get_contents($backend . '/api/request_activation_grant.php');
+$pairing = file_get_contents($backend . '/api/pair_attendance_device.php');
 $gateway = file_get_contents($backend . '/api/integrations/portal_gateway.php');
 $api = file_get_contents($portal . '/includes/beta_api.php');
 $scan = file_get_contents($portal . '/api/attendance_scan.php');
@@ -21,7 +23,7 @@ $finance = file_get_contents($portal . '/api/financials.php');
 $directory = file_get_contents($portal . '/api/admin_directory.php');
 $deployPath = dirname($root) . '/scripts/deploy_namecheap_beta.sh';
 $deploy = is_file($deployPath) ? file_get_contents($deployPath) : null;
-foreach ([$migration,$apply,$permissions,$workforce,$gateway,$api,$scan,$devices,$state,$finance,$directory] as $source) {
+foreach ([$migration,$apply,$permissions,$workforce,$grantRequest,$pairing,$gateway,$api,$scan,$devices,$state,$finance,$directory] as $source) {
     shop_login_check(is_string($source), 'Shop login release source is unreadable.');
 }
 shop_login_check(str_contains($migration, 'ADD COLUMN IF NOT EXISTS device_code CHAR(4)'), 'Migration 039 device_code missing.');
@@ -41,6 +43,16 @@ shop_login_check(str_contains($devices, 'merd_next_device_code'), 'Four-digit PO
 shop_login_check(str_contains($devices, "str_pad((string)\$i, 4, '0'"), 'POS IDs must be four digits.');
 shop_login_check(str_contains($devices, 'SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES'), 'POS Ed25519 public-key validation missing.');
 shop_login_check(str_contains($devices, 'attendance_device_keys'), 'POS key registration binding missing.');
+shop_login_check(str_contains($grantRequest, "'version' => 'activation-grant-v2'"), 'Activation grant v2 pairing discovery missing.');
+shop_login_check(str_contains($grantRequest, "'devices' => \$devices"), 'Activation grant must expose selectable POS devices.');
+shop_login_check(str_contains($grantRequest, "'pairing_status' => \$paired ? 'paired' : 'available'"), 'Activation grant must expose POS pairing availability.');
+shop_login_check(str_contains($pairing, "preg_match('/^[0-9]{4}$/'"), 'Pairing endpoint must require a four-digit POS ID.');
+shop_login_check(str_contains($pairing, 'SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES'), 'Pairing endpoint Ed25519 public-key validation missing.');
+shop_login_check(str_contains($pairing, 'merd_activation_grant_consume'), 'Pairing endpoint must consume the one-time activation grant.');
+shop_login_check(str_contains($pairing, "'device_already_paired'"), 'Pairing endpoint must prevent silent POS takeover.');
+shop_login_check(str_contains($pairing, 'attendance_device_keys'), 'Pairing endpoint must register the attendance public key.');
+shop_login_check(str_contains($pairing, "merd_device_token_hash(\$token)"), 'Pairing endpoint must issue a device credential.');
+shop_login_check(str_contains($pairing, "'attendance_device_pairing'"), 'Pairing endpoint security audit logging missing.');
 shop_login_check(str_contains($devices, 'beta_admin_audit'), 'POS administration audit missing.');
 shop_login_check(str_contains($devices, "SET status='revoked',revoked_at=UTC_TIMESTAMP()"), 'Inactivating a POS must revoke its registered key.');
 shop_login_check(!str_contains($devices, "SET status='active',revoked_at=NULL"), 'Reactivating a POS must not silently restore a revoked key.');

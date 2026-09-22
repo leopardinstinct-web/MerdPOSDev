@@ -34,6 +34,7 @@ try {
         );
         merd_api_fail('setup_validation_failed', 'Setup validation failed.', 401, $requestId);
     }
+
     $clientId = (int)$client['id'];
     $storesStmt = $pdo->prepare(
         "SELECT id, store_name, store_code FROM stores "
@@ -41,6 +42,32 @@ try {
     );
     $storesStmt->execute([$clientId]);
     $stores = $storesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $devicesStmt = $pdo->prepare(
+        "SELECT d.device_code,d.device_name,d.status,d.token_hash,"
+        . "s.id AS store_id,s.store_name,s.store_code,"
+        . "k.status AS key_status "
+        . "FROM devices d "
+        . "INNER JOIN stores s ON s.id=d.store_id AND s.client_id=d.client_id "
+        . "LEFT JOIN attendance_device_keys k ON k.device_id=d.id "
+        . "WHERE d.client_id=? AND d.status='active' AND s.status='active' "
+        . "ORDER BY s.store_name,d.device_code,d.id"
+    );
+    $devicesStmt->execute([$clientId]);
+    $devices = [];
+    foreach ($devicesStmt->fetchAll(PDO::FETCH_ASSOC) as $device) {
+        $paired = trim((string)($device['token_hash'] ?? '')) !== ''
+            || strtolower(trim((string)($device['key_status'] ?? ''))) === 'active';
+        $devices[] = [
+            'device_code' => (string)$device['device_code'],
+            'device_name' => (string)$device['device_name'],
+            'store_id' => (int)$device['store_id'],
+            'store_name' => (string)$device['store_name'],
+            'store_code' => (string)$device['store_code'],
+            'pairing_status' => $paired ? 'paired' : 'available',
+        ];
+    }
+
     $issued = merd_activation_grant_issue(new MerdPdoActivationGrantStore($pdo), $clientId);
     merd_security_log_event(
         $log,
@@ -50,15 +77,17 @@ try {
         ['client_id' => $clientId, 'request_id' => $requestId],
         ['endpoint' => 'request_activation_grant.php']
     );
+
     merd_api_send(merd_api_success([
         'api' => 'request_activation_grant.php',
-        'version' => 'activation-grant-v1',
+        'version' => 'activation-grant-v2',
         'client' => [
             'id' => $clientId,
             'name' => (string)$client['name'],
             'client_code' => (string)$client['client_code'],
         ],
         'stores' => $stores,
+        'devices' => $devices,
         'activation_grant' => $issued['grant'],
         'grant_expires_at' => $issued['expires_at']->format(DateTimeInterface::ATOM),
     ]));
