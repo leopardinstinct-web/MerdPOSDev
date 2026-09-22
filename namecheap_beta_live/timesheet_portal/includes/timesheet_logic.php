@@ -207,6 +207,87 @@ function build_shift_rows(array $timesheetRows, array $startTimeMap, string $wee
     return $shifts;
 }
 
+function build_open_shift_rows(array $timesheetRows, string $weekStart, ?string $employeeFilter = null): array
+{
+    $weekStartDt = new DateTimeImmutable($weekStart);
+    $weekEndDt = $weekStartDt->modify('+6 days');
+    $groups = [];
+
+    foreach ($timesheetRows as $row) {
+        $user = get_field($row, ['USER_NAME', 'User Name', 'Employee Name', 'NAME'], 0);
+        $store = get_field($row, ['STORE_NAME', 'Store Name', 'Store'], 1);
+        $log = strtoupper(get_field($row, ['LOG_TYPE', 'Log Type', 'Type'], 2));
+        $date = normalize_date_string(get_field($row, ['DATE', 'Date'], 3));
+        $time = normalize_time_string(get_field($row, ['TIME', 'Time'], 4));
+
+        if ($user === '' || $store === '' || !in_array($log, ['IN', 'OUT'], true) || $date === '' || $time === '') continue;
+        if ($employeeFilter !== null && strcasecmp($user, $employeeFilter) !== 0) continue;
+
+        $key = strtolower($user) . '||' . strtolower($store);
+        $groups[$key][] = [
+            'user_name' => $user,
+            'store_name' => $store,
+            'log_type' => $log,
+            'date' => $date,
+            'time' => $time,
+            'employee_id' => (int)($row['EMPLOYEE_ID'] ?? 0),
+            'store_id' => (int)($row['STORE_ID'] ?? 0),
+            'local_log_id' => (string)($row['LOCAL_LOG_ID'] ?? ''),
+        ];
+    }
+
+    $open = [];
+    $append = static function(array $item, string $missing) use (&$open, $weekStartDt, $weekEndDt): void {
+        $date = parse_date_value((string)$item['date']);
+        if (!$date || $date < $weekStartDt || $date > $weekEndDt) return;
+        $shiftId = '';
+        if (preg_match('/^attendance:([0-9a-f-]{36}):(IN|OUT)$/i', (string)($item['local_log_id'] ?? ''), $match)) {
+            $shiftId = (string)$match[1];
+        }
+        $open[] = [
+            'employee_id' => (int)($item['employee_id'] ?? 0),
+            'store_id' => (int)($item['store_id'] ?? 0),
+            'shift_id' => $shiftId,
+            'employee_name' => (string)$item['user_name'],
+            'store_name' => (string)$item['store_name'],
+            'date' => (string)$item['date'],
+            'actual_in_time' => $missing === 'OUT' ? (string)$item['time'] : '',
+            'actual_out_time' => $missing === 'IN' ? (string)$item['time'] : '',
+            'missing' => $missing,
+        ];
+    };
+
+    foreach ($groups as $items) {
+        usort($items, fn($a, $b) => strcmp($a['date'] . ' ' . $a['time'], $b['date'] . ' ' . $b['time']));
+        $lastIn = null;
+        foreach ($items as $item) {
+            if ($item['log_type'] === 'IN') {
+                if ($lastIn !== null) $append($lastIn, 'OUT');
+                $lastIn = $item;
+                continue;
+            }
+            if ($lastIn === null) {
+                $append($item, 'IN');
+                continue;
+            }
+            $lastIn = null;
+        }
+        if ($lastIn !== null) $append($lastIn, 'OUT');
+    }
+
+    usort($open, static function(array $a, array $b): int {
+        $employee = strcasecmp((string)$a['employee_name'], (string)$b['employee_name']);
+        if ($employee !== 0) return $employee;
+        $date = strcmp((string)$a['date'], (string)$b['date']);
+        if ($date !== 0) return $date;
+        $timeA = (string)($a['actual_in_time'] !== '' ? $a['actual_in_time'] : $a['actual_out_time']);
+        $timeB = (string)($b['actual_in_time'] !== '' ? $b['actual_in_time'] : $b['actual_out_time']);
+        $time = strcmp($timeA, $timeB);
+        return $time !== 0 ? $time : strcasecmp((string)$a['store_name'], (string)$b['store_name']);
+    });
+    return $open;
+}
+
 function normalize_date_string(string $date): string
 {
     $dt = parse_date_value($date);
@@ -229,6 +310,11 @@ function build_report(array $sourceData, string $weekStart, ?string $employeeFil
     $employeeUserIdMap = build_employee_user_id_map($sourceData['employee_setup']);
     $startTimeMap = build_start_time_map($sourceData['start_time']);
     $shifts = build_shift_rows($sourceData['timesheet'], $startTimeMap, $weekStart, $employeeFilter);
+    $openShifts = build_open_shift_rows($sourceData['timesheet'], $weekStart, $employeeFilter);
+    foreach ($openShifts as &$openShift) {
+        $openShift['user_id'] = $employeeUserIdMap[strtolower((string)$openShift['employee_name'])] ?? '';
+    }
+    unset($openShift);
 
     $employees = [];
     $storeSummary = [];
@@ -309,6 +395,7 @@ function build_report(array $sourceData, string $weekStart, ?string $employeeFil
         'store_summary' => $storeSummaryOut,
         'employee_summary' => $employeeSummary,
         'employees' => array_values($employees),
+        'open_shifts' => $openShifts,
         'grand_total_hours' => round($grandHours, 2),
         'grand_total_wage' => round($grandWage, 2),
     ];
