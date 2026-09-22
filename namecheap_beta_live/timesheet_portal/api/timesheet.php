@@ -323,6 +323,31 @@ function redact_timesheet_payroll(array &$report): void
     $report['payroll_visible'] = false;
 }
 
+function redact_timesheet_pay_rates_keep_own_wages(array &$report): void
+{
+    unset($report['rate_source']);
+    if (isset($report['employees']) && is_array($report['employees'])) {
+        foreach ($report['employees'] as &$employee) {
+            unset($employee['pay_rate'], $employee['pay_rate_varies'], $employee['rates_used']);
+            if (isset($employee['rows']) && is_array($employee['rows'])) {
+                foreach ($employee['rows'] as &$row) unset($row['applied_rate']);
+                unset($row);
+            }
+        }
+        unset($employee);
+    }
+    if (isset($report['employee_summary']) && is_array($report['employee_summary'])) {
+        foreach ($report['employee_summary'] as &$summary) unset($summary['pay_rate']);
+        unset($summary);
+    }
+    if (isset($report['store_summary']) && is_array($report['store_summary'])) {
+        foreach ($report['store_summary'] as &$store) unset($store['total_amount']);
+        unset($store);
+    }
+    $report['payroll_visible'] = true;
+    $report['payroll_scope'] = 'own_employee';
+}
+
 try {
     $pdo = portal_db();
     $canViewAll = beta_has_permission($user, 'timesheets.view_all', $pdo);
@@ -332,8 +357,13 @@ try {
     $report = build_report($source, $weekStart, $employeeFilter, $canViewAll);
     attach_authoritative_shift_ids($pdo, $clientId, $report, $weekStart);
     apply_schedule_and_effective_rates($report, $source);
-    if (!$canViewPay) redact_timesheet_payroll($report);
-    else $report['payroll_visible'] = true;
+    if (!$canViewPay) {
+        if ($canViewAll) redact_timesheet_payroll($report);
+        else redact_timesheet_pay_rates_keep_own_wages($report);
+    } else {
+        $report['payroll_visible'] = true;
+        $report['payroll_scope'] = 'authorized';
+    }
     $report['source'] = 'sql_employee_logs';
     $report['client_id'] = $clientId;
     $report['scope'] = $canViewAll ? 'all_employees' : 'own_employee';

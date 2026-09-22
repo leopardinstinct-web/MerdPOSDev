@@ -20,5 +20,7 @@ att_reconcile_check(str_contains($timesheet,'local_log_id') && str_contains($tim
 att_reconcile_check(str_contains($timesheetLogic,'\'shift_id\' => $shiftId') && str_contains($timesheetLogic,'attendance:([0-9a-f-]{36})'),'Timesheet shift public-id propagation missing.');
 att_reconcile_check(str_contains($timesheetLogic,'function build_open_shift_rows') && str_contains($timesheetLogic,"'open_shifts' => \$openShifts"),'Incomplete IN/OUT events must be exposed separately as open_shifts.');
 att_reconcile_check(str_contains($timesheetLogic,"\$append(\$lastIn, 'OUT')") && str_contains($timesheetLogic,"\$append(\$item, 'IN')"),'Open-shift pairing must retain unmatched IN and unmatched OUT events.');
+att_reconcile_check(str_contains($timesheet,'function redact_timesheet_pay_rates_keep_own_wages'),'Own-timesheet payroll projection helper missing.');
+att_reconcile_check(str_contains($timesheet,"\$report['payroll_scope'] = 'own_employee';") && str_contains($timesheet,'if ($canViewAll) redact_timesheet_payroll($report);'),'USER own wages must remain visible without exposing management payroll scope.');
 att_reconcile_check(str_contains($fixture,'DELETE FROM employee_logs WHERE client_id=? AND employee_id IN'),'DUMMY cleanup does not remove reconciled employee logs.');
 echo "MERDPOS attendance-to-timesheet timezone reconciliation validated.\n";
