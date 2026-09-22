@@ -31,11 +31,11 @@ final class ReportsGateway implements PortalGatewayClientInterface {
         ['value'=>'2026-08-31','label'=>'31 Aug - 6 Sep 2026'],['value'=>'2026-08-24','label'=>'24 Aug - 30 Aug 2026'],
       ]],
       'timesheet' => ['success'=>true,'report'=>[
-        'week_label'=>'31 Aug - 6 Sep 2026','scope'=>$isUser?'own_employee':'all_employees','payroll_visible'=>!$isUser,
+        'week_label'=>'31 Aug - 6 Sep 2026','scope'=>$isUser?'own_employee':'all_employees','payroll_visible'=>true,'payroll_scope'=>$isUser?'own_employee':'authorized',
         'employees'=>[
           ['employee_name'=>'Alice','user_id'=>'user-alice','rows'=>[
-            ['shift_id'=>'11111111-1111-4111-8111-111111111111','employee_id'=>1,'store_id'=>1,'store_name'=>'Store A','in_date'=>'2026-09-01','out_date'=>'2026-09-01','actual_in_time'=>'07:00:00','actual_out_time'=>'15:00:00','total_hours'=>8,'is_late'=>false] + ($isUser?[]:['wage'=>200]),
-            ['shift_id'=>'22222222-2222-4222-8222-222222222222','employee_id'=>1,'store_id'=>2,'store_name'=>'Store B','in_date'=>'2026-09-02','out_date'=>'2026-09-02','actual_in_time'=>'07:20:00','actual_out_time'=>'15:00:00','total_hours'=>7.67,'is_late'=>true] + ($isUser?[]:['wage'=>191.75]),
+            ['shift_id'=>'11111111-1111-4111-8111-111111111111','employee_id'=>1,'store_id'=>1,'store_name'=>'Store A','in_date'=>'2026-09-01','out_date'=>'2026-09-01','actual_in_time'=>'07:00:00','actual_out_time'=>'15:00:00','total_hours'=>8,'is_late'=>false,'wage'=>200],
+            ['shift_id'=>'22222222-2222-4222-8222-222222222222','employee_id'=>1,'store_id'=>2,'store_name'=>'Store B','in_date'=>'2026-09-02','out_date'=>'2026-09-02','actual_in_time'=>'07:20:00','actual_out_time'=>'15:00:00','total_hours'=>7.67,'is_late'=>true,'wage'=>191.75],
           ]],
           ...($isUser?[]:[['employee_name'=>'Bob','user_id'=>'user-bob','rows'=>[
             ['shift_id'=>'33333333-3333-4333-8333-333333333333','employee_id'=>2,'store_id'=>1,'store_name'=>'Store A','in_date'=>'2026-09-03','out_date'=>'2026-09-03','actual_in_time'=>'07:15:00','actual_out_time'=>'12:15:00','total_hours'=>5,'is_late'=>true,'wage'=>125],
@@ -46,7 +46,7 @@ final class ReportsGateway implements PortalGatewayClientInterface {
           ...($isUser?[]:[['employee_id'=>2,'user_id'=>'user-bob','store_id'=>2,'employee_name'=>'Bob','store_name'=>'Store B','date'=>'2026-09-05','actual_in_time'=>'','actual_out_time'=>'18:40:00','missing'=>'IN']]),
         ],
         'employee_summary'=>$isUser
-          ? [['employee_name'=>'Alice','total_hours'=>15.67]]
+          ? [['employee_name'=>'Alice','total_hours'=>15.67,'total_wage'=>391.75]]
           : [['employee_name'=>'Alice','total_hours'=>15.67,'total_wage'=>391.75],['employee_name'=>'Bob','total_hours'=>5,'total_wage'=>125]],
         'store_summary'=>$isUser
           ? [['store_name'=>'Store A','total_employees_worked'=>1,'total_hours_worked'=>8],['store_name'=>'Store B','total_employees_worked'=>1,'total_hours_worked'=>7.67]]
@@ -105,15 +105,15 @@ reports_v2_check(($hiddenQuery['selected_week']??'')==='2026-08-31','Week select
 $user = (new ParityDataProvider(new ReportsGateway('USER'), new ReportsWorkingNow()))->section('reports', []);
 reports_v2_check(($user['status']??'')==='ok','USER Reports must remain available.');
 reports_v2_check(($user['role']['key']??'')==='USER','USER Reports role mismatch.');
-reports_v2_check(($user['payroll_visible']??true)===false,'USER payroll must remain redacted.');
+reports_v2_check(($user['payroll_visible']??false)===true,'USER own payroll must be visible.');
 reports_v2_check(count($user['export_rows']??[])===2,'USER export scope mismatch.');
-reports_v2_check(!in_array('wage',array_column($user['export_columns']??[],'key'),true),'USER export must not reveal wage.');
+reports_v2_check(in_array('wage',array_column($user['export_columns']??[],'key'),true),'USER own Closed shifts/export must include wage.');
 reports_v2_check(count($user['chart_specs']??[])===0,'USER Timesheets charts must stay removed.');
 reports_v2_check(count($user['groups']??[])===2 && ($user['groups'][0]['title']??'')==='Open shifts' && ($user['groups'][1]['title']??'')==='Closed shifts','USER must see Open shifts + Closed shifts, but not Store or Employee summaries.');
 $userOpenRows=$user['groups'][0]['rows']??[];
 reports_v2_check(count($userOpenRows)===1 && array_intersect_key($userOpenRows[0],array_flip(['employee','store','date','in','out','missing']))===['employee'=>'Alice','store'=>'Store A','date'=>'2026-09-04','in'=>'09:10','out'=>'—','missing'=>'Missing OUT'],'USER Open shifts must remain scoped to the user.');
 reports_v2_check(!empty($userOpenRows[0]['action']['can_dispute']) && !empty($userOpenRows[0]['action']['can_add_missing']),'USER incomplete shift must expose Query this shift + Add missing shift capabilities.');
-reports_v2_check(($user['metrics'][0]['lines']??[])===[['value'=>'2','label'=>'Shifts'],['value'=>'15.67','label'=>'Hours']],'USER without workforce permission must hide People and payroll while expanding remaining KPI cells.');
+reports_v2_check(($user['metrics'][0]['lines']??[])===[['value'=>'2','label'=>'Shifts'],['value'=>'15.67','label'=>'Hours'],['value'=>'391.75','label'=>'Payroll (AUD)']],'USER must replace People with own Payroll while keeping Shifts and Hours.');
 $limited = (new ParityDataProvider(new ReportsGateway('SUPER', false), new ReportsWorkingNow()))->section('reports', []);
 reports_v2_check(array_column($limited['metrics'][0]['lines']??[],'label')===['Shifts','Hours','Payroll (AUD)'],'Workforce-hidden payroll role must evolve Shifts from four KPI cells to three.');
 
@@ -149,7 +149,7 @@ reports_v2_check(!str_contains($css,'.merdpos-reports-kpi-art'),'Abstract KPI fi
 reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
 reports_v2_check(str_contains($css,'.merdpos-reports-search') && str_contains($css,'.merdpos-reports-print-action { margin-top:.55rem; }'),'Timesheets search styling and PDF spacing missing.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
-reports_v2_check(str_contains($css,'--rep-amber: var(--color-amber)') && str_contains($css,'is-active .merdpos-reports-kpi-stat-value') && str_contains($css,'color:var(--color-amber)'), 'Active Queries KPI must consume the global Amber token.');
+reports_v2_check(str_contains($css,'--rep-amber: var(--color-amber)') && !str_contains($css,'is-active .merdpos-reports-kpi-stat-value') && str_contains($css,'color:var(--color-amber)'), 'Active Queries KPI icon/label must use Amber while KPI numbers keep global text color.');
 reports_v2_check(str_contains($css,'record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg') && str_contains($css,'adjust_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg'), 'Requested Queries KPI icon masks missing.');
 $deploy = (string)file_get_contents($root . '/tools/namecheap_deploy.sh');
 reports_v2_check(str_contains($deploy,'($p["groups"]??0)!==4'),'Reports live deploy self-test must expect Store + Employee + Open Shifts + Filtered Shifts groups.');
@@ -179,7 +179,9 @@ reports_v2_check(is_file($voiceIcon) && str_contains((string)file_get_contents($
 reports_v2_check(is_file($adjustIcon) && str_contains((string)file_get_contents($adjustIcon),'M565-395q35-35'),'Requested adjust Active Queries asset missing or changed.');
 reports_v2_check(str_contains($js,'openMenu') && str_contains($js,"openDialog(trigger, mode)"),'Context menu must select a workflow before opening the dialog.');
 reports_v2_check(str_contains($js,'focus({preventScroll:true})') && !str_contains($js,"window.addEventListener('scroll', closeMenu, true)"),'Shift Action menu must not close itself when focus causes scrolling.');
-reports_v2_check(str_contains($js,'This submits a missing-shift Query') && str_contains($js,"title.textContent = 'Query existing shift'") && str_contains($js,'The shift log is prefilled below'),'Missing-shift and existing-shift Query contexts must stay distinct.');
+reports_v2_check(str_contains($js,"title.textContent = 'Query existing shift'") && str_contains($js,'Selected shift:') && str_contains($js,'bindQueryStore') && str_contains($js,'bindMissingStore'),'Simplified existing/missing shift Query contexts are not wired.');
+reports_v2_check(!str_contains($js,'This submits a missing-shift Query') && !str_contains($js,'The shift log is prefilled below') && !str_contains($template,'data-query-shift-preview') && !str_contains($template,'data-dispute-type-select'),'Retired Query help/preview/Issue controls must stay removed.');
+reports_v2_check(str_contains($template,'data-query-store-display readonly') && str_contains($template,'data-missing-store-select') && str_contains($template,'merdpos-dialog-actions merdpos-timesheet-form-actions'),'Locked existing-shift Store and shared right-aligned dialog actions missing.');
 reports_v2_check(str_contains($routing,'ReportsController::legacyOperationsRedirect'),'Legacy Operations URL must redirect to Shift Detail.');
 
 echo "MERDPOS Drupal Reports v2 validated.\n";

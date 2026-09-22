@@ -110,16 +110,14 @@
         </div>
       </section>
       <section class="merdpos-timesheet-create" data-timesheet-create hidden>
-        <p class="merdpos-timesheet-create-help" data-timesheet-create-help></p>
         <form method="post" action="{{ query_post_url }}" data-timesheet-create-form>
-          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="return_query" value=""><input type="hidden" name="dispute_action" value="create"><input type="hidden" name="shift_id" value=""><input type="hidden" name="dispute_type" value="other" data-dispute-type-hidden><input type="hidden" name="expected_client_id" value="{{ surface.query_context.client_id|default(0) }}"><input type="hidden" name="expected_employee_id" value="{{ surface.query_context.employee_id|default(0) }}">
-          <div class="merdpos-query-shift-preview" data-query-shift-preview hidden><div><span>Employee</span><strong data-query-preview-employee></strong></div><div><span>Store</span><strong data-query-preview-store></strong></div><div><span>Date</span><strong data-query-preview-date></strong></div><div><span>Clock-in</span><strong data-query-preview-in></strong></div><div><span>Clock-out</span><strong data-query-preview-out></strong></div></div>
-          <div data-timesheet-dispute-fields><label>Issue<select data-dispute-type-select><option value="other">Other Query</option><option value="missing_out">Missing clock-out</option><option value="wrong_in">Wrong clock-in</option><option value="wrong_out">Wrong clock-out</option><option value="delete_shift">Delete this shift</option></select></label></div>
-          <label data-proposed-store-field hidden>Store<select name="proposed_store_id"><option value="">Choose store</option>{% for store in surface.action_stores %}<option value="{{ store.id }}">{{ store.name }}</option>{% endfor %}</select></label>
+          <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="return_query" value=""><input type="hidden" name="dispute_action" value="create"><input type="hidden" name="shift_id" value=""><input type="hidden" name="dispute_type" value="other" data-dispute-type-hidden><input type="hidden" name="proposed_store_id" value="" data-proposed-store-id><input type="hidden" name="expected_client_id" value="{{ surface.query_context.client_id|default(0) }}"><input type="hidden" name="expected_employee_id" value="{{ surface.query_context.employee_id|default(0) }}">
+          <label data-query-store-field hidden>Store<input type="text" data-query-store-display readonly tabindex="-1"></label>
+          <label data-missing-store-field hidden>Store<select data-missing-store-select><option value="">Choose store</option>{% for store in surface.action_stores %}<option value="{{ store.id }}">{{ store.name }}</option>{% endfor %}</select></label>
           <label data-requested-in-field>Clock-in<input type="datetime-local" name="requested_clock_in"></label>
           <label data-requested-out-field>Clock-out<input type="datetime-local" name="requested_clock_out"></label>
           <label>Reason<textarea name="reason" rows="4" minlength="5" maxlength="1000" required></textarea></label>
-          <div class="merdpos-timesheet-form-actions"><button type="submit" data-timesheet-submit>Submit Query</button></div>
+          <div class="merdpos-dialog-actions merdpos-timesheet-form-actions"><button type="submit" data-timesheet-submit>Submit Query</button></div>
         </form>
       </section>
     </div>
