@@ -191,8 +191,8 @@ beta_contract_require_absent($shellCss, '--shell-rail:#', 'shell duplicate palet
 beta_contract_require_contains($appUiCss, 'var(--color-border-subtle)', 'feature layout token consumption', $errors);
 beta_contract_require_absent($appUiCss, '--ui-bg:', 'feature duplicate palette', $errors);
 beta_contract_require_contains($dashboardCss, 'var(--color-bg-main)', 'dashboard token consumption', $errors);
-beta_contract_require_contains($tokens, '--color-amber:', 'global amber semantic token', $errors);
-beta_contract_require_contains($tokens, '--color-warning: var(--color-amber)', 'warning-to-amber compatibility alias', $errors);
+beta_contract_require_contains($tokens, '--color-amber: var(--color-warning)', 'global amber semantic alias', $errors);
+beta_contract_require_contains($tokens, '--color-warning: #8A5300', 'stable warning semantic token', $errors);
 
 // Client/Role feature modules are behavior-only. Their visual composition belongs
 // to app-ui.css so dynamically mounted UI cannot override the canonical layer.
