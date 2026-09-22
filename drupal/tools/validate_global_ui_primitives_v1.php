@@ -21,6 +21,7 @@ $required = [
   'button.is-secondary',
   'button.is-approve',
   '.merdpos-dialog-actions',
+  '.merdpos-app [hidden]{display:none!important}',
   '.merdpos-reports-kpi-stat-value',
   'color:var(--color-text-primary)!important',
   '.merdpos-ui-empty',
