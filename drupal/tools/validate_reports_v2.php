@@ -144,6 +144,8 @@ reports_v2_check(!str_contains($css,'.merdpos-reports-kpi-art'),'Abstract KPI fi
 reports_v2_check(str_contains($css,'.merdpos-reports-week-form label > span') && str_contains($css,'text-transform:none'),'Select View label must preserve title case.');
 reports_v2_check(str_contains($css,'.merdpos-reports-search') && str_contains($css,'.merdpos-reports-print-action { margin-top:.55rem; }'),'Timesheets search styling and PDF spacing missing.');
 reports_v2_check(str_contains($css,'@media print'),'Reports print/PDF CSS missing.');
+$deploy = (string)file_get_contents($root . '/tools/namecheap_deploy.sh');
+reports_v2_check(str_contains($deploy,'($p["groups"]??0)!==4'),'Reports live deploy self-test must expect Store + Employee + Open Shifts + Filtered Shifts groups.');
 $js = (string)file_get_contents($root . '/web/modules/custom/merdpos_core/js/reports-v2.js');
 reports_v2_check(str_contains($js,'window.print()'),'Reports PDF/print action missing.');
 reports_v2_check(str_contains($js,'data-timesheet-week-select') && str_contains($js,'requestSubmit'),'Week selector must update the report immediately.');
