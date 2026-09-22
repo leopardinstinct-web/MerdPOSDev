@@ -1,0 +1,15 @@
+name: Export MERDPOSCrypto
+on:
+  push:
+    branches:
+      - artifact/merdpos-crypto-aix-v1
+jobs:
+  artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MERDPOSCrypto
+          path: artifacts/appinventor/MERDPOSCrypto.aix
+          if-no-files-found: error
