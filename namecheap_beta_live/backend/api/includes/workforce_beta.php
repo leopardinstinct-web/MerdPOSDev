@@ -332,6 +332,46 @@ function merd_resolve_attendance_flag(PDO $pdo,array $super,string $flagId,strin
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 }
 
+function merd_logpair_target(string $reference): ?array
+{
+    if (!preg_match('/^logpair:(\d+):(\d+):(\d{14}):(\d{14})$/D', $reference, $match)) return null;
+    $in = DateTimeImmutable::createFromFormat('!YmdHis', $match[3], new DateTimeZone('UTC'));
+    $out = DateTimeImmutable::createFromFormat('!YmdHis', $match[4], new DateTimeZone('UTC'));
+    if (!$in || !$out || $in->format('YmdHis') !== $match[3] || $out->format('YmdHis') !== $match[4] || $out <= $in) return null;
+    return [
+        'employee_id'=>(int)$match[1],
+        'store_id'=>(int)$match[2],
+        'in_local'=>$in->format('Y-m-d H:i:s'),
+        'out_local'=>$out->format('Y-m-d H:i:s'),
+        'reference'=>$reference,
+    ];
+}
+
+function merd_logpair_rows(PDO $pdo, int $clientId, int $employeeId, array $target, bool $lock = false): array
+{
+    if ((int)$target['employee_id'] !== $employeeId || (int)$target['store_id'] < 1) {
+        throw new MerdWorkforceException('shift_not_found', 'Shift not found.');
+    }
+    $suffix = $lock ? ' FOR UPDATE' : '';
+    $stmt = $pdo->prepare(
+        "SELECT id,client_id,store_id,employee_id,user_name,store_name,log_type,log_date,log_time,log_datetime,device_uuid,local_log_id "
+        . "FROM employee_logs WHERE client_id=? AND employee_id=? AND store_id=? AND ((UPPER(log_type)='IN' AND log_datetime=?) OR (UPPER(log_type)='OUT' AND log_datetime=?)) ORDER BY id" . $suffix
+    );
+    $stmt->execute([$clientId,$employeeId,(int)$target['store_id'],(string)$target['in_local'],(string)$target['out_local']]);
+    $in = null; $out = null;
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (strtoupper((string)$row['log_type']) === 'IN' && (string)$row['log_datetime'] === (string)$target['in_local']) {
+            if ($in !== null) throw new MerdWorkforceException('shift_ambiguous', 'Timesheet shift is ambiguous.');
+            $in = $row;
+        } elseif (strtoupper((string)$row['log_type']) === 'OUT' && (string)$row['log_datetime'] === (string)$target['out_local']) {
+            if ($out !== null) throw new MerdWorkforceException('shift_ambiguous', 'Timesheet shift is ambiguous.');
+            $out = $row;
+        }
+    }
+    if (!is_array($in) || !is_array($out)) throw new MerdWorkforceException('shift_not_found', 'Shift not found.');
+    return ['in'=>$in,'out'=>$out];
+}
+
 function merd_create_dispute(
     PDO $pdo,
     array $employee,
@@ -368,6 +408,9 @@ function merd_create_dispute(
             }
         }
         $shift = null;
+        $logPair = null;
+        $sourceStoreId = null;
+        $beforeData = null;
         if ($type === 'new_shift') {
             if (!$proposedStoreId || !$requestedInUtc || !$requestedOutUtc
                 || strtotime($requestedOutUtc . ' UTC') <= strtotime($requestedInUtc . ' UTC')
@@ -381,24 +424,47 @@ function merd_create_dispute(
             $overlap->execute([(int)$employee['client_id'],(int)$employee['id'],$requestedOutUtc,$requestedInUtc]);
             if($overlap->fetchColumn()) throw new MerdWorkforceException('shift_overlap','The proposed shift overlaps another shift.');
         } else {
-            $stmt = $pdo->prepare('SELECT s.* FROM attendance_shifts s WHERE s.public_id=? AND s.client_id=? AND s.employee_id=? FOR UPDATE');
-            $stmt->execute([$shiftPublicId, (int)$employee['client_id'], (int)$employee['id']]);
-            $shift = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!is_array($shift)) throw new MerdWorkforceException('shift_not_found', 'Shift not found.');
-            $pending = $pdo->prepare("SELECT public_id,status FROM attendance_disputes WHERE shift_id=? AND status IN ('awaiting_employee','pending') LIMIT 1");
-            $pending->execute([(int)$shift['id']]);
-            $existing = $pending->fetch(PDO::FETCH_ASSOC);
-            if (is_array($existing)) { $pdo->commit(); return ['dispute_id'=>$existing['public_id'],'status'=>$existing['status'],'duplicate'=>true]; }
+            $logTarget = merd_logpair_target($shiftPublicId);
+            if ($logTarget !== null) {
+                if (!in_array($type, ['other','wrong_in','wrong_out','missing_out'], true)) {
+                    throw new MerdWorkforceException('invalid_dispute', 'This Timesheet row only supports clock-time Queries.');
+                }
+                $logPair = merd_logpair_rows($pdo,(int)$employee['client_id'],(int)$employee['id'],$logTarget,true);
+                $sourceStoreId = (int)$logTarget['store_id'];
+                $pending = $pdo->prepare("SELECT public_id,status,before_snapshot FROM attendance_disputes WHERE client_id=? AND employee_id=? AND shift_id IS NULL AND status IN ('awaiting_employee','pending') ORDER BY id DESC LIMIT 50 FOR UPDATE");
+                $pending->execute([(int)$employee['client_id'],(int)$employee['id']]);
+                foreach ($pending->fetchAll(PDO::FETCH_ASSOC) as $existing) {
+                    $snapshot = json_decode((string)($existing['before_snapshot'] ?? ''), true);
+                    if (is_array($snapshot) && hash_equals((string)($snapshot['source_ref'] ?? ''), $shiftPublicId)) {
+                        $pdo->commit();
+                        return ['dispute_id'=>(string)$existing['public_id'],'status'=>(string)$existing['status'],'duplicate'=>true];
+                    }
+                }
+                $beforeData = [
+                    'source_type'=>'employee_logs','source_ref'=>$shiftPublicId,'store_id'=>$sourceStoreId,
+                    'in_log_id'=>(int)$logPair['in']['id'],'out_log_id'=>(int)$logPair['out']['id'],
+                    'clock_in_local'=>(string)$logPair['in']['log_datetime'],'clock_out_local'=>(string)$logPair['out']['log_datetime'],
+                ];
+            } else {
+                $stmt = $pdo->prepare('SELECT s.* FROM attendance_shifts s WHERE s.public_id=? AND s.client_id=? AND s.employee_id=? FOR UPDATE');
+                $stmt->execute([$shiftPublicId, (int)$employee['client_id'], (int)$employee['id']]);
+                $shift = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!is_array($shift)) throw new MerdWorkforceException('shift_not_found', 'Shift not found.');
+                $pending = $pdo->prepare("SELECT public_id,status FROM attendance_disputes WHERE shift_id=? AND status IN ('awaiting_employee','pending') LIMIT 1");
+                $pending->execute([(int)$shift['id']]);
+                $existing = $pending->fetch(PDO::FETCH_ASSOC);
+                if (is_array($existing)) { $pdo->commit(); return ['dispute_id'=>$existing['public_id'],'status'=>$existing['status'],'duplicate'=>true]; }
+            }
         }
         $publicId = $submissionId ?? merd_uuid_v4();
-        $before = json_encode($shift ? ['clock_in_at'=>$shift['clock_in_at'],'clock_out_at'=>$shift['clock_out_at'],'store_id'=>(int)$shift['store_id'],'status'=>$shift['status']] : ['proposal'=>true], JSON_THROW_ON_ERROR);
+        $before = json_encode($beforeData ?? ($shift ? ['clock_in_at'=>$shift['clock_in_at'],'clock_out_at'=>$shift['clock_out_at'],'store_id'=>(int)$shift['store_id'],'status'=>$shift['status']] : ['proposal'=>true]), JSON_THROW_ON_ERROR);
         $insert = $pdo->prepare(
             'INSERT INTO attendance_disputes '
             . '(public_id,client_id,shift_id,employee_id,proposed_store_id,dispute_type,requested_clock_in_at,requested_clock_out_at,reason,before_snapshot,status,origin) '
             . 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
         );
         $insert->execute([
-            $publicId,(int)$employee['client_id'],$shift ? (int)$shift['id'] : null,(int)$employee['id'],$type==='new_shift'?$proposedStoreId:null,
+            $publicId,(int)$employee['client_id'],$shift ? (int)$shift['id'] : null,(int)$employee['id'],$type==='new_shift'?$proposedStoreId:($logPair?$sourceStoreId:null),
             $type,$requestedInUtc,$requestedOutUtc,$reason,$before,$initialStatus,$origin,
         ]);
         merd_sheet_outbox($pdo, (int)$employee['client_id'], 'dispute_audit', 'attendance_dispute', $publicId, [
@@ -426,7 +492,7 @@ function merd_list_disputes(PDO $pdo, array $employee): array
         : [(int)$employee['client_id'], (int)$employee['id']];
     $stmt = $pdo->prepare(
         'SELECT d.public_id AS dispute_id,d.dispute_type,d.origin,d.requested_clock_in_at,d.requested_clock_out_at,'
-        . 'd.reason,d.status,d.submitted_at,d.decided_at,d.decision_note,s.public_id AS shift_id,'
+        . 'd.reason,d.status,d.submitted_at,d.decided_at,d.decision_note,d.before_snapshot,d.after_snapshot,s.public_id AS shift_id,'
         . 'COALESCE(d.requested_clock_in_at,s.clock_in_at) AS clock_in_at,COALESCE(d.requested_clock_out_at,s.clock_out_at) AS clock_out_at,'
         . 'e.full_name,e.user_id,COALESCE(pst.store_name,st.store_name) AS store_name FROM attendance_disputes d '
         . 'LEFT JOIN attendance_shifts s ON s.id=d.shift_id INNER JOIN employees e ON e.id=d.employee_id '
@@ -434,7 +500,31 @@ function merd_list_disputes(PDO $pdo, array $employee): array
         . 'WHERE ' . $where . ' ORDER BY d.submitted_at DESC LIMIT 200'
     );
     $stmt->execute($args);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach($rows as &$row){
+        if(trim((string)($row['shift_id']??''))===''){
+            $snapshot=json_decode((string)($row['before_snapshot']??''),true);
+            $sourceRef=is_array($snapshot)?trim((string)($snapshot['source_ref']??'')):'';
+            $sourceTarget=merd_logpair_target($sourceRef);
+            if($sourceTarget!==null){
+                $resolvedRef=$sourceRef;
+                if(strtolower((string)($row['status']??''))==='approved'){
+                    $after=json_decode((string)($row['after_snapshot']??''),true);
+                    $inLocal=is_array($after)?trim((string)($after['clock_in_local']??'')):'';
+                    $outLocal=is_array($after)?trim((string)($after['clock_out_local']??'')):'';
+                    $inStamp=str_replace(['-',':',' '],'',$inLocal);
+                    $outStamp=str_replace(['-',':',' '],'',$outLocal);
+                    if(preg_match('/^\d{14}$/',$inStamp)&&preg_match('/^\d{14}$/',$outStamp)){
+                        $resolvedRef='logpair:'.(int)$sourceTarget['employee_id'].':'.(int)$sourceTarget['store_id'].':'.$inStamp.':'.$outStamp;
+                    }
+                }
+                $row['shift_id']=$resolvedRef;
+            }
+        }
+        unset($row['before_snapshot'],$row['after_snapshot']);
+    }
+    unset($row);
+    return $rows;
 }
 
 function merd_cancel_dispute(PDO $pdo,array $employee,string $disputeId): array
@@ -494,10 +584,27 @@ function merd_decide_dispute(PDO $pdo, array $super, string $disputePublicId, st
             $pdo->commit();
             return ['dispute_id' => $disputePublicId, 'status' => $row['status'], 'duplicate' => true];
         }
+        $beforeSnapshot=json_decode((string)($row['before_snapshot']??''),true);
+        $sourceRef=is_array($beforeSnapshot)?trim((string)($beforeSnapshot['source_ref']??'')):'';
+        $sourceTarget=merd_logpair_target($sourceRef);
         $now = gmdate('Y-m-d H:i:s');
         $after = null;
         if ($decision === 'approved') {
-            if ($row['dispute_type'] === 'new_shift') {
+            if ($sourceTarget !== null) {
+                $newIn=(string)($row['requested_clock_in_at']??'');$newOut=(string)($row['requested_clock_out_at']??'');
+                if($newIn===''||$newOut===''||strtotime($newOut.' UTC')<=strtotime($newIn.' UTC')||strtotime($newOut.' UTC')>time()+300) throw new MerdWorkforceException('invalid_correction','Approved times must form a completed shift and cannot be in the future.');
+                $logPair=merd_logpair_rows($pdo,(int)$super['client_id'],(int)$row['employee_id'],$sourceTarget,true);
+                $tzStmt=$pdo->prepare("SELECT COALESCE(NULLIF(s.timezone,''),NULLIF(c.default_timezone,''),'Australia/Sydney') FROM stores s INNER JOIN clients c ON c.id=s.client_id WHERE s.id=? AND s.client_id=? LIMIT 1");
+                $tzStmt->execute([(int)$sourceTarget['store_id'],(int)$super['client_id']]);
+                $tzName=(string)($tzStmt->fetchColumn()?:'Australia/Sydney');try{$tz=new DateTimeZone($tzName);}catch(Throwable){$tz=new DateTimeZone('Australia/Sydney');}
+                $utc=new DateTimeZone('UTC');$newInLocal=(new DateTimeImmutable($newIn,$utc))->setTimezone($tz);$newOutLocal=(new DateTimeImmutable($newOut,$utc))->setTimezone($tz);
+                $updateLog=$pdo->prepare('UPDATE employee_logs SET log_date=?,log_time=?,log_datetime=? WHERE id=? AND client_id=? AND employee_id=? AND store_id=? AND log_type=?');
+                $updateLog->execute([$newInLocal->format('Y-m-d'),$newInLocal->format('H:i:s'),$newInLocal->format('Y-m-d H:i:s'),(int)$logPair['in']['id'],(int)$super['client_id'],(int)$row['employee_id'],(int)$sourceTarget['store_id'],'IN']);
+                $updateLog->execute([$newOutLocal->format('Y-m-d'),$newOutLocal->format('H:i:s'),$newOutLocal->format('Y-m-d H:i:s'),(int)$logPair['out']['id'],(int)$super['client_id'],(int)$row['employee_id'],(int)$sourceTarget['store_id'],'OUT']);
+                $row['shift_public_id']=$sourceRef;
+                $after=json_encode(['source_type'=>'employee_logs','source_ref'=>$sourceRef,'clock_in_local'=>$newInLocal->format('Y-m-d H:i:s'),'clock_out_local'=>$newOutLocal->format('Y-m-d H:i:s')],JSON_THROW_ON_ERROR);
+                merd_sheet_outbox($pdo,(int)$super['client_id'],'attendance_log_correction','employee_logs',$sourceRef,['employee_name'=>$row['full_name'],'store_name'=>$row['store_name'],'source_ref'=>$sourceRef,'new_clock_in_at_utc'=>$newIn,'new_clock_out_at_utc'=>$newOut,'dispute_id'=>$disputePublicId]);
+            } elseif ($row['dispute_type'] === 'new_shift') {
                 $newIn=(string)$row['requested_clock_in_at'];$newOut=(string)$row['requested_clock_out_at'];
                 $pdo->prepare('SELECT id FROM employees WHERE id=? FOR UPDATE')->execute([(int)$row['employee_id']]);
                 $overlap=$pdo->prepare("SELECT id FROM attendance_shifts WHERE client_id=? AND employee_id=? AND status<>'void' AND clock_in_at<? AND COALESCE(clock_out_at,'9999-12-31 23:59:59')>? LIMIT 1");
@@ -531,7 +638,7 @@ function merd_decide_dispute(PDO $pdo, array $super, string $disputePublicId, st
                 }else merd_sheet_outbox($pdo,(int)$super['client_id'],'attendance_correction','attendance_shift',$row['shift_public_id'],['employee_name'=>$row['full_name'],'store_name'=>$row['store_name'],'old_clock_in_at_utc'=>$row['clock_in_at'],'old_clock_out_at_utc'=>$row['clock_out_at'],'new_clock_in_at_utc'=>$newIn,'new_clock_out_at_utc'=>$newOut,'dispute_id'=>$disputePublicId]);
             }
         }
-        if ($decision === 'approved' && !empty($row['shift_public_id'])) {
+        if ($decision === 'approved' && !empty($row['shift_public_id']) && merd_logpair_target((string)$row['shift_public_id']) === null) {
             merd_sync_attendance_shift_employee_logs($pdo, (int)$super['client_id'], (string)$row['shift_public_id']);
         }
         $updateDispute = $pdo->prepare(
