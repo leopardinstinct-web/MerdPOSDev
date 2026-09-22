@@ -666,6 +666,20 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     }
     usort($employeeTable, static fn(array $a,array $b): int => ((float)$b['hours'] <=> (float)$a['hours']) ?: strcasecmp((string)$a['employee'], (string)$b['employee']));
 
+    $openShiftTable = [];
+    foreach ($this->rows($report['open_shifts'] ?? []) as $row) {
+      $missing = strtoupper(trim((string)($row['missing'] ?? '')));
+      if (!in_array($missing, ['IN','OUT'], true)) continue;
+      $openShiftTable[] = [
+        'employee'=>(string)($row['employee_name'] ?? ''),
+        'store'=>(string)($row['store_name'] ?? ''),
+        'date'=>(string)($row['date'] ?? ''),
+        'in'=>$this->clock((string)($row['actual_in_time'] ?? '')),
+        'out'=>$this->clock((string)($row['actual_out_time'] ?? '')),
+        'missing'=>'Missing ' . $missing,
+      ];
+    }
+
     $shiftTable = [];
     $representedShiftIds = [];
     foreach (array_slice($filteredShifts, 0, 250) as $row) {
@@ -732,6 +746,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $storeColumns = [['key'=>'store','label'=>'Store'],['key'=>'employees','label'=>'Employees'],['key'=>'hours','label'=>'Hours']];
     $employeeColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'stores','label'=>'Store(s)'],['key'=>'hours','label'=>'Hours']];
+    $openShiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'missing','label'=>'Missing']];
     $shiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'hours','label'=>'Hours'],['key'=>'start','label'=>'Start']];
     if ($payrollVisible) {
       $storeColumns[] = ['key'=>'amount','label'=>'Payroll'];
@@ -761,6 +776,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
       $groups[] = $this->table('Store summary','Hours by store',$storeColumns,$storeTable);
       $groups[] = $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable);
     }
+    $groups[] = $this->table('Incomplete Shifts','Open Shifts',$openShiftColumns,$openShiftTable);
     $groups[] = $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable);
 
     $surface = $this->surface(
