@@ -196,8 +196,10 @@ function attach_authoritative_shift_ids(PDO $pdo, int $clientId, array &$report,
         $key=implode('|',[(int)$shift['employee_id'],(int)$shift['store_id'],$in->format('Y-m-d'),$in->format('H:i:s'),$out?->format('Y-m-d')??'',$out?->format('H:i:s')??'']);
         $map[$key]=(string)$shift['public_id'];
     }
-    foreach(($report['employees'] ?? []) as &$employee){
-        foreach(($employee['rows'] ?? []) as &$row){
+    if (!isset($report['employees']) || !is_array($report['employees'])) return;
+    foreach($report['employees'] as &$employee){
+        if (!isset($employee['rows']) || !is_array($employee['rows'])) continue;
+        foreach($employee['rows'] as &$row){
             if(trim((string)($row['shift_id'] ?? ''))!=='') continue;
             $key=implode('|',[(int)($row['employee_id']??0),(int)($row['store_id']??0),(string)($row['in_date']??''),(string)($row['actual_in_time']??''),(string)($row['out_date']??''),(string)($row['actual_out_time']??'')]);
             if(isset($map[$key])) {
