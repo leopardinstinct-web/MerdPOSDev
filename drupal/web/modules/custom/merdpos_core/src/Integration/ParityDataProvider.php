@@ -578,11 +578,11 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
         $score = 0;
         $compared = 0;
-        foreach ([[$in, $recentIn['time']], [$out, $recentOut['time']]] as [$rowTime, $recentTime]) {
+        foreach ([[$in, $recentIn['time'], 2], [$out, $recentOut['time'], 1]] as [$rowTime, $recentTime, $weight]) {
           $rowMinutes = $clockMinutes((string)$rowTime);
           $recentMinutes = $clockMinutes((string)$recentTime);
           if ($rowMinutes === NULL || $recentMinutes === NULL) continue;
-          $score += abs($rowMinutes - $recentMinutes);
+          $score += abs($rowMinutes - $recentMinutes) * $weight;
           $compared++;
         }
         $candidates[] = ['id'=>$recentId,'score'=>$compared > 0 ? $score : 9999];
