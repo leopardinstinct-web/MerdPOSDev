@@ -45,10 +45,10 @@
   /* Red / green / amber are the only non-brand semantic hue exceptions. */
   --color-success: #18794E;
   --color-success-surface: color-mix(in srgb, var(--color-success) 10%, var(--color-brand-white));
-  --color-amber: #8A5300;
-  --color-amber-surface: color-mix(in srgb, var(--color-amber) 10%, var(--color-brand-white));
-  --color-warning: var(--color-amber);
-  --color-warning-surface: var(--color-amber-surface);
+  --color-warning: #8A5300;
+  --color-warning-surface: color-mix(in srgb, var(--color-warning) 10%, var(--color-brand-white));
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #B42318;
   --color-danger-surface: color-mix(in srgb, var(--color-danger) 9%, var(--color-brand-white));
   --color-info: var(--color-brand-cyan);
@@ -220,10 +220,10 @@
   --color-border-strong: color-mix(in srgb, var(--color-brand-white) 42%, var(--color-brand-navy));
   --color-success: #6CE9A6;
   --color-success-surface: #14382B;
-  --color-amber: #FEC84B;
-  --color-amber-surface: #3B2E10;
-  --color-warning: var(--color-amber);
-  --color-warning-surface: var(--color-amber-surface);
+  --color-warning: #FEC84B;
+  --color-warning-surface: #3B2E10;
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #FDA29B;
   --color-danger-surface: #492126;
   --color-info: var(--color-brand-cyan);
