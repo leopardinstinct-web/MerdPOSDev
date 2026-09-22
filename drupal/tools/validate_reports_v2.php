@@ -22,7 +22,8 @@ final class ReportsGateway implements PortalGatewayClientInterface {
     $isUser = $this->role === 'USER';
     $payload = match ($route) {
       'beta_state' => ['success'=>true,'permissions'=>$isUser?['disputes.submit_own']:array_values(array_filter(['disputes.review',$this->workforceVisible?'workforce.view':null])),'current_user_id'=>$isUser?'user-alice':'platform-dev','stores'=>[['id'=>1,'store_name'=>'Store A'],['id'=>2,'store_name'=>'Store B']],'recent_shifts'=>[
-        ['shift_id'=>'11111111-1111-4111-8111-111111111111','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-08-31 21:00:00','clock_out_at'=>'2026-09-01 05:00:00','status'=>'closed','timezone'=>'Australia/Sydney'],
+        ['shift_id'=>'11111111-1111-4111-8111-111111111111','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-08-31 21:00:00','clock_out_at'=>'2026-09-01 06:00:00','status'=>'closed','timezone'=>'Australia/Sydney'],
+        ['shift_id'=>'66666666-6666-4666-8666-666666666666','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-08-31 22:00:00','clock_out_at'=>'2026-09-01 05:00:00','status'=>'closed','timezone'=>'Australia/Sydney'],
         ['shift_id'=>'44444444-4444-4444-8444-444444444444','full_name'=>'Alice','user_id'=>'user-alice','store_name'=>'Store A','clock_in_at'=>'2026-09-04 01:00:00','clock_out_at'=>null,'status'=>'open','timezone'=>'Australia/Sydney'],
       ]],
       'dashboard_data' => [
@@ -187,7 +188,7 @@ reports_v2_check(str_contains($js,"title.textContent = 'Query existing shift'") 
 reports_v2_check(!str_contains($js,'This submits a missing-shift Query') && !str_contains($js,'The shift log is prefilled below') && !str_contains($template,'data-query-shift-preview') && !str_contains($template,'data-dispute-type-select'),'Retired Query help/preview/Issue controls must stay removed.');
 reports_v2_check(str_contains($template,'data-query-store-field hidden') && str_contains($template,'data-query-store-display readonly') && str_contains($template,'data-missing-store-field hidden') && str_contains($template,'data-missing-store-select') && str_contains($template,'<option value="">Choose Store</option>') && str_contains($template,'merdpos-dialog-actions merdpos-timesheet-form-actions'),'Conditional Store fields, Choose Store default, locked existing-shift Store or shared right-aligned dialog actions missing.');
 reports_v2_check(str_contains($js,"missingStoreSelect.value = '';") && str_contains($js,"proposedStoreId.value = '';"),'Add missing shift must always reset Store to Choose Store.');
-reports_v2_check(str_contains($provider,'$resolveRecentShiftId') && str_contains($provider,'$recentShiftRows') && str_contains($provider,'$candidates[0][\'score\'] <= 180'),'Recent authoritative shift fallback linking is missing for Query this shift.');
+reports_v2_check(str_contains($provider,'$resolveRecentShiftId') && str_contains($provider,'$recentShiftRows') && str_contains($provider,'[$in, $recentIn[\'time\'], 2]') && str_contains($provider,'$candidates[0][\'score\'] <= 180'),'Clock-in weighted authoritative shift fallback linking is missing for Query this shift.');
 reports_v2_check(str_contains($routing,'ReportsController::legacyOperationsRedirect'),'Legacy Operations URL must redirect to Shift Detail.');
 
 echo "MERDPOS Drupal Reports v2 validated.\n";
