@@ -204,11 +204,10 @@
     if (proposedStoreId) proposedStoreId.value = trigger.dataset.storeId || '';
   }
 
-  function bindMissingStore(trigger) {
+  function bindMissingStore() {
     if (!missingStoreSelect) return;
-    const preferred = trigger.dataset.storeId || '';
-    missingStoreSelect.value = preferred && [...missingStoreSelect.options].some((option) => option.value === preferred) ? preferred : '';
-    if (proposedStoreId) proposedStoreId.value = missingStoreSelect.value || '';
+    missingStoreSelect.value = '';
+    if (proposedStoreId) proposedStoreId.value = '';
   }
 
   function openDialog(trigger, mode) {
@@ -228,7 +227,7 @@
       createSection.hidden = false;
       typeHidden.value = 'new_shift';
       createForm.elements.shift_id.value = '';
-      bindMissingStore(trigger);
+      bindMissingStore();
       if (inControl) inControl.value = '';
       if (outControl) outControl.value = '';
       syncCorrectionFields();
