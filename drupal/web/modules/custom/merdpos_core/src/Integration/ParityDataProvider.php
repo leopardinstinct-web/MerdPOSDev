@@ -784,7 +784,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $shiftColumns[] = ['key'=>'action','label'=>'Action'];
 
     $shiftLines = [];
-    if ($canViewPeople) $shiftLines[] = ['value'=>(string)count($peopleWorked),'label'=>'People'];
+    if ($roleKey !== 'USER' && $canViewPeople) $shiftLines[] = ['value'=>(string)count($peopleWorked),'label'=>'People'];
     $shiftLines[] = ['value'=>(string)count($filteredShifts),'label'=>'Shifts'];
     $shiftLines[] = ['value'=>$this->number($filteredHours),'label'=>'Hours'];
     if ($payrollVisible) $shiftLines[] = ['value'=>number_format($filteredWages,2,'.',','),'label'=>'Payroll (' . $currency . ')'];

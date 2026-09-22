@@ -132,17 +132,18 @@
   if (!dialog) { updateQueryUi(); return; }
   const title = q('[data-timesheet-dialog-title]', dialog);
   const context = q('[data-timesheet-dialog-context]', dialog);
-  const help = q('[data-timesheet-create-help]', dialog);
   const createSection = q('[data-timesheet-create]', dialog);
   const existingSection = q('[data-timesheet-existing]', dialog);
   const createForm = q('[data-timesheet-create-form]', dialog);
-  const typeSelect = q('[data-dispute-type-select]', dialog);
   const typeHidden = q('[data-dispute-type-hidden]', dialog);
-  const storeField = q('[data-proposed-store-field]', dialog);
+  const queryStoreField = q('[data-query-store-field]', dialog);
+  const queryStoreDisplay = q('[data-query-store-display]', dialog);
+  const missingStoreField = q('[data-missing-store-field]', dialog);
+  const missingStoreSelect = q('[data-missing-store-select]', dialog);
+  const proposedStoreId = q('[data-proposed-store-id]', dialog);
   const inField = q('[data-requested-in-field]', dialog);
   const outField = q('[data-requested-out-field]', dialog);
   const submit = q('[data-timesheet-submit]', dialog);
-  const preview = q('[data-query-shift-preview]', dialog);
   const inControl = q('input[name="requested_clock_in"]', dialog);
   const outControl = q('input[name="requested_clock_out"]', dialog);
 
@@ -154,18 +155,19 @@
     required ? control.setAttribute('required', '') : control.removeAttribute('required');
   };
   const syncCorrectionFields = () => {
-    const type = typeHidden.value;
-    const missing = type === 'new_shift';
-    setRequired(storeField, missing || type === 'wrong_store', missing || type === 'wrong_store');
-    setRequired(inField, missing || type === 'wrong_in', true);
-    setRequired(outField, missing || type === 'missing_out' || type === 'wrong_out', true);
-    q('[data-timesheet-dispute-fields]', dialog).hidden = missing;
+    const missing = typeHidden.value === 'new_shift';
+    if (queryStoreField) queryStoreField.hidden = missing;
+    if (missingStoreField) missingStoreField.hidden = !missing;
+    if (missingStoreSelect) {
+      missing ? missingStoreSelect.setAttribute('required', '') : missingStoreSelect.removeAttribute('required');
+      if (missing) proposedStoreId.value = missingStoreSelect.value || '';
+    }
+    setRequired(inField, true, true);
+    setRequired(outField, true, true);
     if (submit) submit.textContent = missing ? 'Submit missing shift' : 'Submit Query';
   };
-  typeSelect?.addEventListener('change', () => {
-    if (typeHidden.value === 'new_shift') return;
-    typeHidden.value = typeSelect.value;
-    syncCorrectionFields();
+  missingStoreSelect?.addEventListener('change', () => {
+    if (typeHidden.value === 'new_shift') proposedStoreId.value = missingStoreSelect.value || '';
   });
 
   function bindExisting(trigger) {
@@ -194,19 +196,19 @@
   }
 
   function rowContext(trigger) {
-    return `${trigger.dataset.employee || 'Employee'} · ${trigger.dataset.date || ''} · ${trigger.dataset.in || '—'}–${trigger.dataset.out || '—'}`;
+    return `Selected shift: ${trigger.dataset.date || '—'}`;
   }
-  function bindPreview(trigger) {
-    if (!preview) return;
-    preview.hidden = false;
-    const values = {
-      '[data-query-preview-employee]': trigger.dataset.employee || '—',
-      '[data-query-preview-store]': trigger.dataset.store || '—',
-      '[data-query-preview-date]': trigger.dataset.date || '—',
-      '[data-query-preview-in]': trigger.dataset.in || '—',
-      '[data-query-preview-out]': trigger.dataset.out || '—',
-    };
-    Object.entries(values).forEach(([selector, value]) => { const node = q(selector, preview); if (node) node.textContent = value; });
+
+  function bindQueryStore(trigger) {
+    if (queryStoreDisplay) queryStoreDisplay.value = trigger.dataset.store || '—';
+    if (proposedStoreId) proposedStoreId.value = trigger.dataset.storeId || '';
+  }
+
+  function bindMissingStore(trigger) {
+    if (!missingStoreSelect) return;
+    const preferred = trigger.dataset.storeId || '';
+    missingStoreSelect.value = preferred && [...missingStoreSelect.options].some((option) => option.value === preferred) ? preferred : '';
+    if (proposedStoreId) proposedStoreId.value = missingStoreSelect.value || '';
   }
 
   function openDialog(trigger, mode) {
@@ -215,7 +217,6 @@
     setReturnQuery();
     existingSection.hidden = true;
     createSection.hidden = true;
-    if (preview) preview.hidden = true;
 
     if (mode === 'existing') {
       title.textContent = 'Query details';
@@ -224,22 +225,20 @@
     } else if (mode === 'missing') {
       title.textContent = 'Add missing shift';
       context.textContent = 'Enter the shift that is missing from this timesheet.';
-      help.textContent = 'This submits a missing-shift Query; it does not alter an existing shift until approved.';
       createSection.hidden = false;
       typeHidden.value = 'new_shift';
       createForm.elements.shift_id.value = '';
+      bindMissingStore(trigger);
       if (inControl) inControl.value = '';
       if (outControl) outControl.value = '';
       syncCorrectionFields();
     } else {
       title.textContent = 'Query existing shift';
       context.textContent = rowContext(trigger);
-      help.textContent = 'The shift log is prefilled below. Adjust the clock times only if they need correcting.';
       createSection.hidden = false;
-      bindPreview(trigger);
-      typeSelect.value = 'other';
       typeHidden.value = 'other';
       createForm.elements.shift_id.value = trigger.dataset.shiftId || '';
+      bindQueryStore(trigger);
       if (inControl) inControl.value = trigger.dataset.clockInLocal || '';
       if (outControl) outControl.value = trigger.dataset.clockOutLocal || '';
       syncCorrectionFields();
