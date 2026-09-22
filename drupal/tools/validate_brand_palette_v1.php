@@ -30,6 +30,7 @@ if (!str_contains($deploy, 'BRAND_PALETTE_V1_PROBE=') || !str_contains($deploy, 
 foreach (['--color-brand-navy: #01102B','--color-brand-cyan: #0A91FB','--color-brand-violet: #591DE9'] as $fallback) if (!str_contains($tokens, $fallback)) $errors[] = "logo-derived fallback token missing: $fallback";
 if (!str_contains($tokens, '--color-brand-background: color-mix(')) $errors[] = 'page canvas must derive from active foundation role';
 if (!str_contains($tokens, '--color-info: var(--color-brand-cyan)')) $errors[] = 'information colour must use active brand accent';
+if (!str_contains($tokens, '--color-amber: #8A5300') || !str_contains($tokens, '--color-warning: var(--color-amber)')) $errors[] = 'global Amber semantic token / warning alias missing';
 if (str_contains($tokens, '--color-chart-4: var(--color-success)') || str_contains($tokens, '--color-chart-5: var(--color-warning)')) $errors[] = 'chart palette must remain brand-derived';
 foreach (['Red, green and amber are the only non-brand hue exceptions','Arbitrary color input is not permitted'] as $needle) if (!str_contains($invariants, $needle)) $errors[] = "binding palette invariant missing: $needle";
 if (!str_contains($manager, "count(\$state['entries']) <= 3")) $errors[] = 'palette minimum-entry deletion guard missing';
