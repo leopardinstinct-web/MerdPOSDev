@@ -47,6 +47,8 @@
   --color-success-surface: color-mix(in srgb, var(--color-success) 10%, var(--color-brand-white));
   --color-warning: #8A5300;
   --color-warning-surface: color-mix(in srgb, var(--color-warning) 10%, var(--color-brand-white));
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #B42318;
   --color-danger-surface: color-mix(in srgb, var(--color-danger) 9%, var(--color-brand-white));
   --color-info: var(--color-brand-cyan);
@@ -220,6 +222,8 @@
   --color-success-surface: #14382B;
   --color-warning: #FEC84B;
   --color-warning-surface: #3B2E10;
+  --color-amber: var(--color-warning);
+  --color-amber-surface: var(--color-warning-surface);
   --color-danger: #FDA29B;
   --color-danger-surface: #492126;
   --color-info: var(--color-brand-cyan);

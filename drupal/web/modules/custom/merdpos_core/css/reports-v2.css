@@ -5,7 +5,7 @@
   --rep-blue: var(--color-brand-cyan);
   --rep-cyan: var(--color-brand-cyan);
   --rep-green: var(--color-success);
-  --rep-amber: var(--color-warning);
+  --rep-amber: var(--color-amber);
   --rep-purple: var(--color-brand-violet);
   display: grid;
   gap: 1.3rem;
@@ -48,16 +48,20 @@
 .merdpos-reports-kpi-rail { display:flex; align-items:center; align-self:stretch; gap:.55rem; min-width:0; padding-right:.25rem; }
 .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:.8rem; background:color-mix(in srgb,var(--color-brand-cyan) 14%,var(--color-surface-muted)); color:var(--color-brand-cyan); }
 .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.28rem; height:1.28rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.merdpos-material-icon{display:block;width:1.28rem;height:1.28rem;background:currentColor}
+.merdpos-material-icon--record-voice-over{-webkit-mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat}
+.merdpos-material-icon--adjust{-webkit-mask:url("/themes/custom/merdpos_app/assets/adjust_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;mask:url("/themes/custom/merdpos_app/assets/adjust_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat}
 .merdpos-reports-kpi .merdpos-reports-kpi-title { display:block; min-width:0; color:var(--color-text-secondary); font-size:clamp(.82rem,.92vw,.96rem); font-weight:var(--weight-bold); letter-spacing:.035em; line-height:1.1; text-transform:uppercase; }
 .merdpos-reports-kpi-metrics { display:grid; align-items:stretch; min-width:0; }
 .merdpos-reports-kpi-stat { position:relative; display:grid; min-width:0; align-content:center; justify-items:center; padding:.22rem .3rem; text-align:center; }
 .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { content:""; position:absolute; left:0; top:12%; width:1px; height:76%; background:color-mix(in srgb,var(--color-text-muted) 36%,transparent); }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2rem; height:2rem; color:var(--color-brand-cyan); }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.55rem; height:1.55rem; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon .merdpos-material-icon{width:1.55rem;height:1.55rem}
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.24rem 0 0; color:var(--color-text-primary); font-size:clamp(1.32rem,1.85vw,1.92rem); font-weight:800; line-height:.96; letter-spacing:-.03em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; color:var(--color-brand-cyan); font-size:clamp(.68rem,.76vw,.78rem); font-weight:750; line-height:1.18; text-align:center; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.16rem,1.5vw,1.55rem); }
-.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:color-mix(in srgb,var(--color-brand-cyan) 88%,var(--color-text-primary)); }
+.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-value,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:var(--color-amber); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:var(--color-success); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-rejected .merdpos-reports-kpi-stat-label { color:var(--color-danger); }
 .merdpos-reports-charts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }

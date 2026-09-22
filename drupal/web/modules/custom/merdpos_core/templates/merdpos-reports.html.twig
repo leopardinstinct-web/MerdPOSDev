@@ -1,4 +1,9 @@
 {% macro icon(name) %}
+{% if name == 'record_voice_over' %}
+<span class="merdpos-material-icon merdpos-material-icon--record-voice-over" aria-hidden="true"></span>
+{% elseif name == 'adjust' %}
+<span class="merdpos-material-icon merdpos-material-icon--adjust" aria-hidden="true"></span>
+{% else %}
 <svg viewBox="0 0 24 24" aria-hidden="true">
   {% if name == 'chart' %}<path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/>
   {% elseif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
@@ -17,6 +22,7 @@
   {% elseif name == 'x' %}<path d="m6 6 12 12M18 6 6 18"/>
   {% else %}<path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Z"/><path d="m9 12 2 2 4-5"/>{% endif %}
 </svg>
+{% endif %}
 {% endmacro %}
 {% import _self as ui %}
 
@@ -42,7 +48,7 @@
   <div class="merdpos-reports-kpis" aria-label="Timesheets summary">
     {% for metric in surface.metrics %}
       {% set metric_key = metric.label|lower %}
-      {% set metric_icon = metric_key == 'queries' ? 'message' : 'clock' %}
+      {% set metric_icon = metric_key == 'queries' ? 'record_voice_over' : 'clock' %}
       <article class="merdpos-reports-kpi merdpos-reports-kpi--{{ metric_key }} is-{{ metric.tone }}" aria-label="{{ metric.label }} summary">
         <div class="merdpos-reports-kpi-rail">
           <span class="merdpos-reports-kpi-icon">{{ ui.icon(metric_icon) }}</span>
@@ -54,7 +60,7 @@
               {% set line_icon = line.label == 'People' ? 'users' : (line.label == 'Shifts' ? 'list' : (line.label == 'Hours' ? 'clock' : 'payroll')) %}
               {% set line_key = line.label == 'People' ? 'people' : (line.label == 'Shifts' ? 'shifts' : (line.label == 'Hours' ? 'hours' : 'payroll')) %}
             {% else %}
-              {% set line_icon = line.label == 'Active' ? 'message' : (line.label == 'Rejected' ? 'rejected' : 'closed') %}
+              {% set line_icon = line.label == 'Active' ? 'adjust' : (line.label == 'Rejected' ? 'rejected' : 'closed') %}
               {% set line_key = line.label == 'Active' ? 'active' : (line.label == 'Rejected' ? 'rejected' : 'closed') %}
             {% endif %}
             <div class="merdpos-reports-kpi-stat is-{{ line_key }}">
@@ -71,7 +77,7 @@
 
   <div class="merdpos-reports-groups">
     {% for group in surface.groups %}
-      <article class="merdpos-report-table-card"{% if group.title == 'Filtered shifts' %} id="merdpos-shift-detail"{% endif %}>
+      <article class="merdpos-report-table-card"{% if group.title == 'Closed shifts' %} id="merdpos-shift-detail"{% endif %}>
         <header><div><p class="merdpos-eyebrow">{{ group.eyebrow }}</p><h2>{{ group.title }}</h2></div><span class="merdpos-report-count">{{ group.rows|length }}</span></header>
         {% if group.rows %}
           <div class="merdpos-report-table-wrap" tabindex="0" role="region" aria-label="{{ group.title }} table"><table><thead><tr>{% for column in group.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead><tbody>

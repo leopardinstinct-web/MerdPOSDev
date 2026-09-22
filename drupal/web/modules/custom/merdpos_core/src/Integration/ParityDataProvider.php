@@ -670,13 +670,40 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     foreach ($this->rows($report['open_shifts'] ?? []) as $row) {
       $missing = strtoupper(trim((string)($row['missing'] ?? '')));
       if (!in_array($missing, ['IN','OUT'], true)) continue;
+      $shiftId = trim((string)($row['shift_id'] ?? ''));
+      $employeeUserId = (string)($row['user_id'] ?? '');
+      $isOwn = $currentUserId !== '' && $employeeUserId !== '' && hash_equals($currentUserId, $employeeUserId);
+      $recent = $shiftId !== '' ? ($recentShiftsById[$shiftId] ?? []) : [];
+      $shiftTimezone = (string)($recent['timezone'] ?? $timezone);
+      $inParts = $this->localDateTimeParts($recent['clock_in_at'] ?? '', $shiftTimezone);
+      $outParts = $this->localDateTimeParts($recent['clock_out_at'] ?? '', $shiftTimezone);
+      $date = (string)($row['date'] ?? '');
+      $in = $this->clock((string)($row['actual_in_time'] ?? ''));
+      $out = $this->clock((string)($row['actual_out_time'] ?? ''));
+      $clockInLocal = $inParts['date'] !== '' && $inParts['time'] !== '—' ? $inParts['date'] . 'T' . $inParts['time'] : ($date !== '' && $in !== '—' ? $date . 'T' . $in : '');
+      $clockOutLocal = $outParts['date'] !== '' && $outParts['time'] !== '—' ? $outParts['date'] . 'T' . $outParts['time'] : ($date !== '' && $out !== '—' ? $date . 'T' . $out : '');
+      $dispute = $shiftId !== '' && isset($disputesByShift[$shiftId]) ? $presentDispute($disputesByShift[$shiftId]) : NULL;
       $openShiftTable[] = [
         'employee'=>(string)($row['employee_name'] ?? ''),
         'store'=>(string)($row['store_name'] ?? ''),
-        'date'=>(string)($row['date'] ?? ''),
-        'in'=>$this->clock((string)($row['actual_in_time'] ?? '')),
-        'out'=>$this->clock((string)($row['actual_out_time'] ?? '')),
+        'date'=>$date,
+        'in'=>$in,
+        'out'=>$out,
         'missing'=>'Missing ' . $missing,
+        'action'=>[
+          'shift_id'=>$shiftId,
+          'store_id'=>(int)($row['store_id'] ?? 0),
+          'store'=>(string)($row['store_name'] ?? ''),
+          'employee'=>(string)($row['employee_name'] ?? ''),
+          'date'=>$date,
+          'in'=>$in,
+          'out'=>$out,
+          'clock_in_local'=>$clockInLocal,
+          'clock_out_local'=>$clockOutLocal,
+          'can_dispute'=>$canSubmitOwn && $isOwn && $shiftId !== '',
+          'can_add_missing'=>$canSubmitOwn && $isOwn,
+          'dispute'=>$dispute,
+        ],
       ];
     }
 
@@ -746,7 +773,7 @@ final class ParityDataProvider implements ParityDataProviderInterface {
 
     $storeColumns = [['key'=>'store','label'=>'Store'],['key'=>'employees','label'=>'Employees'],['key'=>'hours','label'=>'Hours']];
     $employeeColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'stores','label'=>'Store(s)'],['key'=>'hours','label'=>'Hours']];
-    $openShiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'missing','label'=>'Missing']];
+    $openShiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'missing','label'=>'Missing'],['key'=>'action','label'=>'Action']];
     $shiftColumns = [['key'=>'employee','label'=>'Employee'],['key'=>'store','label'=>'Store'],['key'=>'date','label'=>'Date'],['key'=>'in','label'=>'IN'],['key'=>'out','label'=>'OUT'],['key'=>'hours','label'=>'Hours'],['key'=>'start','label'=>'Start']];
     if ($payrollVisible) {
       $storeColumns[] = ['key'=>'amount','label'=>'Payroll'];
@@ -774,10 +801,10 @@ final class ParityDataProvider implements ParityDataProviderInterface {
     $groups = [];
     if ($roleKey !== 'USER') {
       $groups[] = $this->table('Store summary','Hours by store',$storeColumns,$storeTable);
-      $groups[] = $this->table('Employee summary',$payrollVisible ? 'Hours and wages' : 'Hours',$employeeColumns,$employeeTable);
+      $groups[] = $this->table('Employee summary','Hours by employee',$employeeColumns,$employeeTable);
     }
-    $groups[] = $this->table('Incomplete Shifts','Open Shifts',$openShiftColumns,$openShiftTable);
-    $groups[] = $this->table('Shift detail','Filtered shifts',$shiftColumns,$shiftTable);
+    $groups[] = $this->table('Incomplete Shifts','Open shifts',$openShiftColumns,$openShiftTable);
+    $groups[] = $this->table('Complete Shifts','Closed shifts',$shiftColumns,$shiftTable);
 
     $surface = $this->surface(
       'reports','Reports','Attendance & Payroll',
