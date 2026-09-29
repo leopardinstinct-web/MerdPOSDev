@@ -136,4 +136,12 @@
 :root[data-theme="dark"] .merdpos-timesheet-action-menu button { color:var(--color-text-primary) !important; }
 :root[data-theme="dark"] .merdpos-timesheet-action-menu button:hover,
 :root[data-theme="dark"] .merdpos-timesheet-action-menu button:focus-visible { background:var(--color-surface-selected) !important; }
+
+/* Makeover surfaces: keep gradient primary actions and KPI chips legible on dark cards. */
+:root[data-theme="dark"] :is(.merdpos-reports-filters button,.merdpos-timesheet-dialog button[type="submit"],.merdpos-timesheet-mode-switch button.is-active,.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn),.merdpos-btn,.merdpos-login-submit) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-white) 20%, transparent), var(--shadow-action) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-reports-kpi-icon,.merdpos-account-avatar) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-white) 18%, transparent), 0 .3rem .9rem color-mix(in srgb, var(--color-brand-navy) 30%, transparent);
+}
 :root[data-theme="dark"] .merdpos-timesheet-dispute-dot { border-color:var(--color-surface-main) !important; }

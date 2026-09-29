@@ -20,10 +20,10 @@
 /* Default submit/action grammar. Component-specific icon/menu buttons may override this deliberately. */
 .merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn){
   min-height:var(--size-control);padding:var(--space-2) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);
-  background:var(--gradient-brand);color:var(--color-text-inverse);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
+  background:linear-gradient(115deg,var(--color-brand-navy) 0%,var(--color-brand-violet) 100%);color:var(--color-brand-white);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
   transition:box-shadow var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard),filter var(--duration-fast) var(--ease-standard)
 }
-.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(.98)}
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}
 .merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):active{box-shadow:none;transform:translateY(1px)}
 .merdpos-app :is(button.merdpos-ui-button--secondary,button.merdpos-btn--secondary,button.is-secondary){border-color:var(--color-border-default);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:none;filter:none}
 .merdpos-app :is(button.merdpos-ui-button--danger,button.merdpos-btn--danger,button.is-danger,button.is-reject){border-color:color-mix(in srgb,var(--color-danger) 35%,var(--color-border-default));background:var(--color-danger-surface);color:var(--color-danger);box-shadow:none;filter:none}

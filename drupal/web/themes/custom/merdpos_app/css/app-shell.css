@@ -149,7 +149,7 @@ body.merd-drupal-shell {
   place-items: center;
   flex: 0 0 2rem;
   border-radius: var(--radius-circle);
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-violet) 100%);
   color: var(--color-brand-white);
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
@@ -1056,3 +1056,49 @@ body.merdpos-login-route {
 .merdpos-impersonation-banner button{min-height:2.4rem;padding:.45rem .8rem;border:1px solid var(--color-border-default);border-radius:var(--radius-control);background:var(--color-surface-main);color:var(--color-text-primary);font:inherit;font-size:var(--type-xs);font-weight:var(--weight-bold);cursor:pointer;white-space:nowrap}
 .merdpos-impersonation-banner button:hover,.merdpos-impersonation-banner button:focus-visible{border-color:var(--color-focus);box-shadow:0 0 0 .2rem var(--color-focus-soft);outline:none}
 @media(max-width:35rem){.merdpos-impersonation-banner{align-items:stretch;flex-direction:column;margin:var(--space-2) var(--space-3) 0}.merdpos-impersonation-banner button{width:100%}}
+
+/* Visible shell theme toggle: compact icon action next to the account trigger. */
+.merdpos-shell-theme-toggle {
+  width: var(--size-control-compact);
+  height: var(--size-control-compact);
+  min-width: var(--size-control-compact);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-main) 94%, transparent);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+}
+.merdpos-shell-theme-toggle:hover {
+  border-color: color-mix(in srgb, var(--color-brand-cyan) 42%, var(--color-border-default));
+  background: var(--color-surface-selected);
+  color: var(--color-brand-primary);
+}
+.merdpos-shell-theme-toggle:focus-visible {
+  outline: .1875rem solid var(--color-focus-soft);
+  outline-offset: .125rem;
+}
+.merdpos-shell-theme-toggle svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 51.25rem) {
+  .merdpos-shell-theme-toggle {
+    width: var(--size-touch);
+    height: var(--size-touch);
+    min-width: var(--size-touch);
+  }
+}
+:root[data-theme="dark"] .merdpos-shell-theme-toggle {
+  background: color-mix(in srgb, var(--color-surface-main) 86%, transparent);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}

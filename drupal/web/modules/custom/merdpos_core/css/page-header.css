@@ -15,6 +15,15 @@
   color: var(--color-text-primary);
   box-shadow: var(--shadow-raised);
 }
+.merdpos-page-header::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: .22rem;
+  background: var(--gradient-brand);
+  opacity: .92;
+  pointer-events: none;
+}
 .merdpos-page-header::after {
   content: "";
   position: absolute;
