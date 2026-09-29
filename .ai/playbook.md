@@ -310,3 +310,7 @@ For Namecheap on the current Windows toolchain, the binding path is `drupal/tool
 ## UI mojibake incident rule
 
 When a browser shows artifacts such as `U+00C2 followed by U+00B7`, corrupted arrows/dashes, or replacement glyphs, inspect the tracked source before blaming fonts or the browser. Correct the source encoding/text, then run `drupal/tools/validate_source_encoding.php`. Do not fix only the rendered instance; keep the deployment guard so the defect cannot recur elsewhere.
+
+## 17. Drupal resource sync discipline
+
+Files such as `drupal/web/modules/custom/merdpos_core/css/design-tokens.css` are deploy-synced copies of canonical sources declared in `drupal/resources/merdpos-resources.json`. Never edit the module copy directly: `sync_merdpos_resources.php --check` (invoked by `tools/namecheap_deploy.sh`) fails closed with `Resource drift detected for <id>`. Edit the canonical source, revert any copy drift, and let the deploy sync regenerate the copy.

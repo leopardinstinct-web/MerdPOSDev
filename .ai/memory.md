@@ -114,3 +114,8 @@ The old Flutter/full-POS roadmap, `docs/pos_latest/`, M3.x and **M3.3 Checkout &
 ## Repository governance
 
 `namecheap-beta-live` is protected against force pushes and branch deletion while preserving the normal direct bounded-push workflow. Beta Guardrails and Namecheap deploy guards remain the release safety net; a protected branch alone is not verification.
+
+## 2026-09-30 checkpoints
+
+- Reports surface (`/merdpos/reports`, branch `beta/drupal-webapp`): small accent text/icons now consume `--color-brand-text-accent` (cyan 65% toward navy on light surfaces; cyan 70% toward white under `[data-theme="dark"]`) — WCAG AA contrast fix, VERIFIED live after deploy `affe1fa`. Token canonical source is `namecheap_beta_live/timesheet_portal/assets/design-tokens.css`; the module copy is deploy-generated.
+- Open product-owner decisions: Drupal module brand values (`--color-brand-cyan #0A91FB`, navy `#01102B`, violet `#591DE9`) differ from the canonical five-color master palette — align vs record an exception. Dark mode on Drupal surfaces is CSS-ready (`dark-normalization.css`) but nothing sets `data-theme` (no toggle).
