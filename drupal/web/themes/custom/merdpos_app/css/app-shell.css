@@ -1075,7 +1075,7 @@ body.merdpos-login-route {
 .merdpos-shell-theme-toggle:hover {
   border-color: color-mix(in srgb, var(--color-brand-cyan) 42%, var(--color-border-default));
   background: var(--color-surface-selected);
-  color: var(--color-brand-primary);
+  color: var(--color-brand-text-accent);
 }
 .merdpos-shell-theme-toggle:focus-visible {
   outline: .1875rem solid var(--color-focus-soft);

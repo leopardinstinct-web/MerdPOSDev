@@ -144,4 +144,13 @@
 :root[data-theme="dark"] :is(.merdpos-reports-kpi-icon,.merdpos-account-avatar) {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-white) 18%, transparent), 0 .3rem .9rem color-mix(in srgb, var(--color-brand-navy) 30%, transparent);
 }
+/* Makeover accents: cyan-on-dark is below AA for small text; use cyan-tint chips with white ink. */
+:root[data-theme="dark"] :is(.merdpos-report-action,.merdpos-report-action span,.merdpos-report-count,.merdpos-report-chart-card>header>span) {
+  background: color-mix(in srgb, var(--color-brand-cyan) 16%, var(--color-surface-raised)) !important;
+  color: var(--color-brand-white) !important;
+  border-color: color-mix(in srgb, var(--color-brand-cyan) 32%, transparent) !important;
+}
+:root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) th {
+  color: var(--color-text-secondary) !important;
+}
 :root[data-theme="dark"] .merdpos-timesheet-dispute-dot { border-color:var(--color-surface-main) !important; }

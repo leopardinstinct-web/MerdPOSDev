@@ -235,7 +235,7 @@
   --color-chart-4: color-mix(in srgb, var(--color-brand-cyan) 58%, var(--color-brand-violet));
   --color-chart-5: color-mix(in srgb, var(--color-brand-violet) 70%, var(--color-brand-white));
   --color-focus-soft: color-mix(in srgb, var(--color-brand-cyan) 30%, transparent);
-  --color-brand-text-accent: color-mix(in srgb, var(--color-brand-cyan) 70%, var(--color-brand-white));
+  --color-brand-text-accent: color-mix(in srgb, var(--color-brand-cyan) 40%, var(--color-brand-white));
   --color-overlay: color-mix(in srgb, var(--color-brand-navy) 74%, transparent);
   --color-shadow: color-mix(in srgb, var(--color-brand-navy) 54%, transparent);
   --shadow-card: 0 .35rem 1rem color-mix(in srgb, var(--color-brand-navy) 62%, transparent);
