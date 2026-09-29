@@ -25,7 +25,7 @@
 
 .merdpos-eyebrow {
   margin: 0 0 var(--space-2);
-  color: var(--color-brand-primary);
+  color: var(--color-brand-text-accent);
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
   letter-spacing: .08em;

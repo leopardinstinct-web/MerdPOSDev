@@ -17,13 +17,12 @@
 
 
 
-
 .merdpos-reports-actions { position: relative; z-index: 1; display: grid; gap: .65rem; min-width: 14rem; }
 .merdpos-reports-live { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: center; padding: .9rem 1rem; border-radius: 1.2rem; background: rgba(255,255,255,.88); border: 1px solid var(--rep-border); box-shadow: 0 .7rem 1.8rem rgba(31,59,98,.08); }
 .merdpos-reports-live > span { width: .8rem; height: .8rem; border-radius: 50%; background: var(--rep-green); box-shadow: 0 0 0 .45rem rgba(23,133,87,.12); }
 .merdpos-reports-live strong { color: var(--rep-green); }
 .merdpos-reports-live small { grid-column: 2; color: var(--rep-muted); }
-.merdpos-report-action { display: flex; align-items: center; justify-content: center; gap: .6rem; min-height: 2.8rem; padding: .65rem .9rem; border: 1px solid var(--rep-border); border-radius: 1rem; background: #fff; color: var(--rep-blue); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+.merdpos-report-action { display: flex; align-items: center; justify-content: center; gap: .6rem; min-height: 2.8rem; padding: .65rem .9rem; border: 1px solid var(--rep-border); border-radius: 1rem; background: #fff; color: var(--color-brand-text-accent); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
 .merdpos-report-action:hover { transform: translateY(-2px); box-shadow: 0 .8rem 1.8rem rgba(31,59,98,.12); }
 .merdpos-report-action svg { width: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .merdpos-reports-header-actions { display:grid; gap:.65rem; min-width:14rem; }
@@ -42,11 +41,11 @@
 .merdpos-reports-filter-intro span { margin-top: .18rem; color: var(--rep-muted); font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .merdpos-reports-filters label span { display: block; margin-bottom: .35rem; color: var(--rep-muted); font-size: .76rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .merdpos-reports-filters select { width: 100%; min-height: 2.8rem; padding: .55rem .65rem; border: 1px solid rgba(28,69,135,.2); border-radius: .85rem; background: #fbfcff; color: var(--rep-ink); font: inherit; }
-.merdpos-reports-filters button { min-height: 2.8rem; padding: .55rem 1rem; border: 0; border-radius: .85rem; background: var(--rep-blue); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.merdpos-reports-filters button { min-height: 2.8rem; padding: .55rem 1rem; border: 0; border-radius: .85rem; background: var(--color-brand-text-accent); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; align-items:stretch; }
 .merdpos-reports-v2 .merdpos-reports-kpi { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(6.4rem,7.2rem) minmax(0,1fr); gap:.35rem; align-items:stretch; min-width:0; min-height:8.6rem; padding:.82rem .86rem; }
 .merdpos-reports-kpi-rail { display:flex; align-items:center; align-self:stretch; gap:.55rem; min-width:0; padding-right:.25rem; }
-.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:.8rem; background:color-mix(in srgb,var(--color-brand-cyan) 14%,var(--color-surface-muted)); color:var(--color-brand-cyan); }
+.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:.8rem; background:color-mix(in srgb,var(--color-brand-cyan) 14%,var(--color-surface-muted)); color:var(--color-brand-text-accent); }
 .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.28rem; height:1.28rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-material-icon{display:block;width:1.28rem;height:1.28rem;background:currentColor}
 .merdpos-material-icon--record-voice-over{-webkit-mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat}
@@ -55,11 +54,11 @@
 .merdpos-reports-kpi-metrics { display:grid; align-items:stretch; min-width:0; }
 .merdpos-reports-kpi-stat { position:relative; display:grid; min-width:0; align-content:center; justify-items:center; padding:.22rem .3rem; text-align:center; }
 .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { content:""; position:absolute; left:0; top:12%; width:1px; height:76%; background:color-mix(in srgb,var(--color-text-muted) 36%,transparent); }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2rem; height:2rem; color:var(--color-brand-cyan); }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2rem; height:2rem; color:var(--color-brand-text-accent); }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.55rem; height:1.55rem; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon .merdpos-material-icon{width:1.55rem;height:1.55rem}
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.24rem 0 0; color:var(--color-text-primary); font-size:clamp(1.32rem,1.85vw,1.92rem); font-weight:800; line-height:.96; letter-spacing:-.03em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; color:var(--color-brand-cyan); font-size:clamp(.68rem,.76vw,.78rem); font-weight:750; line-height:1.18; text-align:center; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; color:var(--color-brand-text-accent); font-size:clamp(.68rem,.76vw,.78rem); font-weight:750; line-height:1.18; text-align:center; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.16rem,1.5vw,1.55rem); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:var(--color-amber); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:var(--color-success); }
@@ -67,7 +66,7 @@
 .merdpos-reports-charts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
 .merdpos-report-chart-card, .merdpos-report-table-card { overflow: hidden; border: 1px solid var(--rep-border); border-radius: 1.5rem; background: #fff; box-shadow: 0 .9rem 2.5rem rgba(24,54,98,.06); }
 .merdpos-report-chart-card > header, .merdpos-report-table-card > header { display: flex; align-items: center; gap: .75rem; min-height: 4.7rem; padding: 1rem 1.1rem; border-bottom: 1px solid rgba(28,69,135,.09); background: linear-gradient(180deg,#fff,#fbfcff); }
-.merdpos-report-chart-card > header > span { display: grid; place-items: center; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; border-radius: .85rem; background: rgba(28,69,135,.08); color: var(--rep-blue); }
+.merdpos-report-chart-card > header > span { display: grid; place-items: center; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; border-radius: .85rem; background: rgba(28,69,135,.08); color: var(--color-brand-text-accent); }
 .merdpos-report-chart-card > header svg { width: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .merdpos-report-chart-card h2, .merdpos-report-table-card h2 { margin: 0; color: var(--rep-ink); font-size: 1.05rem; }
 .merdpos-report-chart-card p { margin: .18rem 0 0; color: var(--rep-muted); font-size: .84rem; }
@@ -76,10 +75,10 @@
 .merdpos-reports-groups { display: grid; gap: 1rem; }
 .merdpos-report-table-card > header { justify-content: space-between; }
 .merdpos-report-table-card .merdpos-eyebrow { margin: 0 0 .15rem; }
-.merdpos-report-count { display: grid; place-items: center; min-width: 2.25rem; height: 2.25rem; padding: 0 .55rem; border-radius: 999px; background: rgba(28,69,135,.08); color: var(--rep-blue); font-weight: 850; }
+.merdpos-report-count { display: grid; place-items: center; min-width: 2.25rem; height: 2.25rem; padding: 0 .55rem; border-radius: 999px; background: rgba(28,69,135,.08); color: var(--color-brand-text-accent); font-weight: 850; }
 .merdpos-report-table-wrap { overflow-x: auto; scrollbar-width: thin; }
 .merdpos-report-table-wrap table { width: 100%; min-width: 46rem; border-collapse: collapse; }
-.merdpos-report-table-wrap th { padding: .72rem .9rem; background: #f7f9fd; color: #687895; font-size: .72rem; letter-spacing: .045em; text-align: left; text-transform: uppercase; }
+.merdpos-report-table-wrap th { padding: .72rem .9rem; background: #f7f9fd; color: #5E6E88; font-size: .72rem; letter-spacing: .045em; text-align: left; text-transform: uppercase; }
 .merdpos-report-table-wrap td { padding: .8rem .9rem; border-top: 1px solid rgba(28,69,135,.07); color: #273f62; vertical-align: top; }
 .merdpos-report-table-wrap tbody tr:hover { background: rgba(28,69,135,.025); }
 .merdpos-report-empty { margin: 0; padding: 1.3rem; color: var(--rep-muted); }
@@ -130,7 +129,7 @@
   .merdpos-report-table-wrap table { min-width: 0; font-size: 8pt; }
 }
 
-.merdpos-timesheet-action-trigger { display:inline-flex; align-items:center; gap:.4rem; min-height:2.2rem; padding:.35rem .6rem; border:1px solid rgba(28,69,135,.18); border-radius:.75rem; background:#fff; color:var(--rep-blue); font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap; }
+.merdpos-timesheet-action-trigger { display:inline-flex; align-items:center; gap:.4rem; min-height:2.2rem; padding:.35rem .6rem; border:1px solid rgba(28,69,135,.18); border-radius:.75rem; background:#fff; color:var(--color-brand-text-accent); font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap; }
 .merdpos-timesheet-action-trigger svg { width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-timesheet-action-trigger.has-dispute { background:rgba(201,121,18,.08); color:var(--rep-amber); }
 .merdpos-timesheet-action-trigger.is-approved { background:rgba(23,133,87,.08); color:var(--rep-green); }
@@ -144,15 +143,15 @@
 .merdpos-timesheet-dialog-close { display:grid; place-items:center; width:2.4rem; height:2.4rem; border:1px solid var(--rep-border); border-radius:.8rem; background:#fff; color:var(--rep-ink); cursor:pointer; }
 .merdpos-timesheet-dialog-close svg { width:1.1rem; fill:none; stroke:currentColor; stroke-width:2; }
 .merdpos-timesheet-mode-switch { display:flex; flex-wrap:wrap; gap:.55rem; }
-.merdpos-timesheet-mode-switch button { padding:.55rem .8rem; border:1px solid var(--rep-border); border-radius:999px; background:#fff; color:var(--rep-blue); font:inherit; font-weight:800; cursor:pointer; }
-.merdpos-timesheet-mode-switch button.is-active { background:var(--rep-blue); color:#fff; }
+.merdpos-timesheet-mode-switch button { padding:.55rem .8rem; border:1px solid var(--rep-border); border-radius:999px; background:#fff; color:var(--color-brand-text-accent); font:inherit; font-weight:800; cursor:pointer; }
+.merdpos-timesheet-mode-switch button.is-active { background:var(--color-brand-text-accent); color:#fff; }
 .merdpos-timesheet-create form,.merdpos-timesheet-existing-actions { display:grid; gap:.8rem; }
 .merdpos-timesheet-dialog label { display:grid; gap:.35rem; color:var(--rep-muted); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; }
 .merdpos-timesheet-dialog input,.merdpos-timesheet-dialog select,.merdpos-timesheet-dialog textarea { width:100%; box-sizing:border-box; padding:.65rem .7rem; border:1px solid rgba(28,69,135,.2); border-radius:.8rem; background:#fbfcff; color:var(--rep-ink); font:inherit; text-transform:none; letter-spacing:normal; }
 .merdpos-timesheet-form-actions,.merdpos-timesheet-existing-actions form > div { display:flex; flex-wrap:wrap; gap:.55rem; }
-.merdpos-timesheet-dialog button[type="submit"] { min-height:2.6rem; padding:.6rem .9rem; border:0; border-radius:.8rem; background:var(--rep-blue); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+.merdpos-timesheet-dialog button[type="submit"] { min-height:2.6rem; padding:.6rem .9rem; border:0; border-radius:.8rem; background:var(--color-brand-text-accent); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
 .merdpos-timesheet-dialog button.is-danger { background:#a62e3b; }
-.merdpos-timesheet-dialog button.is-secondary { background:#edf2fa; color:var(--rep-blue); }
+.merdpos-timesheet-dialog button.is-secondary { background:#edf2fa; color:var(--color-brand-text-accent); }
 .merdpos-timesheet-status { display:grid; gap:.35rem; padding:1rem; border:1px solid var(--rep-border); border-radius:1rem; background:#f8faff; }
 .merdpos-timesheet-status > span { justify-self:start; padding:.3rem .55rem; border-radius:999px; background:rgba(201,121,18,.1); color:var(--rep-amber); font-size:.75rem; font-weight:850; text-transform:uppercase; }
 .merdpos-timesheet-status strong { font-size:1.05rem; }
@@ -168,7 +167,7 @@
 /* Shift Detail contextual action menu. The trigger uses the user-supplied error icon as a mask. */
 .merdpos-timesheet-action-trigger {
   position:relative; display:inline-grid; place-items:center; width:2.35rem; min-width:2.35rem; height:2.35rem; min-height:2.35rem;
-  padding:0; gap:0; border-radius:.72rem; color:var(--rep-blue);
+  padding:0; gap:0; border-radius:.72rem; color:var(--color-brand-text-accent);
 }
 .merdpos-timesheet-action-icon {
   display:block !important; width:1.22rem; height:1.22rem; background:currentColor;

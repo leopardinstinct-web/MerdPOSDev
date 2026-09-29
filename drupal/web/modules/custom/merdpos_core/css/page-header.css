@@ -27,7 +27,7 @@
   pointer-events: none;
 }
 .merdpos-page-header__copy { position: relative; z-index: 1; min-width: 0; max-width: 64rem; }
-.merdpos-page-header__eyebrow { margin: 0 0 var(--space-2); color: var(--color-brand-cyan); font-size: var(--type-xs); font-weight: var(--weight-bold); letter-spacing: .08em; text-transform: uppercase; }
+.merdpos-page-header__eyebrow { margin: 0 0 var(--space-2); color: var(--color-brand-text-accent); font-size: var(--type-xs); font-weight: var(--weight-bold); letter-spacing: .08em; text-transform: uppercase; }
 .merdpos-page-header__title { margin: 0; color: var(--color-text-primary); font-family: var(--font-display); font-size: clamp(2.15rem, 5vw, 4.1rem); line-height: .98; letter-spacing: -.035em; }
 .merdpos-page-header__description { max-width: 55rem; margin: .9rem 0 0; color: var(--color-text-secondary); font-size: var(--type-md); line-height: 1.6; }
 .merdpos-page-header__actions { position: relative; z-index: 1; min-width: 0; align-self: end; }
