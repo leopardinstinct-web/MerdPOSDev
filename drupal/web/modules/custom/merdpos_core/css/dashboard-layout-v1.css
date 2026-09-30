@@ -66,6 +66,7 @@
   .merdpos-dashboard-role-select{min-width:0;width:100%}
   .merdpos-dashboard-layout-actions{width:100%;flex-wrap:wrap}
   .merdpos-dashboard-edit-toggle{flex:1 1 auto}
+  .merdpos-dashboard-add-widget,.merdpos-dashboard-item-actions button,.merdpos-dashboard-drawer-head button,.merdpos-dashboard-catalog-item button{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}
   .merdpos-dashboard-save-state{flex:1 1 100%;text-align:left}
   .merdpos-dashboard-widget-drawer{width:min(24rem,100vw)}
 }

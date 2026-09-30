@@ -83,6 +83,11 @@ $dashboardCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_
 foreach (['min-height: 10.5rem', 'border-radius: 1.2rem', '#17386f'] as $forbidden) {
   if (str_contains($dashboardCss, $forbidden)) $errors[] = "dashboard-v2.css reintroduces local KPI/button geometry ($forbidden)";
 }
+$dashboardLayoutCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/dashboard-layout-v1.css');
+$dashboardTouchRule = '.merdpos-dashboard-add-widget,.merdpos-dashboard-item-actions button,.merdpos-dashboard-drawer-head button,.merdpos-dashboard-catalog-item button{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}';
+if (!str_contains($dashboardLayoutCss, $dashboardTouchRule)) {
+  $errors[] = 'dashboard-layout-v1.css: mobile dashboard controls must use a genuine --size-touch square hit target';
+}
 
 $shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
 foreach (['.merdpos-ui-dialog', '--radius-dialog', '--color-overlay', '90dvh', 'overflow:auto'] as $needle) {
