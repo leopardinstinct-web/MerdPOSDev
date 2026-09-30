@@ -71,8 +71,22 @@ foreach ([
 ] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
 
 $reportsCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
-foreach (['padding:.82rem .86rem', '.merdpos-timesheet-dialog-close', 'min-height:2.6rem', 'min-height: 2.8rem; padding: .65rem .9rem'] as $forbidden) {
+foreach ([
+  'padding:.82rem .86rem',
+  '.merdpos-timesheet-dialog-close',
+  'min-height:2.6rem',
+  'min-height: 2.8rem; padding: .65rem .9rem',
+  '.merdpos-timesheet-dialog { width:calc(100vw - 1rem); max-height:calc(100dvh - 1rem); }',
+] as $forbidden) {
   if (str_contains($reportsCss, $forbidden)) $errors[] = "reports-v2.css reintroduces local KPI/dialog/action geometry ($forbidden)";
+}
+$timesheetTriggerBase = 'width:var(--size-control); min-width:var(--size-control); height:var(--size-control); min-height:var(--size-control)';
+if (!str_contains($reportsCss, $timesheetTriggerBase)) {
+  $errors[] = 'reports-v2.css: Timesheet action trigger must use the canonical --size-control square desktop target';
+}
+$timesheetTriggerTouch = '.merdpos-timesheet-action-trigger { width:var(--size-touch); min-width:var(--size-touch); height:var(--size-touch); min-height:var(--size-touch); }';
+if (!str_contains($reportsCss, '@media (max-width:51.25rem)') || !str_contains($reportsCss, $timesheetTriggerTouch)) {
+  $errors[] = 'reports-v2.css: Timesheet action trigger must promote to a genuine --size-touch square target at the canonical mobile breakpoint';
 }
 $financeCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/finance-v2.css');
 foreach (['border-radius:1.3rem', 'background:#fff', 'rgba(24,54,98', 'font-size:clamp(1.2rem,2vw,1.7rem)'] as $forbidden) {

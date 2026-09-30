@@ -151,16 +151,18 @@
 .merdpos-timesheet-status p,.merdpos-timesheet-status small { margin:0; color:var(--rep-muted); line-height:1.45; }
 @media (max-width:42rem) {
   .merdpos-timesheet-action-trigger span { display:none; }
-  .merdpos-timesheet-action-trigger { min-width:2.3rem; justify-content:center; padding:.35rem; }
-  .merdpos-timesheet-dialog { width:calc(100vw - 1rem); max-height:calc(100dvh - 1rem); }
+  .merdpos-timesheet-action-trigger { justify-content:center; padding:0; }
   .merdpos-timesheet-dialog-shell { padding:.9rem; }
 }
 @media print { .merdpos-timesheet-action-trigger,.merdpos-timesheet-dialog { display:none !important; } }
 
 /* Shift Detail contextual action menu. The trigger uses the user-supplied error icon as a mask. */
 .merdpos-timesheet-action-trigger {
-  position:relative; display:inline-grid; place-items:center; width:2.35rem; min-width:2.35rem; height:2.35rem; min-height:2.35rem;
-  padding:0; gap:0; border-radius:.72rem; color:var(--color-brand-text-accent);
+  position:relative; display:inline-grid; place-items:center; width:var(--size-control); min-width:var(--size-control); height:var(--size-control); min-height:var(--size-control);
+  padding:0; gap:0; border-radius:var(--radius-control); color:var(--color-brand-text-accent);
+}
+@media (max-width:51.25rem) {
+  .merdpos-timesheet-action-trigger { width:var(--size-touch); min-width:var(--size-touch); height:var(--size-touch); min-height:var(--size-touch); }
 }
 .merdpos-timesheet-action-icon {
   display:block !important; width:1.22rem; height:1.22rem; background:currentColor;
