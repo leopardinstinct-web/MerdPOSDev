@@ -1,0 +1,53 @@
+version: 1
+id: MERD-20261001-kimi-mcp-async-jobs-v1
+objective: "Eliminate ChatGPT/MCP request timeouts for long Kimi implementation turns by making Kimi execution an asynchronous submit-and-poll job while preserving single-worker safety and retained completion evidence."
+packet_state: VERIFIED
+lifecycle: VERIFIED
+base_head: "d0218234d832e021f1127c19795fd9700831ba16"
+implementation_commit: "e0f694d3a812b0556a498f46a90fa210f8d49431"
+bridge_version: "0.3.0"
+root_cause:
+  - "kimi_implement_task synchronously waited on subprocess.run for up to 60 minutes, while the ChatGPT/MCP request path can time out much earlier."
+  - "A client-side timeout did not stop the local Kimi process, so the tool appeared failed while work could still be running."
+  - "Bridge v0.2 discarded the final Kimi outcome after active=false, leaving detached completions ambiguous."
+fix:
+  - "kimi_implement_task now returns immediately with accepted=true and a task_id, while Kimi runs in a background worker."
+  - "bridge_status retains running/completed/failed/timed_out state, timestamps, bounded output/diagnostic and final changed paths for the most recent job."
+  - "repo_checkout_feature and repo_commit_push refuse mutation while Kimi is active; repo_diff remains available for read-only inspection."
+  - "The MCP input schema and five-tool catalog did not change, so no ChatGPT MCP app rescan is required."
+checks:
+  - name: "Bridge helper tests"
+    result: PASS
+    evidence: "11 tests passed at e0f694d3, including success-result retention, timeout-result retention and active-task mutation guard."
+  - name: "Bridge Python syntax"
+    result: PASS
+    evidence: "python -m py_compile server.py test_server_helpers.py passed at e0f694d3."
+  - name: "Live bridge version"
+    result: PASS
+    evidence: "After tunnel restart, ChatGPT bridge_status returned bridge_version 0.3.0 through the real Secure MCP Tunnel."
+  - name: "Live asynchronous submission"
+    result: PASS
+    evidence: "kimi_implement_task returned immediately with accepted=true and task_id kimi-1790807885508 instead of holding the MCP request open."
+  - name: "Live retained completion state"
+    result: PASS
+    evidence: "bridge_status later retained state=failed, exit_code=1, elapsed_seconds=4.2, changed_paths=[] and the provider diagnostic after the worker ended."
+  - name: "Provider outcome classification"
+    result: PASS
+    evidence: "The smoke job failed with Kimi HTTP 403 because the current 5-hour usage quota was exhausted. This was surfaced as a provider failure, not misreported as an MCP timeout."
+  - name: "Worktree integrity"
+    result: PASS
+    evidence: "repo_diff after the smoke was clean."
+constraints:
+  - "One Kimi job maximum at a time."
+  - "No prompt text or secrets are stored in bridge task status."
+  - "Kimi still has no Bash, push, merge or deploy authority."
+  - "Internal Kimi runtime timeout remains bounded at 60-3600 seconds."
+known_lessons:
+  - "Long-running external model work must not be coupled to an MCP request lifetime. Submit-and-poll is the canonical bridge pattern."
+  - "A provider quota/auth failure must remain distinguishable from transport/client timeout."
+  - "Never retry a Kimi task just because a client call failed; first inspect bridge_status and repo_diff."
+remaining: []
+next_action: "Use bridge v0.3 submit-and-poll semantics for future Kimi work. If Kimi reports provider quota exhaustion, wait for quota reset or change plan; do not troubleshoot it as an MCP timeout."
+blocked: false
+blocker: null
+updated_at: "2026-10-01T03:40:00+05:00"
