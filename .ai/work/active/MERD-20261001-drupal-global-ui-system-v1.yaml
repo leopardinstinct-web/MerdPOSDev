@@ -1,0 +1,71 @@
+version: 1
+id: MERD-20261001-drupal-global-ui-system-v1
+objective: "Standardize the Drupal Beta visual component system across buttons/actions, KPI cards, dialogs/modals and light/dark theme surfaces so feature pages consume one shared primitive contract instead of competing feature-owned visual grammars."
+acceptance:
+  - "Buttons use one industry-standard hierarchy: primary, secondary, ghost/tertiary, danger and icon-only variants; standard desktop action height is 44px and touch target is 48px; shared padding, radius, typography, focus, hover, active and disabled states apply everywhere."
+  - "KPI cards use one shared shell/sizing grammar with standard and compound variants: common surface, border, radius, padding, icon tile, label/value/meta typography and semantic tone handling; layout may vary by content but visual identity must not."
+  - "Change Password, Timesheet and Administration dialogs consume one shared dialog shell for radius, header/body/footer spacing, close control, action placement, overlay and mobile behavior."
+  - "Dark theme uses one shared surface/text/border hierarchy across Dashboard, Timesheets, Financials, Admin and dialogs; feature CSS must not create page-specific dark visual systems."
+  - "Dark header/logo treatment is consistent across routes."
+  - "No business logic, payroll, DB, authentication or authorization behavior changes."
+  - "Rendered desktop and 390px mobile screenshots in light and dark show no obvious visual drift, overflow, clipping or stranded controls."
+packet_state: DOCUMENTED_AUDIT_COMPLETE
+lifecycle: DOCUMENTED
+base_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
+last_seen_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
+drupal_base_head: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
+feature_branch: "feature/drupal-global-ui-system-v1"
+audit:
+  captured_live_at: "2026-10-01"
+  surfaces: ["/merdpos", "/merdpos/reports", "/merdpos/finance", "/merdpos/admin", "account sheet", "Change Password"]
+  findings:
+    - "Live KPI heights differ materially: Dashboard ~156px, Timesheets compound ~138px, Financials ~102px."
+    - "Live action controls use competing geometries: shared 44px/10px actions coexist with 44.8px/16px PDF, bare zero-radius QR action, pill shell controls and feature-specific danger sizing."
+    - "Change Password uses a dedicated dialog shell instead of the shared application dialog grammar."
+    - "Feature CSS still redefines KPI geometry and visual tokens after ui-primitives.css, so the nominal shared primitive layer is not actually authoritative."
+    - "Dark-mode appearance is normalized by broad feature-specific selector sets; rendered logo/header appearance also differs across routes."
+standard:
+  buttons:
+    desktop_height: "44px"
+    touch_height: "48px"
+    radius: "var(--radius-control)"
+    hierarchy: ["primary", "secondary", "ghost", "danger", "icon-only"]
+    typography: "var(--type-sm) / var(--weight-bold) for labeled actions"
+  kpis:
+    standard_min_height: "7rem"
+    compound_min_height: "7rem"
+    shell: "shared surface/border/radius/shadow/padding"
+    icon: "var(--size-control) square shared icon tile"
+    typography: "shared label/value/meta scale"
+  dialogs:
+    regular_width: "min(32rem, calc(100vw - 2rem))"
+    wide_variant: "feature-owned only when content requires it"
+    shell: "shared backdrop/header/body/footer/close/action geometry"
+constraints:
+  - "Preserve the binding five-color runtime palette and separate operational semantic colors."
+  - "Preserve frozen payroll/timesheet logic and all existing authorization gates."
+  - "Do not add a new corrective CSS layer; strengthen the canonical primitive owner and remove/simplify feature overrides."
+  - "Keep feature CSS responsible for layout/composition only where practical."
+  - "Use Kimi K3-256K Low for bounded implementation; ChatGPT independently reviews the exact diff and runtime."
+owned_paths:
+  - "drupal/web/modules/custom/merdpos_core/css/ui-primitives.css"
+  - "drupal/web/modules/custom/merdpos_core/css/dark-normalization.css"
+  - "drupal/web/modules/custom/merdpos_core/css/dashboard-v2.css"
+  - "drupal/web/modules/custom/merdpos_core/css/reports-v2.css"
+  - "drupal/web/modules/custom/merdpos_core/css/finance-v2.css"
+  - "drupal/web/themes/custom/merdpos_app/css/app-shell.css"
+  - "drupal/web/themes/custom/merdpos_app/templates/page.html.twig"
+  - "drupal/tools/validate_global_ui_primitives_v1.php"
+completed:
+  - "Captured live screenshots for Dashboard, Timesheets, Financials and Admin in light/dark plus account sheet and Change Password."
+  - "Captured computed-style inventory of rendered buttons, KPI cards and dialogs."
+  - "Inspected shared primitive ownership and recent feature/style history; confirmed feature CSS currently overrides canonical primitive geometry."
+remaining:
+  - "Create feature branch from current beta/drupal-webapp head and implement the shared component-system reconciliation."
+  - "Run targeted syntax/UI/Reports/DEV/Finance/global primitive/dark/source/continuity checks."
+  - "Capture before/after rendered screenshots at 1440px and 390px in both themes."
+  - "Independent ChatGPT review, owner merge/deploy gates, then live verification."
+next_action: "Create feature/drupal-global-ui-system-v1 from beta/drupal-webapp head 55671e5c94ad6198697faae18b9a28bf157ab3dd, checkout through the verified Kimi bridge, and run the bounded shared-primitive implementation."
+blocked: false
+blocker: null
+updated_at: "2026-10-01T02:44:00+05:00"
