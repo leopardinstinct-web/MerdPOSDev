@@ -6,14 +6,14 @@ acceptance:
   - "Primary action buttons use the --gradient-brand-action token with white text >=7.5:1 worst point."
   - "Theme toggle switches light/dark, persists via localStorage, and is reachable from the shell header."
   - "Printing while dark produces readable light output with or without background graphics."
-  - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus their token-derived states); operational success/warning/danger/info are separate semantic tokens outside the brand palette; the DEV editor's logo-swatch proposals remain preview/handoff only and are not a runtime source; deploy validators stay green."
+  - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus token-derived treatments); operational success/warning/danger/info remain separate semantic tokens; the DEV editor's logo-swatch proposals are preview/handoff only and are not a runtime source."
   - "Lifecycle claims in .ai/memory.md match evidence exactly."
-packet_state: PR_175_FIX_FORWARD_CODED_AWAITING_REVIEW
-lifecycle: CODED
+packet_state: PR_175_REVIEW_PASS_AWAITING_OWNER
+lifecycle: WIRED
 base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
-reviewed_head: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
-implementation_sha: "PENDING_COMMIT — ChatGPT must replace this with the immutable commit SHA after the fix-forward commit lands."
-last_seen_head: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+reviewed_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+implementation_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+last_seen_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
 handoff:
   mode: dual-agent
   implementer: "Kimi K3"
@@ -22,59 +22,99 @@ handoff:
   branch: "feature/drupal-reports-aa-makeover-v1"
   pr: 175
   base_sha: "7655fbe832c2500227ecd0abc15c5b04663e3a50"
-  head_sha: "PENDING_COMMIT"
-review_state: PENDING
-review_history:
-  - reviewer: "ChatGPT"
-    reviewed_sha: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
-    result: "CHANGES_REQUESTED"
-    reason: "Stale canonical palette + stale packet/handoff (historical; fix-forward applied 2026-10-01, fresh review pending)."
-deployed_baseline:
-  head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
-  lifecycle: "DEPLOYED + VERIFIED"
-  evidence: "Server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live WCAG contrast audits empty in light and dark; theme toggle exercised with persistence; mobile clean. GitHub CI runs #72-77 covered the pre-fix-forward range only."
-branch_state:
-  head: "PENDING_COMMIT (fix-forward on top of 5768355be83d24e04e8edc3beafeb3f89bcd03cb)"
-  lifecycle: "CODED/WIRED"
-  evidence: "Fix-forward edits: canonical five-color Namecheap master palette applied to shared token source; packet/handoff truthfulness corrections; reviewer-discovered runtime reconciliation (no global cssVariables() injection in merdpos_app.theme, DEV palette editor relabelled preview/handoff, BrandPaletteManager proposal wording, dev-v2.js page-local attach preview, validate_brand_palette_v1.php re-pointed at five-color master tokens with global-injection fail condition). Not committed, not merged, not deployed, not live-verified."
+  head_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
 impact:
   business_logic: "NO"
   database: "NO"
   authentication_authorization: "NO"
-  deployment_runtime: "YES - shared visual/design-system token source"
+  deployment_runtime: "YES - shared visual/design-system token source and Drupal shell palette authority"
+review:
+  status: PASS
+  reviewed_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  git_diff_history_checked: true
+  ci_checks_checked: true
+  security_business_rules_checked: true
+  runtime_evidence_checked: false
+  findings:
+    - "Historical blocker resolved: PR token source is reconciled to the authoritative five-color/operational-semantic contract while preserving --gradient-brand-action and the AA accent-ink token."
+    - "Historical blocker resolved: persisted DEV logo-palette state no longer overrides the live application shell; the actual-DEV editor remains preview/handoff tooling."
+    - "Historical blocker resolved: packet/handoff now identifies the actual implementation SHA and CI evidence."
+  lifecycle_after_review: WIRED
+review_history:
+  - reviewer: "ChatGPT"
+    reviewed_sha: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+    result: CHANGES_REQUESTED
+    reason: "Stale canonical Namecheap palette plus stale packet/handoff."
+  - reviewer: "ChatGPT"
+    reviewed_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+    result: PASS
+    reason: "Exact immutable diff/history inspected; local validator battery and PR-head CI/global-UI/secret-scan all passed."
 owner_gate:
   merge_approved: false
   deploy_approved: false
+deployed_baseline:
+  head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
+  lifecycle: "DEPLOYED + VERIFIED"
+  evidence: "Historical baseline only: server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live computed-style WCAG audits empty in light and dark; theme toggle persistence exercised; mobile clean. This does not prove deployment of 2957f297."
+branch_state:
+  head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  lifecycle: WIRED
+  evidence: "Implementation committed and pushed. Canonical portal/module design-token copies are synchronized; live shell no longer consumes persisted DEV palette overrides; DEV proposal editor remains wired page-locally. Not merged, not deployed, not live-verified."
 constraints:
-  - "Visual-only changes: no DB, no business/payroll rules, no authorization changes."
-  - "Brand system stays the binding five-color runtime master palette (navy/cyan/violet family); DEV logo-swatch proposals are preview/handoff only and cannot override it; no arbitrary literals."
-  - "design-tokens.css module copy is deploy-synced: edit the canonical source and run sync_merdpos_resources.php before commit."
-  - "Theme-toggle and shell contracts in validators must keep passing."
+  - "Visual/design-system change only: no DB, payroll/business-rule, authentication or authorization changes."
+  - "Binding runtime master palette remains exactly White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3 and Violet #8B2EFF; DEV logo-swatch proposals are preview/handoff only."
+  - "design-tokens.css module copy is deploy-synced from the canonical portal source."
+  - "Theme-toggle and shell contracts must remain green."
 completed:
-  - "Resolved canonical beta/drupal-webapp HEAD and confirmed no remote branch race."
-  - "Contrast fix: --color-brand-text-accent (65% cyan toward navy light; 30% cyan toward white dark) applied to all accent text/icon roles; th ink darkened."
-  - "Makeover: --gradient-brand-action primary buttons (white text), gradient KPI chips, cyan-tint count bubbles, token-derived table inks, page-header gradient baseline, header theme toggle."
-  - "Dark theme: header toggle wired via existing data-merdpos-theme-toggle hook; dark-normalization refinements (cyan-tint chips with white ink, hairline rings, AA th/eyebrow treatments)."
-  - "Deployed to Namecheap Drupal runtime via drupal/tools/namecheap_deploy.sh; live release marker verified at 66bf6d3; live computed-style WCAG audits EMPTY in both themes; toggle + persistence exercised live; mobile 375px clean. GitHub CI runs #72-77 SUCCESS."
-  - "Fix-forward: account-menu theme toggle removed (owner request), header toggle gained visually-hidden data-merdpos-theme-label, dark-print token snap added, #fff literals replaced with var(--color-brand-white), gradient literal extracted into --gradient-brand-action."
-  - "PR #175 fix-forward (2026-10-01): stale palette literals #01102B/#0A91FB/#591DE9 replaced with authoritative five-color Namecheap master palette (#FFFFFF/#F5F7FC/#031B4B/#12BDF3/#8B2EFF) in namecheap_beta_live/timesheet_portal/assets/design-tokens.css; packet truthfulness corrected per ChatGPT review."
-  - "PR #175 reviewer-discovered reconciliation (2026-10-01): removed global brand_palette->cssVariables() injection from merdpos_app.theme so canonical design-tokens.css owns the runtime; DEV palette editor relabelled PREVIEW/HANDOFF ONLY with saved-proposal semantics, dev-v2.js previews the saved proposal page-locally on attach; validate_brand_palette_v1.php aligned to the five-color master tokens with a fail condition on any global injection; .ai/invariants.md and .ai/decisions.md record the supersession. Not committed, not pushed, not deployed, not live-verified."
+  - "Historical Reports makeover/fix-forward preserved: accent ink, AA-safe action gradient, KPI treatment, theme toggle, dark-print handling and literal cleanup."
+  - "Reconciled stale PR token source to the current five-color master and current operational semantic/chart/elevation/dark-surface values while preserving --gradient-brand-action and --color-brand-text-accent."
+  - "Removed global brand_palette->cssVariables() injection from merdpos_app.theme so canonical design-tokens.css owns runtime palette authority."
+  - "Retained actual-DEV palette state/editor as logo-constrained preview/handoff tooling; saved proposals preview page-locally and cannot alter global runtime tokens."
+  - "Updated brand palette validator, invariants and durable decision history to encode the superseding five-color runtime rule without rewriting the historical 2026-09-13 VERIFIED evidence."
+  - "Kimi K3 implemented the fix through the ChatGPT MCP bridge; ChatGPT independently inspected the resulting diff/history and exact immutable implementation SHA."
 checks:
-  - name: "Namecheap Drupal deploy validators (server-side script)"
-    result: "PASS at affe1fa, bef031e, 66bf6d3"
-  - name: "Live WCAG contrast audit (computed-style, alpha-composited)"
-    result: "PASS 0 failures light + 0 failures dark at 66bf6d3"
-  - name: "GitHub global UI contract runs #72-77"
-    result: "SUCCESS"
-  - name: "PR #175 CI at reviewed head 5768355be83d24e04e8edc3beafeb3f89bcd03cb"
-    result: "SUCCESS — runs 36664768806, 36664768823, 36664768810"
-  - name: "ChatGPT review at 5768355be83d24e04e8edc3beafeb3f89bcd03cb"
-    result: "CHANGES_REQUESTED — stale canonical palette + stale packet/handoff (historical; fix-forward applied 2026-10-01)"
+  - name: "Historical deployed baseline"
+    result: "PASS at 66bf6d3 only"
+    evidence: "Historical deployment/runtime verification retained separately; not evidence for current PR head."
+  - name: "Canonical resource sync"
+    result: PASS
+    evidence: "php84 drupal/tools/sync_merdpos_resources.php at 2026-10-01T02:09:42+05:00; portal and Drupal design-token copies confirmed identical at implementation SHA."
+  - name: "Changed PHP/JS syntax"
+    result: PASS
+    evidence: "php84 -l on BrandPaletteManager.php, merdpos_app.theme and validate_brand_palette_v1.php; node --check on dev-v2.js."
+  - name: "Drupal brand palette v1"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_brand_palette_v1.php"
+  - name: "Drupal DEV v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_dev_v2.php"
+  - name: "Drupal Reports v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_reports_v2.php"
+  - name: "Global UI primitives"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_ui_primitives_v1.php"
+  - name: "Global page headers"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_page_headers_v1.php"
+  - name: "Source encoding"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_source_encoding.php"
+  - name: "AI continuity"
+    result: PASS
+    evidence: "php84 namecheap_beta_live/backend/cli/validate_ai_continuity.php"
+  - name: "Git whitespace"
+    result: PASS
+    evidence: "git diff --check"
+  - name: "PR #175 CI at implementation SHA"
+    result: PASS
+    evidence: "CI 36777633749 SUCCESS; Drupal global UI contract 36777633748 SUCCESS; Secret scan 36777633841 SUCCESS at 2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae."
 remaining:
-  - "Owner ruling on PR of the makeover toward namecheap-beta-live (Task 3 gate)."
-  - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants."
-  - "Evidence pack assembly for owner review."
-  - "ChatGPT must record the immutable implementation SHA (currently PENDING_COMMIT) after the fix-forward commit lands, and sync drupal/web/modules/custom/merdpos_core/css/design-tokens.css from the canonical portal token file."
-next_action: "ChatGPT independent diff review of the uncommitted fix-forward (including the 2026-10-01 runtime palette override/validator reconciliation), sync of drupal/web/modules/custom/merdpos_core/css/design-tokens.css from the canonical portal token file, prescribed validators, then commit/push only if review passes. Owner merge gate follows after."
-blocked: false
-updated_at: "2026-10-01T00:00:00+05:00"
+  - "Product owner decision on whether PR #175 may merge into beta/drupal-webapp."
+  - "If merge/deploy is approved, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
+  - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants remains a separate follow-up."
+  - "Evidence pack assembly remains available for owner review."
+next_action: "Product owner reviews PR #175 and decides whether to authorize merge. No merge or deployment is approved by this packet."
+blocked: true
+blocker: "Awaiting product owner merge decision; deploy approval is also false."
+updated_at: "2026-10-01T02:11:18+05:00"
