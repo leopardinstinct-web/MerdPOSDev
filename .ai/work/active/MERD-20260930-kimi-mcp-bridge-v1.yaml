@@ -1,0 +1,52 @@
+version: 1
+id: MERD-20260930-kimi-mcp-bridge-v1
+objective: "Create a private Secure-MCP-Tunnel bridge so ChatGPT can invoke the locally authenticated Kimi Code CLI for bounded MERDPOS implementation tasks without exposing Kimi credentials or granting Kimi shell/deploy authority."
+acceptance:
+  - "Bridge runs as a local stdio MCP server and is reachable from ChatGPT through OpenAI Secure MCP Tunnel."
+  - "Kimi implementation tool is restricted to targeted repo read/search/write/edit tools with no Bash, merge, deploy, or direct push capability."
+  - "Repository checkout and commit/push actions refuse canonical branches and secret-like paths."
+  - "Default Kimi execution is quota-conscious: K3-256K + low effort, with explicit high/max overrides."
+  - "No Kimi/OpenAI secrets are stored in Git or MCP handoff state."
+packet_state: CHECKED_LOCAL_STATIC
+lifecycle: CODED
+base_head: "f51cd7af06491d9d3216df6991c34e4d0c3c05d8"
+last_seen_head: "f51cd7af06491d9d3216df6991c34e4d0c3c05d8"
+affected_paths:
+  - "tools/kimi_mcp_bridge/"
+  - ".ai/work/ACTIVE.yaml"
+  - ".ai/work/active/MERD-20260930-kimi-mcp-bridge-v1.yaml"
+constraints:
+  - "Private/tunnel deployment only for this first version; no anonymous public Kimi relay."
+  - "Kimi implementation agent has no Bash tool."
+  - "Canonical branches main, namecheap-beta-live, and beta/drupal-webapp are never writable through bridge commit/push."
+  - "Merge and deployment are intentionally absent from bridge tools."
+  - "Secrets remain local environment/auth state and never enter Git."
+completed:
+  - "Reviewed current OpenAI MCP app + Secure MCP Tunnel requirements and current Kimi Code CLI non-interactive/agent controls."
+  - "Implemented local stdio MCP bridge with bridge_status, repo_checkout_feature, kimi_implement_task, repo_diff, and repo_commit_push."
+  - "Implemented a dedicated Kimi agent file restricted to Read/Grep/Glob/Write/Edit."
+  - "Added canonical-branch and sensitive-path guards plus bounded output/redaction handling."
+  - "Added local installation/tunnel/runbook documentation."
+checks:
+  - name: "python test_server_helpers.py"
+    result: "PASS"
+    evidence: "5 guard/helper tests passed in isolated container."
+  - name: "python -m py_compile server.py test_server_helpers.py"
+    result: "PASS"
+    evidence: "Python syntax compilation passed."
+  - name: "Import/run with official mcp Python package"
+    result: "NOT_RUN"
+    evidence: "Execution container has no package-network access; dependency installation could not be performed here."
+  - name: "Local Windows Kimi CLI + Secure MCP Tunnel integration"
+    result: "NOT_RUN"
+    evidence: "Developer workstation is currently unavailable to the remote tool and no tunnel_id/runtime key has been configured in this task."
+remaining:
+  - "Pull the canonical branch on the Windows MERDPOS workstation."
+  - "Install tools/kimi_mcp_bridge/requirements.txt into a local venv."
+  - "Confirm kimi CLI login and run bridge_status through MCP."
+  - "Create/configure OpenAI Secure MCP Tunnel and attach it to a draft ChatGPT MCP App."
+  - "Exercise a bounded non-destructive test task, inspect repo_diff, and verify commit/push guards."
+next_action: "On the MERDPOS Windows workstation, install the bridge dependencies, create/start the Secure MCP Tunnel, then connect the draft ChatGPT MCP App and call bridge_status."
+blocked: true
+blocker: "Runtime wiring requires the user's local MERDPOS workstation plus an OpenAI Secure MCP Tunnel id/runtime key; neither is available inside this chat execution environment."
+updated_at: "2026-09-30T11:46:57+05:00"

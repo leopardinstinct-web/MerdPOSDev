@@ -1,7 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-09-21T20:43:39+05:00'
+updated_at: '2026-09-30T11:46:57+05:00'
 active:
+- id: MERD-20260930-kimi-mcp-bridge-v1
+  path: .ai/work/active/MERD-20260930-kimi-mcp-bridge-v1.yaml
+  lifecycle: CODED
+  packet_state: CHECKED_LOCAL_STATIC
 - id: MERD-20260916-query-workflow-repair-v1
   path: .ai/work/active/MERD-20260916-query-workflow-repair-v1.yaml
   lifecycle: VERIFIED
