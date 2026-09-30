@@ -7,8 +7,8 @@ acceptance:
   - "Repository checkout and commit/push actions refuse canonical branches and secret-like paths."
   - "Default Kimi execution is quota-conscious: K3-256K + low effort, with explicit high/max overrides."
   - "No Kimi/OpenAI secrets are stored in Git or MCP handoff state."
-packet_state: TUNNEL_READY_APP_PENDING
-lifecycle: CODED
+packet_state: CHATGPT_MCP_WIRED
+lifecycle: WIRED
 base_head: "f51cd7af06491d9d3216df6991c34e4d0c3c05d8"
 last_seen_head: "c40bf860d31873aaef7b2315fdda786849a862c2"
 implementation_commit: "a1e4f363aa8f8f02491fe418d49e1b6a5a6377bc"
@@ -60,15 +60,19 @@ checks:
   - name: "Secure MCP Tunnel runtime"
     result: "PASS"
     evidence: "OpenAI control-plane metadata fetched, tunnel-client reported started, MCP stdio command started, and http://127.0.0.1:8080/readyz returned HTTP 200 ready."
-  - name: "ChatGPT MCP App discovery"
-    result: "PENDING"
-    evidence: "Tunnel is live but the ChatGPT MCP App has not yet been created/scanned against it."
+  - name: "ChatGPT MCP App discovery and read-only calls"
+    result: "PASS"
+    evidence: "ChatGPT discovered all five bridge tools; bridge_status returned Kimi CLI 2.1.1 and repo_diff returned the exact local PR #175 worktree diff through the live tunnel."
 remaining:
-  - "Create the ChatGPT MCP App using the live MERDPOS Kimi Bridge tunnel."
-  - "Scan/discover the five bridge tools and enable the app in this ChatGPT workspace."
-  - "Invoke bridge_status from ChatGPT to prove end-to-end tunnel/tool discovery."
+  - "Exercise a bounded non-destructive Kimi task through ChatGPT, inspect repo_diff, and verify feature-branch commit/push guards."
   - "Exercise a bounded non-destructive Kimi task, inspect repo_diff, and verify feature-branch commit/push guards."
-next_action: "In ChatGPT Plugins, choose + -> Create MCP App, select Tunnel, attach MERDPOS Kimi Bridge / tunnel_6abcb8a90a9c8191b85d17991696da79, scan tools, create/enable the app, then invoke bridge_status."
-blocked: true
-blocker: "End-to-end verification is waiting only on ChatGPT MCP App creation/tool scan for the already-running tunnel."
+next_action: "Clean/reconcile the one local PR #175 packet edit, then run one bounded Kimi implementation task through the ChatGPT MCP app and inspect repo_diff before any push."
+blocked: false
+blocker: null
 updated_at: "2026-09-30T12:31:00+05:00"
+
+notes:
+  - "Initial bridge_status failed because the tunnel-launched Python process could not execute the npm Kimi shim; fixed in commits 2f3d98a, 918a115, and 50a5942 with explicit Windows CLI resolution/wrapping."
+  - "Tunnel health listener now uses an ephemeral loopback port to avoid stale 127.0.0.1:8080 collisions."
+  - "Local PR #175 worktree currently has one uncommitted packet-only edit from the interrupted direct Kimi session; implementation bridge must not proceed until that state is reconciled."
+updated_at: "2026-09-30T12:43:00+05:00"
