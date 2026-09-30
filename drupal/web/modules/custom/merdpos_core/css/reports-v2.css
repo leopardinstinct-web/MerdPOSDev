@@ -179,8 +179,11 @@
 }
 .merdpos-timesheet-action-menu[hidden] { display:none; }
 .merdpos-timesheet-action-menu button {
-  display:flex; align-items:center; gap:.65rem; width:100%; padding:.68rem .75rem; border:0; border-radius:.62rem;
-  background:transparent; color:var(--rep-ink); font:inherit; font-size:.86rem; font-weight:750; text-align:left; cursor:pointer;
+  display:flex; align-items:center; gap:.65rem; width:100%; min-height:var(--size-control); padding:0 var(--space-3); border:0; border-radius:var(--radius-control);
+  background:transparent; color:var(--rep-ink); font:inherit; font-size:var(--type-sm); font-weight:var(--weight-bold); text-align:left; cursor:pointer;
+}
+@media (max-width:51.25rem) {
+  .merdpos-timesheet-action-menu button { min-height:var(--size-touch); }
 }
 .merdpos-timesheet-action-menu button:hover,.merdpos-timesheet-action-menu button:focus-visible { background:var(--color-surface-muted); outline:none; }
 .merdpos-timesheet-action-menu svg { width:1.05rem; height:1.05rem; fill:none; stroke:currentColor; stroke-width:1.8; }

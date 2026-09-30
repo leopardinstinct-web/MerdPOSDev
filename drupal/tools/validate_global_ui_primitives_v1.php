@@ -88,6 +88,13 @@ $timesheetTriggerTouch = '.merdpos-timesheet-action-trigger { width:var(--size-t
 if (!str_contains($reportsCss, '@media (max-width:51.25rem)') || !str_contains($reportsCss, $timesheetTriggerTouch)) {
   $errors[] = 'reports-v2.css: Timesheet action trigger must promote to a genuine --size-touch square target at the canonical mobile breakpoint';
 }
+$timesheetMenuBase = '.merdpos-timesheet-action-menu button {';
+if (!str_contains($reportsCss, $timesheetMenuBase) || !str_contains($reportsCss, 'min-height:var(--size-control); padding:0 var(--space-3)')) {
+  $errors[] = 'reports-v2.css: Timesheet Shift options menu items must use the canonical --size-control desktop action height';
+}
+if (!str_contains($reportsCss, '.merdpos-timesheet-action-menu button { min-height:var(--size-touch); }')) {
+  $errors[] = 'reports-v2.css: Timesheet Shift options menu items must promote to --size-touch on mobile';
+}
 $financeCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/finance-v2.css');
 foreach (['border-radius:1.3rem', 'background:#fff', 'rgba(24,54,98', 'font-size:clamp(1.2rem,2vw,1.7rem)'] as $forbidden) {
   if (str_contains($financeCss, $forbidden)) $errors[] = "finance-v2.css reintroduces a local KPI surface/type system ($forbidden)";
@@ -101,6 +108,9 @@ $dashboardLayoutCss = (string) file_get_contents($root . '/web/modules/custom/me
 $dashboardTouchRule = '.merdpos-dashboard-add-widget,.merdpos-dashboard-item-actions button,.merdpos-dashboard-drawer-head button,.merdpos-dashboard-catalog-item button{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}';
 if (!str_contains($dashboardLayoutCss, $dashboardTouchRule)) {
   $errors[] = 'dashboard-layout-v1.css: mobile dashboard controls must use a genuine --size-touch square hit target';
+}
+if (!str_contains($dashboardLayoutCss, '.merdpos-dashboard-drawer-foot button{min-height:var(--size-touch)}')) {
+  $errors[] = 'dashboard-layout-v1.css: dashboard reset action must use --size-touch at the mobile breakpoint';
 }
 
 $shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
