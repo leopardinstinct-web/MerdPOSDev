@@ -149,7 +149,7 @@ body.merd-drupal-shell {
   place-items: center;
   flex: 0 0 2rem;
   border-radius: var(--radius-circle);
-  background: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-violet) 100%);
+  background: var(--gradient-brand-action);
   color: var(--color-brand-white);
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);

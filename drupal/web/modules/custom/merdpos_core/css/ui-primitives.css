@@ -20,7 +20,7 @@
 /* Default submit/action grammar. Component-specific icon/menu buttons may override this deliberately. */
 .merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn){
   min-height:var(--size-control);padding:var(--space-2) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);
-  background:linear-gradient(115deg,var(--color-brand-navy) 0%,var(--color-brand-violet) 100%);color:var(--color-brand-white);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
+  background:var(--gradient-brand-action);color:var(--color-brand-white);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
   transition:box-shadow var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard),filter var(--duration-fast) var(--ease-standard)
 }
 .merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}

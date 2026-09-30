@@ -22,6 +22,7 @@
   --color-brand-primary-active: color-mix(in srgb, var(--color-brand-cyan) 76%, var(--color-brand-navy));
   --color-brand-on-primary: var(--color-brand-white);
   --gradient-brand: linear-gradient(115deg, var(--color-brand-cyan) 0%, var(--color-brand-violet) 100%);
+  --gradient-brand-action: linear-gradient(115deg, var(--color-brand-navy) 0%, var(--color-brand-violet) 100%);
   --color-brand-text-accent: color-mix(in srgb, var(--color-brand-cyan) 65%, var(--color-brand-navy));
 
   --color-bg-main: var(--color-brand-background);
