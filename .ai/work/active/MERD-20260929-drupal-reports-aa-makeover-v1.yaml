@@ -8,7 +8,7 @@ acceptance:
   - "Printing while dark produces readable light output with or without background graphics."
   - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus token-derived treatments); operational success/warning/danger/info remain separate semantic tokens; the DEV editor's logo-swatch proposals are preview/handoff only and are not a runtime source."
   - "Lifecycle claims in .ai/memory.md match evidence exactly."
-packet_state: PR_175_MERGED_AWAITING_DEPLOY_APPROVAL
+packet_state: DEPLOY_APPROVED_AWAITING_DRUPAL_DEPLOY
 lifecycle: WIRED
 base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
 reviewed_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
@@ -52,7 +52,7 @@ review_history:
     reason: "Exact immutable diff/history inspected; local validator battery and PR-head CI/global-UI/secret-scan all passed."
 owner_gate:
   merge_approved: true
-  deploy_approved: false
+  deploy_approved: true
 deployed_baseline:
   head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
   lifecycle: "DEPLOYED + VERIFIED"
@@ -117,7 +117,7 @@ remaining:
   - "Deployment remains a separate owner gate. If approved later, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
   - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants remains a separate follow-up."
   - "Evidence pack assembly remains available for owner review."
-next_action: "Await explicit product-owner deployment approval. Do not deploy automatically; if approved later, use the established Drupal server-side deployment path and live-verify before any DEPLOYED/VERIFIED claim."
-blocked: true
-blocker: "PR #175 is merged; deployment remains blocked because deploy_approved=false."
-updated_at: "2026-10-01T02:22:26+05:00"
+next_action: "Deploy the exact beta/drupal-webapp head through drupal/tools/namecheap_remote_deploy.py drupal, then verify the live release marker and affected runtime before any DEPLOYED/VERIFIED claim."
+blocked: false
+blocker: null
+updated_at: "2026-10-01T02:24:24+05:00"
