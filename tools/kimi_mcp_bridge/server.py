@@ -66,10 +66,16 @@ def _resolve_kimi_cli() -> str:
 
 def _kimi_command(*args: str) -> list[str]:
     cli = _resolve_kimi_cli()
-    if os.name == "nt" and cli.lower().endswith((".cmd", ".bat")):
-        return ["cmd.exe", "/d", "/s", "/c", cli, *args]
-    if os.name == "nt" and cli.lower().endswith(".ps1"):
-        return ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", cli, *args]
+    if os.name == "nt" and cli.lower().endswith((".cmd", ".bat", ".ps1")):
+        npm_root = Path(cli).parent
+        entry = npm_root / "node_modules" / "@moonshot-ai" / "kimi-code" / "dist" / "main.mjs"
+        node = shutil.which("node.exe") or shutil.which("node")
+        if entry.exists() and node:
+            return [str(Path(node).resolve()), str(entry.resolve()), *args]
+        raise RuntimeError(
+            "Kimi CLI npm shim was found, but its Node entrypoint could not be resolved safely. "
+            "Reinstall @moonshot-ai/kimi-code or set KIMI_CLI_PATH to a directly executable CLI."
+        )
     return [cli, *args]
 
 

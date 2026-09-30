@@ -3,6 +3,8 @@ import sys
 import types
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 
 class DummyMCPServer:
@@ -51,6 +53,26 @@ class GuardTests(unittest.TestCase):
         text = bridge._redact("api_key=abcdef password=hunter2 sk-1234567890abcdef")
         self.assertNotIn("hunter2", text)
         self.assertNotIn("1234567890abcdef", text)
+
+
+    def test_windows_kimi_shim_uses_node_entrypoint_without_cmd_shell(self):
+        with TemporaryDirectory() as tmp:
+            npm_root = Path(tmp)
+            shim = npm_root / "kimi.cmd"
+            shim.write_text("@echo off", encoding="utf-8")
+            entry = npm_root / "node_modules" / "@moonshot-ai" / "kimi-code" / "dist" / "main.mjs"
+            entry.parent.mkdir(parents=True)
+            entry.write_text("", encoding="utf-8")
+            node = npm_root / "node.exe"
+            node.write_text("", encoding="utf-8")
+            with patch.object(bridge.os, "name", "nt"), \
+                 patch.object(bridge, "_resolve_kimi_cli", return_value=str(shim)), \
+                 patch.object(bridge.shutil, "which", side_effect=lambda name: str(node) if name in ("node.exe", "node") else None):
+                command = bridge._kimi_command("-p", "task with spaces & shell chars")
+            self.assertEqual(command[0], str(node.resolve()))
+            self.assertEqual(command[1], str(entry.resolve()))
+            self.assertEqual(command[-2:], ["-p", "task with spaces & shell chars"])
+
 
 
 if __name__ == "__main__":
