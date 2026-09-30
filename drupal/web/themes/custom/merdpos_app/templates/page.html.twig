@@ -117,7 +117,7 @@
   {% endif %}
 
   {% if merdpos_can_change_password %}
-  <dialog class="merdpos-password-dialog" data-merdpos-password-dialog aria-labelledby="merdpos-password-title">
+  <dialog class="merdpos-ui-dialog merdpos-password-dialog" data-merdpos-password-dialog aria-labelledby="merdpos-password-title">
     <form class="merdpos-password-form" method="post" action="{{ merdpos_password_url }}">
       <input type="hidden" name="form_token" value="{{ merdpos_password_token }}">
       <input type="hidden" name="return_url" value="{{ merdpos_password_return }}">

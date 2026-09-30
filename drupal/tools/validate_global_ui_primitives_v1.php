@@ -56,5 +56,143 @@ foreach (['dashboard','operations','reports','finance','dev','administration','d
 }
 if (str_contains($darkCss, ':is(.merdpos-ops-filters button,.merdpos-reports-filters button)')) $errors[] = 'dark normalization must not override canonical primary filter actions';
 if (preg_match('/#[0-9a-fA-F]{3,8}\b/', $css)) $errors[] = 'global UI primitives must use semantic design tokens, not literal colours';
+
+/* Standardized component contract v1: shared actions, KPI grammar, one dialog shell, slim dark layer. */
+foreach ([
+  'min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'shared labeled action must derive height/padding from tokens',
+  'border-radius:var(--radius-control)' => 'shared labeled action must use --radius-control',
+  'font-size:var(--type-sm)' => 'shared labeled action must use --type-sm',
+  'a.merdpos-report-action' => 'Timesheets PDF action must be a shared secondary action',
+  '.merdpos-ui-button--icon' => 'shared icon-only size variant missing',
+  '.merdpos-ui-button--compact' => 'shared compact size variant missing',
+  'min-height:7rem' => 'shared KPI shell minimum height missing',
+  '.merdpos-reports-kpi-stat-label' => 'compound KPI stat label must join shared label grammar',
+  '.merdpos-reports-kpi-stat-value' => 'compound KPI stat value must join shared value grammar',
+] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
+
+foreach ([
+  'background:var(--gradient-brand-action)' => 'shared primary action must use --gradient-brand-action',
+  ':not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}' => 'shared action hover contract missing',
+  ':not(:disabled):active{box-shadow:none;transform:translateY(1px)}' => 'shared action active contract missing',
+  '.merdpos-app :is(.merdpos-ui-button--icon,.merdpos-btn--icon){width:var(--size-touch);min-width:var(--size-touch)}' => 'shared icon-only actions must promote to a true --size-touch square on mobile',
+] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
+
+$reportsCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
+foreach ([
+  'padding:.82rem .86rem',
+  '.merdpos-timesheet-dialog-close',
+  'min-height:2.6rem',
+  'min-height: 2.8rem; padding: .65rem .9rem',
+  '.merdpos-timesheet-dialog { width:calc(100vw - 1rem); max-height:calc(100dvh - 1rem); }',
+] as $forbidden) {
+  if (str_contains($reportsCss, $forbidden)) $errors[] = "reports-v2.css reintroduces local KPI/dialog/action geometry ($forbidden)";
+}
+$timesheetTriggerBase = 'width:var(--size-control); min-width:var(--size-control); height:var(--size-control); min-height:var(--size-control)';
+if (!str_contains($reportsCss, $timesheetTriggerBase)) {
+  $errors[] = 'reports-v2.css: Timesheet action trigger must use the canonical --size-control square desktop target';
+}
+$timesheetTriggerTouch = '.merdpos-timesheet-action-trigger { width:var(--size-touch); min-width:var(--size-touch); height:var(--size-touch); min-height:var(--size-touch); }';
+if (!str_contains($reportsCss, '@media (max-width:51.25rem)') || !str_contains($reportsCss, $timesheetTriggerTouch)) {
+  $errors[] = 'reports-v2.css: Timesheet action trigger must promote to a genuine --size-touch square target at the canonical mobile breakpoint';
+}
+$timesheetMenuBase = '.merdpos-timesheet-action-menu button {';
+if (!str_contains($reportsCss, $timesheetMenuBase) || !str_contains($reportsCss, 'min-height:var(--size-control); padding:0 var(--space-3)')) {
+  $errors[] = 'reports-v2.css: Timesheet Shift options menu items must use the canonical --size-control desktop action height';
+}
+if (!str_contains($reportsCss, '.merdpos-timesheet-action-menu button { min-height:var(--size-touch); }')) {
+  $errors[] = 'reports-v2.css: Timesheet Shift options menu items must promote to --size-touch on mobile';
+}
+$financeCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/finance-v2.css');
+foreach (['border-radius:1.3rem', 'background:#fff', 'rgba(24,54,98', 'font-size:clamp(1.2rem,2vw,1.7rem)'] as $forbidden) {
+  if (str_contains($financeCss, $forbidden)) $errors[] = "finance-v2.css reintroduces a local KPI surface/type system ($forbidden)";
+}
+if (!str_contains($financeCss, 'align-self:end')) $errors[] = 'finance action cards must not grid-stretch shared buttons';
+$dashboardCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/dashboard-v2.css');
+foreach (['min-height: 10.5rem', 'border-radius: 1.2rem', '#17386f'] as $forbidden) {
+  if (str_contains($dashboardCss, $forbidden)) $errors[] = "dashboard-v2.css reintroduces local KPI/button geometry ($forbidden)";
+}
+$dashboardLayoutCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/dashboard-layout-v1.css');
+$dashboardTouchRule = '.merdpos-dashboard-add-widget,.merdpos-dashboard-item-actions button,.merdpos-dashboard-drawer-head button,.merdpos-dashboard-catalog-item button{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}';
+if (!str_contains($dashboardLayoutCss, $dashboardTouchRule)) {
+  $errors[] = 'dashboard-layout-v1.css: mobile dashboard controls must use a genuine --size-touch square hit target';
+}
+if (!str_contains($dashboardLayoutCss, '.merdpos-dashboard-drawer-foot button{min-height:var(--size-touch)}')) {
+  $errors[] = 'dashboard-layout-v1.css: dashboard reset action must use --size-touch at the mobile breakpoint';
+}
+
+$attendanceCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/attendance-scan.css');
+if (!str_contains($attendanceCss, '.merdpos-dashboard-shop-control .merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:var(--size-control)')) {
+  $errors[] = 'attendance-scan.css: Shop Log IN/OUT action must use --size-control on desktop';
+}
+if (!str_contains($attendanceCss, '.merdpos-dashboard-shop-control .merdpos-attendance-open{min-height:var(--size-touch)}')) {
+  $errors[] = 'attendance-scan.css: Shop Log IN/OUT action must promote to --size-touch on mobile';
+}
+
+$legacyCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/legacy-migration-v1.css');
+$legacyJs = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/js/legacy-migration-v1.js');
+$adminTpl = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-administration.html.twig');
+foreach ([
+  '--gradient-brand' => 'must not own a feature-specific primary gradient',
+  '.merdpos-legacy-open:hover' => 'must not own a feature-specific Legacy Sync hover state',
+  '.merdpos-legacy-actions button.is-primary' => 'must not own a feature-specific primary variant',
+  '.merdpos-legacy-actions button.is-danger' => 'must not own a feature-specific danger variant',
+  '.merdpos-legacy-actions button:disabled' => 'must not own a feature-specific disabled state',
+] as $forbidden => $message) {
+  if (str_contains($legacyCss, $forbidden)) $errors[] = "legacy-migration-v1.css: $message";
+}
+foreach ([
+  'class="merdpos-btn merdpos-btn--secondary merdpos-legacy-open"' => 'Legacy Sync opener must consume the shared secondary action',
+  'class="merdpos-ui-button merdpos-ui-button--secondary merdpos-ui-button--icon merdpos-legacy-close"' => 'Legacy close must consume the shared secondary icon-only action',
+] as $needle => $message) {
+  if (!str_contains($adminTpl, $needle)) $errors[] = "merdpos-administration.html.twig: $message";
+}
+foreach ([
+  '<button class="merdpos-btn" type="submit">Save sources</button>' => 'Save sources must consume the shared primary action',
+  '<button class="merdpos-btn merdpos-btn--secondary" type="button" data-legacy-run="preview">' => 'Preview changes must consume the shared secondary action',
+  '<button class="merdpos-btn" type="button" data-legacy-run="sync"' => 'Sync legacy data must consume the shared primary action',
+  '<button class="merdpos-btn merdpos-btn--danger" type="button" data-legacy-run="final"' => 'Final Sync must consume the shared danger action',
+] as $needle => $message) {
+  if (!str_contains($legacyJs, $needle)) $errors[] = "legacy-migration-v1.js: $message";
+}
+
+$shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
+foreach (['.merdpos-ui-dialog', '--radius-dialog', '--color-overlay', '90dvh', 'overflow:auto'] as $needle) {
+  if (!str_contains($shellCss, $needle)) $errors[] = "app-shell.css: canonical dialog shell missing ($needle)";
+}
+if (!preg_match('/\.merdpos-btn\{([^}]*)\}/s', $shellCss, $shellButton)) {
+  $errors[] = 'app-shell.css: shell-level .merdpos-btn contract missing';
+} else {
+  foreach (['min-height:var(--size-control)', 'padding:var(--space-2) var(--space-4)', 'border-radius:var(--radius-control)', 'background:var(--gradient-brand-action)', 'color:var(--color-brand-white)', 'font-size:var(--type-sm)', 'gap:var(--space-2)'] as $needle) {
+    if (!str_contains($shellButton[1], $needle)) $errors[] = "app-shell.css: shell-level .merdpos-btn drift ($needle)";
+  }
+}
+if (!preg_match('/\.merdpos-dialog-close\{([^}]*)\}/s', $shellCss, $closeButton) || !str_contains($closeButton[1] ?? '', 'width:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'height:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'border-radius:var(--radius-control)')) {
+  $errors[] = 'app-shell.css: shared dialog close control must derive square geometry from --size-control/--radius-control';
+}
+if (!str_contains($shellCss, '.merdpos-btn,.merdpos-account-menu-action,.merdpos-impersonation-banner button{min-height:var(--size-touch)}')) {
+  $errors[] = 'app-shell.css: shell-owned labeled actions must use --size-touch at the mobile breakpoint';
+}
+if (!str_contains($shellCss, '.merdpos-account-menu-action{width:100%;min-height:var(--size-control);')) {
+  $errors[] = 'app-shell.css: account-sheet labeled actions must use --size-control on desktop';
+}
+if (!str_contains($shellCss, '.merdpos-account-timesheet-sync{width:var(--size-control);height:var(--size-control);min-width:var(--size-control);min-height:var(--size-control);')) {
+  $errors[] = 'app-shell.css: Time Sheet sync must use a --size-control square on desktop';
+}
+if (!str_contains($shellCss, '.merdpos-account-timesheet-sync{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}')) {
+  $errors[] = 'app-shell.css: Time Sheet sync must promote to a --size-touch square on mobile';
+}
+$page = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
+if (!str_contains($page, 'merdpos-ui-dialog merdpos-password-dialog')) $errors[] = 'password dialog must participate in the shared merdpos-ui-dialog shell';
+$reportsTpl = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
+if (!str_contains($reportsTpl, 'merdpos-ui-dialog--wide')) $errors[] = 'timesheet dialog must use the shared wide dialog shell';
+if (!str_contains($reportsTpl, 'merdpos-dialog-close')) $errors[] = 'timesheet dialog must use the shared square close control';
+
+if (str_contains($darkCss, ':root[data-theme="dark"] :is(.merdpos-reports-filters button')) $errors[] = 'dark normalization must not broadly repaint shared labeled actions';
+foreach ([
+  '.merdpos-report-action' => 'dark normalization must not repaint the shared secondary PDF action',
+  'merdpos-timesheet-dialog-close' => 'dark normalization must not repaint the shared dialog close control',
+  '.merdpos-reports-kpi,' => 'dark normalization must not repaint shared KPI shells',
+  '.merdpos-finance-kpi,' => 'dark normalization must not repaint shared KPI shells',
+] as $forbidden => $message) if (str_contains($darkCss, $forbidden)) $errors[] = $message;
 if ($errors) { foreach ($errors as $error) fwrite(STDERR, "GLOBAL_UI_CONTRACT_FAIL: $error\n"); exit(1); }
 echo "Global UI primitive contract OK: all live surfaces inherit canonical controls/actions, cards/widgets, tables, states and responsive touch targets.\n";

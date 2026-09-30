@@ -41,12 +41,12 @@ if (!str_contains($files['page_header'], ':root[data-theme="dark"] .merdpos-page
   fwrite(STDERR, "Global page-header dark contract is missing or legacy hero dark styling returned.\n");
   exit(1);
 }
-if (!str_contains($files['dark'], '.merdpos-report-action span') || !str_contains($files['dark'], '.merdpos-finance-chart-card') || !str_contains($files['dark'], '.merdpos-ops-panel')) {
-  fwrite(STDERR, "Legacy light-only app surfaces are not fully normalized.\n");
+if (str_contains($files['dark'], '.merdpos-report-action') || str_contains($files['dark'], '.merdpos-finance-chart-card') || !str_contains($files['dark'], '.merdpos-ops-panel')) {
+  fwrite(STDERR, "Dark normalization must retain only required legacy surface corrections; shared Reports/Finance primitives must remain token-owned.\n");
   exit(1);
 }
-if (!str_contains($files['dark'], '.merdpos-dashboard-v2') || !str_contains($files['dark'], '.merdpos-operations-v2') || !str_contains($files['dark'], '.merdpos-reports-v2')) {
-  fwrite(STDERR, "Primary app surfaces are missing dark-mode normalization.\n");
+if (!str_contains($files['dark'], '.merdpos-operations-v2') || !str_contains($files['dark'], ':root[data-theme="dark"]')) {
+  fwrite(STDERR, "Legacy Operations dark-mode compatibility or the global dark theme marker is missing.\n");
   exit(1);
 }
 echo "MERDPOS Store Settings + App Dark Mode v1 contract validated.\n";

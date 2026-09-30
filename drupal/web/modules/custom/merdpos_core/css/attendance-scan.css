@@ -3,7 +3,7 @@
 .merdpos-dashboard-shop-control{display:grid;gap:.3rem;min-width:10rem}
 .merdpos-dashboard-shop-heading{color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-semibold)}
 .merdpos-dashboard-shop-login{display:grid;min-height:2.65rem;border:1px solid var(--color-border-default);border-radius:.7rem;background:var(--color-surface-main);overflow:hidden}
-.merdpos-dashboard-shop-control .merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:2.65rem;padding:0;border:0;background:transparent;color:var(--color-danger);cursor:pointer;box-shadow:none;transition:background-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
+.merdpos-dashboard-shop-control .merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:var(--size-control);padding:0;border:0;border-radius:var(--radius-control);background:transparent;color:var(--color-danger);cursor:pointer;box-shadow:none;transition:background-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
 .merdpos-attendance-open:hover{background:var(--color-surface-muted)}
 .merdpos-attendance-open:focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:-3px}
 .merdpos-dashboard-shop-control.is-shop-active .merdpos-attendance-open{color:var(--color-success)}
@@ -39,5 +39,5 @@
 .merdpos-attendance-status[data-state="error"]{border-color:var(--color-danger)!important;background:color-mix(in srgb,var(--color-danger) 22%,rgba(4,15,34,.84));color:#fff}
 
 @media(max-width:72rem){.merdpos-dashboard-kpi--my-shift{grid-column:1/-1}}
-@media(max-width:51.25rem){.merdpos-dashboard-header-actions{width:100%;min-width:0;grid-template-columns:1fr}.merdpos-shop-dialog{width:min(36rem,calc(100vw - 1rem));max-height:calc(100dvh - 1rem)}.merdpos-dashboard-kpi--my-shift{grid-column:1}}
+@media(max-width:51.25rem){.merdpos-dashboard-header-actions{width:100%;min-width:0;grid-template-columns:1fr}.merdpos-dashboard-shop-control .merdpos-attendance-open{min-height:var(--size-touch)}.merdpos-shop-dialog{width:min(36rem,calc(100vw - 1rem));max-height:calc(100dvh - 1rem)}.merdpos-dashboard-kpi--my-shift{grid-column:1}}
 @media(max-width:35rem){.merdpos-dashboard-header-actions{grid-template-columns:1fr}.merdpos-shop-dialog{width:calc(100vw - .75rem);max-height:calc(100dvh - .75rem);border-radius:1rem}.merdpos-shop-dialog-head,.merdpos-shop-dialog-body{padding:var(--space-4)}.merdpos-attendance-camera,.merdpos-attendance-camera video{min-height:0}.merdpos-attendance-camera{aspect-ratio:3/4}}

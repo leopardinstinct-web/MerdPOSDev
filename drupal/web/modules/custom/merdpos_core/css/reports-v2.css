@@ -18,12 +18,11 @@
 
 
 .merdpos-reports-actions { position: relative; z-index: 1; display: grid; gap: .65rem; min-width: 14rem; }
-.merdpos-reports-live { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: center; padding: .9rem 1rem; border-radius: 1.2rem; background: color-mix(in srgb, var(--color-brand-white) 88%, transparent); border: 1px solid var(--rep-border); box-shadow: var(--shadow-card); }
+.merdpos-reports-live { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: center; padding: .9rem 1rem; border-radius: var(--radius-card); background: var(--color-surface-main); border: 1px solid var(--rep-border); box-shadow: var(--shadow-card); }
 .merdpos-reports-live > span { width: .8rem; height: .8rem; border-radius: 50%; background: var(--rep-green); box-shadow: 0 0 0 .45rem color-mix(in srgb, var(--color-success) 12%, transparent); }
 .merdpos-reports-live strong { color: var(--rep-green); }
 .merdpos-reports-live small { grid-column: 2; color: var(--rep-muted); }
-.merdpos-report-action { display: flex; align-items: center; justify-content: center; gap: .6rem; min-height: 2.8rem; padding: .65rem .9rem; border: 1px solid var(--rep-border); border-radius: 1rem; background: var(--color-surface-main); color: var(--color-brand-text-accent); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard); }
-.merdpos-report-action:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.merdpos-report-action { position: relative; }
 .merdpos-report-action svg { width: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .merdpos-reports-header-actions { display:grid; gap:.65rem; min-width:14rem; }
 .merdpos-reports-week-form { display:grid; gap:.35rem; }
@@ -40,14 +39,11 @@
 .merdpos-reports-filter-intro strong, .merdpos-reports-filter-intro span { display: block; }
 .merdpos-reports-filter-intro span { margin-top: .18rem; color: var(--rep-muted); font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .merdpos-reports-filters label span { display: block; margin-bottom: .35rem; color: var(--rep-muted); font-size: .76rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-.merdpos-reports-filters select { width: 100%; min-height: 2.8rem; padding: .55rem .65rem; border: 1px solid color-mix(in srgb, var(--color-brand-navy) 20%, transparent); border-radius: .85rem; background: color-mix(in srgb, var(--color-brand-cyan) 4%, var(--color-brand-white)); color: var(--rep-ink); font: inherit; }
-.merdpos-reports-filters button { min-height: 2.8rem; padding: .55rem 1.1rem; border: 0; border-radius: .85rem; background: var(--gradient-brand-action); color: var(--color-brand-white); font: inherit; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-action); transition: box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); }
-.merdpos-reports-filters button:not(:disabled):hover { transform: translateY(-1px); box-shadow: var(--shadow-raised); filter: brightness(1.08); }
-.merdpos-reports-filters button:not(:disabled):active { transform: translateY(0); box-shadow: var(--shadow-action); filter: brightness(1); }
+.merdpos-reports-filters select { width: 100%; }
 .merdpos-reports-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; align-items:stretch; }
-.merdpos-reports-v2 .merdpos-reports-kpi { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(6.4rem,7.2rem) minmax(0,1fr); gap:.35rem; align-items:stretch; min-width:0; min-height:8.6rem; padding:.82rem .86rem; }
+.merdpos-reports-v2 .merdpos-reports-kpi { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(6.4rem,7.2rem) minmax(0,1fr); gap:.35rem; align-items:stretch; min-width:0; }
 .merdpos-reports-kpi-rail { display:flex; align-items:center; align-self:stretch; gap:.55rem; min-width:0; padding-right:.25rem; }
-.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:.8rem; background:linear-gradient(135deg,var(--color-brand-navy) 0%,var(--color-brand-violet) 100%); color:var(--color-brand-white); box-shadow:0 .3rem .9rem color-mix(in srgb,var(--color-brand-navy) 22%,transparent); }
+.merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { display:grid; place-items:center; background:linear-gradient(135deg,var(--color-brand-navy) 0%,var(--color-brand-violet) 100%); color:var(--color-brand-white); box-shadow:0 .3rem .9rem color-mix(in srgb,var(--color-brand-navy) 22%,transparent); }
 .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon svg { width:1.28rem; height:1.28rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-material-icon{display:block;width:1.28rem;height:1.28rem;background:currentColor}
 .merdpos-material-icon--record-voice-over{-webkit-mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat;mask:url("/themes/custom/merdpos_app/assets/record_voice_over_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg") center/contain no-repeat}
@@ -59,8 +55,8 @@
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { display:grid; place-items:center; width:2rem; height:2rem; color:var(--color-brand-text-accent); }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon svg { width:1.55rem; height:1.55rem; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon .merdpos-material-icon{width:1.55rem;height:1.55rem}
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.24rem 0 0; color:var(--color-text-primary); font-size:clamp(1.32rem,1.85vw,1.92rem); font-weight:800; line-height:.96; letter-spacing:-.03em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; color:var(--color-brand-text-accent); font-size:clamp(.68rem,.76vw,.78rem); font-weight:750; line-height:1.18; text-align:center; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-value { display:block; max-width:100%; margin:.24rem 0 0; overflow-wrap:anywhere; }
+.merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-label { display:block; margin-top:.38rem; text-align:center; }
 .merdpos-reports-kpi .merdpos-reports-kpi-stat.is-payroll .merdpos-reports-kpi-stat-value { font-size:clamp(1.16rem,1.5vw,1.55rem); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-active .merdpos-reports-kpi-stat-label { color:var(--color-amber); }
 .merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-icon,.merdpos-reports-kpi--queries .merdpos-reports-kpi-stat.is-closed .merdpos-reports-kpi-stat-label { color:var(--color-success); }
@@ -68,8 +64,8 @@
 .merdpos-reports-charts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
 .merdpos-report-chart-card, .merdpos-report-table-card { overflow: hidden; border: 1px solid var(--rep-border); border-radius: var(--radius-card); background: var(--color-surface-main); box-shadow: var(--shadow-card); transition: box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
 .merdpos-report-chart-card:hover, .merdpos-report-table-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
-.merdpos-report-chart-card > header, .merdpos-report-table-card > header { display: flex; align-items: center; gap: .75rem; min-height: 4.7rem; padding: 1rem 1.1rem; border-bottom: 1px solid color-mix(in srgb, var(--color-brand-navy) 9%, transparent); background: linear-gradient(180deg,var(--color-surface-main),color-mix(in srgb, var(--color-brand-cyan) 3%, var(--color-surface-main))); }
-.merdpos-report-chart-card > header > span { display: grid; place-items: center; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; border-radius: .85rem; background: color-mix(in srgb, var(--color-brand-cyan) 12%, var(--color-brand-white)); color: var(--color-brand-navy); }
+.merdpos-report-chart-card > header, .merdpos-report-table-card > header { display: flex; align-items: center; gap: .75rem; min-height: 4.7rem; padding: 1rem 1.1rem; border-bottom: 1px solid var(--color-border-subtle); background: linear-gradient(180deg,var(--color-surface-main),color-mix(in srgb, var(--color-brand-cyan) 3%, var(--color-surface-main))); }
+.merdpos-report-chart-card > header > span { display: grid; place-items: center; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; border-radius: var(--radius-control); background: var(--color-surface-selected); color: var(--color-brand-text-accent); }
 .merdpos-report-chart-card > header svg { width: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .merdpos-report-chart-card h2, .merdpos-report-table-card h2 { margin: 0; color: var(--rep-ink); font-size: 1.05rem; }
 .merdpos-report-chart-card p { margin: .18rem 0 0; color: var(--rep-muted); font-size: .84rem; }
@@ -78,11 +74,11 @@
 .merdpos-reports-groups { display: grid; gap: 1rem; }
 .merdpos-report-table-card > header { justify-content: space-between; }
 .merdpos-report-table-card .merdpos-eyebrow { margin: 0 0 .15rem; }
-.merdpos-report-count { display: grid; place-items: center; min-width: 2.25rem; height: 2.25rem; padding: 0 .55rem; border-radius: 999px; background: color-mix(in srgb, var(--color-brand-cyan) 12%, var(--color-brand-white)); color: var(--color-brand-navy); font-weight: 850; }
+.merdpos-report-count { display: grid; place-items: center; min-width: 2.25rem; height: 2.25rem; padding: 0 .55rem; border-radius: var(--radius-pill); background: var(--color-surface-selected); color: var(--color-brand-text-accent); font-weight: var(--weight-bold); }
 .merdpos-report-table-wrap { overflow-x: auto; scrollbar-width: thin; }
 .merdpos-report-table-wrap table { width: 100%; min-width: 46rem; border-collapse: collapse; }
-.merdpos-report-table-wrap th { padding: .72rem .9rem; background: color-mix(in srgb, var(--color-brand-navy) 4%, var(--color-brand-white)); color: color-mix(in srgb, var(--color-brand-navy) 64%, var(--color-brand-white)); font-size: .72rem; letter-spacing: .045em; text-align: left; text-transform: uppercase; }
-.merdpos-report-table-wrap td { padding: .8rem .9rem; border-top: 1px solid color-mix(in srgb, var(--color-brand-navy) 7%, transparent); color: color-mix(in srgb, var(--color-brand-navy) 78%, var(--color-brand-white)); vertical-align: top; }
+.merdpos-report-table-wrap th { padding: .72rem .9rem; background: var(--color-surface-muted); color: var(--color-text-muted); font-size: var(--type-xs); letter-spacing: .045em; text-align: left; text-transform: uppercase; }
+.merdpos-report-table-wrap td { padding: .8rem .9rem; border-top: 1px solid var(--color-border-subtle); color: var(--color-text-secondary); vertical-align: top; }
 .merdpos-report-table-wrap tbody tr:hover { background: var(--color-surface-selected); }
 .merdpos-report-empty { margin: 0; padding: 1.3rem; color: var(--rep-muted); }
 
@@ -108,14 +104,12 @@
 
   .merdpos-reports-actions { grid-template-columns: 1fr 1fr; }
   .merdpos-reports-live { grid-column: 1 / -1; }
-  .merdpos-report-action { font-size: .84rem; }
   .merdpos-reports-filters { grid-template-columns: 1fr; padding: .9rem; }
   .merdpos-reports-filter-intro { grid-column: auto; }
   .merdpos-reports-filters button { width: 100%; }
   .merdpos-reports-kpis { gap:.75rem; }
-  .merdpos-reports-v2 .merdpos-reports-kpi { grid-template-columns:1fr; grid-template-rows:auto auto; gap:.55rem; min-height:0; padding:.8rem; }
+  .merdpos-reports-v2 .merdpos-reports-kpi { grid-template-columns:1fr; grid-template-rows:auto auto; gap:.55rem; }
   .merdpos-reports-kpi-rail { gap:.6rem; padding-right:0; }
-  .merdpos-reports-kpi > .merdpos-reports-kpi-rail > .merdpos-reports-kpi-icon { width:2.35rem; height:2.35rem; min-width:2.35rem; }
     .merdpos-reports-kpi-stat { padding:.3rem .22rem; }
   .merdpos-reports-kpi-stat + .merdpos-reports-kpi-stat::before { display:none; }
   .merdpos-reports-kpi .merdpos-reports-kpi-stat .merdpos-reports-kpi-stat-icon { width:1.9rem; height:1.9rem; }
@@ -134,47 +128,41 @@
   .merdpos-report-table-wrap table { min-width: 0; font-size: 8pt; }
 }
 
-.merdpos-timesheet-action-trigger { display:inline-flex; align-items:center; gap:.4rem; min-height:2.2rem; padding:.35rem .6rem; border:1px solid color-mix(in srgb, var(--color-brand-navy) 18%, transparent); border-radius:.75rem; background:var(--color-surface-main); color:var(--color-brand-text-accent); font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap; }
+.merdpos-timesheet-action-trigger { display:inline-flex; align-items:center; gap:.4rem; min-height:2.2rem; padding:.35rem .6rem; border:1px solid var(--color-border-default); border-radius:var(--radius-control); background:var(--color-surface-main); color:var(--color-brand-text-accent); font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap; }
 .merdpos-timesheet-action-trigger svg { width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .merdpos-timesheet-action-trigger.has-dispute { background:var(--color-amber-surface); color:var(--rep-amber); }
 .merdpos-timesheet-action-trigger.is-approved { background:var(--color-success-surface); color:var(--rep-green); }
 .merdpos-timesheet-action-trigger.is-rejected,.merdpos-timesheet-action-trigger.is-cancelled { background:color-mix(in srgb, var(--color-brand-navy) 8%, transparent); color:var(--rep-muted); }
-.merdpos-timesheet-dialog { width:min(46rem,calc(100vw - 2rem)); max-height:calc(100vh - 2rem); padding:0; border:0; border-radius:1.4rem; background:var(--color-surface-main); color:var(--rep-ink); box-shadow:var(--shadow-dialog); }
-.merdpos-timesheet-dialog::backdrop { background:color-mix(in srgb, var(--color-brand-navy) 58%, transparent); backdrop-filter:blur(3px); }
-.merdpos-timesheet-dialog-shell { display:grid; gap:1rem; padding:1.2rem; }
+.merdpos-timesheet-dialog-shell { display:grid; gap:1rem; padding:var(--space-5); }
 .merdpos-timesheet-dialog header { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; border-bottom:1px solid var(--rep-border); padding-bottom:.9rem; }
 .merdpos-timesheet-dialog h2 { margin:.15rem 0 .2rem; font-size:1.35rem; }
 .merdpos-timesheet-dialog header p:last-child { margin:0; color:var(--rep-muted); }
-.merdpos-timesheet-dialog-close { display:grid; place-items:center; width:2.4rem; height:2.4rem; border:1px solid var(--rep-border); border-radius:.8rem; background:var(--color-surface-main); color:var(--rep-ink); cursor:pointer; }
-.merdpos-timesheet-dialog-close svg { width:1.1rem; fill:none; stroke:currentColor; stroke-width:2; }
 .merdpos-timesheet-mode-switch { display:flex; flex-wrap:wrap; gap:.55rem; }
 .merdpos-timesheet-mode-switch button { padding:.55rem .8rem; border:1px solid var(--rep-border); border-radius:999px; background:var(--color-surface-main); color:var(--color-brand-text-accent); font:inherit; font-weight:800; cursor:pointer; transition:box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); }
 .merdpos-timesheet-mode-switch button.is-active { background:var(--gradient-brand-action); color:var(--color-brand-white); box-shadow:var(--shadow-action); }
 .merdpos-timesheet-mode-switch button.is-active:not(:disabled):hover { transform:translateY(-1px); filter:brightness(1.08); }
 .merdpos-timesheet-create form,.merdpos-timesheet-existing-actions { display:grid; gap:.8rem; }
 .merdpos-timesheet-dialog label { display:grid; gap:.35rem; color:var(--rep-muted); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; }
-.merdpos-timesheet-dialog input,.merdpos-timesheet-dialog select,.merdpos-timesheet-dialog textarea { width:100%; box-sizing:border-box; padding:.65rem .7rem; border:1px solid color-mix(in srgb, var(--color-brand-navy) 20%, transparent); border-radius:.8rem; background:color-mix(in srgb, var(--color-brand-cyan) 4%, var(--color-brand-white)); color:var(--rep-ink); font:inherit; text-transform:none; letter-spacing:normal; }
+.merdpos-timesheet-dialog input,.merdpos-timesheet-dialog select,.merdpos-timesheet-dialog textarea { width:100%; box-sizing:border-box; text-transform:none; letter-spacing:normal; }
 .merdpos-timesheet-form-actions,.merdpos-timesheet-existing-actions form > div { display:flex; flex-wrap:wrap; gap:.55rem; }
-.merdpos-timesheet-dialog button[type="submit"] { min-height:2.6rem; padding:.6rem .9rem; border:0; border-radius:.8rem; background:var(--gradient-brand-action); color:var(--color-brand-white); font:inherit; font-weight:800; cursor:pointer; box-shadow:var(--shadow-action); transition:box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); }
-.merdpos-timesheet-dialog button[type="submit"]:not(:disabled):hover { transform:translateY(-1px); box-shadow:var(--shadow-raised); filter:brightness(1.08); }
-.merdpos-timesheet-dialog button.is-danger { background:var(--color-danger-surface); color:var(--color-danger); border:1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border-default)); }
-.merdpos-timesheet-dialog button.is-secondary { background:color-mix(in srgb, var(--color-brand-navy) 6%, var(--color-brand-white)); color:var(--color-brand-text-accent); }
-.merdpos-timesheet-status { display:grid; gap:.35rem; padding:1rem; border:1px solid var(--rep-border); border-radius:1rem; background:color-mix(in srgb, var(--color-brand-cyan) 5%, var(--color-brand-white)); }
+.merdpos-timesheet-status { display:grid; gap:.35rem; padding:1rem; border:1px solid var(--rep-border); border-radius:var(--radius-card); background:var(--color-surface-muted); }
 .merdpos-timesheet-status > span { justify-self:start; padding:.3rem .55rem; border-radius:999px; background:var(--color-amber-surface); color:var(--rep-amber); font-size:.75rem; font-weight:850; text-transform:uppercase; }
 .merdpos-timesheet-status strong { font-size:1.05rem; }
 .merdpos-timesheet-status p,.merdpos-timesheet-status small { margin:0; color:var(--rep-muted); line-height:1.45; }
 @media (max-width:42rem) {
   .merdpos-timesheet-action-trigger span { display:none; }
-  .merdpos-timesheet-action-trigger { min-width:2.3rem; justify-content:center; padding:.35rem; }
-  .merdpos-timesheet-dialog { width:calc(100vw - 1rem); max-height:calc(100vh - 1rem); border-radius:1rem; }
+  .merdpos-timesheet-action-trigger { justify-content:center; padding:0; }
   .merdpos-timesheet-dialog-shell { padding:.9rem; }
 }
 @media print { .merdpos-timesheet-action-trigger,.merdpos-timesheet-dialog { display:none !important; } }
 
 /* Shift Detail contextual action menu. The trigger uses the user-supplied error icon as a mask. */
 .merdpos-timesheet-action-trigger {
-  position:relative; display:inline-grid; place-items:center; width:2.35rem; min-width:2.35rem; height:2.35rem; min-height:2.35rem;
-  padding:0; gap:0; border-radius:.72rem; color:var(--color-brand-text-accent);
+  position:relative; display:inline-grid; place-items:center; width:var(--size-control); min-width:var(--size-control); height:var(--size-control); min-height:var(--size-control);
+  padding:0; gap:0; border-radius:var(--radius-control); color:var(--color-brand-text-accent);
+}
+@media (max-width:51.25rem) {
+  .merdpos-timesheet-action-trigger { width:var(--size-touch); min-width:var(--size-touch); height:var(--size-touch); min-height:var(--size-touch); }
 }
 .merdpos-timesheet-action-icon {
   display:block !important; width:1.22rem; height:1.22rem; background:currentColor;
@@ -191,12 +179,15 @@
 }
 .merdpos-timesheet-action-menu[hidden] { display:none; }
 .merdpos-timesheet-action-menu button {
-  display:flex; align-items:center; gap:.65rem; width:100%; padding:.68rem .75rem; border:0; border-radius:.62rem;
-  background:transparent; color:var(--rep-ink); font:inherit; font-size:.86rem; font-weight:750; text-align:left; cursor:pointer;
+  display:flex; align-items:center; gap:.65rem; width:100%; min-height:var(--size-control); padding:0 var(--space-3); border:0; border-radius:var(--radius-control);
+  background:transparent; color:var(--rep-ink); font:inherit; font-size:var(--type-sm); font-weight:var(--weight-bold); text-align:left; cursor:pointer;
 }
-.merdpos-timesheet-action-menu button:hover,.merdpos-timesheet-action-menu button:focus-visible { background:color-mix(in srgb, var(--color-brand-navy) 7%, transparent); outline:none; }
+@media (max-width:51.25rem) {
+  .merdpos-timesheet-action-menu button { min-height:var(--size-touch); }
+}
+.merdpos-timesheet-action-menu button:hover,.merdpos-timesheet-action-menu button:focus-visible { background:var(--color-surface-muted); outline:none; }
 .merdpos-timesheet-action-menu svg { width:1.05rem; height:1.05rem; fill:none; stroke:currentColor; stroke-width:1.8; }
 /* Query submission state. */
 .merdpos-query-sync-badge { margin-left:auto; padding:.22rem .45rem; border-radius:999px; background:color-mix(in srgb,var(--rep-amber) 12%,transparent); color:var(--rep-amber); font-size:.68rem; font-weight:800; white-space:nowrap; }
-.merdpos-query-notice { margin-top:.75rem; padding:.72rem .9rem; border:1px solid color-mix(in srgb,var(--rep-green) 28%,var(--rep-border)); border-radius:.85rem; background:color-mix(in srgb,var(--rep-green) 8%,var(--color-brand-white)); color:var(--rep-ink); font-size:.86rem; font-weight:750; }
-.merdpos-query-notice.is-error { border-color:color-mix(in srgb,var(--color-danger) 32%,var(--rep-border)); background:color-mix(in srgb,var(--color-danger) 7%,var(--color-brand-white)); }
+.merdpos-query-notice { margin-top:.75rem; padding:.72rem .9rem; border:1px solid color-mix(in srgb,var(--rep-green) 28%,var(--rep-border)); border-radius:.85rem; background:color-mix(in srgb,var(--rep-green) 8%,var(--color-surface-main)); color:var(--rep-ink); font-size:.86rem; font-weight:750; }
+.merdpos-query-notice.is-error { border-color:color-mix(in srgb,var(--color-danger) 32%,var(--rep-border)); background:color-mix(in srgb,var(--color-danger) 7%,var(--color-surface-main)); }

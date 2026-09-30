@@ -98,9 +98,9 @@
     <button type="button" role="menuitem" data-timesheet-menu-choice="missing">{{ ui.icon('plus') }}<span>Add missing shift</span></button>
   </div>
 
-  <dialog class="merdpos-timesheet-dialog" data-timesheet-dialog aria-labelledby="merdpos-timesheet-dialog-title">
+  <dialog class="merdpos-timesheet-dialog merdpos-ui-dialog merdpos-ui-dialog--wide" data-timesheet-dialog aria-labelledby="merdpos-timesheet-dialog-title">
     <div class="merdpos-timesheet-dialog-shell">
-      <header><div><p class="merdpos-eyebrow">SHIFT DETAIL</p><h2 id="merdpos-timesheet-dialog-title" data-timesheet-dialog-title>Shift details</h2><p data-timesheet-dialog-context></p></div><button type="button" class="merdpos-timesheet-dialog-close" data-timesheet-dialog-close aria-label="Close">{{ ui.icon('x') }}</button></header>
+      <header><div><p class="merdpos-eyebrow">SHIFT DETAIL</p><h2 id="merdpos-timesheet-dialog-title" data-timesheet-dialog-title>Shift details</h2><p data-timesheet-dialog-context></p></div><button type="button" class="merdpos-dialog-close" data-timesheet-dialog-close aria-label="Close">{{ ui.icon('x') }}</button></header>
       <section class="merdpos-timesheet-existing" data-timesheet-existing hidden>
         <div class="merdpos-timesheet-status"><span data-dispute-status></span><strong data-dispute-type></strong><p data-dispute-requested hidden></p><p data-dispute-reason></p><small data-dispute-meta></small><p data-dispute-note hidden></p></div>
         <div class="merdpos-timesheet-existing-actions">
