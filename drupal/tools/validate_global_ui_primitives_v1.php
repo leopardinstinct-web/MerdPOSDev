@@ -98,6 +98,9 @@ if (!preg_match('/\.merdpos-btn\{([^}]*)\}/s', $shellCss, $shellButton)) {
 if (!preg_match('/\.merdpos-dialog-close\{([^}]*)\}/s', $shellCss, $closeButton) || !str_contains($closeButton[1] ?? '', 'width:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'height:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'border-radius:var(--radius-control)')) {
   $errors[] = 'app-shell.css: shared dialog close control must derive square geometry from --size-control/--radius-control';
 }
+if (!str_contains($shellCss, '.merdpos-btn,.merdpos-account-menu-action,.merdpos-impersonation-banner button{min-height:var(--size-touch)}')) {
+  $errors[] = 'app-shell.css: shell-owned labeled actions must use --size-touch at the mobile breakpoint';
+}
 $page = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
 if (!str_contains($page, 'merdpos-ui-dialog merdpos-password-dialog')) $errors[] = 'password dialog must participate in the shared merdpos-ui-dialog shell';
 $reportsTpl = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
