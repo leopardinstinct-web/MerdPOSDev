@@ -8,12 +8,12 @@ acceptance:
   - "Printing while dark produces readable light output with or without background graphics."
   - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus token-derived treatments); operational success/warning/danger/info remain separate semantic tokens; the DEV editor's logo-swatch proposals are preview/handoff only and are not a runtime source."
   - "Lifecycle claims in .ai/memory.md match evidence exactly."
-packet_state: PR_175_REVIEW_PASS_AWAITING_OWNER
+packet_state: PR_175_MERGED_AWAITING_DEPLOY_APPROVAL
 lifecycle: WIRED
 base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
 reviewed_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
 implementation_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
-last_seen_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+last_seen_head: "e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd"
 handoff:
   mode: dual-agent
   implementer: "Kimi K3"
@@ -22,7 +22,8 @@ handoff:
   branch: "feature/drupal-reports-aa-makeover-v1"
   pr: 175
   base_sha: "7655fbe832c2500227ecd0abc15c5b04663e3a50"
-  head_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  head_sha: "5aacc1fc69a888dadc56af63500a1c4cafe91ba6"
+  merge_commit_sha: "e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd"
 impact:
   business_logic: "NO"
   database: "NO"
@@ -50,16 +51,16 @@ review_history:
     result: PASS
     reason: "Exact immutable diff/history inspected; local validator battery and PR-head CI/global-UI/secret-scan all passed."
 owner_gate:
-  merge_approved: false
+  merge_approved: true
   deploy_approved: false
 deployed_baseline:
   head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
   lifecycle: "DEPLOYED + VERIFIED"
   evidence: "Historical baseline only: server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live computed-style WCAG audits empty in light and dark; theme toggle persistence exercised; mobile clean. This does not prove deployment of 2957f297."
 branch_state:
-  head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  head: "e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd"
   lifecycle: WIRED
-  evidence: "Implementation committed and pushed. Canonical portal/module design-token copies are synchronized; live shell no longer consumes persisted DEV palette overrides; DEV proposal editor remains wired page-locally. Not merged, not deployed, not live-verified."
+  evidence: "PR #175 merged into beta/drupal-webapp after explicit product-owner approval. Reviewed implementation SHA 2957f297 and metadata successor 5aacc1fc are preserved in merge history. Not deployed and not live-verified."
 constraints:
   - "Visual/design-system change only: no DB, payroll/business-rule, authentication or authorization changes."
   - "Binding runtime master palette remains exactly White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3 and Violet #8B2EFF; DEV logo-swatch proposals are preview/handoff only."
@@ -109,12 +110,14 @@ checks:
   - name: "PR #175 CI at implementation SHA"
     result: PASS
     evidence: "CI 36777633749 SUCCESS; Drupal global UI contract 36777633748 SUCCESS; Secret scan 36777633841 SUCCESS at 2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae."
+  - name: "PR #175 merge"
+    result: PASS
+    evidence: "Product owner explicitly approved merge; GitHub merged reviewed feature head 5aacc1fc69a888dadc56af63500a1c4cafe91ba6 into beta/drupal-webapp as e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd. No deployment performed."
 remaining:
-  - "Product owner decision on whether PR #175 may merge into beta/drupal-webapp."
-  - "If merge/deploy is approved, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
+  - "Deployment remains a separate owner gate. If approved later, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
   - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants remains a separate follow-up."
   - "Evidence pack assembly remains available for owner review."
-next_action: "Product owner reviews PR #175 and decides whether to authorize merge. No merge or deployment is approved by this packet."
+next_action: "Await explicit product-owner deployment approval. Do not deploy automatically; if approved later, use the established Drupal server-side deployment path and live-verify before any DEPLOYED/VERIFIED claim."
 blocked: true
-blocker: "Awaiting product owner merge decision; deploy approval is also false."
-updated_at: "2026-10-01T02:11:18+05:00"
+blocker: "PR #175 is merged; deployment remains blocked because deploy_approved=false."
+updated_at: "2026-10-01T02:22:26+05:00"
