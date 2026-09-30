@@ -43,7 +43,12 @@ account_password_check(str_contains($js, 'merdpos-password-close'), 'Password di
 account_password_check(str_contains($template, 'merdpos-dialog-close') && str_contains($template, '<svg viewBox="0 0 24 24"'), 'Password dialog must use the shared icon close control.');
 account_password_check(!str_contains($template, '>Cancel</button>'), 'Password dialog must not duplicate the close control with a Cancel button.');
 account_password_check(str_contains($css, '.merdpos-btn{') && str_contains($css, '.merdpos-dialog-close{'), 'Shell-level MERDPOS button/close primitives missing for dialogs outside .merdpos-app.');
-account_password_check(str_contains($css, 'width:2.4rem;height:2.4rem') && str_contains($css, 'border-radius:.8rem;background:var(--color-surface-raised)'), 'Shared dialog close control must match the Shift Detail rounded-square geometry.');
+account_password_check(
+  str_contains($css, '.merdpos-dialog-close{display:grid;place-items:center;width:var(--size-control);height:var(--size-control);min-width:var(--size-control);flex:0 0 var(--size-control);')
+  && str_contains($css, 'border-radius:var(--radius-control);background:var(--color-surface-raised)')
+  && str_contains($css, '.merdpos-dialog-close{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);flex-basis:var(--size-touch)}'),
+  'Shared dialog close control must use canonical desktop geometry and promote to the mobile touch target.'
+);
 account_password_check(str_contains($css, '.merdpos-password-dialog'), 'Password dialog styling missing.');
 account_password_check(str_contains($template, 'merdpos-dialog-actions merdpos-password-actions') && str_contains($css, '.merdpos-dialog-actions{') && str_contains($css, 'justify-content:flex-end'), 'Password submit action must consume the shared right-aligned dialog footer primitive.');
 account_password_check(str_contains($css, '@media(max-width:35rem)'), 'Password dialog mobile adaptation missing.');
