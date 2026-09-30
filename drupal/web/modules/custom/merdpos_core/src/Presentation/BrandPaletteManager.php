@@ -58,6 +58,8 @@ final class BrandPaletteManager {
     ];
   }
 
+  // Compatibility helper only: no global runtime consumer may use this.
+  // Proposal state is preview/handoff data, never a live token source.
   public function cssVariables(): array {
     $state = $this->rawState();
     $hexById = [];
@@ -80,7 +82,7 @@ final class BrandPaletteManager {
       $label = $this->cleanLabel((string) ($labels[$id] ?? ''));
       $swatch = (string) ($swatches[$id] ?? '');
       if (!isset(self::SWATCHES[$swatch])) throw new InvalidArgumentException('Choose only colours from the approved MERDPOS logo palette.');
-      if (isset($usedSwatches[$swatch])) throw new InvalidArgumentException('Each logo colour can appear only once in the master palette.');
+      if (isset($usedSwatches[$swatch])) throw new InvalidArgumentException('Each logo colour can appear only once in the palette proposal.');
       $usedSwatches[$swatch] = true;
       $entries[] = ['id'=>$id, 'label'=>$label, 'swatch'=>$swatch];
     }
@@ -93,7 +95,7 @@ final class BrandPaletteManager {
     }
     if (count(array_unique($cleanRoles)) !== count($cleanRoles)) throw new InvalidArgumentException('Foundation, primary accent and secondary accent must use different palette entries.');
     $this->state->set(self::STATE_KEY, ['entries'=>$entries, 'roles'=>$cleanRoles]);
-    return 'Master palette saved and applied globally.';
+    return 'Palette proposal saved for DEV preview/handoff only; the live master palette is unchanged.';
   }
 
   public function add(): string {
@@ -103,17 +105,17 @@ final class BrandPaletteManager {
     foreach (array_keys(self::SWATCHES) as $candidate) {
       if (!isset($used[$candidate])) { $swatch = $candidate; break; }
     }
-    if ($swatch === '') throw new InvalidArgumentException('All approved MERDPOS logo colours are already in the master palette.');
+    if ($swatch === '') throw new InvalidArgumentException('All approved MERDPOS logo colours are already in the palette proposal.');
     $id = 'p_' . bin2hex(random_bytes(4));
     $state['entries'][] = ['id'=>$id, 'label'=>self::SWATCHES[$swatch]['label'], 'swatch'=>$swatch];
     $this->state->set(self::STATE_KEY, $state);
-    return 'Logo colour added to the master palette.';
+    return 'Logo colour added to the palette proposal.';
   }
 
   public function delete(string $id): string {
     $state = $this->rawState();
     if (in_array($id, array_values($state['roles']), true)) throw new InvalidArgumentException('This colour is assigned to a brand role. Reassign that role before deleting it.');
-    if (count($state['entries']) <= 3) throw new InvalidArgumentException('The master palette must keep at least three active logo colours.');
+    if (count($state['entries']) <= 3) throw new InvalidArgumentException('The palette proposal must keep at least three active logo colours.');
     $before = count($state['entries']);
     $state['entries'] = array_values(array_filter($state['entries'], static fn(array $entry): bool => $entry['id'] !== $id));
     if (count($state['entries']) === $before) throw new InvalidArgumentException('Palette entry not found.');
@@ -134,7 +136,7 @@ final class BrandPaletteManager {
 
   public function reset(): string {
     $this->state->set(self::STATE_KEY, self::DEFAULT_STATE);
-    return 'Master palette reset to MERDPOS defaults.';
+    return 'Palette proposal reset to the default DEV preview set; the live master palette is unchanged.';
   }
 
   private function rawState(): array {

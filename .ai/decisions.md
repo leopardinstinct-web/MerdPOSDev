@@ -352,3 +352,11 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Foundation, Primary accent and Secondary accent are the three required global roles. White is a fixed neutral. Page canvas, cards, borders, interaction colours, charts and dark-mode treatments derive from those roles.
 - Red, green and amber remain the only non-brand semantic hue exceptions for danger/error, success and warning/attention states. Informational UI uses the active brand accent.
 - Palette writes are Drupal-local design-system state only: actual-DEV-only, POST-only and CSRF-protected; they do not modify operational MERDPOS business data or ordinary authorization state.
+
+## 2026-10-01 - Drupal DEV palette is preview/handoff; five-color tokens own runtime
+
+- The 2026-09-13 Drupal live DEV master-palette behavior ("DEV palette applies globally") is superseded for runtime authority. Its historical VERIFIED evidence remains historical and is not rewritten.
+- The Drupal DEV palette editor remains as preview/handoff tooling only; saved proposals never become a runtime source of truth.
+- Canonical five-color tokens (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF) in `design-tokens.css` own the runtime palette.
+- No global persisted DEV palette override: `merdpos_app.theme` must not inject `brand_palette->cssVariables()` into the application shell.
+- Changing the binding master standard requires an explicit owner-accepted coordinated standards change.

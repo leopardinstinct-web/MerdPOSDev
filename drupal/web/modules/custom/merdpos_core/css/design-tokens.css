@@ -9,12 +9,12 @@
 :root {
   color-scheme: light;
 
-  /* Fallback brand roles. DEV may remap navy/cyan/violet to approved logo swatches at runtime. */
+  /* Authoritative Namecheap brand master palette (five colors). */
   --color-brand-white: #FFFFFF;
-  --color-brand-navy: #01102B;
-  --color-brand-cyan: #0A91FB;
-  --color-brand-violet: #591DE9;
-  --color-brand-background: color-mix(in srgb, var(--color-brand-navy) 8%, var(--color-brand-white));
+  --color-brand-background: #F5F7FC;
+  --color-brand-navy: #031B4B;
+  --color-brand-cyan: #12BDF3;
+  --color-brand-violet: #8B2EFF;
 
   /* Derived brand interaction aliases. */
   --color-brand-primary: var(--color-brand-cyan);
@@ -44,17 +44,16 @@
   --color-focus: var(--color-brand-cyan);
   --color-focus-soft: color-mix(in srgb, var(--color-brand-cyan) 22%, transparent);
 
-  /* Red / green / amber are the only non-brand semantic hue exceptions. */
   --color-success: #18794E;
-  --color-success-surface: color-mix(in srgb, var(--color-success) 10%, var(--color-brand-white));
+  --color-success-surface: #ECF8F3;
   --color-warning: #8A5300;
-  --color-warning-surface: color-mix(in srgb, var(--color-warning) 10%, var(--color-brand-white));
+  --color-warning-surface: #FFF6DF;
   --color-amber: var(--color-warning);
   --color-amber-surface: var(--color-warning-surface);
   --color-danger: #B42318;
-  --color-danger-surface: color-mix(in srgb, var(--color-danger) 9%, var(--color-brand-white));
-  --color-info: var(--color-brand-cyan);
-  --color-info-surface: color-mix(in srgb, var(--color-brand-cyan) 10%, var(--color-brand-white));
+  --color-danger-surface: #FFF0EF;
+  --color-info: #175CD3;
+  --color-info-surface: #EFF8FF;
 
   --color-nav-bg: var(--color-brand-navy);
   --color-nav-bg-hover: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
@@ -68,12 +67,12 @@
   --color-overlay: color-mix(in srgb, var(--color-brand-navy) 42%, transparent);
   --color-shadow: color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
 
-  /* Charts remain inside the logo-derived master palette; semantic hues are reserved for status states. */
+  /* Charts use the master palette first, then operational semantics for distinction. */
   --color-chart-1: var(--color-brand-cyan);
   --color-chart-2: var(--color-brand-violet);
   --color-chart-3: var(--color-brand-navy);
-  --color-chart-4: color-mix(in srgb, var(--color-brand-cyan) 58%, var(--color-brand-violet));
-  --color-chart-5: color-mix(in srgb, var(--color-brand-violet) 72%, var(--color-brand-white));
+  --color-chart-4: var(--color-success);
+  --color-chart-5: var(--color-warning);
 
   /* Spacing scale. */
   --space-0: 0;
@@ -131,8 +130,8 @@
   --search-expanded-max: 22rem;
 
   /* Elevation. */
-  --shadow-card: 0 .3rem .9rem color-mix(in srgb, var(--color-brand-navy) 14%, transparent);
-  --shadow-raised: 0 .7rem 1.8rem color-mix(in srgb, var(--color-brand-navy) 18%, transparent);
+  --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 8%, transparent);
+  --shadow-raised: 0 .5rem 1.5rem color-mix(in srgb, var(--color-brand-navy) 12%, transparent);
   --shadow-dialog: 0 1.5rem 4rem color-mix(in srgb, var(--color-brand-navy) 22%, transparent);
   --shadow-action: 0 .5rem 1.25rem color-mix(in srgb, var(--color-brand-cyan) 20%, transparent);
 
@@ -209,10 +208,10 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --color-bg-main: var(--color-brand-navy);
-  --color-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 93%, var(--color-brand-white));
-  --color-surface-main: color-mix(in srgb, var(--color-brand-navy) 80%, var(--color-brand-white));
-  --color-surface-raised: color-mix(in srgb, var(--color-brand-navy) 74%, var(--color-brand-white));
-  --color-surface-muted: color-mix(in srgb, var(--color-brand-navy) 68%, var(--color-brand-white));
+  --color-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 94%, var(--color-brand-white));
+  --color-surface-main: color-mix(in srgb, var(--color-brand-navy) 88%, var(--color-brand-white));
+  --color-surface-raised: color-mix(in srgb, var(--color-brand-navy) 82%, var(--color-brand-white));
+  --color-surface-muted: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
   --color-surface-selected: color-mix(in srgb, var(--color-brand-cyan) 28%, var(--color-brand-navy));
   --color-text-primary: var(--color-brand-white);
   --color-text-secondary: color-mix(in srgb, var(--color-brand-white) 84%, var(--color-brand-navy));
@@ -228,19 +227,19 @@
   --color-amber-surface: var(--color-warning-surface);
   --color-danger: #FDA29B;
   --color-danger-surface: #492126;
-  --color-info: var(--color-brand-cyan);
-  --color-info-surface: color-mix(in srgb, var(--color-brand-cyan) 18%, var(--color-brand-navy));
+  --color-info: #84CAFF;
+  --color-info-surface: #172F4D;
   --color-chart-1: var(--color-brand-cyan);
   --color-chart-2: var(--color-brand-violet);
-  --color-chart-3: color-mix(in srgb, var(--color-brand-cyan) 44%, var(--color-brand-white));
-  --color-chart-4: color-mix(in srgb, var(--color-brand-cyan) 58%, var(--color-brand-violet));
-  --color-chart-5: color-mix(in srgb, var(--color-brand-violet) 70%, var(--color-brand-white));
+  --color-chart-3: var(--color-brand-white);
+  --color-chart-4: var(--color-success);
+  --color-chart-5: var(--color-warning);
   --color-focus-soft: color-mix(in srgb, var(--color-brand-cyan) 30%, transparent);
   --color-brand-text-accent: color-mix(in srgb, var(--color-brand-cyan) 30%, var(--color-brand-white));
   --color-overlay: color-mix(in srgb, var(--color-brand-navy) 74%, transparent);
   --color-shadow: color-mix(in srgb, var(--color-brand-navy) 54%, transparent);
-  --shadow-card: 0 .35rem 1rem color-mix(in srgb, var(--color-brand-navy) 62%, transparent);
-  --shadow-raised: 0 .8rem 2rem color-mix(in srgb, var(--color-brand-navy) 70%, transparent);
+  --shadow-card: 0 .0625rem .25rem color-mix(in srgb, var(--color-brand-navy) 46%, transparent);
+  --shadow-raised: 0 .5rem 1.5rem color-mix(in srgb, var(--color-brand-navy) 58%, transparent);
   --shadow-dialog: 0 1.5rem 4rem color-mix(in srgb, var(--color-brand-navy) 72%, transparent);
 
 }

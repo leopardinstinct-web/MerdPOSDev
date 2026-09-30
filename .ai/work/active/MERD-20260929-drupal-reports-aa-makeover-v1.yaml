@@ -6,23 +6,48 @@ acceptance:
   - "Primary action buttons use the --gradient-brand-action token with white text >=7.5:1 worst point."
   - "Theme toggle switches light/dark, persists via localStorage, and is reachable from the shell header."
   - "Printing while dark produces readable light output with or without background graphics."
-  - "No new brand literals outside the approved logo-swatch palette; deploy validators stay green."
+  - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus their token-derived states); operational success/warning/danger/info are separate semantic tokens outside the brand palette; the DEV editor's logo-swatch proposals remain preview/handoff only and are not a runtime source; deploy validators stay green."
   - "Lifecycle claims in .ai/memory.md match evidence exactly."
-packet_state: LOCAL_CHECKS_PASS_AWAITING_PR_CI
+packet_state: PR_175_FIX_FORWARD_CODED_AWAITING_REVIEW
 lifecycle: CODED
 base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
-last_seen_head: "71f00dd"
+reviewed_head: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+implementation_sha: "PENDING_COMMIT — ChatGPT must replace this with the immutable commit SHA after the fix-forward commit lands."
+last_seen_head: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+handoff:
+  mode: dual-agent
+  implementer: "Kimi K3"
+  reviewer: "ChatGPT"
+  owner: "product owner"
+  branch: "feature/drupal-reports-aa-makeover-v1"
+  pr: 175
+  base_sha: "7655fbe832c2500227ecd0abc15c5b04663e3a50"
+  head_sha: "PENDING_COMMIT"
+review_state: PENDING
+review_history:
+  - reviewer: "ChatGPT"
+    reviewed_sha: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+    result: "CHANGES_REQUESTED"
+    reason: "Stale canonical palette + stale packet/handoff (historical; fix-forward applied 2026-10-01, fresh review pending)."
 deployed_baseline:
   head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
   lifecycle: "DEPLOYED + VERIFIED"
   evidence: "Server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live WCAG contrast audits empty in light and dark; theme toggle exercised with persistence; mobile clean. GitHub CI runs #72-77 covered the pre-fix-forward range only."
 branch_state:
-  head: "71f00dd"
+  head: "PENDING_COMMIT (fix-forward on top of 5768355be83d24e04e8edc3beafeb3f89bcd03cb)"
   lifecycle: "CODED/WIRED"
-  evidence: "Local validator battery PASS (brand palette, reports v2, search-account-financials, source encoding, global UI primitives, account password, admin roles shell, clean checkout; sync check; AI continuity; git diff --check). Not merged, not deployed, not live-verified. Awaiting PR-triggered CI."
+  evidence: "Fix-forward edits: canonical five-color Namecheap master palette applied to shared token source; packet/handoff truthfulness corrections; reviewer-discovered runtime reconciliation (no global cssVariables() injection in merdpos_app.theme, DEV palette editor relabelled preview/handoff, BrandPaletteManager proposal wording, dev-v2.js page-local attach preview, validate_brand_palette_v1.php re-pointed at five-color master tokens with global-injection fail condition). Not committed, not merged, not deployed, not live-verified."
+impact:
+  business_logic: "NO"
+  database: "NO"
+  authentication_authorization: "NO"
+  deployment_runtime: "YES - shared visual/design-system token source"
+owner_gate:
+  merge_approved: false
+  deploy_approved: false
 constraints:
   - "Visual-only changes: no DB, no business/payroll rules, no authorization changes."
-  - "Brand system stays the approved logo-swatch master palette; no arbitrary literals."
+  - "Brand system stays the binding five-color runtime master palette (navy/cyan/violet family); DEV logo-swatch proposals are preview/handoff only and cannot override it; no arbitrary literals."
   - "design-tokens.css module copy is deploy-synced: edit the canonical source and run sync_merdpos_resources.php before commit."
   - "Theme-toggle and shell contracts in validators must keep passing."
 completed:
@@ -32,6 +57,8 @@ completed:
   - "Dark theme: header toggle wired via existing data-merdpos-theme-toggle hook; dark-normalization refinements (cyan-tint chips with white ink, hairline rings, AA th/eyebrow treatments)."
   - "Deployed to Namecheap Drupal runtime via drupal/tools/namecheap_deploy.sh; live release marker verified at 66bf6d3; live computed-style WCAG audits EMPTY in both themes; toggle + persistence exercised live; mobile 375px clean. GitHub CI runs #72-77 SUCCESS."
   - "Fix-forward: account-menu theme toggle removed (owner request), header toggle gained visually-hidden data-merdpos-theme-label, dark-print token snap added, #fff literals replaced with var(--color-brand-white), gradient literal extracted into --gradient-brand-action."
+  - "PR #175 fix-forward (2026-10-01): stale palette literals #01102B/#0A91FB/#591DE9 replaced with authoritative five-color Namecheap master palette (#FFFFFF/#F5F7FC/#031B4B/#12BDF3/#8B2EFF) in namecheap_beta_live/timesheet_portal/assets/design-tokens.css; packet truthfulness corrected per ChatGPT review."
+  - "PR #175 reviewer-discovered reconciliation (2026-10-01): removed global brand_palette->cssVariables() injection from merdpos_app.theme so canonical design-tokens.css owns the runtime; DEV palette editor relabelled PREVIEW/HANDOFF ONLY with saved-proposal semantics, dev-v2.js previews the saved proposal page-locally on attach; validate_brand_palette_v1.php aligned to the five-color master tokens with a fail condition on any global injection; .ai/invariants.md and .ai/decisions.md record the supersession. Not committed, not pushed, not deployed, not live-verified."
 checks:
   - name: "Namecheap Drupal deploy validators (server-side script)"
     result: "PASS at affe1fa, bef031e, 66bf6d3"
@@ -39,14 +66,15 @@ checks:
     result: "PASS 0 failures light + 0 failures dark at 66bf6d3"
   - name: "GitHub global UI contract runs #72-77"
     result: "SUCCESS"
-  - name: "PR-triggered CI for branch commits"
-    result: "PENDING — repo workflows trigger on PRs to target branches (and target-branch pushes), not on feature-branch pushes; zero workflow runs exist for 71f00dd at time of writing"
+  - name: "PR #175 CI at reviewed head 5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+    result: "SUCCESS — runs 36664768806, 36664768823, 36664768810"
+  - name: "ChatGPT review at 5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+    result: "CHANGES_REQUESTED — stale canonical palette + stale packet/handoff (historical; fix-forward applied 2026-10-01)"
 remaining:
   - "Owner ruling on PR of the makeover toward namecheap-beta-live (Task 3 gate)."
-  - "Palette ruling: logo-swatch palette vs namecheap five-color master palette (align vs record exception) — gates merge because deploy sync would overwrite module token values with the namecheap canonical file."
   - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants."
   - "Evidence pack assembly for owner review."
-next_action: "Owner review of this packet and the fix-forward branch, then merge feature/drupal-reports-aa-makeover-v1 into beta/drupal-webapp via PR; owner decides on the namecheap-beta-live promotion path."
-blocked: true
-blocker: "Owner ruling required on (a) PR/merge path to beta/drupal-webapp and (b) palette alignment decision before any promotion toward namecheap-beta-live."
-updated_at: "2026-09-30T09:05:00+05:00"
+  - "ChatGPT must record the immutable implementation SHA (currently PENDING_COMMIT) after the fix-forward commit lands, and sync drupal/web/modules/custom/merdpos_core/css/design-tokens.css from the canonical portal token file."
+next_action: "ChatGPT independent diff review of the uncommitted fix-forward (including the 2026-10-01 runtime palette override/validator reconciliation), sync of drupal/web/modules/custom/merdpos_core/css/design-tokens.css from the canonical portal token file, prescribed validators, then commit/push only if review passes. Owner merge gate follows after."
+blocked: false
+updated_at: "2026-10-01T00:00:00+05:00"

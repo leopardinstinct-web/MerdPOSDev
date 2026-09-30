@@ -52,8 +52,8 @@
   </section>
 
   <section class="merdpos-dev-card merdpos-dev-palette" id="merdpos-master-palette" data-brand-palette>
-    <header><p>BRAND SYSTEM</p><h2>Master palette</h2></header>
-    <p class="merdpos-dev-palette-intro">DEV controls the global MERDPOS palette. Choices are restricted to approved logo-derived colours. White remains a fixed neutral; red, green and amber are reserved for semantic status states.</p>
+    <header><p>BRAND SYSTEM — PREVIEW / HANDOFF ONLY</p><h2>Palette proposal</h2></header>
+    <p class="merdpos-dev-palette-intro">This editor prepares palette PREVIEW/HANDOFF proposals only; it is not the live master. The binding five-color MERDPOS master palette — White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF — remains authoritative in canonical design tokens until the product owner explicitly accepts a coordinated standards change. Choices are restricted to approved logo-derived colours; red, green and amber stay reserved for semantic status states.</p>
     <form method="post" action="{{ palette_post_url }}" data-brand-palette-form>
       <input type="hidden" name="form_token" value="{{ palette_token }}">
       <div class="merdpos-dev-palette-roles">{% for role, label in palette.role_labels %}<label><span>{{ label }}</span><select name="roles[{{ role }}]" data-palette-role="{{ role }}">{% for entry in palette.entries %}<option value="{{ entry.id }}"{{ palette.roles[role] == entry.id ? ' selected' : '' }}>{{ entry.label }}</option>{% endfor %}</select></label>{% endfor %}</div>
@@ -65,7 +65,7 @@
           <div class="merdpos-dev-palette-order"><button type="submit" name="palette_action" value="move_up:{{ entry.id }}" formnovalidate{{ loop.first ? ' disabled' : '' }}>Up</button><button type="submit" name="palette_action" value="move_down:{{ entry.id }}" formnovalidate{{ loop.last ? ' disabled' : '' }}>Down</button><button type="submit" name="palette_action" value="delete:{{ entry.id }}" class="is-danger" formnovalidate{{ entry.in_use ? ' disabled' : '' }}>Delete</button></div>
         </article>{% endfor %}
       </div>
-      <div class="merdpos-dev-palette-actions"><button type="submit" name="palette_action" value="save">Apply master palette</button><button type="submit" name="palette_action" value="add" class="is-secondary" formnovalidate{{ palette.entries|length >= palette.swatches|length ? ' disabled' : '' }}>Add logo colour</button><button type="submit" name="palette_action" value="reset" class="is-secondary" formnovalidate>Reset defaults</button><span data-palette-preview-status>Changes preview live on this page until applied.</span></div>
+      <div class="merdpos-dev-palette-actions"><button type="submit" name="palette_action" value="save">Save palette proposal</button><button type="submit" name="palette_action" value="add" class="is-secondary" formnovalidate{{ palette.entries|length >= palette.swatches|length ? ' disabled' : '' }}>Add logo colour</button><button type="submit" name="palette_action" value="reset" class="is-secondary" formnovalidate>Reset proposal defaults</button><span data-palette-preview-status>Proposals preview on this page only; the live master palette is unchanged.</span></div>
     </form>
   </section>
 
@@ -127,5 +127,5 @@
     </tbody></table></div>
   </section>
 
-  <footer class="merdpos-dev-footer"><strong>DEV safety boundary</strong><span>Palette writes affect Drupal design-system state only. DevStudio/UI Studio, operational SQL, business data and ordinary authorization state are not writable through this surface.</span></footer>
+  <footer class="merdpos-dev-footer"><strong>DEV safety boundary</strong><span>Palette proposals saved here are preview/handoff state only; they do not affect live design-system state. The binding five-color master palette stays in canonical design tokens. DevStudio/UI Studio, operational SQL, business data and ordinary authorization state are not writable through this surface.</span></footer>
 </section>

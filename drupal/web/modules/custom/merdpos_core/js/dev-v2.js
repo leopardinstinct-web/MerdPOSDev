@@ -34,8 +34,12 @@
             if (hex) root.style.setProperty(variable, hex);
           });
           root.dataset.palettePreview = 'true';
-          if (status) status.textContent = 'Previewing unsaved palette changes on this page.';
+          if (status) status.textContent = 'Previewing palette proposal on this page only.';
         };
+
+        // Preview the saved proposal immediately on the DEV page; this is
+        // page-local only and never persists or applies globally.
+        preview();
 
         form.addEventListener('change', (event) => {
           if (event.target.matches('[data-palette-swatch], [data-palette-role]')) preview();
