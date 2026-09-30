@@ -95,7 +95,7 @@ Suggested app name: `MERDPOS Kimi Bridge`.
 ## Tools
 
 ### `bridge_status`
-Read-only readiness check for the configured repo and Kimi CLI.
+Read-only readiness check for the configured repo and Kimi CLI. It also reports whether a Kimi implementation task is currently active, without exposing the task prompt.
 
 ### `repo_checkout_feature`
 Checks out an existing remote feature/fix/hotfix branch after ensuring the working tree is clean.
@@ -109,6 +109,8 @@ Runs one fresh, non-interactive Kimi Code session against the current feature br
 - no web tools, no Bash, no sub-agents
 
 Use `high` when the handoff still has real multi-file ambiguity. Reserve `max` for genuinely difficult/high-risk implementation reasoning.
+
+Only one Kimi implementation task may run at a time. The bridge rejects concurrent invocations. If ChatGPT or another MCP client times out while waiting for a long Kimi turn, **do not immediately retry**: the local Kimi process may still be running. Call `bridge_status` first; if `kimi_task.active` is true, wait and inspect `repo_diff` as needed. Retry only after the active task has ended and the resulting diff has been reviewed.
 
 ### `repo_diff`
 Returns bounded local `git status` and `git diff` output so ChatGPT can inspect the actual implementation before it is pushed.

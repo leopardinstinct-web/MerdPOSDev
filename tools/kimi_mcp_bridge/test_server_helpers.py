@@ -74,6 +74,33 @@ class GuardTests(unittest.TestCase):
             self.assertEqual(command[-2:], ["-p", "task with spaces & shell chars"])
 
 
+    def test_kimi_task_lock_rejects_concurrent_acquire(self):
+        self.assertTrue(bridge._KIMI_TASK_LOCK.acquire(blocking=False))
+        try:
+            self.assertFalse(bridge._KIMI_TASK_LOCK.acquire(blocking=False))
+        finally:
+            bridge._KIMI_TASK_LOCK.release()
+
+    def test_kimi_task_snapshot_hides_internal_monotonic_timestamp(self):
+        bridge._KIMI_TASK_STATE.clear()
+        bridge._KIMI_TASK_STATE.update({
+            "active": True,
+            "branch": "feature/test",
+            "model": "kimi-code/k3-256k",
+            "effort": "low",
+            "started_monotonic": bridge.time.monotonic(),
+        })
+        try:
+            snapshot = bridge._kimi_task_snapshot()
+            self.assertTrue(snapshot["active"])
+            self.assertIn("elapsed_seconds", snapshot)
+            self.assertNotIn("started_monotonic", snapshot)
+        finally:
+            bridge._KIMI_TASK_STATE.clear()
+            bridge._KIMI_TASK_STATE["active"] = False
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

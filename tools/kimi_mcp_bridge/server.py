@@ -4,13 +4,14 @@ import os
 import re
 import shutil
 import subprocess
+import threading
 import time
 from pathlib import Path
 from typing import Literal
 
 from mcp.server import MCPServer
 
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = "0.2.0"
 FORBIDDEN_BRANCHES = {"main", "namecheap-beta-live", "beta/drupal-webapp"}
 SAFE_BRANCH_PREFIXES = ("feature/", "fix/", "hotfix/")
 FORBIDDEN_PATH_PATTERNS = (
@@ -21,6 +22,18 @@ FORBIDDEN_PATH_PATTERNS = (
     re.compile(r"\.(?:pem|key|p12|pfx|jks|keystore)$", re.I),
     re.compile(r"(^|/)config\.php$", re.I),
 )
+
+_KIMI_TASK_LOCK = threading.Lock()
+_KIMI_TASK_STATE: dict[str, object] = {"active": False}
+
+
+def _kimi_task_snapshot() -> dict[str, object]:
+    snapshot = dict(_KIMI_TASK_STATE)
+    started = snapshot.pop("started_monotonic", None)
+    if snapshot.get("active") and isinstance(started, (int, float)):
+        snapshot["elapsed_seconds"] = round(max(0.0, time.monotonic() - started), 1)
+    return snapshot
+
 
 mcp = MCPServer(
     "merdpos-kimi-bridge",
@@ -168,6 +181,7 @@ def bridge_status() -> dict[str, object]:
         "working_tree_changes": len(_status_paths()),
         "kimi_cli_available": kimi_available,
         "kimi_cli_version": kimi_version,
+        "kimi_task": _kimi_task_snapshot(),
     }
 
 
@@ -241,39 +255,60 @@ def kimi_implement_task(
         cmd += ["-m", model]
     cmd += ["-p", wrapped]
 
-    started = time.monotonic()
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=root,
-            env=env,
-            text=True,
-            capture_output=True,
-            timeout=timeout_seconds,
-            check=False,
-            shell=False,
+    if not _KIMI_TASK_LOCK.acquire(blocking=False):
+        raise RuntimeError(
+            "Another Kimi implementation task is already running. Do not retry concurrently; "
+            "check bridge_status and inspect repo_diff instead."
         )
-    except subprocess.TimeoutExpired as exc:
-        return {
-            "ok": False,
-            "branch": branch,
-            "timed_out": True,
-            "elapsed_seconds": round(time.monotonic() - started, 1),
-            "assistant_output": _truncate(exc.stdout or "", 16000),
-            "diagnostic": "Kimi task timed out. Inspect repo_diff before deciding whether to retry.",
-        }
 
-    return {
-        "ok": result.returncode == 0,
+    started = time.monotonic()
+    _KIMI_TASK_STATE.clear()
+    _KIMI_TASK_STATE.update({
+        "active": True,
         "branch": branch,
         "model": model,
         "effort": effort,
-        "exit_code": result.returncode,
-        "elapsed_seconds": round(time.monotonic() - started, 1),
-        "assistant_output": _truncate(result.stdout, 24000),
-        "diagnostic": "" if result.returncode == 0 else _truncate(_redact(result.stderr), 8000),
-        "changed_paths": _status_paths(),
-    }
+        "started_monotonic": started,
+    })
+    try:
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=timeout_seconds,
+                check=False,
+                shell=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            return {
+                "ok": False,
+                "branch": branch,
+                "timed_out": True,
+                "elapsed_seconds": round(time.monotonic() - started, 1),
+                "assistant_output": _truncate(exc.stdout or "", 16000),
+                "diagnostic": (
+                    "Kimi task timed out inside the bridge. Inspect repo_diff before deciding whether to retry."
+                ),
+            }
+
+        return {
+            "ok": result.returncode == 0,
+            "branch": branch,
+            "model": model,
+            "effort": effort,
+            "exit_code": result.returncode,
+            "elapsed_seconds": round(time.monotonic() - started, 1),
+            "assistant_output": _truncate(result.stdout, 24000),
+            "diagnostic": "" if result.returncode == 0 else _truncate(_redact(result.stderr), 8000),
+            "changed_paths": _status_paths(),
+        }
+    finally:
+        _KIMI_TASK_STATE.clear()
+        _KIMI_TASK_STATE["active"] = False
+        _KIMI_TASK_LOCK.release()
 
 
 @mcp.tool()
