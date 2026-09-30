@@ -17,18 +17,23 @@
 .merdpos-app :where(button):disabled{opacity:.5;cursor:not-allowed}
 .merdpos-app :where(button,a[href],input,select,textarea):focus-visible{outline:3px solid var(--color-focus-soft);outline-offset:2px}
 
-/* Default submit/action grammar. Component-specific icon/menu buttons may override this deliberately. */
-.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn){
+/* Default submit/action grammar: one shared labeled action. Component-specific icon/menu buttons may override this deliberately. */
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn,.merdpos-report-action){
   min-height:var(--size-control);padding:var(--space-2) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);
-  background:var(--gradient-brand-action);color:var(--color-brand-white);font:inherit;font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
+  background:var(--gradient-brand-action);color:var(--color-brand-white);font:inherit;font-size:var(--type-sm);font-weight:var(--weight-bold);line-height:1.2;box-shadow:var(--shadow-action);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);text-decoration:none;
   transition:box-shadow var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard),filter var(--duration-fast) var(--ease-standard)
 }
-.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}
-.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn):not(:disabled):active{box-shadow:none;transform:translateY(1px)}
-.merdpos-app :is(button.merdpos-ui-button--secondary,button.merdpos-btn--secondary,button.is-secondary){border-color:var(--color-border-default);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:none;filter:none}
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn,.merdpos-report-action):not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}
+.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn,.merdpos-report-action):not(:disabled):active{box-shadow:none;transform:translateY(1px)}
+.merdpos-app :is(button.merdpos-ui-button--secondary,button.merdpos-btn--secondary,button.is-secondary,.merdpos-report-action){border-color:var(--color-border-default);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:none;filter:none}
 .merdpos-app :is(button.merdpos-ui-button--danger,button.merdpos-btn--danger,button.is-danger,button.is-reject){border-color:color-mix(in srgb,var(--color-danger) 35%,var(--color-border-default));background:var(--color-danger-surface);color:var(--color-danger);box-shadow:none;filter:none}
 .merdpos-app :is(button.merdpos-ui-button--success,button.is-approve){border-color:color-mix(in srgb,var(--color-success) 35%,var(--color-border-default));background:var(--color-success-surface);color:var(--color-success);box-shadow:none;filter:none}
 .merdpos-app :is(button.merdpos-ui-button--ghost){border-color:transparent;background:transparent;color:var(--color-text-secondary);box-shadow:none;filter:none}
+/* Explicit shared size variants: compact and square icon-only. No arbitrary local geometry. */
+.merdpos-app :is(.merdpos-ui-button--compact,.merdpos-btn--compact){min-height:var(--size-control-compact)}
+.merdpos-app :is(.merdpos-ui-button--icon,.merdpos-btn--icon){width:var(--size-control);min-width:var(--size-control);padding:0}
+.merdpos-app :is(.merdpos-ui-button--compact,.merdpos-btn--compact):is(.merdpos-ui-button--icon,.merdpos-btn--icon){width:var(--size-control-compact);min-width:var(--size-control-compact)}
 .merdpos-app .merdpos-dialog-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);padding-top:var(--space-2)}
 .merdpos-app [hidden]{display:none!important}
 
@@ -42,16 +47,16 @@
 
 /* KPI grammar: one card, icon, label, value and meta treatment everywhere. */
 .merdpos-app :is(.merdpos-kpi,.merdpos-dashboard-kpi,.merdpos-ops-kpi,.merdpos-reports-kpi,.merdpos-finance-kpi,.merdpos-dev-kpi,.merdpos-disputes-kpis>article){
-  padding:var(--space-4);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:var(--shadow-card)
+  min-height:7rem;padding:var(--space-4);border:1px solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-surface-main);color:var(--color-text-primary);box-shadow:var(--shadow-card)
 }
 .merdpos-app :is(.merdpos-kpi-icon,.merdpos-dashboard-kpi-icon,.merdpos-ops-kpi-icon,.merdpos-reports-kpi-icon,.merdpos-finance-kpi-icon){
   width:var(--size-control);height:var(--size-control);min-width:var(--size-control);border-radius:var(--radius-control)
 }
-.merdpos-app :is(.merdpos-kpi-label,.merdpos-dashboard-kpi-copy>span,.merdpos-ops-kpi div>span,.merdpos-reports-kpi div>span,.merdpos-finance-kpi small,.merdpos-dev-kpi small,.merdpos-disputes-kpis article>span){
+.merdpos-app :is(.merdpos-kpi-label,.merdpos-dashboard-kpi-copy>span,.merdpos-ops-kpi div>span,.merdpos-reports-kpi div>span,.merdpos-reports-kpi-stat-label,.merdpos-finance-kpi small,.merdpos-dev-kpi small,.merdpos-disputes-kpis article>span){
   color:var(--color-text-muted);font-size:var(--type-xs);font-weight:var(--weight-bold);line-height:var(--line-heading)
 }
 .merdpos-app :is(.merdpos-kpi-value,.merdpos-dashboard-kpi-copy>strong,.merdpos-ops-kpi div>strong,.merdpos-reports-kpi div>strong,.merdpos-reports-kpi-stat-value,.merdpos-finance-kpi div>strong,.merdpos-dev-kpi strong,.merdpos-disputes-kpis article>strong){
-  color:var(--color-text-primary)!important;font-size:var(--type-2xl);font-weight:var(--weight-bold);line-height:var(--line-tight)
+  color:var(--color-text-primary)!important;font-size:var(--type-2xl);font-weight:var(--weight-bold);line-height:var(--line-tight);font-variant-numeric:tabular-nums
 }
 .merdpos-app :is(.merdpos-kpi-meta,.merdpos-dashboard-kpi-copy>small,.merdpos-ops-kpi div>small,.merdpos-reports-kpi div>small,.merdpos-finance-kpi div>span,.merdpos-dev-kpi span,.merdpos-disputes-kpis article>small){
   color:var(--color-text-muted);font-size:var(--type-xs);line-height:var(--line-body)
@@ -93,7 +98,7 @@
 .merdpos-ui-empty{margin:0;padding:var(--space-5);border:1px dashed var(--color-border-default);border-radius:var(--radius-card);background:var(--color-surface-muted);color:var(--color-text-muted);text-align:center}
 
 @media(max-width:51.25rem){
-  .merdpos-app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,button[type="submit"],input[type="submit"],.merdpos-ui-button){min-height:var(--size-touch)}
+  .merdpos-app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn,a.merdpos-report-action){min-height:var(--size-touch)}
 }
 @media(prefers-reduced-motion:reduce){
   .merdpos-app :where(input,select,textarea,button,tbody tr){transition:none}

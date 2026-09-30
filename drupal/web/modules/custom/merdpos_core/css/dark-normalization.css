@@ -46,24 +46,24 @@
   background: var(--color-surface-selected) !important;
 }
 
-:root[data-theme="dark"] :is(.merdpos-dashboard-live,.merdpos-ops-live,.merdpos-ops-dispute-bell,.merdpos-reports-live) {
+:root[data-theme="dark"] :is(.merdpos-ops-live,.merdpos-ops-dispute-bell) {
   background: var(--color-surface-raised) !important;
   border-color: var(--color-border-default) !important;
   box-shadow: var(--shadow-card) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-panel-head,.merdpos-ops-panel>header,.merdpos-report-table-card>header,.merdpos-report-chart-card>header,.merdpos-finance-panel>header,.merdpos-dev-card>header) {
+:root[data-theme="dark"] :is(.merdpos-ops-panel>header,.merdpos-dev-card>header) {
   background: var(--color-surface-muted) !important;
   border-color: var(--color-border-subtle) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-person,.merdpos-dashboard-ranking li,.merdpos-ops-person,.merdpos-ops-store-cards>div,.merdpos-admin-editor[open] summary) {
+:root[data-theme="dark"] :is(.merdpos-ops-person,.merdpos-ops-store-cards>div,.merdpos-admin-editor[open] summary) {
   background: var(--color-surface-muted) !important;
   border-color: var(--color-border-subtle) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-kpi-icon,.merdpos-dashboard-panel-icon,.merdpos-ops-kpi-icon,.merdpos-ops-panel-icon) {
+:root[data-theme="dark"] :is(.merdpos-ops-kpi-icon,.merdpos-ops-panel-icon) {
   background: var(--color-surface-selected) !important;
   color: var(--color-brand-cyan) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-dashboard-footer-tags span,.merdpos-ops-footer,.merdpos-reports-footer,.merdpos-finance-footer,.merdpos-dev-footer) {
+:root[data-theme="dark"] :is(.merdpos-ops-footer,.merdpos-reports-footer,.merdpos-dev-footer) {
   background: var(--color-surface-muted) !important;
   border-color: var(--color-border-subtle) !important;
   color: var(--color-text-secondary) !important;
@@ -76,8 +76,6 @@
 }
 
 :root[data-theme="dark"] .merdpos-finance-v2{--fin-ink:var(--color-text-primary);--fin-muted:var(--color-text-muted);--fin-border:var(--color-border-subtle);--fin-blue:var(--color-brand-cyan);--fin-cyan:var(--color-brand-cyan);--fin-green:var(--color-success);--fin-amber:var(--color-warning)}
-:root[data-theme="dark"] :is(.merdpos-finance-capabilities span,.merdpos-finance-state,.merdpos-finance-account,.merdpos-finance-account dl div,.merdpos-finance-alerts){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-primary)!important}
-:root[data-theme="dark"] .merdpos-finance-alerts strong,:root[data-theme="dark"] .merdpos-finance-alerts ul{color:var(--color-warning)!important}
 :root[data-theme="dark"] :is(.merdpos-dev-context-flags span,.merdpos-dev-live,.merdpos-dev-source-grid>div,.merdpos-dev-chip){background:var(--color-surface-raised)!important;border-color:var(--color-border-default)!important;color:var(--color-text-secondary)!important}
 :root[data-theme="dark"] .merdpos-dev-v2 :is(h1,h2,strong,dd,.merdpos-dev-context-code){color:var(--color-text-primary)!important}
 :root[data-theme="dark"] .merdpos-dev-v2 :is(p,small,span,dt,code){color:var(--color-text-muted)}
@@ -86,7 +84,7 @@
 
 /* Dark v2: normalize legacy light-only cards and the Reports hero typo. */
 
-:root[data-theme="dark"] :is(.merdpos-reports-filters,.merdpos-reports-kpi,.merdpos-report-chart-card,.merdpos-report-table-card,.merdpos-ops-filters,.merdpos-ops-kpi,.merdpos-ops-panel,.merdpos-finance-filters,.merdpos-finance-kpi,.merdpos-finance-chart-card,.merdpos-finance-panel,.merdpos-finance-table-card) {
+:root[data-theme="dark"] :is(.merdpos-ops-filters,.merdpos-ops-kpi,.merdpos-ops-panel) {
   background: var(--color-surface-main) !important;
   border-color: var(--color-border-subtle) !important;
   box-shadow: var(--shadow-card) !important;
@@ -96,56 +94,25 @@
   border-color: var(--color-border-default) !important;
   color: var(--color-text-primary) !important;
 }
-:root[data-theme="dark"] .merdpos-report-action,
-:root[data-theme="dark"] .merdpos-report-action span {
-  background: var(--color-surface-raised) !important;
-  border-color: var(--color-border-default) !important;
-  color: var(--color-brand-cyan) !important;
-}
-:root[data-theme="dark"] :is(.merdpos-reports-copy h1,.merdpos-reports-kpi strong,.merdpos-report-chart-card h2,.merdpos-report-table-card h2,.merdpos-ops-kpi strong,.merdpos-ops-panel h2,.merdpos-finance-kpi strong,.merdpos-finance-chart-card h2,.merdpos-finance-panel h2,.merdpos-finance-table-card h2) {
+:root[data-theme="dark"] :is(.merdpos-ops-kpi strong,.merdpos-ops-panel h2) {
   color: var(--color-text-primary) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-reports-copy>p:not(.merdpos-eyebrow),.merdpos-reports-kpi small,.merdpos-report-chart-card p,.merdpos-ops-kpi small,.merdpos-ops-panel header p,.merdpos-finance-kpi span,.merdpos-finance-filter-intro span) {
+:root[data-theme="dark"] :is(.merdpos-ops-kpi small,.merdpos-ops-panel header p) {
   color: var(--color-text-muted) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-report-chart-card>header,.merdpos-report-table-card>header,.merdpos-ops-panel>header) {
+:root[data-theme="dark"] :is(.merdpos-ops-panel>header) {
   background: var(--color-surface-muted) !important;
   border-color: var(--color-border-subtle) !important;
 }
-:root[data-theme="dark"] :is(.merdpos-report-count,.merdpos-reports-kpi-icon,.merdpos-report-chart-card>header>span,.merdpos-finance-kpi-icon,.merdpos-finance-entry-type) {
-  background: var(--color-surface-selected) !important;
-  color: var(--color-brand-cyan) !important;
-}
 
-:root[data-theme="dark"] :is(.merdpos-timesheet-dialog-close,.merdpos-timesheet-action-trigger,.merdpos-timesheet-mode-switch button,.merdpos-timesheet-status) {
-  background: var(--color-surface-raised) !important;
-  color: var(--color-text-primary) !important;
-  border-color: var(--color-border-default) !important;
-}
-:root[data-theme="dark"] .merdpos-timesheet-mode-switch button.is-active {
-  background: var(--color-brand-cyan) !important;
-  color: var(--color-ink-on-brand, #07131f) !important;
-}
-:root[data-theme="dark"] .merdpos-timesheet-status > span { color: var(--color-warning) !important; }
+/* Timesheet dialog chrome now inherits the shared token-based dialog shell. */
 
-:root[data-theme="dark"] .merdpos-timesheet-action-menu {
-  background:var(--color-surface-main) !important;
-  border-color:var(--color-border-default) !important;
-  box-shadow:var(--shadow-raised) !important;
-}
-:root[data-theme="dark"] .merdpos-timesheet-action-menu button { color:var(--color-text-primary) !important; }
-:root[data-theme="dark"] .merdpos-timesheet-action-menu button:hover,
-:root[data-theme="dark"] .merdpos-timesheet-action-menu button:focus-visible { background:var(--color-surface-selected) !important; }
-
-/* Makeover surfaces: keep gradient primary actions and KPI chips legible on dark cards. */
-:root[data-theme="dark"] :is(.merdpos-reports-filters button,.merdpos-timesheet-dialog button[type="submit"],.merdpos-timesheet-mode-switch button.is-active,.merdpos-app :is(button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn),.merdpos-btn,.merdpos-login-submit) {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-white) 20%, transparent), var(--shadow-action) !important;
-}
-:root[data-theme="dark"] :is(.merdpos-reports-kpi-icon,.merdpos-account-avatar) {
+/* Shared action appearance is token/primitive-owned in dark mode; only shell-avatar emphasis remains here. */
+:root[data-theme="dark"] .merdpos-account-avatar {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-white) 18%, transparent), 0 .3rem .9rem color-mix(in srgb, var(--color-brand-navy) 30%, transparent);
 }
 /* Makeover accents: cyan-on-dark is below AA for small text; use cyan-tint chips with white ink. */
-:root[data-theme="dark"] :is(.merdpos-report-action,.merdpos-report-action span,.merdpos-report-count,.merdpos-report-chart-card>header>span) {
+:root[data-theme="dark"] :is(.merdpos-report-count,.merdpos-report-chart-card>header>span) {
   background: color-mix(in srgb, var(--color-brand-cyan) 16%, var(--color-surface-raised)) !important;
   color: var(--color-brand-white) !important;
   border-color: color-mix(in srgb, var(--color-brand-cyan) 32%, transparent) !important;
@@ -183,7 +150,7 @@
     --shadow-dialog: 0 0 0 transparent;
     --shadow-action: 0 0 0 transparent;
   }
-  :root[data-theme="dark"] :is(.merdpos-report-action,.merdpos-report-action span,.merdpos-report-count,.merdpos-report-chart-card>header>span) {
+  :root[data-theme="dark"] :is(.merdpos-report-count,.merdpos-report-chart-card>header>span) {
     background: color-mix(in srgb, var(--color-brand-cyan) 12%, var(--color-brand-white)) !important;
     color: var(--color-brand-navy) !important;
     border-color: color-mix(in srgb, var(--color-brand-navy) 12%, transparent) !important;

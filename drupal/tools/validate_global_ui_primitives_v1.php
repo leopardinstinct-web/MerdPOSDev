@@ -56,5 +56,60 @@ foreach (['dashboard','operations','reports','finance','dev','administration','d
 }
 if (str_contains($darkCss, ':is(.merdpos-ops-filters button,.merdpos-reports-filters button)')) $errors[] = 'dark normalization must not override canonical primary filter actions';
 if (preg_match('/#[0-9a-fA-F]{3,8}\b/', $css)) $errors[] = 'global UI primitives must use semantic design tokens, not literal colours';
+
+/* Standardized component contract v1: shared actions, KPI grammar, one dialog shell, slim dark layer. */
+foreach ([
+  'min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'shared labeled action must derive height/padding from tokens',
+  'border-radius:var(--radius-control)' => 'shared labeled action must use --radius-control',
+  'font-size:var(--type-sm)' => 'shared labeled action must use --type-sm',
+  'a.merdpos-report-action' => 'Timesheets PDF action must be a shared secondary action',
+  '.merdpos-ui-button--icon' => 'shared icon-only size variant missing',
+  '.merdpos-ui-button--compact' => 'shared compact size variant missing',
+  'min-height:7rem' => 'shared KPI shell minimum height missing',
+  '.merdpos-reports-kpi-stat-label' => 'compound KPI stat label must join shared label grammar',
+  '.merdpos-reports-kpi-stat-value' => 'compound KPI stat value must join shared value grammar',
+] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
+
+$reportsCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
+foreach (['padding:.82rem .86rem', '.merdpos-timesheet-dialog-close', 'min-height:2.6rem', 'min-height: 2.8rem; padding: .65rem .9rem'] as $forbidden) {
+  if (str_contains($reportsCss, $forbidden)) $errors[] = "reports-v2.css reintroduces local KPI/dialog/action geometry ($forbidden)";
+}
+$financeCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/finance-v2.css');
+foreach (['border-radius:1.3rem', 'background:#fff', 'rgba(24,54,98', 'font-size:clamp(1.2rem,2vw,1.7rem)'] as $forbidden) {
+  if (str_contains($financeCss, $forbidden)) $errors[] = "finance-v2.css reintroduces a local KPI surface/type system ($forbidden)";
+}
+if (!str_contains($financeCss, 'align-self:end')) $errors[] = 'finance action cards must not grid-stretch shared buttons';
+$dashboardCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/dashboard-v2.css');
+foreach (['min-height: 10.5rem', 'border-radius: 1.2rem', '#17386f'] as $forbidden) {
+  if (str_contains($dashboardCss, $forbidden)) $errors[] = "dashboard-v2.css reintroduces local KPI/button geometry ($forbidden)";
+}
+
+$shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
+foreach (['.merdpos-ui-dialog', '--radius-dialog', '--color-overlay', '90dvh', 'overflow:auto'] as $needle) {
+  if (!str_contains($shellCss, $needle)) $errors[] = "app-shell.css: canonical dialog shell missing ($needle)";
+}
+if (!preg_match('/\.merdpos-btn\{([^}]*)\}/s', $shellCss, $shellButton)) {
+  $errors[] = 'app-shell.css: shell-level .merdpos-btn contract missing';
+} else {
+  foreach (['min-height:var(--size-control)', 'padding:var(--space-2) var(--space-4)', 'border-radius:var(--radius-control)', 'background:var(--gradient-brand-action)', 'color:var(--color-brand-white)', 'font-size:var(--type-sm)', 'gap:var(--space-2)'] as $needle) {
+    if (!str_contains($shellButton[1], $needle)) $errors[] = "app-shell.css: shell-level .merdpos-btn drift ($needle)";
+  }
+}
+if (!preg_match('/\.merdpos-dialog-close\{([^}]*)\}/s', $shellCss, $closeButton) || !str_contains($closeButton[1] ?? '', 'width:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'height:var(--size-control)') || !str_contains($closeButton[1] ?? '', 'border-radius:var(--radius-control)')) {
+  $errors[] = 'app-shell.css: shared dialog close control must derive square geometry from --size-control/--radius-control';
+}
+$page = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
+if (!str_contains($page, 'merdpos-ui-dialog merdpos-password-dialog')) $errors[] = 'password dialog must participate in the shared merdpos-ui-dialog shell';
+$reportsTpl = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-reports.html.twig');
+if (!str_contains($reportsTpl, 'merdpos-ui-dialog--wide')) $errors[] = 'timesheet dialog must use the shared wide dialog shell';
+if (!str_contains($reportsTpl, 'merdpos-dialog-close')) $errors[] = 'timesheet dialog must use the shared square close control';
+
+if (str_contains($darkCss, ':root[data-theme="dark"] :is(.merdpos-reports-filters button')) $errors[] = 'dark normalization must not broadly repaint shared labeled actions';
+foreach ([
+  '.merdpos-report-action' => 'dark normalization must not repaint the shared secondary PDF action',
+  'merdpos-timesheet-dialog-close' => 'dark normalization must not repaint the shared dialog close control',
+  '.merdpos-reports-kpi,' => 'dark normalization must not repaint shared KPI shells',
+  '.merdpos-finance-kpi,' => 'dark normalization must not repaint shared KPI shells',
+] as $forbidden => $message) if (str_contains($darkCss, $forbidden)) $errors[] = $message;
 if ($errors) { foreach ($errors as $error) fwrite(STDERR, "GLOBAL_UI_CONTRACT_FAIL: $error\n"); exit(1); }
 echo "Global UI primitive contract OK: all live surfaces inherit canonical controls/actions, cards/widgets, tables, states and responsive touch targets.\n";
