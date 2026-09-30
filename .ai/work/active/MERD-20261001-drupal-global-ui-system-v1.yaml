@@ -8,7 +8,7 @@ acceptance:
   - "Dark theme uses one shared surface/text/border hierarchy across Dashboard, Timesheets, Financials, Admin and dialogs; feature CSS must not create page-specific dark visual systems."
   - "No business logic, payroll, DB, authentication or authorization behavior changes."
   - "Rendered desktop and 390px mobile screenshots in light and dark must show no obvious visual drift, overflow, clipping or stranded controls before VERIFIED."
-packet_state: PR_176_MERGED_AWAITING_DEPLOY_APPROVAL
+packet_state: DEPLOY_APPROVED_AWAITING_DRUPAL_DEPLOY
 lifecycle: WIRED
 base_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
 last_seen_head: "0d1acc25ce5e0dc6489bfc3955fe89f667aea2a6"
@@ -141,12 +141,12 @@ checks:
     evidence: "Product owner explicitly approved merge; GitHub merged reviewed head 82dc6167a4249a2917d3f4d11e0f9f8b20938114 into beta/drupal-webapp as 82113d3e6f2b7e27b76190bf086aad6ef6258c6f. No deployment performed."
 owner_gate:
   merge_approved: true
-  deploy_approved: false
+  deploy_approved: true
 remaining:
   - "PR #176 merged into beta/drupal-webapp after explicit product-owner approval as merge commit 82113d3e6f2b7e27b76190bf086aad6ef6258c6f."
   - "Deployment remains a separate owner gate. After any later deployment approval, capture rendered after-screenshots on the live candidate and compare desktop/mobile light/dark component geometry before VERIFIED."
-  - "Owner deploy gate remains false."
-next_action: "Await explicit product-owner deployment approval. Do not deploy automatically. After any later deployment approval, use the established Drupal server-side deployment path and perform rendered desktop/mobile light/dark verification before VERIFIED."
-blocked: true
-blocker: "PR #176 is merged. Deployment remains blocked because deploy_approved=false."
-updated_at: "2026-10-01T04:52:58+05:00"
+  - "Product owner explicitly approved deployment of beta/drupal-webapp merge commit 82113d3e6f2b7e27b76190bf086aad6ef6258c6f."
+next_action: "Deploy exact beta/drupal-webapp head 82113d3e6f2b7e27b76190bf086aad6ef6258c6f through the established Paramiko/server-side Drupal deployment path, then perform rendered desktop + 390px mobile light/dark verification before VERIFIED."
+blocked: false
+blocker: null
+updated_at: "2026-10-01T04:54:00+05:00"
