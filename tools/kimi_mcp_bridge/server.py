@@ -63,6 +63,13 @@ def _resolve_kimi_cli() -> str:
     )
 
 
+def _kimi_command(*args: str) -> list[str]:
+    cli = _resolve_kimi_cli()
+    if os.name == "nt" and cli.lower().endswith((".cmd", ".bat")):
+        return ["cmd.exe", "/d", "/s", "/c", cli, *args]
+    return [cli, *args]
+
+
 def _run(args: list[str], *, timeout: int = 120, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
@@ -139,7 +146,7 @@ def bridge_status() -> dict[str, object]:
     branch = _current_branch()
     try:
         kimi_cli = _resolve_kimi_cli()
-        kimi = subprocess.run([kimi_cli, "--version"], text=True, capture_output=True, check=False, shell=False)
+        kimi = subprocess.run(_kimi_command("--version"), text=True, capture_output=True, check=False, shell=False)
         kimi_available = kimi.returncode == 0
         kimi_version = (kimi.stdout or kimi.stderr).strip()[:500]
     except RuntimeError as exc:
@@ -220,8 +227,7 @@ def kimi_implement_task(
         "runtime verification.\n\nTASK:\n" + task.strip()
     )
 
-    kimi_cli = _resolve_kimi_cli()
-    cmd = [kimi_cli, "--agent-file", str(agent_file)]
+    cmd = _kimi_command("--agent-file", str(agent_file))
     if model != "default":
         cmd += ["-m", model]
     cmd += ["-p", wrapped]
