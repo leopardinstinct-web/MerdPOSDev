@@ -45,6 +45,26 @@ For questions about why earlier work behaved or failed a certain way, current so
 
 Follow `.ai/task-gates.md` for the full contract.
 
+## Dual-agent implementation/review rule
+
+When the product owner uses Kimi K3 and ChatGPT together for MERDPOS, the default role split is:
+
+- **Kimi K3 — IMPLEMENTER:** inspect the current authoritative source/history, implement the scoped change, run available targeted checks, commit/push the work and provide Git evidence.
+- **ChatGPT — INDEPENDENT REVIEWER / RELEASE GATE:** inspect the actual Git diff, affected-path history, test/CI evidence, security/business-rule impact and deployment implications. Do not accept an implementer summary as proof.
+- **Product owner — APPROVAL AUTHORITY:** decides whether a reviewed change may merge or deploy unless that decision is explicitly delegated for the specific task.
+
+This is a role contract, not a model-trust shortcut. In dual-agent mode:
+
+- the implementer and reviewer must identify themselves in the task/work-packet handoff;
+- the reviewer reviews a concrete immutable SHA/PR, not an uncommitted workspace description;
+- the implementer must not act as its own independent reviewer or close its own dual-agent work as **VERIFIED** solely from its own execution/evidence;
+- the implementer may record deployment/runtime observations, but dual-agent **VERIFIED** requires the independent reviewer to inspect the exact reviewed SHA plus the evidence required by `.ai/task-gates.md`;
+- if the reviewer changes implementation code while reviewing, that reviewer has become an implementer for those changes and a fresh independent review is required before dual-agent verification;
+- review findings should be handed back to the implementer for correction rather than silently rewriting the implementation branch during review;
+- neither agent may place passwords, API keys, SSH private keys, cookies, database credentials or other secrets in Git, prompts, work packets or handoff records.
+
+Use `.ai/work/HANDOFF_TEMPLATE.yaml` for non-trivial dual-agent work. Git and committed work-packet state are the communication channel between agents; chat summaries are supplementary only.
+
 ## Resumable work rule
 
 For non-trivial work that spans multiple meaningful checkpoints, tools/environments, deployment/verification stages, or is likely to continue across chats, use `.ai/work/` as the canonical mid-task state layer.

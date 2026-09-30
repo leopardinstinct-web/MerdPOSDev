@@ -84,6 +84,31 @@ When the product owner says `implement`, `fix`, `apply`, `do it`, `start`, `cont
 
 A user request to explain, review or diagnose does not by itself authorize a code change. Once the user explicitly asks to implement, the execution gate applies.
 
+## Gate 2.5 — Independent implementer/reviewer handoff
+
+When more than one AI/coding agent participates in a task, or the product owner invokes the Kimi K3 + ChatGPT workflow, use an explicit implementer/reviewer handoff.
+
+Default MERDPOS dual-agent assignment unless the product owner states otherwise:
+
+- **Kimi K3 = IMPLEMENTER**
+- **ChatGPT = INDEPENDENT REVIEWER / RELEASE GATE**
+- **Product owner = merge/deploy approval authority**
+
+For non-trivial dual-agent work, copy the relevant fields from `.ai/work/HANDOFF_TEMPLATE.yaml` into the active work packet or maintain an equivalent committed handoff record. It must identify the implementer, reviewer, branch/PR, base SHA, exact head SHA under review, changed paths, business/database/auth impact, checks actually run, deployment state, known risks/open decisions and reviewer status.
+
+The handoff is evidence routing, not evidence itself:
+
+- the implementer may claim **CODED/WIRED** only with the normal Gate 3 source evidence;
+- the reviewer must inspect the actual immutable Git SHA/PR and relevant history/diff rather than trusting the implementation report;
+- CI green proves only the checks that ran;
+- the implementer may record deployment/runtime observations but must not independently close dual-agent work as **VERIFIED**;
+- dual-agent **VERIFIED** requires the independent reviewer to review the exact SHA plus the deployment/runtime evidence required by Gate 3;
+- if the reviewer edits implementation code, reviewer independence is consumed for those edits and a fresh independent review is required;
+- unresolved review findings return to the implementer; do not merge/deploy merely to continue iteration;
+- no agent may expose or commit secrets in a handoff, packet, prompt, test artifact or repository file.
+
+The product owner may explicitly override role assignment or authorize a different merge/deploy path for a specific task. Record such an override in the work packet or PR so a later session does not infer it from chat.
+
 ## Gate 3 — Evidence required for lifecycle claims
 
 Use the project lifecycle exactly:

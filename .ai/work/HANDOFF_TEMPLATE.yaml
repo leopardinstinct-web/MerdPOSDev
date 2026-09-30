@@ -1,0 +1,38 @@
+version: 1
+task_id: MERD-YYYYMMDD-short-name
+handoff:
+  mode: dual-agent
+  implementer: "Kimi K3"
+  reviewer: "ChatGPT"
+  owner: "product owner"
+  branch: null
+  pr: null
+  base_sha: null
+  head_sha: null
+changed_paths: []
+impact:
+  business_logic: "NO | YES - describe"
+  database: "NO | YES - describe"
+  authentication_authorization: "NO | YES - describe"
+  deployment_runtime: "NO | YES - describe"
+implementation:
+  lifecycle_claim: "DOCUMENTED | CODED | WIRED | DEPLOYED"
+  checks: []
+  deployment_performed: false
+  deployment_evidence: null
+  known_risks: []
+  open_decisions: []
+review:
+  status: "PENDING | CHANGES_REQUESTED | PASS"
+  reviewed_sha: null
+  git_diff_history_checked: false
+  ci_checks_checked: false
+  security_business_rules_checked: false
+  runtime_evidence_checked: false
+  findings: []
+  lifecycle_after_review: null
+owner_gate:
+  merge_approved: false
+  deploy_approved: false
+notes:
+  - "Never store credentials, API keys, SSH keys, cookies, database secrets or private user data here."

@@ -9,6 +9,7 @@ Work packets complement the durable `.ai` project brain. They do not replace cur
 - `ACTIVE.yaml` — small index of packets that are currently resumable/in progress.
 - `active/<task-id>.yaml` — one packet per active non-trivial task.
 - `archive/<task-id>.yaml` — closed packet retained as execution provenance when useful.
+- `HANDOFF_TEMPLATE.yaml` — reusable implementer/reviewer evidence handoff for non-trivial dual-agent work.
 
 ## When a packet is required
 
@@ -64,6 +65,20 @@ updated_at: "ISO-8601 timestamp with offset when known"
 ```
 
 Optional fields such as `commits`, `deployment_evidence`, `verification_evidence`, `related_packets`, or `notes` may be added when they reduce future reconstruction. Keep them factual and compact.
+
+## Dual-agent handoff
+
+When Kimi K3 and ChatGPT (or any two agents) participate in the same non-trivial task, preserve the separation between implementation and independent review.
+
+Default MERDPOS pairing:
+
+- Kimi K3: implementer.
+- ChatGPT: independent reviewer / release gate.
+- Product owner: merge/deploy approval authority.
+
+Start from `HANDOFF_TEMPLATE.yaml` or copy its `handoff`, `impact`, `implementation`, `review` and `owner_gate` fields into the task's active packet. The reviewer must pin the exact `head_sha` it reviewed. A review of one SHA does not automatically cover later commits.
+
+The implementation report points the reviewer to evidence; it does not replace independent Git/diff/history inspection. If the reviewer changes implementation code, a fresh independent review is required for the resulting SHA.
 
 ## Checkpoint discipline
 
