@@ -98,7 +98,7 @@
                   <label class="is-wide">Financial Spreadsheet ID<input name="financial_spreadsheet_id" value="${esc(financial.spreadsheet_id || '')}" autocomplete="off" spellcheck="false" placeholder="Leave blank until the Financial source is configured"></label>
                   <label class="is-wide">Financial tab names<textarea name="financial_sheets" placeholder="One tab per line, e.g. Cash In&#10;Cash Out&#10;Z Report">${esc(financialTabs)}</textarea><small>MERDPOS auto-detects opening, Cash IN, Cash OUT and Z/closing rows from the tab name or a type/action column.</small></label>
                 </div>
-                <div class="merdpos-legacy-actions"><button class="is-primary" type="submit">Save sources</button><span>Saving configuration does not copy any Sheet data.</span></div>
+                <div class="merdpos-legacy-actions"><button class="merdpos-btn" type="submit">Save sources</button><span>Saving configuration does not copy any Sheet data.</span></div>
               </form>
             </section>`);
           body.insertAdjacentHTML('beforeend', `
@@ -107,9 +107,9 @@
               <p>Preview stages and validates source rows without changing operational data. Sync applies only safe/idempotent rows. Final Sync permanently makes SQL authoritative.</p>
               <div class="merdpos-legacy-guard">Existing SQL employee passwords are never overwritten. Staged payloads redact password/PIN/secret fields. Changed imported attendance rows update only when MERDPOS can prove the target was not modified elsewhere. Imported financial ledger records are immutable; a changed source row becomes a conflict.</div>
               <div class="merdpos-legacy-actions is-spaced">
-                <button type="button" data-legacy-run="preview">Preview changes</button>
-                <button class="is-primary" type="button" data-legacy-run="sync" ${sqlLocked ? 'disabled' : ''}>Sync legacy data</button>
-                <button class="is-danger" type="button" data-legacy-run="final" ${sqlLocked || !financial.spreadsheet_id ? 'disabled' : ''}>Final Sync &amp; switch to SQL</button>
+                <button class="merdpos-btn merdpos-btn--secondary" type="button" data-legacy-run="preview">Preview changes</button>
+                <button class="merdpos-btn" type="button" data-legacy-run="sync" ${sqlLocked ? 'disabled' : ''}>Sync legacy data</button>
+                <button class="merdpos-btn merdpos-btn--danger" type="button" data-legacy-run="final" ${sqlLocked || !financial.spreadsheet_id ? 'disabled' : ''}>Final Sync &amp; switch to SQL</button>
               </div>
               <div class="merdpos-legacy-result" data-legacy-result hidden></div>
             </section>`);

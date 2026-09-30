@@ -70,6 +70,13 @@ foreach ([
   '.merdpos-reports-kpi-stat-value' => 'compound KPI stat value must join shared value grammar',
 ] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
 
+foreach ([
+  'background:var(--gradient-brand-action)' => 'shared primary action must use --gradient-brand-action',
+  ':not(:disabled):hover{box-shadow:var(--shadow-raised);filter:brightness(1.06);transform:translateY(-1px)}' => 'shared action hover contract missing',
+  ':not(:disabled):active{box-shadow:none;transform:translateY(1px)}' => 'shared action active contract missing',
+  '.merdpos-app :is(.merdpos-ui-button--icon,.merdpos-btn--icon){width:var(--size-touch);min-width:var(--size-touch)}' => 'shared icon-only actions must promote to a true --size-touch square on mobile',
+] as $needle => $message) if (!str_contains($css, $needle)) $errors[] = $message;
+
 $reportsCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/reports-v2.css');
 foreach ([
   'padding:.82rem .86rem',
@@ -122,14 +129,30 @@ if (!str_contains($attendanceCss, '.merdpos-dashboard-shop-control .merdpos-atte
 }
 
 $legacyCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/legacy-migration-v1.css');
+$legacyJs = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/js/legacy-migration-v1.js');
+$adminTpl = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/templates/merdpos-administration.html.twig');
 foreach ([
-  '.merdpos-legacy-open{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);margin-top:.45rem;min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'Legacy Sync action must use the canonical --size-control desktop geometry',
-  '.merdpos-legacy-close{display:grid;place-items:center;flex:0 0 var(--size-control);width:var(--size-control);height:var(--size-control);min-width:var(--size-control);min-height:var(--size-control)' => 'Legacy close action must use the canonical --size-control square geometry',
-  '.merdpos-legacy-actions button{min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'Legacy dynamic actions must use the canonical --size-control desktop geometry',
-  '.merdpos-legacy-open,.merdpos-legacy-actions button{min-height:var(--size-touch)}' => 'Legacy labeled actions must promote to --size-touch on mobile',
-  '.merdpos-legacy-close{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch);flex-basis:var(--size-touch)}' => 'Legacy close action must promote to a --size-touch square on mobile',
+  '--gradient-brand' => 'must not own a feature-specific primary gradient',
+  '.merdpos-legacy-open:hover' => 'must not own a feature-specific Legacy Sync hover state',
+  '.merdpos-legacy-actions button.is-primary' => 'must not own a feature-specific primary variant',
+  '.merdpos-legacy-actions button.is-danger' => 'must not own a feature-specific danger variant',
+  '.merdpos-legacy-actions button:disabled' => 'must not own a feature-specific disabled state',
+] as $forbidden => $message) {
+  if (str_contains($legacyCss, $forbidden)) $errors[] = "legacy-migration-v1.css: $message";
+}
+foreach ([
+  'class="merdpos-btn merdpos-btn--secondary merdpos-legacy-open"' => 'Legacy Sync opener must consume the shared secondary action',
+  'class="merdpos-ui-button merdpos-ui-button--secondary merdpos-ui-button--icon merdpos-legacy-close"' => 'Legacy close must consume the shared secondary icon-only action',
 ] as $needle => $message) {
-  if (!str_contains($legacyCss, $needle)) $errors[] = "legacy-migration-v1.css: $message";
+  if (!str_contains($adminTpl, $needle)) $errors[] = "merdpos-administration.html.twig: $message";
+}
+foreach ([
+  '<button class="merdpos-btn" type="submit">Save sources</button>' => 'Save sources must consume the shared primary action',
+  '<button class="merdpos-btn merdpos-btn--secondary" type="button" data-legacy-run="preview">' => 'Preview changes must consume the shared secondary action',
+  '<button class="merdpos-btn" type="button" data-legacy-run="sync"' => 'Sync legacy data must consume the shared primary action',
+  '<button class="merdpos-btn merdpos-btn--danger" type="button" data-legacy-run="final"' => 'Final Sync must consume the shared danger action',
+] as $needle => $message) {
+  if (!str_contains($legacyJs, $needle)) $errors[] = "legacy-migration-v1.js: $message";
 }
 
 $shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');

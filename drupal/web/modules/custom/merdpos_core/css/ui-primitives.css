@@ -99,6 +99,7 @@
 
 @media(max-width:51.25rem){
   .merdpos-app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,button[type="submit"],input[type="submit"],.merdpos-ui-button,.merdpos-btn,a.merdpos-report-action){min-height:var(--size-touch)}
+  .merdpos-app :is(.merdpos-ui-button--icon,.merdpos-btn--icon){width:var(--size-touch);min-width:var(--size-touch)}
 }
 @media(prefers-reduced-motion:reduce){
   .merdpos-app :where(input,select,textarea,button,tbody tr){transition:none}

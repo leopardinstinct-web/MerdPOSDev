@@ -84,7 +84,7 @@
     <div class="merdpos-admin-list">
       {% for client in clients %}
       <details class="merdpos-admin-editor" data-search-text="{{ client.name }} {{ client.client_code }} {{ client.status }}">
-        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span>{% if client.attendance_authority is defined %}<span>Attendance: {{ client.attendance_authority|replace({'_':' '}) }}</span>{% endif %}{% if client.financial_authority is defined %}<span>Finance: {{ client.financial_authority|replace({'_':' '}) }}</span>{% endif %}{% if can_manage_legacy %}<button type="button" class="merdpos-legacy-open" data-legacy-open="{{ client.id }}" data-legacy-client-code="{{ client.client_code }}" aria-label="Legacy Sync {{ client.name }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-6V1"/><path d="M20 1a9 9 0 0 0-15 4"/><path d="M4 17h6v6"/><path d="M4 23a9 9 0 0 0 15-4"/></svg><span>Legacy Sync</span></button>{% endif %}</div></summary>
+        <summary><div><strong>{{ client.name }}</strong><span>{{ client.client_code }}</span></div><div class="merdpos-admin-summary-meta"><b>{{ client.status }}</b><span>{{ client.store_count }} stores &middot; {{ client.employee_count }} people</span>{% if client.attendance_authority is defined %}<span>Attendance: {{ client.attendance_authority|replace({'_':' '}) }}</span>{% endif %}{% if client.financial_authority is defined %}<span>Finance: {{ client.financial_authority|replace({'_':' '}) }}</span>{% endif %}{% if can_manage_legacy %}<button type="button" class="merdpos-btn merdpos-btn--secondary merdpos-legacy-open" data-legacy-open="{{ client.id }}" data-legacy-client-code="{{ client.client_code }}" aria-label="Legacy Sync {{ client.name }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-6V1"/><path d="M20 1a9 9 0 0 0-15 4"/><path d="M4 17h6v6"/><path d="M4 23a9 9 0 0 0 15-4"/></svg><span>Legacy Sync</span></button>{% endif %}</div></summary>
         <form method="post" action="{{ post_url }}" class="merdpos-admin-form">
           <input type="hidden" name="form_token" value="{{ form_token }}"><input type="hidden" name="entity_action" value="save_client"><input type="hidden" name="id" value="{{ client.id }}">
           <label><span>Client name</span><input name="name" maxlength="100" value="{{ client.name }}" required></label>
@@ -354,7 +354,7 @@
   <dialog class="merdpos-legacy-dialog" data-legacy-dialog aria-labelledby="merdposLegacyTitle">
     <div class="merdpos-legacy-dialog-head">
       <div><h2 id="merdposLegacyTitle" data-legacy-title>Legacy migration</h2><p>Controlled Google &rarr; staging &rarr; validation &rarr; MERDPOS SQL migration.</p></div>
-      <button type="button" class="merdpos-legacy-close" data-legacy-close aria-label="Close">&times;</button>
+      <button type="button" class="merdpos-ui-button merdpos-ui-button--secondary merdpos-ui-button--icon merdpos-legacy-close" data-legacy-close aria-label="Close">&times;</button>
     </div>
     <div class="merdpos-legacy-body" data-legacy-body><div class="merdpos-admin-empty">Loading migration state&hellip;</div></div>
   </dialog>
