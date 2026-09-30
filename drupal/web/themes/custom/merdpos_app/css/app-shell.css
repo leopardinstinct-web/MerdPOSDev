@@ -1102,3 +1102,15 @@ body.merdpos-login-route {
   border-color: var(--color-border-subtle);
   color: var(--color-text-secondary);
 }
+
+.merdpos-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
