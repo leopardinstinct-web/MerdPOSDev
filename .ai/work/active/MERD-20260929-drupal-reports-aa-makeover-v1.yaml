@@ -8,8 +8,8 @@ acceptance:
   - "Printing while dark produces readable light output with or without background graphics."
   - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus token-derived treatments); operational success/warning/danger/info remain separate semantic tokens; the DEV editor's logo-swatch proposals are preview/handoff only and are not a runtime source."
   - "Lifecycle claims in .ai/memory.md match evidence exactly."
-packet_state: DEPLOY_APPROVED_AWAITING_DRUPAL_DEPLOY
-lifecycle: WIRED
+packet_state: DEPLOYED_REPORTS_VERIFIED_DEV_RENDER_PENDING
+lifecycle: DEPLOYED
 base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
 reviewed_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
 implementation_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
@@ -35,12 +35,12 @@ review:
   git_diff_history_checked: true
   ci_checks_checked: true
   security_business_rules_checked: true
-  runtime_evidence_checked: false
+  runtime_evidence_checked: true
   findings:
     - "Historical blocker resolved: PR token source is reconciled to the authoritative five-color/operational-semantic contract while preserving --gradient-brand-action and the AA accent-ink token."
     - "Historical blocker resolved: persisted DEV logo-palette state no longer overrides the live application shell; the actual-DEV editor remains preview/handoff tooling."
     - "Historical blocker resolved: packet/handoff now identifies the actual implementation SHA and CI evidence."
-  lifecycle_after_review: WIRED
+  lifecycle_after_review: DEPLOYED
 review_history:
   - reviewer: "ChatGPT"
     reviewed_sha: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
@@ -58,9 +58,9 @@ deployed_baseline:
   lifecycle: "DEPLOYED + VERIFIED"
   evidence: "Historical baseline only: server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live computed-style WCAG audits empty in light and dark; theme toggle persistence exercised; mobile clean. This does not prove deployment of 2957f297."
 branch_state:
-  head: "e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd"
-  lifecycle: WIRED
-  evidence: "PR #175 merged into beta/drupal-webapp after explicit product-owner approval. Reviewed implementation SHA 2957f297 and metadata successor 5aacc1fc are preserved in merge history. Not deployed and not live-verified."
+  head: "6d46b3c2e5f2a700773163c893eacaa6b74cc8fb"
+  lifecycle: DEPLOYED
+  evidence: "Owner-approved beta/drupal-webapp head 6d46b3c2e5f2a700773163c893eacaa6b74cc8fb was deployed through the established Paramiko -> server-side Git fast-forward -> drupal/tools/namecheap_deploy.sh path. Reports/global palette behavior is live-verified; rendered actual-DEV palette UI remains pending."
 constraints:
   - "Visual/design-system change only: no DB, payroll/business-rule, authentication or authorization changes."
   - "Binding runtime master palette remains exactly White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3 and Violet #8B2EFF; DEV logo-swatch proposals are preview/handoff only."
@@ -113,11 +113,23 @@ checks:
   - name: "PR #175 merge"
     result: PASS
     evidence: "Product owner explicitly approved merge; GitHub merged reviewed feature head 5aacc1fc69a888dadc56af63500a1c4cafe91ba6 into beta/drupal-webapp as e81ab3175f3ffaa2b8414a17f1c1e7584aba91cd. No deployment performed."
+  - name: "Namecheap Drupal deployment"
+    result: PASS
+    evidence: "Product owner explicitly approved deployment. Paramiko preflight returned SSH_OK with server Drupal checkout on beta/drupal-webapp; server fast-forwarded 66bf6d3 -> 6d46b3c2e5f2a700773163c893eacaa6b74cc8fb and drupal/tools/namecheap_deploy.sh exited 0 after the full validator/self-test battery."
+  - name: "Server release marker"
+    result: PASS
+    evidence: ".merdpos_drupal_release.json reports commit 6d46b3c2e5f2a700773163c893eacaa6b74cc8fb, branch beta/drupal-webapp, deployed_at 2026-09-30T21:25:40Z. Runtime marker reports reports_v2.status=ok, dev_v2.status=ok, gateway_is_dev=true and gateway_status=ok."
+  - name: "Authenticated live Reports/global palette"
+    result: PASS
+    evidence: "One-time authenticated headless Opera session rendered /merdpos/reports HTTP 200 with title Attendance & Payroll; computed master tokens were #FFFFFF/#F5F7FC/#031B4B/#12BDF3/#8B2EFF; Info #175CD3; action gradient/accent/chart semantics present; no inline global DEV palette override; exactly one theme toggle; dark theme persisted; 390px viewport had no horizontal overflow; zero page errors, failed requests or HTTP 5xx responses."
+  - name: "Rendered actual-DEV palette proposal UI"
+    result: PENDING
+    evidence: "Drupal one-time admin login successfully verified Reports but /merdpos/dev redirected to /merdpos because Drupal admin auth does not establish MERDPOS's separate signed actual-DEV backend identity. A live-kernel subrequest likewise returned 302. Do not treat deploy-time source validators or dev_v2 runtime data probe as equivalent to rendered actual-DEV UI evidence."
 remaining:
-  - "Deployment remains a separate owner gate. If approved later, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
+  - "Complete rendered /merdpos/dev verification with a genuine MERDPOS actual-DEV browser session or the private role fixture before promoting lifecycle from DEPLOYED to VERIFIED."
   - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants remains a separate follow-up."
   - "Evidence pack assembly remains available for owner review."
-next_action: "Deploy the exact beta/drupal-webapp head through drupal/tools/namecheap_remote_deploy.py drupal, then verify the live release marker and affected runtime before any DEPLOYED/VERIFIED claim."
-blocked: false
-blocker: null
-updated_at: "2026-10-01T02:24:24+05:00"
+next_action: "Use a genuine MERDPOS actual-DEV browser session (or the private role fixture) to verify the rendered DEV palette proposal section, then mark VERIFIED only if PREVIEW/HANDOFF wording and Save palette proposal are observed live."
+blocked: true
+blocker: "Deployment is complete. Final VERIFIED promotion is waiting only on rendered /merdpos/dev evidence under MERDPOS actual-DEV identity; Drupal one-time admin login does not establish that separate backend identity."
+updated_at: "2026-10-01T02:38:06+05:00"
