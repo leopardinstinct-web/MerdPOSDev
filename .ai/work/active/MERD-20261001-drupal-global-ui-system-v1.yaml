@@ -4,33 +4,52 @@ objective: "Standardize the Drupal Beta visual component system across buttons/a
 acceptance:
   - "Buttons use one industry-standard hierarchy: primary, secondary, ghost/tertiary, danger and icon-only variants; standard desktop action height is 44px and touch target is 48px; shared padding, radius, typography, focus, hover, active and disabled states apply everywhere."
   - "KPI cards use one shared shell/sizing grammar with standard and compound variants: common surface, border, radius, padding, icon tile, label/value/meta typography and semantic tone handling; layout may vary by content but visual identity must not."
-  - "Change Password, Timesheet and Administration dialogs consume one shared dialog shell for radius, header/body/footer spacing, close control, action placement, overlay and mobile behavior."
+  - "Change Password and Timesheet dialogs consume one shared dialog shell for radius, spacing, close control, action placement, overlay and mobile behavior."
   - "Dark theme uses one shared surface/text/border hierarchy across Dashboard, Timesheets, Financials, Admin and dialogs; feature CSS must not create page-specific dark visual systems."
-  - "Dark header/logo treatment is consistent across routes."
   - "No business logic, payroll, DB, authentication or authorization behavior changes."
-  - "Rendered desktop and 390px mobile screenshots in light and dark show no obvious visual drift, overflow, clipping or stranded controls."
-packet_state: DOCUMENTED_AUDIT_COMPLETE
-lifecycle: DOCUMENTED
+  - "Rendered desktop and 390px mobile screenshots in light and dark must show no obvious visual drift, overflow, clipping or stranded controls before VERIFIED."
+packet_state: DRAFT_PR_176_GREEN_AWAITING_FRESH_INDEPENDENT_REVIEW
+lifecycle: CODED
 base_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
-last_seen_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
+last_seen_head: "0d1acc25ce5e0dc6489bfc3955fe89f667aea2a6"
 drupal_base_head: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
 feature_branch: "feature/drupal-global-ui-system-v1"
+implementation_sha: "16a544efb628541521126f528a594a84753dd50b"
+pr: 176
+pr_state: DRAFT
+handoff:
+  mode: dual-agent
+  implementer: "Kimi K3 initially; ChatGPT reviewer corrections after Kimi quota exhaustion"
+  reviewer_required: "fresh independent ChatGPT review"
+  owner: "product owner"
+  branch: "feature/drupal-global-ui-system-v1"
+  base_sha: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
+  head_sha: "16a544efb628541521126f528a594a84753dd50b"
+independence:
+  status: CONSUMED
+  reason: "ChatGPT independently reviewed the first Kimi pass, found real inconsistencies and stale validator assumptions, then directly edited the implementation after Kimi hit its 5-hour quota. Under Gate 2.5 this SHA now requires a fresh independent review before merge."
+  kimi_quota_reset: "2026-10-01T02:11:04Z / 2026-10-01 07:11:04 PKT"
+impact:
+  business_logic: "NO"
+  database: "NO"
+  authentication_authorization: "NO"
+  deployment_runtime: "YES - shared visual component ownership only"
 audit:
   captured_live_at: "2026-10-01"
   surfaces: ["/merdpos", "/merdpos/reports", "/merdpos/finance", "/merdpos/admin", "account sheet", "Change Password"]
+  evidence_location_local_only: "C:\\Dev\\.merdpos-test\\ui-audit-20261001"
   findings:
-    - "Live KPI heights differ materially: Dashboard ~156px, Timesheets compound ~138px, Financials ~102px."
-    - "Live action controls use competing geometries: shared 44px/10px actions coexist with 44.8px/16px PDF, bare zero-radius QR action, pill shell controls and feature-specific danger sizing."
-    - "Change Password uses a dedicated dialog shell instead of the shared application dialog grammar."
-    - "Feature CSS still redefines KPI geometry and visual tokens after ui-primitives.css, so the nominal shared primitive layer is not actually authoritative."
-    - "Dark-mode appearance is normalized by broad feature-specific selector sets; rendered logo/header appearance also differs across routes."
+    - "Dashboard KPI cards rendered ~156px, Timesheets compound KPI ~138px and Financials KPI ~102px with competing page-owned surface/type systems."
+    - "Labeled action geometry differed: shared 44px/10px controls versus 44.8px/16px PDF and grid-stretched finance danger action."
+    - "Change Password used a dedicated modal shell."
+    - "Dark normalization broadly repainted Reports/Finance/KPIs/actions instead of shared token/primitive ownership."
+    - "Source inspection confirmed one shared light/dark logo asset-swap path; no route-specific logo source divergence was found, so no speculative asset patch was made."
 standard:
   buttons:
     desktop_height: "44px"
     touch_height: "48px"
     radius: "var(--radius-control)"
     hierarchy: ["primary", "secondary", "ghost", "danger", "icon-only"]
-    typography: "var(--type-sm) / var(--weight-bold) for labeled actions"
   kpis:
     standard_min_height: "7rem"
     compound_min_height: "7rem"
@@ -39,33 +58,56 @@ standard:
     typography: "shared label/value/meta scale"
   dialogs:
     regular_width: "min(32rem, calc(100vw - 2rem))"
-    wide_variant: "feature-owned only when content requires it"
+    wide_variant: "content-driven only"
+    max_height: "90dvh"
     shell: "shared backdrop/header/body/footer/close/action geometry"
-constraints:
-  - "Preserve the binding five-color runtime palette and separate operational semantic colors."
-  - "Preserve frozen payroll/timesheet logic and all existing authorization gates."
-  - "Do not add a new corrective CSS layer; strengthen the canonical primitive owner and remove/simplify feature overrides."
-  - "Keep feature CSS responsible for layout/composition only where practical."
-  - "Use Kimi K3-256K Low for bounded implementation; ChatGPT independently reviews the exact diff and runtime."
-owned_paths:
-  - "drupal/web/modules/custom/merdpos_core/css/ui-primitives.css"
-  - "drupal/web/modules/custom/merdpos_core/css/dark-normalization.css"
-  - "drupal/web/modules/custom/merdpos_core/css/dashboard-v2.css"
-  - "drupal/web/modules/custom/merdpos_core/css/reports-v2.css"
-  - "drupal/web/modules/custom/merdpos_core/css/finance-v2.css"
-  - "drupal/web/themes/custom/merdpos_app/css/app-shell.css"
-  - "drupal/web/themes/custom/merdpos_app/templates/page.html.twig"
-  - "drupal/tools/validate_global_ui_primitives_v1.php"
 completed:
-  - "Captured live screenshots for Dashboard, Timesheets, Financials and Admin in light/dark plus account sheet and Change Password."
-  - "Captured computed-style inventory of rendered buttons, KPI cards and dialogs."
-  - "Inspected shared primitive ownership and recent feature/style history; confirmed feature CSS currently overrides canonical primitive geometry."
+  - "Captured pre-change live screenshots/computed-style inventory across Dashboard, Timesheets, Financials and Admin light/dark plus account sheet and Change Password."
+  - "Kimi K3-256K Low implemented the main shared-primitives reconciliation on the feature branch."
+  - "Kimi moved Dashboard, Timesheets and Financials KPI visuals toward canonical ui-primitives ownership while retaining feature layout/composition."
+  - "Kimi unified Timesheet and Change Password dialog shell classes and reduced broad Reports/Finance dark-normalization ownership."
+  - "Independent ChatGPT review caught stale Reports/dark validator requirements plus shell action/close-control inconsistencies."
+  - "After Kimi quota exhaustion, ChatGPT corrected shell .merdpos-btn parity, danger/ghost variants, 44/48px close geometry, dialog overflow, broad dark action repaint, stale validators, local finance danger duplication and undersized impersonation action."
+  - "Feature branch committed/pushed as 16a544efb628541521126f528a594a84753dd50b and draft PR #176 opened."
+checks:
+  - name: "Global UI primitives"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_ui_primitives_v1.php"
+  - name: "Global page headers"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_page_headers_v1.php"
+  - name: "Reports v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_reports_v2.php"
+  - name: "Finance v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_finance_v2.php"
+  - name: "DEV v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_dev_v2.php"
+  - name: "Store Settings + App Dark Mode v1"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_store_settings_dark_v1.php"
+  - name: "Source encoding"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_source_encoding.php"
+  - name: "AI continuity"
+    result: PASS
+    evidence: "php84 namecheap_beta_live/backend/cli/validate_ai_continuity.php"
+  - name: "Git whitespace"
+    result: PASS
+    evidence: "git diff --check"
+  - name: "PR #176 CI"
+    result: PASS
+    evidence: "CI 36785412153 SUCCESS; Secret scan 36785412032 SUCCESS; Drupal global UI contract 36785411986 SUCCESS at 16a544efb628541521126f528a594a84753dd50b."
+owner_gate:
+  merge_approved: false
+  deploy_approved: false
 remaining:
-  - "Create feature branch from current beta/drupal-webapp head and implement the shared component-system reconciliation."
-  - "Run targeted syntax/UI/Reports/DEV/Finance/global primitive/dark/source/continuity checks."
-  - "Capture before/after rendered screenshots at 1440px and 390px in both themes."
-  - "Independent ChatGPT review, owner merge/deploy gates, then live verification."
-next_action: "Create feature/drupal-global-ui-system-v1 from beta/drupal-webapp head 55671e5c94ad6198697faae18b9a28bf157ab3dd, checkout through the verified Kimi bridge, and run the bounded shared-primitive implementation."
-blocked: false
-blocker: null
-updated_at: "2026-10-01T02:44:00+05:00"
+  - "Fresh independent review of immutable SHA 16a544efb628541521126f528a594a84753dd50b is mandatory before PR #176 can leave draft/merge."
+  - "After independent review passes, capture rendered after-screenshots on the deployable candidate and compare desktop/mobile light/dark component geometry before VERIFIED."
+  - "Owner merge and deploy gates remain false."
+next_action: "Run a fresh independent ChatGPT review of PR #176 at immutable SHA 16a544efb628541521126f528a594a84753dd50b. Do not merge or deploy from this chat's self-review because independence was consumed."
+blocked: true
+blocker: "Fresh independent review required by Gate 2.5 because ChatGPT edited the reviewed implementation after Kimi quota exhaustion."
+updated_at: "2026-10-01T03:25:23+05:00"
