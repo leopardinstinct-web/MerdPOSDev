@@ -92,11 +92,12 @@ For cross-cutting UI/design-system work, token adoption is not proof of successf
 
 ## Brand master palette
 
-- The canonical MERDPOS brand system is DEV-managed and logo-constrained. Actual DEV may add, rename, delete, reorder and assign active master-palette entries only from approved representative swatches sampled from `merdpos-logo-approved.png`.
-- The approved selectable swatches are Logo Midnight `#01102B`, Logo Royal Blue `#0747FC`, Logo Electric Blue `#005FF7`, Logo Sky Blue `#0A91FB`, Logo Indigo `#3B3FA0`, Logo Electric Violet `#591DE9`, and Logo Orchid `#7943F5`. Arbitrary color input is not permitted.
-- Three distinct active entries must always remain assigned to Foundation/navigation, Primary accent and Secondary accent. White `#FFFFFF` is a fixed neutral rather than a deletable palette entry; page/background, surface, border, interaction, chart and dark-mode treatments derive from the assigned master roles.
-- Red, green and amber are the only non-brand hue exceptions and are reserved for semantic danger/error, success and warning/attention states such as badges, status icons and state surfaces. Informational UI uses the active brand accent, not an independent blue semantic palette.
-- Brand-facing CSS must consume the runtime master roles or semantic tokens derived from them; do not introduce arbitrary blue/indigo/purple/slate brand literals outside the approved swatch source.
+- The binding MERDPOS brand master palette is exactly five colors: White `#FFFFFF`, App Background `#F5F7FC`, Navy `#031B4B`, Cyan `#12BDF3`, Violet `#8B2EFF`. Canonical `design-tokens.css` owns these master literals and is the runtime source of truth.
+- Operational success/warning/danger/info remain separate semantic tokens; they are not part of the brand master palette and must not be replaced by brand colors.
+- DevStudio/DEV palette tooling may prepare preview/handoff proposals only. A saved proposal never overrides the live runtime palette; no global persisted DEV palette state may be injected into the application shell.
+- The 2026-09-13 "DEV palette applies globally" behavior is superseded for runtime authority; its historical VERIFIED record remains history only.
+- The Drupal DEV palette proposal editor remains logo-constrained: selectable proposal swatches are Logo Midnight `#01102B`, Logo Royal Blue `#0747FC`, Logo Electric Blue `#005FF7`, Logo Sky Blue `#0A91FB`, Logo Indigo `#3B3FA0`, Logo Electric Violet `#591DE9`, and Logo Orchid `#7943F5`. Arbitrary color input is not permitted.
+- Brand-facing CSS must consume canonical tokens derived from the five master colors; do not introduce arbitrary blue/indigo/purple/slate brand literals.
 - Approved raster logo artwork remains immutable; baked-in intermediate gradient pixels in the supplied logo are artwork data, not additional editable UI colors.
 
 ## DEV UI Studio safety
@@ -148,4 +149,4 @@ Do not restore a GitHub→Namecheap file-push deployment path unless the product
 
 ### Palette-standard escalation
 
-The product owner approved the logo-constrained DEV-managed palette standard on 2026-09-13. Future palette changes must remain inside the approved logo swatch source unless the product owner explicitly approves another standards change. Any expansion of the allowed swatch source must update this invariant, canonical tokens/fallbacks, brand regressions, runtime/deploy validators and affected brand documentation together; do not weaken the logo-constrained guard merely to accept an arbitrary preview color.
+The binding five-color brand master palette (White `#FFFFFF`, App Background `#F5F7FC`, Navy `#031B4B`, Cyan `#12BDF3`, Violet `#8B2EFF`) is the authoritative runtime standard. The 2026-09-13 logo-constrained DEV-managed palette decision is superseded for runtime authority and preserved as history only. DevStudio/DEV palette proposals may preview alternatives, but they do not change the binding master standard unless the product owner explicitly accepts a coordinated standards change. Any standards change must update this invariant, canonical tokens, brand regressions, runtime/deploy validators and affected brand documentation together; do not weaken the palette guard merely to accept an arbitrary preview color.

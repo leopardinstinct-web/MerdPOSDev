@@ -1,0 +1,120 @@
+version: 1
+id: MERD-20260929-drupal-reports-aa-makeover-v1
+objective: "WCAG AA contrast remediation and UI/UX makeover of the Drupal /merdpos/reports surface (and shared primitives) on beta/drupal-webapp: derived accent ink token, AA-safe brand-gradient actions, gradient KPI chips, token-derived table inks, working dark theme with visible header toggle, dark-print fix-forward."
+acceptance:
+  - "All small accent text/icons on /merdpos/reports measure >=4.5:1 (text) and >=3:1 (icons) on their real surfaces in light AND dark."
+  - "Primary action buttons use the --gradient-brand-action token with white text >=7.5:1 worst point."
+  - "Theme toggle switches light/dark, persists via localStorage, and is reachable from the shell header."
+  - "Printing while dark produces readable light output with or without background graphics."
+  - "No new brand literals outside the binding five-color master palette (White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3, Violet #8B2EFF, plus token-derived treatments); operational success/warning/danger/info remain separate semantic tokens; the DEV editor's logo-swatch proposals are preview/handoff only and are not a runtime source."
+  - "Lifecycle claims in .ai/memory.md match evidence exactly."
+packet_state: PR_175_REVIEW_PASS_AWAITING_OWNER
+lifecycle: WIRED
+base_head: "36a0d93e1cd6c32ab7266bf88f50ba440f834da3"
+reviewed_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+implementation_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+last_seen_head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+handoff:
+  mode: dual-agent
+  implementer: "Kimi K3"
+  reviewer: "ChatGPT"
+  owner: "product owner"
+  branch: "feature/drupal-reports-aa-makeover-v1"
+  pr: 175
+  base_sha: "7655fbe832c2500227ecd0abc15c5b04663e3a50"
+  head_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+impact:
+  business_logic: "NO"
+  database: "NO"
+  authentication_authorization: "NO"
+  deployment_runtime: "YES - shared visual/design-system token source and Drupal shell palette authority"
+review:
+  status: PASS
+  reviewed_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  git_diff_history_checked: true
+  ci_checks_checked: true
+  security_business_rules_checked: true
+  runtime_evidence_checked: false
+  findings:
+    - "Historical blocker resolved: PR token source is reconciled to the authoritative five-color/operational-semantic contract while preserving --gradient-brand-action and the AA accent-ink token."
+    - "Historical blocker resolved: persisted DEV logo-palette state no longer overrides the live application shell; the actual-DEV editor remains preview/handoff tooling."
+    - "Historical blocker resolved: packet/handoff now identifies the actual implementation SHA and CI evidence."
+  lifecycle_after_review: WIRED
+review_history:
+  - reviewer: "ChatGPT"
+    reviewed_sha: "5768355be83d24e04e8edc3beafeb3f89bcd03cb"
+    result: CHANGES_REQUESTED
+    reason: "Stale canonical Namecheap palette plus stale packet/handoff."
+  - reviewer: "ChatGPT"
+    reviewed_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+    result: PASS
+    reason: "Exact immutable diff/history inspected; local validator battery and PR-head CI/global-UI/secret-scan all passed."
+owner_gate:
+  merge_approved: false
+  deploy_approved: false
+deployed_baseline:
+  head: "66bf6d3b0b4d1bd35f797a59962aa8be101aa4a0"
+  lifecycle: "DEPLOYED + VERIFIED"
+  evidence: "Historical baseline only: server-side drupal/tools/namecheap_deploy.sh exit 0; live release marker 66bf6d3; live computed-style WCAG audits empty in light and dark; theme toggle persistence exercised; mobile clean. This does not prove deployment of 2957f297."
+branch_state:
+  head: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  lifecycle: WIRED
+  evidence: "Implementation committed and pushed. Canonical portal/module design-token copies are synchronized; live shell no longer consumes persisted DEV palette overrides; DEV proposal editor remains wired page-locally. Not merged, not deployed, not live-verified."
+constraints:
+  - "Visual/design-system change only: no DB, payroll/business-rule, authentication or authorization changes."
+  - "Binding runtime master palette remains exactly White #FFFFFF, App Background #F5F7FC, Navy #031B4B, Cyan #12BDF3 and Violet #8B2EFF; DEV logo-swatch proposals are preview/handoff only."
+  - "design-tokens.css module copy is deploy-synced from the canonical portal source."
+  - "Theme-toggle and shell contracts must remain green."
+completed:
+  - "Historical Reports makeover/fix-forward preserved: accent ink, AA-safe action gradient, KPI treatment, theme toggle, dark-print handling and literal cleanup."
+  - "Reconciled stale PR token source to the current five-color master and current operational semantic/chart/elevation/dark-surface values while preserving --gradient-brand-action and --color-brand-text-accent."
+  - "Removed global brand_palette->cssVariables() injection from merdpos_app.theme so canonical design-tokens.css owns runtime palette authority."
+  - "Retained actual-DEV palette state/editor as logo-constrained preview/handoff tooling; saved proposals preview page-locally and cannot alter global runtime tokens."
+  - "Updated brand palette validator, invariants and durable decision history to encode the superseding five-color runtime rule without rewriting the historical 2026-09-13 VERIFIED evidence."
+  - "Kimi K3 implemented the fix through the ChatGPT MCP bridge; ChatGPT independently inspected the resulting diff/history and exact immutable implementation SHA."
+checks:
+  - name: "Historical deployed baseline"
+    result: "PASS at 66bf6d3 only"
+    evidence: "Historical deployment/runtime verification retained separately; not evidence for current PR head."
+  - name: "Canonical resource sync"
+    result: PASS
+    evidence: "php84 drupal/tools/sync_merdpos_resources.php at 2026-10-01T02:09:42+05:00; portal and Drupal design-token copies confirmed identical at implementation SHA."
+  - name: "Changed PHP/JS syntax"
+    result: PASS
+    evidence: "php84 -l on BrandPaletteManager.php, merdpos_app.theme and validate_brand_palette_v1.php; node --check on dev-v2.js."
+  - name: "Drupal brand palette v1"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_brand_palette_v1.php"
+  - name: "Drupal DEV v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_dev_v2.php"
+  - name: "Drupal Reports v2"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_reports_v2.php"
+  - name: "Global UI primitives"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_ui_primitives_v1.php"
+  - name: "Global page headers"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_global_page_headers_v1.php"
+  - name: "Source encoding"
+    result: PASS
+    evidence: "php84 drupal/tools/validate_source_encoding.php"
+  - name: "AI continuity"
+    result: PASS
+    evidence: "php84 namecheap_beta_live/backend/cli/validate_ai_continuity.php"
+  - name: "Git whitespace"
+    result: PASS
+    evidence: "git diff --check"
+  - name: "PR #175 CI at implementation SHA"
+    result: PASS
+    evidence: "CI 36777633749 SUCCESS; Drupal global UI contract 36777633748 SUCCESS; Secret scan 36777633841 SUCCESS at 2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae."
+remaining:
+  - "Product owner decision on whether PR #175 may merge into beta/drupal-webapp."
+  - "If merge/deploy is approved, deploy through the established Drupal server-side path and perform rendered/live verification before any DEPLOYED/VERIFIED claim."
+  - "Coverage extension for administration-v1/attendance-scan/legacy-migration-v1/login-capability-icon cyan-as-text remnants remains a separate follow-up."
+  - "Evidence pack assembly remains available for owner review."
+next_action: "Product owner reviews PR #175 and decides whether to authorize merge. No merge or deployment is approved by this packet."
+blocked: true
+blocker: "Awaiting product owner merge decision; deploy approval is also false."
+updated_at: "2026-10-01T02:11:18+05:00"

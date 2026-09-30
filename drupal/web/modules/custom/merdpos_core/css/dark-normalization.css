@@ -153,4 +153,51 @@
 :root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) th {
   color: var(--color-text-secondary) !important;
 }
+
+/* Printing while dark: snap semantic tokens back to the light palette so
+   print-forced white cards keep dark, readable ink. */
+@media print {
+  :root[data-theme="dark"] {
+    color-scheme: light;
+    --color-bg-main: color-mix(in srgb, var(--color-brand-navy) 4%, var(--color-brand-white));
+    --color-bg-subtle: color-mix(in srgb, var(--color-brand-navy) 2%, var(--color-brand-white));
+    --color-surface-main: #FFFFFF;
+    --color-surface-raised: #FFFFFF;
+    --color-surface-muted: color-mix(in srgb, var(--color-brand-navy) 5%, var(--color-brand-white));
+    --color-surface-selected: color-mix(in srgb, var(--color-brand-cyan) 8%, var(--color-brand-white));
+    --color-text-primary: var(--color-brand-navy);
+    --color-text-secondary: color-mix(in srgb, var(--color-brand-navy) 76%, var(--color-brand-white));
+    --color-text-muted: color-mix(in srgb, var(--color-brand-navy) 62%, var(--color-brand-white));
+    --color-border-subtle: color-mix(in srgb, var(--color-brand-navy) 12%, var(--color-brand-white));
+    --color-border-default: color-mix(in srgb, var(--color-brand-navy) 22%, var(--color-brand-white));
+    --color-border-strong: color-mix(in srgb, var(--color-brand-navy) 40%, var(--color-brand-white));
+    --color-brand-text-accent: color-mix(in srgb, var(--color-brand-cyan) 65%, var(--color-brand-navy));
+    --color-success: #18794E;
+    --color-success-surface: color-mix(in srgb, var(--color-success) 10%, var(--color-brand-white));
+    --color-warning: #8A5300;
+    --color-warning-surface: color-mix(in srgb, var(--color-warning) 10%, var(--color-brand-white));
+    --color-danger: #B42318;
+    --color-danger-surface: color-mix(in srgb, var(--color-danger) 9%, var(--color-brand-white));
+    --shadow-card: 0 0 0 transparent;
+    --shadow-raised: 0 0 0 transparent;
+    --shadow-dialog: 0 0 0 transparent;
+    --shadow-action: 0 0 0 transparent;
+  }
+  :root[data-theme="dark"] :is(.merdpos-report-action,.merdpos-report-action span,.merdpos-report-count,.merdpos-report-chart-card>header>span) {
+    background: color-mix(in srgb, var(--color-brand-cyan) 12%, var(--color-brand-white)) !important;
+    color: var(--color-brand-navy) !important;
+    border-color: color-mix(in srgb, var(--color-brand-navy) 12%, transparent) !important;
+  }
+  :root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) th {
+    background: color-mix(in srgb, var(--color-brand-navy) 4%, var(--color-brand-white)) !important;
+    color: color-mix(in srgb, var(--color-brand-navy) 64%, var(--color-brand-white)) !important;
+  }
+  :root[data-theme="dark"] :is(.merdpos-dashboard-table-wrap,.merdpos-ops-table-wrap,.merdpos-report-table-wrap,.merdpos-finance-table-wrap,.merdpos-dev-table-wrap) td {
+    background: transparent !important;
+    color: color-mix(in srgb, var(--color-brand-navy) 78%, var(--color-brand-white)) !important;
+  }
+  :root[data-theme="dark"] :is(.merdpos-report-chart-card>header,.merdpos-report-table-card>header,.merdpos-ops-panel>header) {
+    background: linear-gradient(180deg, #FFFFFF, color-mix(in srgb, var(--color-brand-cyan) 3%, #FFFFFF)) !important;
+  }
+}
 :root[data-theme="dark"] .merdpos-timesheet-dispute-dot { border-color:var(--color-surface-main) !important; }

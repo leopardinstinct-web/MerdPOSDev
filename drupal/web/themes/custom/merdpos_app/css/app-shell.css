@@ -149,7 +149,7 @@ body.merd-drupal-shell {
   place-items: center;
   flex: 0 0 2rem;
   border-radius: var(--radius-circle);
-  background: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-violet) 100%);
+  background: var(--gradient-brand-action);
   color: var(--color-brand-white);
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
@@ -1101,4 +1101,16 @@ body.merdpos-login-route {
   background: color-mix(in srgb, var(--color-surface-main) 86%, transparent);
   border-color: var(--color-border-subtle);
   color: var(--color-text-secondary);
+}
+
+.merdpos-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
