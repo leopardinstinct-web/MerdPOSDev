@@ -113,6 +113,25 @@ if (!str_contains($dashboardLayoutCss, '.merdpos-dashboard-drawer-foot button{mi
   $errors[] = 'dashboard-layout-v1.css: dashboard reset action must use --size-touch at the mobile breakpoint';
 }
 
+$attendanceCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/attendance-scan.css');
+if (!str_contains($attendanceCss, '.merdpos-dashboard-shop-control .merdpos-attendance-open{display:grid;place-items:center;width:100%;min-height:var(--size-control)')) {
+  $errors[] = 'attendance-scan.css: Shop Log IN/OUT action must use --size-control on desktop';
+}
+if (!str_contains($attendanceCss, '.merdpos-dashboard-shop-control .merdpos-attendance-open{min-height:var(--size-touch)}')) {
+  $errors[] = 'attendance-scan.css: Shop Log IN/OUT action must promote to --size-touch on mobile';
+}
+
+$legacyCss = (string) file_get_contents($root . '/web/modules/custom/merdpos_core/css/legacy-migration-v1.css');
+foreach ([
+  '.merdpos-legacy-open{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);margin-top:.45rem;min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'Legacy Sync action must use the canonical --size-control desktop geometry',
+  '.merdpos-legacy-close{display:grid;place-items:center;flex:0 0 var(--size-control);width:var(--size-control);height:var(--size-control);min-width:var(--size-control);min-height:var(--size-control)' => 'Legacy close action must use the canonical --size-control square geometry',
+  '.merdpos-legacy-actions button{min-height:var(--size-control);padding:var(--space-2) var(--space-4)' => 'Legacy dynamic actions must use the canonical --size-control desktop geometry',
+  '.merdpos-legacy-open,.merdpos-legacy-actions button{min-height:var(--size-touch)}' => 'Legacy labeled actions must promote to --size-touch on mobile',
+  '.merdpos-legacy-close{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch);flex-basis:var(--size-touch)}' => 'Legacy close action must promote to a --size-touch square on mobile',
+] as $needle => $message) {
+  if (!str_contains($legacyCss, $needle)) $errors[] = "legacy-migration-v1.css: $message";
+}
+
 $shellCss = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/css/app-shell.css');
 foreach (['.merdpos-ui-dialog', '--radius-dialog', '--color-overlay', '90dvh', 'overflow:auto'] as $needle) {
   if (!str_contains($shellCss, $needle)) $errors[] = "app-shell.css: canonical dialog shell missing ($needle)";
@@ -129,6 +148,15 @@ if (!preg_match('/\.merdpos-dialog-close\{([^}]*)\}/s', $shellCss, $closeButton)
 }
 if (!str_contains($shellCss, '.merdpos-btn,.merdpos-account-menu-action,.merdpos-impersonation-banner button{min-height:var(--size-touch)}')) {
   $errors[] = 'app-shell.css: shell-owned labeled actions must use --size-touch at the mobile breakpoint';
+}
+if (!str_contains($shellCss, '.merdpos-account-menu-action{width:100%;min-height:var(--size-control);')) {
+  $errors[] = 'app-shell.css: account-sheet labeled actions must use --size-control on desktop';
+}
+if (!str_contains($shellCss, '.merdpos-account-timesheet-sync{width:var(--size-control);height:var(--size-control);min-width:var(--size-control);min-height:var(--size-control);')) {
+  $errors[] = 'app-shell.css: Time Sheet sync must use a --size-control square on desktop';
+}
+if (!str_contains($shellCss, '.merdpos-account-timesheet-sync{width:var(--size-touch);height:var(--size-touch);min-width:var(--size-touch);min-height:var(--size-touch)}')) {
+  $errors[] = 'app-shell.css: Time Sheet sync must promote to a --size-touch square on mobile';
 }
 $page = (string) file_get_contents($root . '/web/themes/custom/merdpos_app/templates/page.html.twig');
 if (!str_contains($page, 'merdpos-ui-dialog merdpos-password-dialog')) $errors[] = 'password dialog must participate in the shared merdpos-ui-dialog shell';
