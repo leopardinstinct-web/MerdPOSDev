@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -40,6 +41,26 @@ def _repo_root() -> Path:
     if not (root / ".git").exists():
         raise RuntimeError(f"MERDPOS_REPO_PATH is not a Git working tree: {root}")
     return root
+
+
+def _resolve_kimi_cli() -> str:
+    explicit = os.environ.get("KIMI_CLI_PATH", "").strip()
+    candidates: list[str] = []
+    if explicit:
+        candidates.append(explicit)
+    for name in ("kimi", "kimi.cmd"):
+        resolved = shutil.which(name)
+        if resolved:
+            candidates.append(resolved)
+    appdata = os.environ.get("APPDATA", "").strip()
+    if appdata:
+        candidates.append(str(Path(appdata) / "npm" / "kimi.cmd"))
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return str(Path(candidate).resolve())
+    raise RuntimeError(
+        "Kimi CLI was not found. Set KIMI_CLI_PATH or install @moonshot-ai/kimi-code and ensure its npm bin is available."
+    )
 
 
 def _run(args: list[str], *, timeout: int = 120, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -116,14 +137,21 @@ def bridge_status() -> dict[str, object]:
     """Check local MERDPOS repo and Kimi CLI readiness without changing anything."""
     root = _repo_root()
     branch = _current_branch()
-    kimi = subprocess.run(["kimi", "--version"], text=True, capture_output=True, check=False, shell=False)
+    try:
+        kimi_cli = _resolve_kimi_cli()
+        kimi = subprocess.run([kimi_cli, "--version"], text=True, capture_output=True, check=False, shell=False)
+        kimi_available = kimi.returncode == 0
+        kimi_version = (kimi.stdout or kimi.stderr).strip()[:500]
+    except RuntimeError as exc:
+        kimi_available = False
+        kimi_version = str(exc)
     return {
         "bridge_version": SERVER_VERSION,
         "repo_path": str(root),
         "branch": branch,
         "working_tree_changes": len(_status_paths()),
-        "kimi_cli_available": kimi.returncode == 0,
-        "kimi_cli_version": (kimi.stdout or kimi.stderr).strip()[:500],
+        "kimi_cli_available": kimi_available,
+        "kimi_cli_version": kimi_version,
     }
 
 
@@ -192,7 +220,8 @@ def kimi_implement_task(
         "runtime verification.\n\nTASK:\n" + task.strip()
     )
 
-    cmd = ["kimi", "--agent-file", str(agent_file)]
+    kimi_cli = _resolve_kimi_cli()
+    cmd = [kimi_cli, "--agent-file", str(agent_file)]
     if model != "default":
         cmd += ["-m", model]
     cmd += ["-p", wrapped]
