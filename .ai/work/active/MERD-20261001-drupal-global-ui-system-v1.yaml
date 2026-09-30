@@ -14,7 +14,7 @@ base_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
 last_seen_head: "0d1acc25ce5e0dc6489bfc3955fe89f667aea2a6"
 drupal_base_head: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
 feature_branch: "feature/drupal-global-ui-system-v1"
-implementation_sha: "185ce93ae814ea4f944ff5d5dde2faf991d1712c"
+implementation_sha: "167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a"
 pr: 176
 pr_state: READY_FOR_REVIEW
 handoff:
@@ -24,7 +24,7 @@ handoff:
   owner: "product owner"
   branch: "feature/drupal-global-ui-system-v1"
   base_sha: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
-  head_sha: "185ce93ae814ea4f944ff5d5dde2faf991d1712c"
+  head_sha: "167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a"
 independence:
   status: CONSUMED
   reason: "ChatGPT independently reviewed the first Kimi pass, found real inconsistencies and stale validator assumptions, then directly edited the implementation after Kimi hit its 5-hour quota. Under Gate 2.5 this SHA now requires a fresh independent review before merge."
@@ -75,6 +75,8 @@ completed:
   - "Fix-forward head 8839e6c4712c2384110ec072c4214f5ed36f4447 promotes .merdpos-dashboard-add-widget, .merdpos-dashboard-item-actions button, .merdpos-dashboard-drawer-head button and .merdpos-dashboard-catalog-item button to --size-touch square geometry at <=51.25rem, and extends the global primitive validator to fail closed on that exact group."
   - "Fresh Gate 2.5 review of 8839e6c4 returned REQUEST_CHANGES with two blockers: the live Timesheet action trigger remained ~37.6px after cascade resolution, and reports-v2.css still owned mobile Timesheet dialog width/max-height instead of the shared dialog shell."
   - "Fix-forward head 185ce93ae814ea4f944ff5d5dde2faf991d1712c moves the Timesheet action trigger to --size-control on desktop and --size-touch at <=51.25rem, removes the feature-owned mobile dialog width/max-height override, and extends the global primitive validator to fail closed on both conditions."
+  - "Fresh Gate 2.5 review of 185ce93a returned REQUEST_CHANGES with two blockers: the Dashboard drawer reset action remained 44px on mobile, and the Timesheet Shift options menu items were not guaranteed to use the shared 44px desktop / 48px mobile action geometry."
+  - "Fix-forward head 167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a promotes .merdpos-dashboard-drawer-foot button to --size-touch in the existing mobile breakpoint, moves Timesheet Shift options menu items onto --size-control desktop / --size-touch mobile geometry, and extends the global primitive validator to fail closed on both action groups."
 checks:
   - name: "Global UI primitives"
     result: PASS
@@ -105,7 +107,7 @@ checks:
     evidence: "git diff --check"
   - name: "PR #176 CI"
     result: PASS
-    evidence: "Initial head 16a544ef: CI 36785412153 SUCCESS; Secret scan 36785412032 SUCCESS; Drupal global UI contract 36785411986 SUCCESS. Shell-touch head 7c1659d5: CI 36787427128 SUCCESS; Secret scan 36787427242 SUCCESS; Drupal global UI contract 36787427102 SUCCESS. Dashboard-touch head 8839e6c4: CI 36788284565 SUCCESS; Secret scan 36788284577 SUCCESS; Drupal global UI contract 36788284631 SUCCESS. Timesheet touch/dialog-ownership head 185ce93a: CI 36789725111 SUCCESS; Secret scan 36789725055 SUCCESS; Drupal global UI contract 36789725062 SUCCESS."
+    evidence: "Initial head 16a544ef: CI 36785412153 SUCCESS; Secret scan 36785412032 SUCCESS; Drupal global UI contract 36785411986 SUCCESS. Shell-touch head 7c1659d5: CI 36787427128 SUCCESS; Secret scan 36787427242 SUCCESS; Drupal global UI contract 36787427102 SUCCESS. Dashboard-touch head 8839e6c4: CI 36788284565 SUCCESS; Secret scan 36788284577 SUCCESS; Drupal global UI contract 36788284631 SUCCESS. Timesheet touch/dialog-ownership head 185ce93a: CI 36789725111 SUCCESS; Secret scan 36789725055 SUCCESS; Drupal global UI contract 36789725062 SUCCESS. Dashboard-reset/Timesheet-menu head 167a4cf9: CI 36790342058 SUCCESS; Secret scan 36790342110 SUCCESS; Drupal global UI contract 36790342120 SUCCESS."
   - name: "Reviewer-prep mobile touch-target correction"
     result: PASS
     evidence: "At 7c1659d5, php84 validator syntax + global UI primitives + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally."
@@ -115,14 +117,17 @@ checks:
   - name: "Gate 2.5 Timesheet touch/dialog-ownership fix"
     result: PASS
     evidence: "At 185ce93a, php84 validator syntax + global UI primitives + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally. Fresh independent review is still required on this new SHA."
+  - name: "Gate 2.5 dashboard reset + Timesheet menu action fix"
+    result: PASS
+    evidence: "At 167a4cf9, php84 validator syntax + global UI primitives + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally. Fresh independent review is still required on this new SHA."
 owner_gate:
   merge_approved: false
   deploy_approved: false
 remaining:
-  - "Fresh independent review of immutable SHA 185ce93ae814ea4f944ff5d5dde2faf991d1712c is mandatory before merge."
+  - "Fresh independent review of immutable SHA 167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a is mandatory before merge."
   - "After independent review passes, capture rendered after-screenshots on the deployable candidate and compare desktop/mobile light/dark component geometry before VERIFIED."
   - "Owner merge and deploy gates remain false."
-next_action: "Run a fresh independent ChatGPT review of PR #176 at immutable SHA 185ce93ae814ea4f944ff5d5dde2faf991d1712c. Do not merge or deploy from this chat because reviewer independence remains consumed."
+next_action: "Run a fresh independent ChatGPT review of PR #176 at immutable SHA 167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a. Do not merge or deploy from this chat because reviewer independence remains consumed."
 blocked: true
 blocker: "Fresh independent review required by Gate 2.5 because ChatGPT edited the reviewed implementation after Kimi quota exhaustion."
-updated_at: "2026-10-01T04:12:09+05:00"
+updated_at: "2026-10-01T04:19:18+05:00"
