@@ -48,7 +48,8 @@ def _resolve_kimi_cli() -> str:
     candidates: list[str] = []
     if explicit:
         candidates.append(explicit)
-    for name in ("kimi", "kimi.cmd"):
+    names = ("kimi.cmd", "kimi") if os.name == "nt" else ("kimi",)
+    for name in names:
         resolved = shutil.which(name)
         if resolved:
             candidates.append(resolved)
@@ -67,6 +68,8 @@ def _kimi_command(*args: str) -> list[str]:
     cli = _resolve_kimi_cli()
     if os.name == "nt" and cli.lower().endswith((".cmd", ".bat")):
         return ["cmd.exe", "/d", "/s", "/c", cli, *args]
+    if os.name == "nt" and cli.lower().endswith(".ps1"):
+        return ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", cli, *args]
     return [cli, *args]
 
 
