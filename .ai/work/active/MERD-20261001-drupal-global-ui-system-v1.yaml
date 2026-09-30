@@ -14,7 +14,7 @@ base_head: "7dafb9dff3be76d3bf6d4bf511705cfbad6e10c7"
 last_seen_head: "0d1acc25ce5e0dc6489bfc3955fe89f667aea2a6"
 drupal_base_head: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
 feature_branch: "feature/drupal-global-ui-system-v1"
-implementation_sha: "c5043a358066e4870c4d2430cb4947e74bd213c1"
+implementation_sha: "82dc6167a4249a2917d3f4d11e0f9f8b20938114"
 pr: 176
 pr_state: READY_FOR_REVIEW
 handoff:
@@ -24,7 +24,7 @@ handoff:
   owner: "product owner"
   branch: "feature/drupal-global-ui-system-v1"
   base_sha: "55671e5c94ad6198697faae18b9a28bf157ab3dd"
-  head_sha: "c5043a358066e4870c4d2430cb4947e74bd213c1"
+  head_sha: "82dc6167a4249a2917d3f4d11e0f9f8b20938114"
 independence:
   status: CONSUMED
   reason: "ChatGPT independently reviewed the first Kimi pass, found real inconsistencies and stale validator assumptions, then directly edited the implementation after Kimi hit its 5-hour quota. Under Gate 2.5 this SHA now requires a fresh independent review before merge."
@@ -79,6 +79,8 @@ completed:
   - "Fix-forward head 167a4cf9b24a1b9bd7b6ad11449e1bb74f52c06a promotes .merdpos-dashboard-drawer-foot button to --size-touch in the existing mobile breakpoint, moves Timesheet Shift options menu items onto --size-control desktop / --size-touch mobile geometry, and extends the global primitive validator to fail closed on both action groups."
   - "Fresh Gate 2.5 review of 167a4cf9 returned REQUEST_CHANGES with three blockers: Shop Log IN/OUT remained ~42.4px and literal-sized; account-sheet Time Sheet sync remained 36px and Change password lacked a canonical desktop minimum; Legacy Migration open/close/dynamic actions remained on undersized feature-owned geometry."
   - "Fix-forward head c5043a358066e4870c4d2430cb4947e74bd213c1 moves Shop Log IN/OUT to --size-control desktop / --size-touch mobile geometry, moves account-sheet labeled actions and Time Sheet sync to canonical 44px desktop / 48px mobile geometry, moves Legacy Sync/close/dynamic actions onto canonical desktop/mobile tokens, and extends the global primitive validator across attendance-scan.css, app-shell.css and legacy-migration-v1.css."
+  - "Fresh Gate 2.5 review of c5043a35 returned REQUEST_CHANGES with one blocker: Legacy Migration still owned a competing primary/hover/danger/disabled action visual/state system despite canonical geometry."
+  - "Fix-forward head 82dc6167a4249a2917d3f4d11e0f9f8b20938114 moves Legacy opener/save/preview/sync/final/close controls onto shared .merdpos-btn/.merdpos-ui-button classes and variants, removes Legacy-owned primary/danger/hover/disabled visual rules including --gradient-brand, promotes the shared icon-only mobile variant to a true --size-touch square, and hardens the validator to require shared gradient/hover/active/mobile-icon contracts plus Legacy shared-class consumption."
 checks:
   - name: "Global UI primitives"
     result: PASS
@@ -109,7 +111,7 @@ checks:
     evidence: "git diff --check"
   - name: "PR #176 CI"
     result: PASS
-    evidence: "Initial head 16a544ef: CI 36785412153 SUCCESS; Secret scan 36785412032 SUCCESS; Drupal global UI contract 36785411986 SUCCESS. Shell-touch head 7c1659d5: CI 36787427128 SUCCESS; Secret scan 36787427242 SUCCESS; Drupal global UI contract 36787427102 SUCCESS. Dashboard-touch head 8839e6c4: CI 36788284565 SUCCESS; Secret scan 36788284577 SUCCESS; Drupal global UI contract 36788284631 SUCCESS. Timesheet touch/dialog-ownership head 185ce93a: CI 36789725111 SUCCESS; Secret scan 36789725055 SUCCESS; Drupal global UI contract 36789725062 SUCCESS. Dashboard-reset/Timesheet-menu head 167a4cf9: CI 36790342058 SUCCESS; Secret scan 36790342110 SUCCESS; Drupal global UI contract 36790342120 SUCCESS. Attendance/account/legacy action head c5043a35: CI 36791594055 SUCCESS; Secret scan 36791594062 SUCCESS; Drupal global UI contract 36791594066 SUCCESS."
+    evidence: "Initial head 16a544ef: CI 36785412153 SUCCESS; Secret scan 36785412032 SUCCESS; Drupal global UI contract 36785411986 SUCCESS. Shell-touch head 7c1659d5: CI 36787427128 SUCCESS; Secret scan 36787427242 SUCCESS; Drupal global UI contract 36787427102 SUCCESS. Dashboard-touch head 8839e6c4: CI 36788284565 SUCCESS; Secret scan 36788284577 SUCCESS; Drupal global UI contract 36788284631 SUCCESS. Timesheet touch/dialog-ownership head 185ce93a: CI 36789725111 SUCCESS; Secret scan 36789725055 SUCCESS; Drupal global UI contract 36789725062 SUCCESS. Dashboard-reset/Timesheet-menu head 167a4cf9: CI 36790342058 SUCCESS; Secret scan 36790342110 SUCCESS; Drupal global UI contract 36790342120 SUCCESS. Attendance/account/legacy action head c5043a35: CI 36791594055 SUCCESS; Secret scan 36791594062 SUCCESS; Drupal global UI contract 36791594066 SUCCESS. Legacy shared-action hierarchy head 82dc6167: CI 36792674076 SUCCESS; Secret scan 36792674084 SUCCESS; Drupal global UI contract 36792674075 SUCCESS."
   - name: "Reviewer-prep mobile touch-target correction"
     result: PASS
     evidence: "At 7c1659d5, php84 validator syntax + global UI primitives + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally."
@@ -125,14 +127,17 @@ checks:
   - name: "Gate 2.5 attendance + account-sheet + Legacy action fix"
     result: PASS
     evidence: "At c5043a35, php84 validator syntax + global UI primitives + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally. Fresh independent review is still required on this new SHA."
+  - name: "Gate 2.5 Legacy shared-action visual/state fix"
+    result: PASS
+    evidence: "At 82dc6167, php84 validator syntax + Legacy JS syntax + global UI primitives + Administration Twig + Admin Roles Shell + Legacy Migration v1 + page headers + Reports v2 + Finance v2 + DEV v2 + Store Settings Dark v1 + source encoding + AI continuity + git diff --check all passed locally. Fresh independent review is still required on this new SHA."
 owner_gate:
   merge_approved: false
   deploy_approved: false
 remaining:
-  - "Fresh independent review of immutable SHA c5043a358066e4870c4d2430cb4947e74bd213c1 is mandatory before merge."
+  - "Fresh independent review of immutable SHA 82dc6167a4249a2917d3f4d11e0f9f8b20938114 is mandatory before merge."
   - "After independent review passes, capture rendered after-screenshots on the deployable candidate and compare desktop/mobile light/dark component geometry before VERIFIED."
   - "Owner merge and deploy gates remain false."
-next_action: "Run a fresh independent ChatGPT review of PR #176 at immutable SHA c5043a358066e4870c4d2430cb4947e74bd213c1. Do not merge or deploy from this chat because reviewer independence remains consumed."
+next_action: "Run a fresh independent ChatGPT review of PR #176 at immutable SHA 82dc6167a4249a2917d3f4d11e0f9f8b20938114. Do not merge or deploy from this chat because reviewer independence remains consumed."
 blocked: true
 blocker: "Fresh independent review required by Gate 2.5 because ChatGPT edited the reviewed implementation after Kimi quota exhaustion."
-updated_at: "2026-10-01T04:33:11+05:00"
+updated_at: "2026-10-01T04:45:49+05:00"
