@@ -1,0 +1,71 @@
+version: 1
+id: MERD-20260930-kimi-mcp-bridge-v1
+objective: "Create a private Secure-MCP-Tunnel bridge so ChatGPT can invoke the locally authenticated Kimi Code CLI for bounded MERDPOS implementation tasks without exposing Kimi credentials or granting Kimi shell/deploy authority."
+packet_state: VERIFIED
+lifecycle: VERIFIED
+base_head: "f51cd7af06491d9d3216df6991c34e4d0c3c05d8"
+last_seen_head: "709adce9e64b9e4416739659153f650aef00e067"
+implementation_commit: "a1e4f363aa8f8f02491fe418d49e1b6a5a6377bc"
+bridge_code_head: "709adce9e64b9e4416739659153f650aef00e067"
+wiring_checkpoint: "7ed2cfc35a760bf1bb0738a6f41418e3352a2ac7"
+verified_integration_evidence:
+  pr: 175
+  implementation_sha: "2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae"
+  metadata_successor_sha: "5aacc1fc69a888dadc56af63500a1c4cafe91ba6"
+  note: "Bridge VERIFIED refers to the ChatGPT/Kimi integration workflow itself. PR #175 remains WIRED and is not merged, deployed or live-verified."
+acceptance:
+  - "PASS — local stdio MCP server is reachable from ChatGPT through OpenAI Secure MCP Tunnel."
+  - "PASS — Kimi implementation tool is restricted to Read/Grep/Glob/Write/Edit and has no Bash, merge, deploy or direct-push authority."
+  - "PASS — checkout/commit-push guards protect canonical branches and sensitive paths."
+  - "PASS — default Kimi execution is K3-256K Low with explicit high/max override only."
+  - "PASS — no Kimi/OpenAI secrets are stored in Git or MCP handoff state."
+  - "PASS — a real bounded Kimi task was implemented, diff-reviewed, committed/pushed through bridge guards and independently reviewed through GitHub CI."
+constraints:
+  - "Private/tunnel deployment only; no anonymous public Kimi relay."
+  - "Canonical branches main, namecheap-beta-live and beta/drupal-webapp are never writable through bridge commit/push."
+  - "Merge and deployment remain intentionally absent from bridge tools."
+  - "Secrets remain local auth/environment state."
+completed:
+  - "Implemented bridge_status, repo_checkout_feature, kimi_implement_task, repo_diff and repo_commit_push."
+  - "Installed/authenticated Kimi Code CLI 2.1.1, MCP SDK 2.2.0 and OpenAI tunnel-client v0.0.15 on the authorized Windows workstation."
+  - "Configured the private Secure MCP Tunnel and DPAPI-protected local runtime key storage."
+  - "Fixed Windows Kimi CLI discovery and prompt argument transport; npm shim execution now resolves directly to Node + Kimi main.mjs."
+  - "ChatGPT discovered and invoked the bridge through the MCP app."
+  - "Kimi K3-256K Low implemented the PR #175 fix-forward through the bridge; ChatGPT inspected repo_diff and iterated reviewer findings back to Kimi."
+  - "repo_commit_push created and pushed 2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae on feature/drupal-reports-aa-makeover-v1."
+  - "Independent Git/CI review passed; PR reviewer evidence was recorded in metadata successor 5aacc1fc69a888dadc56af63500a1c4cafe91ba6 and PR conversation comment 5919841367."
+  - "After observing client-side long-call timeouts that could otherwise cause duplicate retries, bridge v0.2.0 added a single-task concurrency lock plus kimi_task activity in bridge_status and documented the do-not-retry-on-timeout rule."
+checks:
+  - name: "Bridge helper tests"
+    result: PASS
+    evidence: "8 tests passed on Windows at bridge code head 709adce9e64b9e4416739659153f650aef00e067."
+  - name: "Bridge Python syntax"
+    result: PASS
+    evidence: "python -m py_compile server.py test_server_helpers.py passed at 709adce9."
+  - name: "Live MCP bridge status"
+    result: PASS
+    evidence: "ChatGPT bridge_status returned bridge_version 0.2.0, Kimi CLI 2.1.1, clean configured worktree and kimi_task.active=false through the live tunnel."
+  - name: "Real Kimi implementation"
+    result: PASS
+    evidence: "Kimi K3-256K Low produced the PR #175 fix-forward through kimi_implement_task; ChatGPT reviewed the actual worktree diff before push."
+  - name: "Guarded feature-branch push"
+    result: PASS
+    evidence: "repo_commit_push successfully created/pushed 2957f2971ca56ef3951bcd39e11f47d1bfa7f4ae and refused no guard condition."
+  - name: "Implementation-head GitHub CI"
+    result: PASS
+    evidence: "CI 36777633749, Drupal global UI contract 36777633748 and Secret scan 36777633841 all succeeded at 2957f297."
+  - name: "Metadata-successor GitHub CI"
+    result: PASS
+    evidence: "CI 36777948111, Drupal global UI contract 36777948139 and Secret scan 36777947991 all succeeded at 5aacc1fc."
+  - name: "Secret handling"
+    result: PASS
+    evidence: "OpenAI runtime key plaintext was removed after DPAPI protection; no secret values were committed or placed in packets."
+known_lessons:
+  - "An MCP client timeout does not prove the local Kimi subprocess stopped. Check bridge_status first; do not retry while kimi_task.active=true."
+  - "One Kimi implementation task is allowed at a time; concurrent calls are rejected to prevent duplicate workers editing the same worktree."
+  - "Use K3-256K Low for bounded implementation after ChatGPT has already scoped/reviewed the task; reserve higher effort for actual unresolved implementation ambiguity."
+remaining: []
+next_action: "No bridge-v1 action pending. Use the verified bridge for future bounded dual-agent work under AGENTS.md and .ai/task-gates.md Gate 2.5."
+blocked: false
+blocker: null
+updated_at: "2026-10-01T02:16:56+05:00"
