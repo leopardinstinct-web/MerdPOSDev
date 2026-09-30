@@ -95,13 +95,13 @@ Suggested app name: `MERDPOS Kimi Bridge`.
 ## Tools
 
 ### `bridge_status`
-Read-only readiness check for the configured repo and Kimi CLI. It also reports whether a Kimi implementation task is currently active, without exposing the task prompt.
+Read-only readiness check for the configured repo and Kimi CLI. It also reports the current/most-recent Kimi job state without exposing the task prompt. While a job is running it includes the task ID and elapsed time; after completion it retains the exit/result summary, changed paths, bounded assistant output and diagnostic so a client timeout cannot erase the outcome.
 
 ### `repo_checkout_feature`
 Checks out an existing remote feature/fix/hotfix branch after ensuring the working tree is clean.
 
 ### `kimi_implement_task`
-Runs one fresh, non-interactive Kimi Code session against the current feature branch. Defaults are tuned for quota efficiency:
+Submits one fresh, non-interactive Kimi Code job against the current feature branch and **returns immediately** with a task ID. The Kimi process runs on the bridge host in a background worker; poll `bridge_status` until `kimi_task.active=false`, then inspect the retained result and `repo_diff`. Defaults are tuned for quota efficiency:
 
 - model: `kimi-code/k3-256k`
 - effort: `low`
@@ -110,7 +110,7 @@ Runs one fresh, non-interactive Kimi Code session against the current feature br
 
 Use `high` when the handoff still has real multi-file ambiguity. Reserve `max` for genuinely difficult/high-risk implementation reasoning.
 
-Only one Kimi implementation task may run at a time. The bridge rejects concurrent invocations. If ChatGPT or another MCP client times out while waiting for a long Kimi turn, **do not immediately retry**: the local Kimi process may still be running. Call `bridge_status` first; if `kimi_task.active` is true, wait and inspect `repo_diff` as needed. Retry only after the active task has ended and the resulting diff has been reviewed.
+Only one Kimi implementation task may run at a time. The bridge rejects concurrent invocations, branch checkout, and commit/push while the worker is active. Long Kimi runtime no longer keeps an MCP request open, so normal ChatGPT/tool request timeouts do not interrupt or ambiguously detach the job. `repo_diff` remains available while a job is running for read-only inspection.
 
 ### `repo_diff`
 Returns bounded local `git status` and `git diff` output so ChatGPT can inspect the actual implementation before it is pushed.
@@ -122,13 +122,14 @@ Commits and pushes the current working tree only from a feature/fix/hotfix branc
 
 1. ChatGPT creates or identifies the GitHub feature branch.
 2. `repo_checkout_feature` checks out that exact remote branch locally.
-3. ChatGPT sends a compact implementation contract through `kimi_implement_task`.
-4. `repo_diff` exposes Kimi's actual edits for inspection.
-5. ChatGPT may request another bounded Kimi edit if needed.
-6. With owner approval as required by the active workflow, `repo_commit_push` pushes the immutable implementation SHA.
-7. GitHub CI runs.
-8. ChatGPT performs independent Git/CI review under `.ai/task-gates.md`.
-9. Merge/deploy remain outside this bridge and continue to require the normal MERDPOS gates.
+3. ChatGPT sends a compact implementation contract through `kimi_implement_task` and receives an immediate task ID.
+4. ChatGPT polls `bridge_status` until the task completes; the result remains available in `kimi_task`.
+5. `repo_diff` exposes Kimi's actual edits for inspection.
+6. ChatGPT may request another bounded Kimi edit if needed.
+7. With owner approval as required by the active workflow, `repo_commit_push` pushes the immutable implementation SHA.
+8. GitHub CI runs.
+9. ChatGPT performs independent Git/CI review under `.ai/task-gates.md`.
+10. Merge/deploy remain outside this bridge and continue to require the normal MERDPOS gates.
 
 ## Quota discipline
 

@@ -1,7 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-01T03:25:23+05:00'
+updated_at: '2026-10-01T03:31:00+05:00'
 active:
+- id: MERD-20261001-kimi-mcp-async-jobs-v1
+  path: .ai/work/active/MERD-20261001-kimi-mcp-async-jobs-v1.yaml
+  lifecycle: CODED
+  packet_state: CODED_AWAITING_HOST_VERIFY
 - id: MERD-20261001-drupal-global-ui-system-v1
   path: .ai/work/active/MERD-20261001-drupal-global-ui-system-v1.yaml
   lifecycle: CODED

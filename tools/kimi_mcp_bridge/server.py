@@ -11,7 +11,7 @@ from typing import Literal
 
 from mcp.server import MCPServer
 
-SERVER_VERSION = "0.2.0"
+SERVER_VERSION = "0.3.0"
 FORBIDDEN_BRANCHES = {"main", "namecheap-beta-live", "beta/drupal-webapp"}
 SAFE_BRANCH_PREFIXES = ("feature/", "fix/", "hotfix/")
 FORBIDDEN_PATH_PATTERNS = (
@@ -24,15 +24,126 @@ FORBIDDEN_PATH_PATTERNS = (
 )
 
 _KIMI_TASK_LOCK = threading.Lock()
-_KIMI_TASK_STATE: dict[str, object] = {"active": False}
+_KIMI_TASK_STATE_LOCK = threading.Lock()
+_KIMI_TASK_STATE: dict[str, object] = {"active": False, "state": "idle"}
+
+
+def _replace_kimi_task_state(values: dict[str, object]) -> None:
+    with _KIMI_TASK_STATE_LOCK:
+        _KIMI_TASK_STATE.clear()
+        _KIMI_TASK_STATE.update(values)
 
 
 def _kimi_task_snapshot() -> dict[str, object]:
-    snapshot = dict(_KIMI_TASK_STATE)
+    with _KIMI_TASK_STATE_LOCK:
+        snapshot = dict(_KIMI_TASK_STATE)
     started = snapshot.pop("started_monotonic", None)
     if snapshot.get("active") and isinstance(started, (int, float)):
         snapshot["elapsed_seconds"] = round(max(0.0, time.monotonic() - started), 1)
     return snapshot
+
+
+def _assert_kimi_task_idle(operation: str) -> None:
+    if _KIMI_TASK_LOCK.locked():
+        snapshot = _kimi_task_snapshot()
+        raise RuntimeError(
+            f"Cannot {operation} while Kimi task {snapshot.get('task_id', '<unknown>')} is running. "
+            "Wait for bridge_status to report active=false."
+        )
+
+
+def _as_text(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return str(value)
+
+
+def _kimi_task_worker(
+    *,
+    task_id: str,
+    cmd: list[str],
+    root: Path,
+    env: dict[str, str],
+    branch: str,
+    model: str,
+    effort: str,
+    timeout_seconds: int,
+    started_monotonic: float,
+    submitted_at: float,
+) -> None:
+    state: dict[str, object]
+    try:
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=timeout_seconds,
+                check=False,
+                shell=False,
+            )
+            state = {
+                "active": False,
+                "state": "completed" if result.returncode == 0 else "failed",
+                "task_id": task_id,
+                "branch": branch,
+                "model": model,
+                "effort": effort,
+                "submitted_at": submitted_at,
+                "completed_at": time.time(),
+                "elapsed_seconds": round(max(0.0, time.monotonic() - started_monotonic), 1),
+                "ok": result.returncode == 0,
+                "exit_code": result.returncode,
+                "assistant_output": _truncate(_as_text(result.stdout), 16000),
+                "diagnostic": "" if result.returncode == 0 else _truncate(_redact(_as_text(result.stderr)), 8000),
+            }
+        except subprocess.TimeoutExpired as exc:
+            state = {
+                "active": False,
+                "state": "timed_out",
+                "task_id": task_id,
+                "branch": branch,
+                "model": model,
+                "effort": effort,
+                "submitted_at": submitted_at,
+                "completed_at": time.time(),
+                "elapsed_seconds": round(max(0.0, time.monotonic() - started_monotonic), 1),
+                "ok": False,
+                "timed_out": True,
+                "assistant_output": _truncate(_as_text(exc.stdout), 12000),
+                "diagnostic": (
+                    "Kimi exceeded the bridge runtime limit. Inspect repo_diff before deciding whether to submit another task."
+                ),
+            }
+        except Exception as exc:
+            state = {
+                "active": False,
+                "state": "failed",
+                "task_id": task_id,
+                "branch": branch,
+                "model": model,
+                "effort": effort,
+                "submitted_at": submitted_at,
+                "completed_at": time.time(),
+                "elapsed_seconds": round(max(0.0, time.monotonic() - started_monotonic), 1),
+                "ok": False,
+                "diagnostic": _truncate(_redact(str(exc)), 8000),
+            }
+
+        try:
+            state["changed_paths"] = _status_paths()
+        except Exception as exc:
+            state["changed_paths"] = []
+            prior = str(state.get("diagnostic", "")).strip()
+            suffix = "Unable to read final git status: " + _redact(str(exc))
+            state["diagnostic"] = _truncate((prior + "\n" + suffix).strip(), 8000)
+        _replace_kimi_task_state(state)
+    finally:
+        _KIMI_TASK_LOCK.release()
 
 
 mcp = MCPServer(
@@ -187,7 +298,8 @@ def bridge_status() -> dict[str, object]:
 
 @mcp.tool()
 def repo_checkout_feature(branch: str) -> dict[str, object]:
-    """Checkout an existing remote feature/fix/hotfix branch. Refuses dirty trees and canonical branches."""
+    """Checkout an existing remote feature/fix/hotfix branch. Refuses dirty trees, canonical branches, and active Kimi jobs."""
+    _assert_kimi_task_idle("checkout a branch")
     _assert_feature_branch(branch)
     dirty = _status_paths()
     if dirty:
@@ -224,7 +336,7 @@ def kimi_implement_task(
     effort: Literal["low", "high", "max"] = "low",
     timeout_seconds: int = 1800,
 ) -> dict[str, object]:
-    """Run one bounded Kimi implementation turn against the current feature branch. Kimi may read/edit files but cannot use Bash, push, merge, or deploy."""
+    """Submit one bounded Kimi implementation job and return immediately. Poll bridge_status for completion; Kimi may read/edit files but cannot use Bash, push, merge, or deploy."""
     if not task.strip():
         raise RuntimeError("Task is empty.")
     if len(task) > 30000:
@@ -261,59 +373,72 @@ def kimi_implement_task(
             "check bridge_status and inspect repo_diff instead."
         )
 
+    task_id = f"kimi-{int(time.time() * 1000)}"
     started = time.monotonic()
-    _KIMI_TASK_STATE.clear()
-    _KIMI_TASK_STATE.update({
+    submitted_at = time.time()
+    _replace_kimi_task_state({
         "active": True,
+        "state": "running",
+        "task_id": task_id,
         "branch": branch,
         "model": model,
         "effort": effort,
+        "timeout_seconds": timeout_seconds,
+        "submitted_at": submitted_at,
         "started_monotonic": started,
     })
-    try:
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=root,
-                env=env,
-                text=True,
-                capture_output=True,
-                timeout=timeout_seconds,
-                check=False,
-                shell=False,
-            )
-        except subprocess.TimeoutExpired as exc:
-            return {
-                "ok": False,
-                "branch": branch,
-                "timed_out": True,
-                "elapsed_seconds": round(time.monotonic() - started, 1),
-                "assistant_output": _truncate(exc.stdout or "", 16000),
-                "diagnostic": (
-                    "Kimi task timed out inside the bridge. Inspect repo_diff before deciding whether to retry."
-                ),
-            }
-
-        return {
-            "ok": result.returncode == 0,
+    worker = threading.Thread(
+        target=_kimi_task_worker,
+        kwargs={
+            "task_id": task_id,
+            "cmd": cmd,
+            "root": root,
+            "env": env,
             "branch": branch,
             "model": model,
             "effort": effort,
-            "exit_code": result.returncode,
-            "elapsed_seconds": round(time.monotonic() - started, 1),
-            "assistant_output": _truncate(result.stdout, 24000),
-            "diagnostic": "" if result.returncode == 0 else _truncate(_redact(result.stderr), 8000),
-            "changed_paths": _status_paths(),
-        }
-    finally:
-        _KIMI_TASK_STATE.clear()
-        _KIMI_TASK_STATE["active"] = False
+            "timeout_seconds": timeout_seconds,
+            "started_monotonic": started,
+            "submitted_at": submitted_at,
+        },
+        name=f"merdpos-{task_id}",
+        daemon=True,
+    )
+    try:
+        worker.start()
+    except Exception:
+        _replace_kimi_task_state({
+            "active": False,
+            "state": "failed",
+            "task_id": task_id,
+            "branch": branch,
+            "model": model,
+            "effort": effort,
+            "submitted_at": submitted_at,
+            "completed_at": time.time(),
+            "ok": False,
+            "diagnostic": "Unable to start the local Kimi worker thread.",
+            "changed_paths": [],
+        })
         _KIMI_TASK_LOCK.release()
+        raise
+
+    return {
+        "accepted": True,
+        "task_id": task_id,
+        "state": "running",
+        "branch": branch,
+        "model": model,
+        "effort": effort,
+        "timeout_seconds": timeout_seconds,
+        "next_action": "Poll bridge_status until kimi_task.active=false, then inspect kimi_task and repo_diff.",
+    }
 
 
 @mcp.tool()
 def repo_commit_push(expected_branch: str, message: str) -> dict[str, object]:
-    """Commit and push the current local changes on the named feature/fix/hotfix branch. Refuses canonical branches, sensitive paths, empty diffs, and whitespace errors."""
+    """Commit and push the current local changes on the named feature/fix/hotfix branch. Refuses active Kimi jobs, canonical branches, sensitive paths, empty diffs, and whitespace errors."""
+    _assert_kimi_task_idle("commit or push")
     branch = _current_branch()
     if branch != expected_branch:
         raise RuntimeError(f"Current branch is '{branch}', not expected '{expected_branch}'.")

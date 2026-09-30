@@ -82,9 +82,10 @@ class GuardTests(unittest.TestCase):
             bridge._KIMI_TASK_LOCK.release()
 
     def test_kimi_task_snapshot_hides_internal_monotonic_timestamp(self):
-        bridge._KIMI_TASK_STATE.clear()
-        bridge._KIMI_TASK_STATE.update({
+        bridge._replace_kimi_task_state({
             "active": True,
+            "state": "running",
+            "task_id": "kimi-test",
             "branch": "feature/test",
             "model": "kimi-code/k3-256k",
             "effort": "low",
@@ -96,8 +97,68 @@ class GuardTests(unittest.TestCase):
             self.assertIn("elapsed_seconds", snapshot)
             self.assertNotIn("started_monotonic", snapshot)
         finally:
-            bridge._KIMI_TASK_STATE.clear()
-            bridge._KIMI_TASK_STATE["active"] = False
+            bridge._replace_kimi_task_state({"active": False, "state": "idle"})
+
+    def test_active_task_blocks_branch_and_commit_mutations(self):
+        self.assertTrue(bridge._KIMI_TASK_LOCK.acquire(blocking=False))
+        bridge._replace_kimi_task_state({"active": True, "state": "running", "task_id": "kimi-test"})
+        try:
+            with self.assertRaises(RuntimeError):
+                bridge._assert_kimi_task_idle("checkout a branch")
+        finally:
+            bridge._replace_kimi_task_state({"active": False, "state": "idle"})
+            bridge._KIMI_TASK_LOCK.release()
+
+    def test_kimi_worker_persists_success_result_and_releases_lock(self):
+        self.assertTrue(bridge._KIMI_TASK_LOCK.acquire(blocking=False))
+        started = bridge.time.monotonic()
+        completed = bridge.subprocess.CompletedProcess(["kimi"], 0, stdout="edited files", stderr="")
+        with patch.object(bridge.subprocess, "run", return_value=completed), \
+             patch.object(bridge, "_status_paths", return_value=["drupal/example.css"]):
+            bridge._kimi_task_worker(
+                task_id="kimi-success",
+                cmd=["kimi"],
+                root=Path("."),
+                env={},
+                branch="feature/test",
+                model="kimi-code/k3-256k",
+                effort="low",
+                timeout_seconds=120,
+                started_monotonic=started,
+                submitted_at=bridge.time.time(),
+            )
+        snapshot = bridge._kimi_task_snapshot()
+        self.assertFalse(snapshot["active"])
+        self.assertEqual(snapshot["state"], "completed")
+        self.assertTrue(snapshot["ok"])
+        self.assertEqual(snapshot["changed_paths"], ["drupal/example.css"])
+        self.assertIn("edited files", snapshot["assistant_output"])
+        self.assertFalse(bridge._KIMI_TASK_LOCK.locked())
+
+    def test_kimi_worker_persists_timeout_result_and_releases_lock(self):
+        self.assertTrue(bridge._KIMI_TASK_LOCK.acquire(blocking=False))
+        started = bridge.time.monotonic()
+        timeout = bridge.subprocess.TimeoutExpired(["kimi"], 120, output="partial")
+        with patch.object(bridge.subprocess, "run", side_effect=timeout), \
+             patch.object(bridge, "_status_paths", return_value=[]):
+            bridge._kimi_task_worker(
+                task_id="kimi-timeout",
+                cmd=["kimi"],
+                root=Path("."),
+                env={},
+                branch="feature/test",
+                model="kimi-code/k3-256k",
+                effort="low",
+                timeout_seconds=120,
+                started_monotonic=started,
+                submitted_at=bridge.time.time(),
+            )
+        snapshot = bridge._kimi_task_snapshot()
+        self.assertFalse(snapshot["active"])
+        self.assertEqual(snapshot["state"], "timed_out")
+        self.assertTrue(snapshot["timed_out"])
+        self.assertIn("partial", snapshot["assistant_output"])
+        self.assertFalse(bridge._KIMI_TASK_LOCK.locked())
 
 
 
