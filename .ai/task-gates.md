@@ -2,6 +2,14 @@
 
 This file is a mandatory operating contract for AI/coding sessions working on MERDPOS Beta. It exists to prevent recurring failures around stale branch context, lost mid-task state, provenance/root-cause claims without history, concurrent-chat drift, and stopping at analysis/planning when the product owner explicitly asked for implementation.
 
+## Risk-tiered gate application
+
+This section governs **when** the gates in this file apply. Existing gate text remains binding whenever its gate is invoked; this section does not weaken Tier-3 requirements, frozen payroll rules, DUMMY testing rules, or lifecycle-state evidence.
+
+- **Tier 1 — documentation/continuity:** docs, work packets, checkpoints and README-only changes may commit directly to `namecheap-beta-live`. No work packet and no dual-agent review are required. Batch checkpoint/handoff updates into the smallest sensible number of commits instead of creating one commit per refresh.
+- **Tier 2 — non-sensitive product UI:** visual/CSS, copy, layout and other non-auth UI changes use a feature branch, require relevant CI to be green, and may then be merged by the product owner. Dual-agent review is not required.
+- **Tier 3 — sensitive/runtime-critical:** authorization, payroll/timesheet logic, deployment scripts, database/schema and security changes use the full Gates 0–5 workflow, including dual-agent independent review exactly as required below.
+
 ## Gate 0 — Canonical branch entry before any Beta work
 
 For every MERDPOS Beta task, independently resolve the current GitHub HEAD of `leopardinstinct-web/MerdPOSDev:namecheap-beta-live` before planning or changing code. Do not trust the repository default branch, the current checkout, a pre-existing feature branch, or branch/session state inherited from a chat that started outside the MERDPOS BETA project.
@@ -103,7 +111,7 @@ The handoff is evidence routing, not evidence itself:
 - CI green proves only the checks that ran;
 - the implementer may record deployment/runtime observations but must not independently close dual-agent work as **VERIFIED**;
 - dual-agent **VERIFIED** requires the independent reviewer to review the exact SHA plus the deployment/runtime evidence required by Gate 3;
-- if the reviewer edits implementation code, reviewer independence is consumed for those edits and a fresh independent review is required;
+- if the reviewer edits implementation code, reviewer independence is consumed only for the files the reviewer actually edited; those edits are reviewed as a delta by the original implementer, or validated by relevant CI plus a product-owner spot-check. A fresh full independent review is required only when the delta is large or touches Tier-3 surface (authorization, payroll/timesheet logic, deployment scripts, database/schema, or security);
 - unresolved review findings return to the implementer; do not merge/deploy merely to continue iteration;
 - no agent may expose or commit secrets in a handoff, packet, prompt, test artifact or repository file.
 

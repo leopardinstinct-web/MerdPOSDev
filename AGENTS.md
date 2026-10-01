@@ -59,11 +59,17 @@ This is a role contract, not a model-trust shortcut. In dual-agent mode:
 - the reviewer reviews a concrete immutable SHA/PR, not an uncommitted workspace description;
 - the implementer must not act as its own independent reviewer or close its own dual-agent work as **VERIFIED** solely from its own execution/evidence;
 - the implementer may record deployment/runtime observations, but dual-agent **VERIFIED** requires the independent reviewer to inspect the exact reviewed SHA plus the evidence required by `.ai/task-gates.md`;
-- if the reviewer changes implementation code while reviewing, that reviewer has become an implementer for those changes and a fresh independent review is required before dual-agent verification;
+- if the reviewer changes implementation code while reviewing, independence is consumed only for the files actually edited. The original implementer reviews that delta, or relevant CI plus a product-owner spot-check validates it; a fresh full independent review is required only when the delta is large or touches Tier-3 surface (authorization, payroll/timesheet logic, deployment scripts, database/schema, or security);
 - review findings should be handed back to the implementer for correction rather than silently rewriting the implementation branch during review;
 - neither agent may place passwords, API keys, SSH private keys, cookies, database credentials or other secrets in Git, prompts, work packets or handoff records.
 
-Use `.ai/work/HANDOFF_TEMPLATE.yaml` for non-trivial dual-agent work. Git and committed work-packet state are the communication channel between agents; chat summaries are supplementary only.
+Use `.ai/work/HANDOFF_TEMPLATE.yaml` for non-trivial dual-agent work. GitHub PR state and committed work-packet state are the communication channel between agents; chat summaries are supplementary only.
+
+### Handoff convention
+
+The canonical implementer → reviewer handoff is the PR description plus **at most one PR comment** containing the exact head SHA, scope, CI links, lifecycle state and one next action. Do not create separate "handoff refresh" commits on `namecheap-beta-live`. If handoff state changes, update that PR comment or the work packet instead.
+
+The Kimi MCP bridge is **DEPRECATED / optional tooling**. Agent handoffs go through PR comments and work packets. Any bridge files such as `scripts/kimi*` that may exist in other revisions are retained only for compatibility/history; do not develop or extend the bridge without an explicit product-owner decision.
 
 ## Resumable work rule
 

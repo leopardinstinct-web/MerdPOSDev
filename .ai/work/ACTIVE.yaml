@@ -1,19 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-01T05:14:25+05:00'
+updated_at: '2026-10-01T07:48:00+05:00'
 active:
 - id: MERD-20261001-drupal-global-ui-system-v1
   path: .ai/work/active/MERD-20261001-drupal-global-ui-system-v1.yaml
   lifecycle: DEPLOYED
   packet_state: DEPLOYED_RUNTIME_PASS_AWAITING_FRESH_VERIFICATION
-- id: MERD-20260916-query-workflow-repair-v1
-  path: .ai/work/active/MERD-20260916-query-workflow-repair-v1.yaml
-  lifecycle: VERIFIED
-  packet_state: VERIFIED
-- id: MERD-20260915-dev-user-impersonation-v1
-  path: .ai/work/active/MERD-20260915-dev-user-impersonation-v1.yaml
-  lifecycle: VERIFIED
-  packet_state: VERIFIED
 - id: MERD-20260909-dashboard-write-audit
   path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
   lifecycle: WIRED
@@ -34,11 +26,3 @@ active:
   path: .ai/work/active/MERD-20260902-studio-overlay-about.yaml
   lifecycle: VALIDATED
   packet_state: VALIDATED
-- id: MERD-20260902-ds-revision-130
-  path: .ai/work/active/MERD-20260902-ds-revision-130.yaml
-  lifecycle: VERIFIED
-  packet_state: VERIFIED
-- id: MERD-20260902-devstudio-structure-editor
-  path: .ai/work/active/MERD-20260902-devstudio-structure-editor.yaml
-  lifecycle: VERIFIED
-  packet_state: VERIFIED
