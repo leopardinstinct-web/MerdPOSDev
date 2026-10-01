@@ -57,6 +57,9 @@ php84 "$DRUPAL/tools/validate_brand_palette_v1.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
 php84 "$DRUPAL/tools/validate_administration_twig.php"
+# Release identity contract: fail fast before touching the site if the marker
+# generation or web-server rules have drifted.
+php84 "$DRUPAL/tools/validate_release_marker_v1.php" --self-test
 php84 "$DRUPAL/tools/validate_onboarding_provisioner.php"
 php84 "$DRUPAL/tools/validate_attendance_qr_widget_v1.php"
 php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
@@ -239,5 +242,31 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
   "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" "$ONBOARDING_V2_PROBE" "$ATTENDANCE_QR_V1_PROBE" "$DISPUTE_WRITE_V1_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
+
+# Public release identity for the Drupal beta application.
+#
+# Distinct from the operator report above (which stays a dotfile and is therefore
+# not web-served): this is the minimal, non-secret release marker the harness and
+# any external checker may read. It is written here - after the deployment and
+# every runtime probe above succeeded - atomically, from the checkout that is
+# actually on disk, and validated before the deploy reports success. A failed or
+# partial deployment therefore leaves the previous marker untouched rather than
+# publishing an intended-but-unshipped SHA.
+RELEASE_MARKER="$WEB/merdpos-release.json"
+RELEASE_TMP=""
+release_tmp_cleanup() {
+  if [[ -n "$RELEASE_TMP" && -f "$RELEASE_TMP" ]]; then
+    rm -f "$RELEASE_TMP"
+  fi
+}
+trap release_tmp_cleanup EXIT
+RELEASE_TMP="$(mktemp "$WEB/.merdpos-release.XXXXXX")"
+php84 -r 'file_put_contents($argv[1], json_encode(["environment"=>"beta","component"=>"drupal","commit"=>$argv[2],"deployed_at"=>$argv[3]], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES).PHP_EOL);' \
+  "$RELEASE_TMP" "$HEAD" "$STAMP"
+chmod 644 "$RELEASE_TMP"
+mv -f "$RELEASE_TMP" "$RELEASE_MARKER"
+RELEASE_TMP=""
+php84 "$DRUPAL/tools/validate_release_marker_v1.php" --file "$RELEASE_MARKER" --expect-commit "$HEAD"
+echo "MERDPOS Drupal release identity published: $RELEASE_MARKER at ${HEAD:0:12}."
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."

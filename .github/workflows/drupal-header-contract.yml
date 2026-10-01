@@ -34,3 +34,5 @@ jobs:
         run: php drupal/tools/validate_global_page_headers_v1.php
       - name: Validate global UI primitives
         run: php drupal/tools/validate_global_ui_primitives_v1.php
+      - name: Validate release identity contract
+        run: php drupal/tools/validate_release_marker_v1.php --self-test

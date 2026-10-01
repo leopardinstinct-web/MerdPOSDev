@@ -131,6 +131,14 @@ Namecheap deployment is **server-side Git pull + Git-owned deploy scripts**. SSH
 - On the current Windows developer toolchain, routine Namecheap SSH **must use Paramiko** with `paramiko.RSAKey.from_private_key_file(...)` and the ignored local identity `.tools/namecheap_drupal_deploy`.
 - Connection contract: host `198.187.29.30`, port `21098`, account `dridsheikh`, cPanel public-key identity `namecheap_drupal_deploy`.
 - Do **not** try plain `ssh` first on this workstation: the Windows OpenSSH path does not own the project deployment identity and has previously produced false access failures.
+
+### Release identity (one per component, never conflated)
+
+- Portal Beta: `https://app.merdpos.com/beta/.beta_release.json` — written by `scripts/deploy_namecheap_beta.sh`, together with `.beta_deployed_commit`.
+- Drupal Beta: `https://drupal-beta.merdpos.com/merdpos-release.json` — `{environment, component, commit, deployed_at}`, written atomically by `drupal/tools/namecheap_deploy.sh` **after** the deployment and its runtime probes succeed, from the checkout actually on disk.
+- Both markers are minimal, non-secret and publicly readable. The richer operator report `drupal/web/.merdpos_drupal_release.json` stays a dotfile and is not web-served.
+- `drupal/tools/validate_release_marker_v1.php` is the contract guard: `--self-test` runs as a deploy gate and in CI, and the deploy validates the written marker against the deployed checkout.
+- A component's marker proves **only** that component's deployed SHA. Never infer one component's deployment from the other's marker, and never infer deployment from changed assets once the canonical marker exists.
 - Required preflight before server mutation: successful Paramiko handshake emitting `SSH_OK`, then resolve current server branch/HEAD.
 - When a Drupal release depends on a new backend gateway/API capability, deploy/verify backend first, then Drupal.
 - Never commit/copy the private key, credentials, cookies or server secrets. `.tools/` remains ignored local state.
