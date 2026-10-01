@@ -76,6 +76,12 @@ backend/api/config.php
 # Namecheap per-domain PHP runtime generated during deploy
 /drupal/web/php.ini
 
+# Deployment-generated release identity: source control must never be able to
+# carry a fabricated deployed SHA.
+/drupal/web/merdpos-release.json
+/drupal/web/.merdpos_drupal_release.json
+/drupal/web/.merdpos-release.*
+
 # Drupal runtime, secrets and user files
 /drupal/web/sites/*/files/
 /drupal/web/sites/*/private/

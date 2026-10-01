@@ -31,6 +31,16 @@ export PHPRC="$WEB"
 export PATH="/opt/alt/php84/usr/bin:$PATH"
 php84 -r '$required=["curl","dom","fileinfo","gd","mbstring","pdo_mysql","phar","xmlreader","xmlwriter","zip"]; foreach($required as $ext){if(!extension_loaded($ext)){fwrite(STDERR,"Missing PHP extension: $ext\n");exit(1);}}'
 
+# Serialise deployments. Two overlapping runs would each add a release identity,
+# and the last mv could name a revision that is no longer the checkout on disk.
+# Same mechanism as the backend beta deploy; released automatically on exit.
+DEPLOY_LOCK=/home/dridsheikh/.merdpos_drupal_deploy.lock
+exec 9>"$DEPLOY_LOCK"
+if ! flock -n 9; then
+  echo "Another MERDPOS Drupal deployment is already running; refusing to overlap." >&2
+  exit 1
+fi
+
 cd "$DRUPAL"
 php84 "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader
 # Composer scaffold may rewrite tracked Drupal scaffold files; restore MERDPOS canonical copies immediately.
@@ -57,6 +67,9 @@ php84 "$DRUPAL/tools/validate_brand_palette_v1.php"
 php84 "$DRUPAL/tools/validate_administration_write_v1.php"
 php84 "$DRUPAL/tools/validate_administration_onboarding_v2.php"
 php84 "$DRUPAL/tools/validate_administration_twig.php"
+# Release identity contract: fail fast before touching the site if the marker
+# generation or web-server rules have drifted.
+php84 "$DRUPAL/tools/validate_release_marker_v1.php" --self-test
 php84 "$DRUPAL/tools/validate_onboarding_provisioner.php"
 php84 "$DRUPAL/tools/validate_attendance_qr_widget_v1.php"
 php84 "$DRUPAL/tools/validate_dispute_write_v1.php"
@@ -239,5 +252,46 @@ php84 -r '$p=json_decode($argv[4],true); $g=json_decode($argv[5],true); $d=json_
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"\n";' \
   "$HEAD" "$BRANCH" "$STAMP" "$PROBE" "$GATEWAY_PROBE" "$DEV_PROBE" "$PARITY_PROBE" "$LOGIN_PROBE" "$UI_PROBE" "$DASHBOARD_V2_PROBE" "$OPERATIONS_V2_PROBE" "$REPORTS_V2_PROBE" "$FINANCE_V2_PROBE" "$DEV_V2_PROBE" "$ADMIN_V1_PROBE" "$ONBOARDING_V2_PROBE" "$ATTENDANCE_QR_V1_PROBE" "$DISPUTE_WRITE_V1_PROBE" > "$WEB/.merdpos_drupal_release.json"
 chmod 644 "$WEB/.merdpos_drupal_release.json"
+
+# Public release identity for the Drupal beta application.
+#
+# Distinct from the operator report above (which stays a dotfile and is therefore
+# not web-served): this is the minimal, non-secret release marker the harness and
+# any external checker may read. It is written here - after the deployment and
+# every runtime probe above succeeded - from the checkout that is actually on
+# disk, and it is only published once its contents have validated. A failed or
+# partial deployment therefore leaves the previous marker untouched instead of
+# publishing an intended-but-unshipped SHA (or an empty one).
+#
+# This script defines no other EXIT trap, so the cleanup trap below replaces
+# nothing.
+RELEASE_MARKER="$WEB/merdpos-release.json"
+RELEASE_TMP=""
+release_tmp_cleanup() {
+  if [[ -n "$RELEASE_TMP" && -f "$RELEASE_TMP" ]]; then
+    rm -f "$RELEASE_TMP"
+  fi
+}
+trap release_tmp_cleanup EXIT
+# Resolve the revision at publish time rather than reusing the value captured
+# earlier, and refuse to publish if the checkout moved in between: the marker
+# must name the tree that is on disk now.
+RELEASE_SHA="$(git -C "$REPO" rev-parse HEAD)"
+if [[ "$RELEASE_SHA" != "$HEAD" ]]; then
+  echo "Checkout moved during deployment ($HEAD -> $RELEASE_SHA); refusing to publish a release identity." >&2
+  exit 1
+fi
+RELEASE_STAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+RELEASE_TMP="$(mktemp "$WEB/.merdpos-release.XXXXXX")"
+php84 -r 'if (file_put_contents($argv[1], json_encode(["environment"=>"beta","component"=>"drupal","commit"=>$argv[2],"deployed_at"=>$argv[3]], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES).PHP_EOL) === false) { fwrite(STDERR, "release marker write failed\n"); exit(1); }' \
+  "$RELEASE_TMP" "$RELEASE_SHA" "$RELEASE_STAMP"
+chmod 644 "$RELEASE_TMP"
+# Validate the candidate BEFORE publishing: mv is the irreversible step, so a
+# failed or truncated write can no longer destroy the previous good marker.
+php84 "$DRUPAL/tools/validate_release_marker_v1.php" --file "$RELEASE_TMP" --expect-commit "$RELEASE_SHA"
+mv -f "$RELEASE_TMP" "$RELEASE_MARKER"
+RELEASE_TMP=""
+php84 "$DRUPAL/tools/validate_release_marker_v1.php" --file "$RELEASE_MARKER" --expect-commit "$RELEASE_SHA"
+echo "MERDPOS Drupal release identity published: $RELEASE_MARKER at ${RELEASE_SHA:0:12}."
 
 echo "MERDPOS Drupal deploy verified at ${HEAD:0:12}."
