@@ -180,6 +180,8 @@ After source changes intended for live beta:
 
 If deployment fails, inspect `scripts/deploy_namecheap_beta.sh`, validators and server deploy log rather than bypassing recovery guards.
 
+For Drupal shared UI primitive contract changes, treat deploy-time validators as dependent source. Before release, search validators for hard-coded geometry/state expectations that the shared primitive change supersedes and run the relevant deployment validators locally. If the server deploy stops on a stale validator, update that validator in Git to assert the new canonical contract, run its focused checks/CI, merge the source fix, then rerun deployment. Never skip or patch around the server guard in-place.
+
 ## 9. CI scoping procedure
 
 Beta portal-only work should not pay for unrelated Flutter/Android/root-backend suites.
