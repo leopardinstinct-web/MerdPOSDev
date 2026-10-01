@@ -1,9 +1,17 @@
 # MERDPOS Beta AI State
 
-**Updated:** 2026-09-07
+**Updated:** 2026-10-01
 **Authoritative repository:** `leopardinstinct-web/MerdPOSDev`
 **Authoritative branch:** `namecheap-beta-live`
 **Deployable tree:** `namecheap_beta_live/`
+
+## 2026-10 workflow changes
+
+MERDPOS governance now applies gates by risk tier: Tier 1 documentation/continuity work can be committed directly without packets or dual-agent review; Tier 2 non-auth UI work uses a feature branch, green CI and owner merge without mandatory dual-agent review; Tier 3 authorization, payroll/timesheet, deployment, database/schema and security work retains the full Gates 0–5 and independent-review discipline.
+
+Gate 2.5 now uses delta review when a reviewer edits implementation code: independence is consumed only for the edited files, and the original implementer reviews that delta (or relevant CI plus owner spot-check validates it). A fresh full independent review is required only for a large delta or Tier-3 surface.
+
+The canonical implementer → reviewer handoff is the PR description plus at most one PR comment carrying exact head SHA, scope, CI links, lifecycle state and one next action. Handoff state changes update that comment or the work packet; they do not create separate live-branch "handoff refresh" commits. The Kimi MCP bridge is deprecated/optional and must not receive new development without an explicit owner decision.
 
 ## Current product state
 

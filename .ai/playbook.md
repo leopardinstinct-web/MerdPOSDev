@@ -14,6 +14,12 @@ Before acting:
 
 Do not ask the user to restate repository facts already encoded here unless the repository itself is ambiguous.
 
+### Handoff convention
+
+The canonical implementer → reviewer handoff is the PR description plus **at most one PR comment** containing the exact head SHA, scope, CI links, lifecycle state and one next action. Do not create separate "handoff refresh" commits on the live branch. When handoff state changes, update the PR comment or the work packet instead.
+
+The Kimi MCP bridge is **DEPRECATED / optional tooling**. Agent handoffs use PR comments and work packets. Bridge files such as `scripts/kimi*`, when present, are compatibility/history only; no new bridge development is allowed without an explicit product-owner decision.
+
 ### Tool/source editing preference
 
 GitHub on the authoritative beta branch is the primary working surface as well as the source of truth.
