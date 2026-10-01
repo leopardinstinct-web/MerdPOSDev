@@ -82,8 +82,11 @@ function validate_marker(string $path, ?string $expectCommit, array &$failures, 
     }
 
     // Public exposure: no paths, credentials, configuration or command lines.
+    // The pinned schema already makes these unreachable for a well-formed
+    // document (a 40-hex SHA cannot spell a keyword); this list is the belt to
+    // the schema's braces, and it is what catches a smuggled extra field.
     $forbidden = [
-        '/(?:^|[^a-z])\/(?:home|var|etc|opt|usr)\//i' => 'filesystem path',
+        '/(?:^|[^a-z])\/(?:home|var|etc|opt|usr|root|srv|data|Users)\d*\//i' => 'filesystem path',
         '/[A-Za-z]:\\\\/' => 'windows path',
         '/password|passwd|secret|token|api[_-]?key|private[_-]?key|authorization/i' => 'credential-shaped value',
         '/-----BEGIN/' => 'private key block',
@@ -114,6 +117,30 @@ function validate_deploy_contract(string $script, array &$failures): void
     }
     if (!str_contains($source, 'validate_release_marker_v1.php')) {
         $failures[] = 'deployment script must validate the release marker before reporting success';
+    }
+    // Publish-before-validate was a real defect: a failed write (disk full) exits
+    // 0 from php -r and would atomically replace the previous good marker with an
+    // empty one. The candidate must therefore validate before the mv.
+    $candidateCheck = strpos($source, '--file "$RELEASE_TMP"');
+    $publish = strpos($source, 'mv -f "$RELEASE_TMP" "$RELEASE_MARKER"');
+    if ($candidateCheck === false) {
+        $failures[] = 'deployment script must validate the candidate marker before publishing it';
+    }
+    elseif ($publish !== false && $candidateCheck > $publish) {
+        $failures[] = 'deployment script publishes the marker before validating it: a failed write would destroy the previous identity';
+    }
+    // A short write must fail the deploy rather than publish a truncated marker.
+    if (!preg_match('/file_put_contents\(.*?\)\s*===\s*false/s', $source)) {
+        $failures[] = 'deployment script must fail when the marker write fails';
+    }
+    // The published revision must be resolved at publish time, not reused from a
+    // variable captured earlier in the run.
+    if (!str_contains($source, 'RELEASE_SHA="$(git -C "$REPO" rev-parse HEAD)"')) {
+        $failures[] = 'deployment script must resolve the published revision at publish time';
+    }
+    // Overlapping deploys must not be able to publish competing identities.
+    if (preg_match('/flock\s+-n\s/', $source) !== 1) {
+        $failures[] = 'deployment script must hold a deploy lock so overlapping runs cannot publish competing identities';
     }
     // The marker may only be published after the deployment work it attests to.
     $markerPos = strrpos($source, RELEASE_MARKER_NAME);
