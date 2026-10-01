@@ -58,11 +58,11 @@ function merd_portal_permission_catalog(): array
         'workforce.payrates.manage' => ['label'=>'View / manage employee pay rates','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>80],
         'workforce.credentials.reset' => ['label'=>'Reset another employee password','category'=>'Operations','min_loa'=>90,'dev_only'=>false,'order'=>90],
 
-        'finance.view' => ['label'=>'Use financial screen at permitted store','category'=>'Finance','min_loa'=>1,'dev_only'=>false,'order'=>10],
-        'finance.submit' => ['label'=>'Submit register / petty cash entries','category'=>'Finance','min_loa'=>1,'dev_only'=>false,'order'=>20],
-        'finance.open_day' => ['label'=>'Set opening register / petty cash balances','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>30],
-        'finance.cross_store' => ['label'=>'View/manage finance without being clocked in at that store','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>40],
-        'finance.management_summary' => ['label'=>'View cross-store financial dashboard summaries','category'=>'Finance','min_loa'=>50,'dev_only'=>false,'order'=>50],
+        'finance.view' => ['label'=>'Use financial screen at permitted store','category'=>'Financials','min_loa'=>1,'dev_only'=>false,'order'=>10],
+        'finance.submit' => ['label'=>'Submit register / petty cash entries','category'=>'Financials','min_loa'=>1,'dev_only'=>false,'order'=>20],
+        'finance.open_day' => ['label'=>'Set opening register / petty cash balances','category'=>'Financials','min_loa'=>50,'dev_only'=>false,'order'=>30],
+        'finance.cross_store' => ['label'=>'View/manage finance without being clocked in at that store','category'=>'Financials','min_loa'=>50,'dev_only'=>false,'order'=>40],
+        'finance.management_summary' => ['label'=>'View cross-store financial dashboard summaries','category'=>'Financials','min_loa'=>50,'dev_only'=>false,'order'=>50],
 
         'system.sync_status' => ['label'=>'View sync / outbox attention status','category'=>'System','min_loa'=>90,'dev_only'=>false,'order'=>10],
         'roles.manage' => ['label'=>'Manage SUPER / USER application usability','category'=>'System','min_loa'=>50,'dev_only'=>false,'allowed_role_keys'=>['ADMIN'],'order'=>20],

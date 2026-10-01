@@ -11,7 +11,7 @@
     storesPanel: 'Stores',
     timesheetPanel: 'Timesheets',
     disputesPanel: 'Disputes',
-    financialPanel: 'Financial',
+    financialPanel: 'Financials',
     devPanel: 'DEV',
     rolesPanel: 'Roles',
     clientsPanel: 'Clients',

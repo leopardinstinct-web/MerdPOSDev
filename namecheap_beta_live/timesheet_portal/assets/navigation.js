@@ -78,7 +78,7 @@
         reportsGroup = document.createElement('div');
         reportsGroup.className = 'nav-group';
         reportsGroup.innerHTML = '<span class="nav-group-label">Reports</span>';
-        const financeGroup = rawByLabel('finance');
+        const financeGroup = rawByLabel('financials');
         if (financeGroup) oldNav.insertBefore(reportsGroup, financeGroup);
         else oldNav.appendChild(reportsGroup);
       }
@@ -94,13 +94,17 @@
   const normalise = text => String(text || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const groupKey = label => {
     const key = normalise(label);
-    return key === 'overview' ? 'home' : key;
+    if (key === 'overview') return 'home';
+    // The Finance section displays as "Financials" but keeps its stable key so
+    // section ordering, insertion and data-nav-section attributes are unchanged.
+    if (key === 'financials') return 'finance';
+    return key;
   };
   const titles = {
     home: 'Home',
     operations: 'Operations',
     reports: 'Reports',
-    finance: 'Finance',
+    finance: 'Financials',
     system: 'DEV',
   };
   const order = ['home', 'operations', 'reports', 'finance', 'system'];

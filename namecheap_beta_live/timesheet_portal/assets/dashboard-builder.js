@@ -28,7 +28,7 @@
   };
   const presets = [
     {key:'store_operations',title:'Store operations',desc:'Live workforce, sales and exceptions.',widgets:['working_now_count','workforce_by_store','today_sales_by_store','pending_disputes','sync_attention','sync_status_table']},
-    {key:'finance',title:'Finance',desc:'Sales movement, ranking and cash position.',widgets:['sales_change','sales_trend_7d','top_stores_sales','today_sales_by_store','store_cash_position','cash_mix']},
+    {key:'finance',title:'Financials',desc:'Sales movement, ranking and cash position.',widgets:['sales_change','sales_trend_7d','top_stores_sales','today_sales_by_store','store_cash_position','cash_mix']},
     {key:'workforce',title:'Workforce',desc:'Attendance movement and live workforce.',widgets:['working_now_count','attendance_change','attendance_trend_7d','workforce_by_store','working_now','recent_attendance']},
   ];
 
