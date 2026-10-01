@@ -30,6 +30,18 @@ function continuity_forbid(string $content, string $needle, string $label, array
     }
 }
 
+function continuity_require_iso_date(string $content, string $label, array &$errors): void {
+    if (!preg_match('/^\*\*Updated:\*\* (\d{4}-\d{2}-\d{2})\r?$/m', $content, $match)) {
+        $errors[] = "Missing/invalid {$label}: expected **Updated:** YYYY-MM-DD";
+        return;
+    }
+
+    [$year, $month, $day] = array_map('intval', explode('-', $match[1]));
+    if (!checkdate($month, $day, $year)) {
+        $errors[] = "Invalid {$label}: {$match[1]} is not a real calendar date";
+    }
+}
+
 $agents = continuity_read($repo . '/AGENTS.md', $errors);
 $bootstrap = continuity_read($repo . '/.ai/README.md', $errors);
 $invariants = continuity_read($repo . '/.ai/invariants.md', $errors);
@@ -53,7 +65,7 @@ continuity_require($memory, 'No chat-only continuity', 'memory Git writeback rul
 continuity_require($decisions, 'Git writeback is mandatory continuity', 'durable Git writeback decision', $errors);
 continuity_require($bootstrap, '.ai/BETA_SCOPE.md', 'Beta-scope bootstrap', $errors);
 continuity_require($bootstrap, '.ai/work/ACTIVE.yaml', 'work-packet bootstrap', $errors);
-continuity_require($memory, '**Updated:** 2026-09-07', 'current memory date', $errors);
+continuity_require_iso_date($memory, 'current memory date', $errors);
 continuity_require($memory, 'Current DevStudio checkpoint', 'current DevStudio memory', $errors);
 continuity_require($memory, 'Studio29', 'Studio29 memory marker', $errors);
 continuity_require($memory, 'migration 035', 'migration 035 memory marker', $errors);

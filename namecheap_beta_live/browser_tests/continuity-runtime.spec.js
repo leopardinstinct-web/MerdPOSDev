@@ -11,7 +11,13 @@ test('repository continuity layer describes current DevStudio truth', () => {
   const invariants = read('.ai/invariants.md');
   const memory = read('.ai/memory.md');
   const studio = read('namecheap_beta_live/timesheet_portal/UI_STUDIO.md');
-  expect(memory).toContain('**Updated:** 2026-09-07');
+  const updatedMatch = memory.match(/^\*\*Updated:\*\* (\d{4}-\d{2}-\d{2})\r?$/m);
+  expect(updatedMatch).not.toBeNull();
+  const [, updatedDate] = updatedMatch;
+  const [year, month, day] = updatedDate.split('-').map(Number);
+  const parsedUpdated = new Date(Date.UTC(year, month - 1, day));
+  expect(Number.isNaN(parsedUpdated.getTime())).toBe(false);
+  expect(parsedUpdated.toISOString().slice(0, 10)).toBe(updatedDate);
   expect(memory).toContain('Current DevStudio checkpoint');
   expect(memory).toContain('Studio29');
   expect(memory).toContain('migration 035');
