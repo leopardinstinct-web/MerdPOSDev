@@ -3,10 +3,11 @@ id: MERD-20260908-search-account-financials
 objective: Make application search behavior semantically correct, move authenticated
   theme control into the user menu, remove MERDPOS ID there, and rename Finance to
   Financials.
-packet_state: DOCUMENTED
-lifecycle: DOCUMENTED
-base_head: 45be83dc08cab7344dde31382932bc59405015b4
+packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS
+lifecycle: CODED
+base_head: 8cb06ae99eaf8a215da5af59b89be8038351c664
 drupal_base_head: 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c
+implementation_branch: harness/MERD-20260908-search-account-financials
 scope:
 - Audit every Drupal application search box and bind each to intentional searchable
   record fields rather than hidden editor controls.
@@ -20,15 +21,55 @@ constraints:
 - Search is client/data-scope preserving and frontend filtering only; no authority
   bypass.
 - Do not rename backend finance permission/API keys.
-completed: []
-checks: []
+completed:
+- 'Preflight against current namecheap-beta-live HEAD (8cb06ae) found four of the five
+  scope items already satisfied by later revisions; each was verified in source rather
+  than assumed, and the remaining item was implemented.'
+- 'Search semantics (scope 1 and 2): already intentional in the current tree. Employee
+  search filters explicit fields (full_name, user_id, employee_type, role_label,
+  role_key, status, assigned store names, store-access mode) and never scans editor-form
+  DOM text, so all-role edit options cannot match every employee (directory.js
+  renderEmployees). Client search filters name, client_code, id, "id N", status and store
+  counts (client.js matches). Store search is owned by the optional DEV store runtime
+  (dev-stores-ui.js applyFilter), which searches name, code, id, "id N", "code N", status,
+  address and Google Maps URL, matching its advertised placeholder and suppressing the
+  legacy name/status-only filter. No search box remains bound to hidden editor controls.'
+- 'Theme control (scope 3): already mounted in the authenticated account panel
+  (rail-shell-utilities) after Change password / Log out and before About MERDPOS, the
+  deliberate ordering recorded by MERD-20260828-sidebar-shell-about. The product theme
+  model is light/dark only (management.js validTheme; no prefers-color-scheme anywhere),
+  so no system option was invented. Nothing to move; no change made.'
+- 'MERDPOS ID (scope 4): no such user-facing string exists or ever existed in this tree
+  (git log -S "MERDPOS ID" is empty); the authenticated summary shows the user name and a
+  role badge. Nothing to remove; no change made.'
+- 'Finance to Financials (scope 5): renamed user-facing labels only, keeping every
+  internal key, permission key and API unchanged - rail nav label (dashboard.php tab text,
+  which is the visible label for the single-tab direct section), nav group label and
+  section title map (navigation.js), dashboard builder group title (dashboard-builder.js),
+  platform panel labels (design-audit.js, mobile-runtime.js) and the Roles capability
+  category (backend portal_permissions.php, 5 permissions, display category only).
+  navigation.js groupKey maps the new "Financials" label back to the stable "finance" key
+  so section ordering, insertion and data-nav-section attributes are unchanged.'
+checks:
+- 'php84 -l on dashboard.php and portal_permissions.php: no syntax errors.'
+- 'node --check on navigation.js, dashboard-builder.js, design-audit.js, mobile-runtime.js: pass.'
+- 'All 19 backend validators pass (php84 namecheap_beta_live/backend/cli/validate_*.php),
+  including validate_portal_permission_policy.php (53 permissions, 18 dashboard widgets,
+  permission-gated DOM compatibility), validate_beta_runtime_contract.php (shared Add/Search
+  placement, canonical tokens/component ownership, README contract) and
+  validate_drupal_portal_gateway.php.'
+- 'Deterministic nav-key check: groupKey("Finance") and groupKey("Financials") both resolve
+  to "finance" at order index 3, and rawByLabel("financials") matches the new group label.'
+- 'Not run: browser_tests/*.spec.js and the live runners. No Playwright runner, config or
+  node_modules exists in the checkout, so they cannot execute locally; they remain owner-run gates.'
 remaining:
-- Implement search indexes and shell changes.
-- Run source/deploy guards and live search/account-menu verification.
-next_action: Implement and verify application-wide search semantics plus account-menu/Financials
-  shell changes.
+- 'Push the branch and open/update the PR (PR description plus one comment carrying the head
+  SHA per the AGENTS.md handoff convention).'
+- 'Owner merge, canonical server-side pull/mirror/deploy, then live verification of the
+  Financials label in navigation, the Roles capability category and the mobile panel label.'
+next_action: Push harness/MERD-20260908-search-account-financials and open the PR for owner review and merge.
 blocked: false
 blocker: null
-updated_at: '2026-09-08T12:50:00+05:00'
-last_seen_head: 45be83dc08cab7344dde31382932bc59405015b4
+updated_at: '2026-10-01T10:45:00+05:00'
+last_seen_head: 8cb06ae99eaf8a215da5af59b89be8038351c664
 drupal_last_seen_head: 1d5d57bb8aa31b0fb3510b0c2d14865eb08cc99c

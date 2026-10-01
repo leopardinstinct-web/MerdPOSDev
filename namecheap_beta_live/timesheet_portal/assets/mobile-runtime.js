@@ -305,7 +305,7 @@
     reportsPanel: ['Reports', 'Operational reports and focused drill-down.'],
     timesheetPanel: ['Timesheets', 'Weekly hours, wages and shift activity.'],
     disputesPanel: ['Disputes', 'Attendance issues and correction workflow.'],
-    financialPanel: ['Financial', 'Daily cash position and financial workflow.'],
+    financialPanel: ['Financials', 'Daily cash position and financial workflow.'],
     devPanel: ['DEV', 'Read-only system diagnostics and tools.'],
     clientsPanel: ['Clients', 'Client accounts and tenant identity.']
   };

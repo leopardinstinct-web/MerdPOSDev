@@ -166,8 +166,8 @@ function ui_icon(string $name): string
 
       <?php if ($canFinance): ?>
       <div class="nav-group">
-        <span class="nav-group-label">Finance</span>
-        <button class="portal-tab<?= $initialPanel === 'financialPanel' ? ' active' : '' ?>" data-panel="financialPanel"><?= ui_icon('wallet') ?><span>Financial</span></button>
+        <span class="nav-group-label">Financials</span>
+        <button class="portal-tab<?= $initialPanel === 'financialPanel' ? ' active' : '' ?>" data-panel="financialPanel"><?= ui_icon('wallet') ?><span>Financials</span></button>
       </div>
       <?php endif; ?>
 

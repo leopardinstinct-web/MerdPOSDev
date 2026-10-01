@@ -12,8 +12,8 @@ active:
   packet_state: DOCUMENTED
 - id: MERD-20260908-search-account-financials
   path: .ai/work/active/MERD-20260908-search-account-financials.yaml
-  lifecycle: DOCUMENTED
-  packet_state: DOCUMENTED
+  lifecycle: CODED
+  packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS
 - id: MERD-20260901-ds-revision-79
   path: .ai/work/active/MERD-20260901-ds-revision-79.yaml
   lifecycle: DOCUMENTED
