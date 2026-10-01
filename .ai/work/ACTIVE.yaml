@@ -1,11 +1,7 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-01T07:48:00+05:00'
+updated_at: '2026-10-01T08:29:27+05:00'
 active:
-- id: MERD-20261001-drupal-global-ui-system-v1
-  path: .ai/work/active/MERD-20261001-drupal-global-ui-system-v1.yaml
-  lifecycle: DEPLOYED
-  packet_state: DEPLOYED_RUNTIME_PASS_AWAITING_FRESH_VERIFICATION
 - id: MERD-20260909-dashboard-write-audit
   path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
   lifecycle: WIRED
