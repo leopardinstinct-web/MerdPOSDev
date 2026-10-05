@@ -20,7 +20,7 @@ function merd_drupal_gateway_routes(): array
         'legacy_migration'=>['GET','POST'],'defaults'=>['GET','POST'],'store_identity'=>['GET','POST'],
         'store_timings'=>['GET','POST'],'store_logo'=>['POST'],'store_devices'=>['GET','POST'],'role_authority'=>['GET','POST'],
         'client_context'=>['GET','POST'],'check_sheet'=>['GET'],'timesheet_google_refresh'=>['POST'],
-        'change_password'=>['POST'],'attendance_scan'=>['POST'],
+        'change_password'=>['POST'],'attendance_scan'=>['POST'],'roster'=>['GET','POST'],
     ];
 }
 

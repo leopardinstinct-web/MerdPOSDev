@@ -67,6 +67,9 @@ jobs:
       - name: Validate Drupal Working Now service contract
         run: php namecheap_beta_live/backend/cli/validate_drupal_working_now_service.php
 
+      - name: Validate roster planning contract
+        run: php namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
+
       - name: Validate Namecheap deploy recovery guards
         shell: bash
         run: |

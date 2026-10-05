@@ -1,0 +1,169 @@
+version: 1
+id: MERD-20261004-roster-planning-v1
+title: Roster / shift planning (digital replacement for the weekly roster note)
+project: merdpos
+track: beta
+authoritative_branch: namecheap-beta-live
+base_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
+branch: harness/MERD-20261004-roster-planning-v1
+created_at: '2026-10-04T00:00:00Z'
+updated_at: '2026-10-04T00:00:00Z'
+last_seen_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
+lifecycle: CODED
+packet_state: BACKEND_SLICE_VALIDATED_REVIEW_PENDING
+risk: HIGH
+risk_basis: >-
+  Adds schema, a new protected capability and new permissions (authorization
+  surface), and plans labour that feeds attendance/payroll expectations. Under
+  task-gates this requires independent review on an immutable SHA before merge.
+
+objective: >-
+  Let a manager plan a store's week the way the hand-typed note does today: seven
+  days, an early and a late shift per day, several employees per shift, times that
+  can cross midnight, and a draft/published state - stored canonically in the Beta
+  backend and surfaced in the Drupal Beta app.
+
+why_now: >-
+  The product owner supplied three pages of the live weekly roster (Marrickville,
+  Double Bay, Rose Bay) and asked for a real scheduling surface in MERDPOS. The
+  platform already owns the neighbouring facts - stores, employee-store access,
+  store weekly hours, roles/LOA, attendance - so rostering is the missing plan
+  side that attendance and timesheets are currently compared against by hand.
+
+observed_requirements_from_note:
+  - One page per store, one week at a time, week runs Monday to Sunday.
+  - Two shifts per day: early (e.g. 07:00-16:00) and late (e.g. 16:00-00:00).
+  - Fri/Sat late shift at late-trading stores ends at 02:00 the next day.
+  - One store (Rose Bay) runs a different early start (06:00) and a single time
+    profile for all seven days.
+  - Two employees per shift, written as "A + B".
+  - Names are free text in the note; the real feature must reference employee ids.
+
+data_model:
+  migration: namecheap_beta_live/backend/sql/031_roster_planning.sql
+  applies_via: namecheap_beta_live/backend/cli/apply_031_roster_planning.php
+  tables:
+    roster_weeks:
+      purpose: one row per store per week (the note's page).
+      keys: client_id, store_id, week_start (Monday), status draft|published, note
+      unique: (store_id, week_start)
+      audit: created_by_employee_id, updated_by_employee_id
+    roster_shifts:
+      purpose: a dated shift slot inside a week.
+      keys: roster_week_id, client_id, store_id, shift_date, slot_key (early|late|custom),
+            label, start_time, end_time, ends_next_day, position
+      unique: (roster_week_id, shift_date, slot_key)
+      note: ends_next_day is what makes "16:00 to 02:00" representable without
+            inventing a fake date.
+    roster_assignments:
+      purpose: employees on a shift, ordered.
+      keys: roster_shift_id, client_id, store_id, employee_id, position, assigned_by_employee_id
+      unique: (roster_shift_id, employee_id)
+  conventions_followed: >-
+    InnoDB/utf8mb4, clients/stores/employees foreign keys with ON DELETE RESTRICT
+    except actor columns (SET NULL), CHECK constraints on bounded enums, and an
+    explicit updated_at audit trail - matching 023/024/028.
+
+permissions:
+  catalogue: namecheap_beta_live/backend/api/includes/portal_permissions.php
+  new_keys:
+    roster.view_own: {label: 'View own planned shifts', category: Roster, min_loa: 1, dev_only: false}
+    roster.view: {label: 'View store rosters', category: Roster, min_loa: 50, dev_only: false}
+    roster.manage: {label: 'Plan / publish store rosters', category: Roster, min_loa: 50, dev_only: false}
+  rationale: >-
+    Mirrors the existing attendance/timesheet split (view_own at LOA 1,
+    management at LOA 50) and never grants DEV-only authority, so the roster
+    surface is delegable by client LOA exactly like stores.timings.manage.
+
+api_contract:
+  endpoint: namecheap_beta_live/timesheet_portal/api/roster.php
+  gateway_capability: "'roster' => ['GET','POST'] in backend/api/integrations/portal_gateway.php"
+  read:
+    method: GET
+    query: store_id, week_start (YYYY-MM-DD; must be a Monday)
+    permission: roster.view (store-scoped) or roster.view_own (own shifts only)
+    returns: week, shifts with assignments and employee names, csrf, actor role/loa
+  write:
+    method: POST
+    action: save_week
+    permission: roster.manage
+    payload: >-
+      store_id, week_start, status (draft|published), shifts[] each with
+      slot_key/label/start_time/end_time/ends_next_day and assignments[] of
+      employee_id, replaced transactionally for that store+week
+    guards: >-
+      CSRF required; store must belong to the actor's client; every assigned
+      employee must be visible to that store (employee_store_access); times must
+      be 24-hour HH:MM; a week write is all-or-nothing.
+    audit: beta_admin_audit('roster.save_week', 'store_roster', store_id, ...)
+
+authorization_rules:
+  - UI visibility is never the boundary; the endpoint enforces the permission.
+  - Store scope always re-checked server-side against the actor's client, and
+    against employee_store_access unless the actor holds a cross-store right.
+  - roster.manage does not imply timesheet or payroll authority.
+
+non_goals_v1:
+  - Notifications, shift swaps, availability/preferences, recurring templates.
+  - Roster-vs-actual reconciliation and lateness/absence detection.
+  - Cost projections from employee_hourly_rate_history.
+  - Portal (timesheet_portal) roster UI parity - the owner-facing surface is the
+    Drupal app; portal parity is a follow-up packet.
+  - Importing the three photographed pages (real staff data; not committed).
+
+acceptance:
+  - Migration applies idempotently on a populated Beta database and seeds nothing
+    destructive.
+  - Permission catalogue exposes the three keys with the declared category/LOA and
+    the DEV Roles screen renders the Roster category.
+  - GET returns a week for a permitted actor and refuses store-scoped access the
+    actor does not hold.
+  - POST save_week round-trips a week including a shift that ends next day.
+  - An actor without roster.manage is refused on write; an actor without
+    roster.view is refused on read (proved by API call, not by hidden UI).
+  - Gateway capability resolves through the Drupal app.
+  - Validator validate_roster_planning_v1.php passes in CI and as a deploy gate.
+
+stages:
+  - id: 1
+    name: backend data model, permissions, endpoint, gateway capability, validator
+    state: in_progress
+  - id: 2
+    name: deterministic validation + independent HIGH-risk review on the frozen SHA
+    state: pending
+  - id: 3
+    name: PR, CI, merge into namecheap-beta-live, canonical cron deploy, deployed-SHA marker equality
+    state: pending
+  - id: 4
+    name: authenticated live verification of the capability and its authorization boundaries
+    state: pending
+  - id: 5
+    name: Drupal Beta roster surface (week grid per store, edit for roster.manage)
+    state: pending
+  - id: 6
+    name: authenticated live verification of the Drupal surface, then VERIFIED
+    state: pending
+
+next_action: >-
+  Finish stage 1 (gateway allow-list entry, validator, deploy-gate and CI wiring),
+  run the deterministic validators, then freeze the SHA and obtain the Kimi review.
+
+evidence_so_far:
+  - backend/api/integrations/portal_gateway.php capability table read (allow-list pattern confirmed).
+  - namecheap_beta_live/timesheet_portal/api/store_timings.php read as the store-scoped GET/POST template.
+  - namecheap_beta_live/backend/cli/apply_024_store_weekly_hours.php read as the migration-apply template.
+  - scripts/deploy_namecheap_beta.sh lines 149-160 invoke each apply_0NN_*.php explicitly.
+  - Migration numbering verified against the full sql/ listing: 039 was the highest, so rostering is 040 (an earlier 031 guess collided with 031_client_roles_dashboard_templates).
+  - attendance_scan.php confirmed the canonical store-access semantics mirrored here.
+
+checks_run:
+  - php84 -l on roster.php, apply_040_roster_planning.php, validate_roster_planning_v1.php, portal_permissions.php, portal_gateway.php, beta_api.php -> all clean.
+  - php84 backend/cli/validate_roster_planning_v1.php -> passes (migration 040, roster permissions, store-scoped endpoint, gateway capability, deploy wiring).
+  - php84 backend/cli/validate_portal_permission_policy.php -> passes; 56 permissions, 26 protected APIs, 26 routes registered. This gate caught the missing beta_enforce_route_permission() registration for roster.php.
+  - php84 backend/cli/validate_ai_continuity.php -> passes; this gate caught the missing last_seen_head/updated_at packet fields.
+  - php84 backend/cli/validate_drupal_portal_gateway.php, validate_beta_runtime_contract.php, validate_portal_loader_order.php -> pass.
+  - bash -n scripts/deploy_namecheap_beta.sh -> see commit evidence.
+  - Not yet run: any live database exercise. The migration has not been applied and no API call has been made, so this must not be described as TESTED against Beta.
+
+known_traps_hit:
+  - Rewriting PHP/SQL/bash under Windows PowerShell 5.1 Set-Content -Encoding utf8 adds a UTF-8 BOM, which is fatal for PHP strict_types and for a bash shebang. BOMs stripped with .NET WriteAllBytes; prefer the edit tool for these files.

@@ -149,6 +149,7 @@ echo "Drupal Working Now service secret configured.\n";
 php "$LIVE/backend/cli/apply_014_device_token_security.php"
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
 php "$LIVE/backend/cli/validate_drupal_portal_gateway.php"
+php "$LIVE/backend/cli/validate_roster_planning_v1.php"
 
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
@@ -168,6 +169,7 @@ php "$LIVE/backend/cli/apply_036_store_week_start_day.php"
 php "$LIVE/backend/cli/apply_037_admin_role_delegation.php"
 php "$LIVE/backend/cli/apply_038_platform_dev_identity.php"
 php "$LIVE/backend/cli/apply_039_shop_login_devices.php"
+php "$LIVE/backend/cli/apply_040_roster_planning.php"
 
 php -r '
 require $argv[1];

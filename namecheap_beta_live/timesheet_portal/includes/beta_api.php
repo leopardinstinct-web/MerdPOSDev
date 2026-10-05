@@ -219,6 +219,16 @@ function beta_enforce_route_permission(array $user, PDO $pdo): void
             if ($scanRole === 'USER') beta_require_permission($user, 'attendance.scan', $pdo);
             else beta_require_permission($user, 'finance.view', $pdo);
             return;
+        case 'roster.php':
+            // Reads are permitted by store or own scope; every other verb is the
+            // write path and must require roster.manage here as well as inside the
+            // endpoint, so a non-GET verb cannot pass this layer on read authority.
+            beta_require_any_permission(
+                $user,
+                $method === 'GET' ? ['roster.view', 'roster.view_own'] : ['roster.manage'],
+                $pdo
+            );
+            return;
         case 'beta_state.php':
             beta_require_any_permission($user, ['dashboard.view','disputes.view_own','disputes.review','finance.view','password.change_own'], $pdo); return;
         case 'dashboard_data.php': beta_require_permission($user, 'dashboard.view', $pdo); return;

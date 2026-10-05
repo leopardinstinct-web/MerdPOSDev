@@ -47,6 +47,10 @@ function merd_portal_permission_catalog(): array
         'disputes.review' => ['label'=>'Approve / reject disputes','category'=>'Attendance','min_loa'=>90,'dev_only'=>false,'order'=>70],
         'attendance_flags.resolve' => ['label'=>'Resolve attendance security flags','category'=>'Attendance','min_loa'=>90,'dev_only'=>false,'order'=>80],
 
+        'roster.view_own' => ['label'=>'View own planned shifts','category'=>'Roster','min_loa'=>1,'dev_only'=>false,'order'=>10],
+        'roster.view' => ['label'=>'View store rosters','category'=>'Roster','min_loa'=>50,'dev_only'=>false,'order'=>20],
+        'roster.manage' => ['label'=>'Plan / publish store rosters','category'=>'Roster','min_loa'=>50,'dev_only'=>false,'order'=>30],
+
         'stores.view' => ['label'=>'View stores','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>10],
         'stores.manage' => ['label'=>'Add / edit store name and status','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>20],
         'stores.timings.manage' => ['label'=>'Manage store weekly timings','category'=>'Operations','min_loa'=>50,'dev_only'=>false,'order'=>30],
