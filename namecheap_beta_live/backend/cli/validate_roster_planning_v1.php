@@ -20,16 +20,36 @@ declare(strict_types=1);
  * Run: php namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
  */
 
-$root = dirname(__DIR__);                       // namecheap_beta_live/backend
-$repo = dirname($root);                         // namecheap_beta_live
+// Paths are derived from the layout this script actually meets, because it runs
+// in two of them:
+//   repository checkout : <repo>/namecheap_beta_live/backend/... and <repo>/scripts/...
+//   deployed live tree  : <live>/backend/... and <live>/timesheet_portal/...
+// The live tree carries no namecheap_beta_live/ prefix and no top-level scripts/,
+// so assuming the repository shape here aborts every canonical deploy - which is
+// exactly what an earlier revision of this file did.
+$backend = dirname(__DIR__);      // .../backend
+$treeRoot = dirname($backend);    // repository: .../namecheap_beta_live | server: .../app/beta
 $failures = [];
 
-$migration = $root . '/sql/040_roster_planning.sql';
-$apply = $root . '/cli/apply_040_roster_planning.php';
-$catalogue = $root . '/api/includes/portal_permissions.php';
-$endpoint = $repo . '/timesheet_portal/api/roster.php';
-$gateway = $root . '/api/integrations/portal_gateway.php';
-$deploy = dirname($repo) . '/scripts/deploy_namecheap_beta.sh';
+$migration = $backend . '/sql/040_roster_planning.sql';
+$apply = $backend . '/cli/apply_040_roster_planning.php';
+$catalogue = $backend . '/api/includes/portal_permissions.php';
+$gateway = $backend . '/api/integrations/portal_gateway.php';
+$endpoint = $treeRoot . '/timesheet_portal/api/roster.php';
+$betaApi = $treeRoot . '/timesheet_portal/includes/beta_api.php';
+
+// The deploy script is not part of the deployed tree. Look for it where a
+// repository checkout keeps it; when only the live tree is present the wiring
+// assertions are skipped with a printed note, and CI still enforces them.
+$deployCandidates = array_values(array_filter([
+    getenv('MERDPOS_DEPLOY_SCRIPT') ?: null,
+    dirname($treeRoot) . '/scripts/deploy_namecheap_beta.sh',
+    dirname(dirname($treeRoot)) . '/scripts/deploy_namecheap_beta.sh',
+]));
+$deploy = '';
+foreach ($deployCandidates as $candidate) {
+    if (is_file($candidate)) { $deploy = $candidate; break; }
+}
 
 $read = static function (string $path, array &$failures): string {
     if (!is_file($path)) {
@@ -171,7 +191,7 @@ if ($endpointSource !== '') {
 }
 
 // The route layer must treat every non-GET verb as a write.
-$apiSource = $read(dirname($repo) . '/namecheap_beta_live/timesheet_portal/includes/beta_api.php', $failures);
+$apiSource = $read($betaApi, $failures);
 if ($apiSource !== ''
     && preg_match('/case \'roster\.php\':(.{0,400}?)\$method === \'GET\'/s', $apiSource) !== 1) {
     $failures[] = 'the route layer for roster.php must require roster.manage for every non-GET verb';
@@ -183,13 +203,19 @@ if ($gatewaySource !== '' && preg_match("#'roster'\s*=>\s*\[\s*'GET'\s*,\s*'POST
     $failures[] = "the Drupal gateway does not expose 'roster' as GET/POST";
 }
 
-$deploySource = $read($deploy, $failures);
-if ($deploySource !== '') {
-    if (strpos($deploySource, 'apply_040_roster_planning.php') === false) {
-        $failures[] = 'the canonical deploy script does not apply migration 040';
-    }
-    if (strpos($deploySource, 'validate_roster_planning_v1.php') === false) {
-        $failures[] = 'the canonical deploy script does not gate on validate_roster_planning_v1.php';
+$deployWiringChecked = false;
+if ($deploy === '') {
+    echo "note: canonical deploy script is not part of this layout; deploy wiring is asserted by CI.\n";
+} else {
+    $deploySource = $read($deploy, $failures);
+    if ($deploySource !== '') {
+        $deployWiringChecked = true;
+        if (strpos($deploySource, 'apply_040_roster_planning.php') === false) {
+            $failures[] = 'the canonical deploy script does not apply migration 040';
+        }
+        if (strpos($deploySource, 'validate_roster_planning_v1.php') === false) {
+            $failures[] = 'the canonical deploy script does not gate on validate_roster_planning_v1.php';
+        }
     }
 }
 
@@ -201,5 +227,6 @@ if ($failures !== []) {
     exit(1);
 }
 
-echo "Roster planning contract validated: migration 040, roster permissions, store-scoped endpoint, gateway capability and deploy wiring.\n";
+echo 'Roster planning contract validated: migration 040, roster permissions, store-scoped endpoint and gateway capability'
+    . ($deployWiringChecked ? ', deploy wiring' : ' (deploy wiring asserted in CI)') . ".\n";
 exit(0);
