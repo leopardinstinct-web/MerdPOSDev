@@ -149,7 +149,6 @@ echo "Drupal Working Now service secret configured.\n";
 php "$LIVE/backend/cli/apply_014_device_token_security.php"
 php "$LIVE/backend/cli/validate_drupal_working_now_service.php"
 php "$LIVE/backend/cli/validate_drupal_portal_gateway.php"
-php "$LIVE/backend/cli/validate_roster_planning_v1.php"
 
 php "$LIVE/backend/cli/apply_022_management_roles.php"
 php "$LIVE/backend/cli/apply_023_employee_store_access.php"
@@ -210,6 +209,12 @@ php "$LIVE/backend/cli/validate_platform_dev_identity_v1.php"
 php "$LIVE/backend/cli/validate_shop_login_devices_v1.php"
 php "$LIVE/backend/cli/validate_dev_user_impersonation_v1.php"
 php "$LIVE/backend/cli/validate_query_workflow_v1.php"
+
+# The roster contract spans both trees (timesheet_portal/api/roster.php and
+# backend permissions/routing), so it must run only after the timesheet_portal
+# rsync above has refreshed the live copy. Running it earlier reads a stale portal
+# tree, fails, and - under set -e - blocks every deploy.
+php "$LIVE/backend/cli/validate_roster_planning_v1.php"
 
 # Live-copy gate. The marker is not written unless the canonical design/runtime
 # contract survived rsync to Namecheap.
