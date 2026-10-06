@@ -216,6 +216,14 @@ if ($deploy === '') {
         if (strpos($deploySource, 'validate_roster_planning_v1.php') === false) {
             $failures[] = 'the canonical deploy script does not gate on validate_roster_planning_v1.php';
         }
+        // This contract spans both trees, so the gate must be invoked after the
+        // timesheet_portal rsync. Invoked earlier it reads a stale portal tree,
+        // fails, and under set -e blocks every deploy.
+        $portalRsyncAt = strpos($deploySource, '"$REPO/namecheap_beta_live/timesheet_portal/"');
+        $gateAt = strpos($deploySource, 'validate_roster_planning_v1.php');
+        if ($portalRsyncAt !== false && $gateAt !== false && $gateAt < $portalRsyncAt) {
+            $failures[] = 'the deploy script runs the roster gate before the timesheet_portal rsync, so it would read a stale portal tree';
+        }
     }
 }
 
