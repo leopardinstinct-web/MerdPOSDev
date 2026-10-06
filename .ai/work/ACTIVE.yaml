@@ -1,11 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-04T00:00:00+05:00'
+updated_at: '2026-10-06T09:55:00+05:00'
 active:
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
-  lifecycle: CODED
-  packet_state: BACKEND_SLICE_WRITTEN_VALIDATION_PENDING
+  lifecycle: DEPLOYED
+  packet_state: BACKEND_DEPLOYED_DRUPAL_SURFACE_NEXT
 - id: MERD-20260909-dashboard-write-audit
   path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
   lifecycle: WIRED

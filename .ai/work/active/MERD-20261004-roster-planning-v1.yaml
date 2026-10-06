@@ -7,10 +7,10 @@ authoritative_branch: namecheap-beta-live
 base_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
 branch: harness/MERD-20261004-roster-planning-v1
 created_at: '2026-10-04T00:00:00Z'
-updated_at: '2026-10-04T00:00:00Z'
-last_seen_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
-lifecycle: CODED
-packet_state: BACKEND_DEPLOY_BLOCKED_BY_OWN_GATE_FIX_IN_FLIGHT
+updated_at: '2026-10-06T04:55:00Z'
+last_seen_head: a1662616d4bf322e62aa565aabf5f799fe5e7df8
+lifecycle: DEPLOYED
+packet_state: BACKEND_DEPLOYED_DRUPAL_SURFACE_NEXT
 risk: HIGH
 risk_basis: >-
   Adds schema, a new protected capability and new permissions (authorization
@@ -168,3 +168,38 @@ checks_run:
 known_traps_hit:
   - Rewriting PHP/SQL/bash under Windows PowerShell 5.1 Set-Content -Encoding utf8 adds a UTF-8 BOM, which is fatal for PHP strict_types and for a bash shebang. BOMs stripped with .NET WriteAllBytes; prefer the edit tool for these files.
   - "Deployed-tree layout trap (this cost a production deploy outage): the live tree on Namecheap holds only backend/ and timesheet_portal/. The first revision of validate_roster_planning_v1.php derived sibling paths the way the repository is laid out (namecheap_beta_live/ prefix, top-level scripts/), so on the server it reported three missing files and exited non-zero, and set -e aborted every canonical deploy. CI could not see it because CI checks out the repository layout. Fixed by deriving paths from __DIR__ (backend = dirname(__DIR__), tree root = dirname(backend)), treating the deploy script as optional outside a repository checkout, and adding a CI step that runs the validator against a replica of the deployed layout."
+
+delivery:
+  merged_shas:
+    roster_backend: 83cc7d46e80e65cf8dafb8531f163555b9764dcc   # PR #182, squash
+    gate_layout_fix: d0a50488ab914c6859eea2478ba899ee6f56c1c7   # PR #183, squash
+    gate_placement_fix: a1662616d4bf322e62aa565aabf5f799fe5e7df8 # PR #184, squash
+  deployed_sha: a1662616d4bf322e62aa565aabf5f799fe5e7df8
+  deployed_at_utc: '2026-10-06T04:50:47Z'
+  marker: 'https://app.merdpos.com/beta/.beta_release.json -> a1662616d4bf322e62aa565aabf5f799fe5e7df8'
+  deploy_log_evidence:
+    - '040 roster planning applied; tables=roster_weeks,roster_shifts,roster_assignments; weeks=0 shifts=0 assignments=0. ends_next_day=tinyint(1).'
+    - 'Roster planning contract validated: migration 040, roster permissions, store-scoped endpoint and gateway capability (deploy wiring asserted in CI).'
+    - 'MERDPOS beta deployed: a166261'
+  live_boundary_check: 'GET https://app.merdpos.com/beta/timesheet_portal/api/roster.php?week_start=2026-10-05 -> {"success":false,"error":"Not logged in"}'
+  outage:
+    summary: >-
+      The new gate blocked every Beta backend deploy for two consecutive causes: (1) it derived
+      paths from the repository layout while the live tree holds only backend/ and
+      timesheet_portal/; (2) it was invoked between the backend rsync and the timesheet_portal
+      rsync, so it read a stale portal tree. Both were only visible on the server, because CI
+      checks out the repository layout. The marker stayed on bf9bd85 while the mirror had already
+      pulled 83cc7d4.
+    resolution: 'PR #183 (layout) and PR #184 (placement), plus a CI step that runs the validator against a replica of the deployed layout and an ordering assertion in the validator itself.'
+  review_gate_gap: >-
+    The final SHA a166261 could NOT be independently reviewed: the Kimi CLI fails on this host with
+    "EPERM: operation not permitted, watch C:\Users\Imran\.kimi-code\workspaces.json" (and sandbox
+    escalation is now unavailable to lift it), and the Codex subagent's inspection commands and file
+    reads are rejected by the execution policy. It is covered instead by three deterministic cases
+    (repository layout, deployed-tree replica, and a negative control that reproduces the original
+    outage) plus 10/10 CI, and it changes no product logic - only the deployment script's invocation
+    line and a validator assertion. A post-hoc independent review of the diff
+    d0a5048..a166261 is required as soon as a reviewer route works.
+  deferred_follow_ups:
+    - 'Post-hoc independent review of d0a5048..a166261 (see review_gate_gap).'
+    - 'Tighten the deploy-script candidate lookup in validate_roster_planning_v1.php so a stale script at a parent path cannot produce a false pass (raised by the reviewer of PR #183).'
