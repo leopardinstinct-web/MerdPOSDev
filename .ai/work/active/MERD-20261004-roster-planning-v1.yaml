@@ -10,7 +10,7 @@ created_at: '2026-10-04T00:00:00Z'
 updated_at: '2026-10-04T00:00:00Z'
 last_seen_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
 lifecycle: CODED
-packet_state: BACKEND_SLICE_VALIDATED_REVIEW_PENDING
+packet_state: BACKEND_DEPLOY_BLOCKED_BY_OWN_GATE_FIX_IN_FLIGHT
 risk: HIGH
 risk_basis: >-
   Adds schema, a new protected capability and new permissions (authorization
@@ -167,3 +167,4 @@ checks_run:
 
 known_traps_hit:
   - Rewriting PHP/SQL/bash under Windows PowerShell 5.1 Set-Content -Encoding utf8 adds a UTF-8 BOM, which is fatal for PHP strict_types and for a bash shebang. BOMs stripped with .NET WriteAllBytes; prefer the edit tool for these files.
+  - "Deployed-tree layout trap (this cost a production deploy outage): the live tree on Namecheap holds only backend/ and timesheet_portal/. The first revision of validate_roster_planning_v1.php derived sibling paths the way the repository is laid out (namecheap_beta_live/ prefix, top-level scripts/), so on the server it reported three missing files and exited non-zero, and set -e aborted every canonical deploy. CI could not see it because CI checks out the repository layout. Fixed by deriving paths from __DIR__ (backend = dirname(__DIR__), tree root = dirname(backend)), treating the deploy script as optional outside a repository checkout, and adding a CI step that runs the validator against a replica of the deployed layout."

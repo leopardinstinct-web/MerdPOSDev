@@ -70,6 +70,21 @@ jobs:
       - name: Validate roster planning contract
         run: php namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
 
+      # The live tree on Namecheap holds only backend/ and timesheet_portal/ - no
+      # repository prefix and no top-level scripts/. A validator that assumes the
+      # repository shape passes CI and then aborts every canonical deploy, so this
+      # runs it against a replica of the deployed layout as well.
+      - name: Validate roster contract against the deployed-tree layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          replica="$(mktemp -d)"
+          cp -R namecheap_beta_live/backend "$replica/backend"
+          cp -R namecheap_beta_live/timesheet_portal "$replica/timesheet_portal"
+          test "$(ls -1 "$replica" | sort | tr '\n' ' ')" = "backend timesheet_portal "
+          php "$replica/backend/cli/validate_roster_planning_v1.php"
+          rm -rf "$replica"
+
       - name: Validate Namecheap deploy recovery guards
         shell: bash
         run: |
