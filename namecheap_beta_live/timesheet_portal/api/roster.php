@@ -132,6 +132,36 @@ function roster_own_assignments(PDO $pdo, int $clientId, int $employeeId, string
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+/**
+ * Active employees who may actually be rostered at this store.
+ *
+ * The eligibility rule is not restated here: this calls roster_employee_may_use_store(),
+ * the same function the write path uses, so the picker a planner sees and the
+ * employees the writer accepts can never disagree. Only planners need the
+ * assignable list, so the caller gates it on roster.manage - it is not part of
+ * ordinary roster viewing. Names are only ever returned for a store the actor can
+ * already reach, so this exposes nothing they could not read another way.
+ */
+function roster_assignable_employees(PDO $pdo, int $clientId, int $storeId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT id,full_name,user_id,status FROM employees WHERE client_id=? ORDER BY full_name,id'
+    );
+    $stmt->execute([$clientId]);
+    $assignable = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $employee) {
+        if (strtolower((string)$employee['status']) !== 'active') continue;
+        $employeeId = (int)$employee['id'];
+        if (!roster_employee_may_use_store($pdo, $clientId, $employeeId, $storeId)) continue;
+        $assignable[] = [
+            'id' => $employeeId,
+            'full_name' => (string)$employee['full_name'],
+            'user_id' => $employee['user_id'] === null ? null : (int)$employee['user_id'],
+        ];
+    }
+    return $assignable;
+}
+
 function roster_save_week(PDO $pdo, array $actor, int $clientId, array $input): array
 {
     $storeId = (int)($input['store_id'] ?? 0);
@@ -359,6 +389,30 @@ try {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         beta_require_any_permission($sessionUser, ['roster.view', 'roster.view_own'], $pdo);
         $scope = strtolower(trim((string)($_GET['scope'] ?? 'store')));
+
+        // The assignable-employee list is planning data rather than roster viewing,
+        // so it is gated on roster.manage plus store access, and it deliberately
+        // needs no week: the picker is not week-specific. Week resolution stays
+        // below, where it is actually required, so the other scopes are unchanged.
+        if ($scope === 'employees') {
+            beta_require_permission($sessionUser, 'roster.manage', $pdo);
+            $storeId = (int)($_GET['store_id'] ?? 0);
+            $store = roster_require_store($pdo, $clientId, $storeId);
+            if (!roster_actor_scope($pdo, $sessionUser, $clientId, $storeId)) {
+                throw new MerdWorkforceException('store_forbidden', 'You do not have access to that store.');
+            }
+            json_response([
+                'success' => true,
+                'scope' => 'employees',
+                'csrf' => csrf_token(),
+                'actor_role' => $actorRole,
+                'actor_loa' => $actorLoa,
+                'active_client_id' => $clientId,
+                'store' => $store,
+                'employees' => roster_assignable_employees($pdo, $clientId, $storeId),
+            ]);
+        }
+
         $weekStart = roster_week_start($_GET['week_start'] ?? '');
 
         if ($scope === 'own') {

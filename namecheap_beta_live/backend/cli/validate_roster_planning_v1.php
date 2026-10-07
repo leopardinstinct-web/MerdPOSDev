@@ -197,6 +197,54 @@ if ($apiSource !== ''
     $failures[] = 'the route layer for roster.php must require roster.manage for every non-GET verb';
 }
 
+// ---- assignable employees (the roster planner's picker) -------------------
+// The planner needs the list of employees who may actually work at a store, and
+// that list must obey the same eligibility rule as the write path. These checks
+// fail closed: a renamed scope, a loosened permission, or a re-implemented rule
+// is a failure, not a silent regression.
+$endpointBody = $endpointSource;
+if ($endpointBody !== '') {
+    if (strpos($endpointBody, "if (\$scope === 'employees')") === false) {
+        $failures[] = 'the roster endpoint does not expose the employees scope the planner needs';
+    }
+    if (strpos($endpointBody, 'roster_assignable_employees($pdo, $clientId, $storeId)') === false) {
+        $failures[] = 'the roster endpoint does not build the assignable employee list for the store';
+    }
+    // The employees branch must require roster.manage AND re-check store scope
+    // before any name is returned. The week anchor is the GET handler's own line:
+    // roster_save_week also resolves a week, and anchoring on the bare assignment
+    // matched that earlier occurrence instead.
+    $employeesStart = strpos($endpointBody, "if (\$scope === 'employees')");
+    $weekStartAt = strpos($endpointBody, "\$weekStart = roster_week_start(\$_GET['week_start']");
+    if ($employeesStart !== false && $weekStartAt !== false && $weekStartAt > $employeesStart) {
+        $employeesBranch = substr($endpointBody, $employeesStart, $weekStartAt - $employeesStart);
+        if (strpos($employeesBranch, "beta_require_permission(\$sessionUser, 'roster.manage', \$pdo)") === false) {
+            $failures[] = 'the roster employees scope must require roster.manage';
+        }
+        if (strpos($employeesBranch, 'roster_actor_scope($pdo, $sessionUser, $clientId, $storeId)') === false) {
+            $failures[] = 'the roster employees scope must re-check store access before returning names';
+        }
+    }
+    else {
+        $failures[] = 'cannot locate the roster employees scope and the week resolution it must precede';
+    }
+    // The assignable list must reuse the shared eligibility rule, not restate it,
+    // and must exclude inactive employees.
+    $assignableStart = strpos($endpointBody, 'function roster_assignable_employees(');
+    if ($assignableStart === false) {
+        $failures[] = 'roster_assignable_employees is missing from the roster endpoint';
+    }
+    else {
+        $assignableBranch = substr($endpointBody, $assignableStart, 1400);
+        if (strpos($assignableBranch, 'roster_employee_may_use_store($pdo, $clientId, $employeeId, $storeId)') === false) {
+            $failures[] = 'the assignable employee list must reuse roster_employee_may_use_store rather than restating the rule';
+        }
+        if (strpos($assignableBranch, "!== 'active'") === false) {
+            $failures[] = 'the assignable employee list must exclude non-active employees';
+        }
+    }
+}
+
 // ---- gateway + deploy wiring ---------------------------------------------
 $gatewaySource = $read($gateway, $failures);
 if ($gatewaySource !== '' && preg_match("#'roster'\s*=>\s*\[\s*'GET'\s*,\s*'POST'\s*\]#", $gatewaySource) !== 1) {
