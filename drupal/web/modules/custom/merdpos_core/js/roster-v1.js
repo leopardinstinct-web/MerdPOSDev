@@ -27,7 +27,10 @@
   // doubling to a ten-minute cap, and only while items remain and the tab is online.
   const RETRY_BASE_MS = 30000;
   const RETRY_MAX_MS = 600000;
-  // The controller limits the note in BYTES (strlen), not characters.
+  // The note is truncated here in UTF-8 BYTES, which is stricter than either
+  // server: the portal keeps 255 CHARACTERS (roster_save_week: mb_substr($note, 0, 255))
+  // and the controller truncates the same way. 255 bytes never exceeds 255
+  // characters, so a payload this script accepts always fits.
   const NOTE_BYTE_LIMIT = 255;
 
   const readQueue = (key) => {
@@ -111,6 +114,10 @@
         let retryTimer = null;
         let retryDelay = RETRY_BASE_MS;
         let flushInFlight = false;
+        // A rejection outlives the flush that produced it: a later re-entrant flush
+        // drains the remaining entries and would otherwise overwrite the reason with
+        // "Saved successfully", hiding the loss. Cleared when the planner saves again.
+        let pendingRejection = '';
 
         const setMessage = (text) => {
           if (message) message.textContent = text || '';
@@ -124,22 +131,43 @@
         const updateConnectivity = () => {
           const offline = !navigator.onLine;
           if (offlineNote) offlineNote.hidden = !offline;
-          if (offline) setMessage('Offline — showing the week exactly as this tab last rendered it, plus this device’s pending changes.');
+          // Says only what is true: the week shown is the one this tab last
+          // rendered, and queued changes are counted, not drawn into the grid.
+          if (offline) setMessage('Offline — showing the week exactly as this tab last rendered it. Changes are queued on this device and sent when the connection returns.');
         };
 
         /**
-         * What a cell means, or null when its times are unusable.
+         * What a cell means, or null when it must not be sent at all.
          *
          * A cell belongs to the week when it has employees, OR when the server
          * rendered it with a stored shift, OR when its times no longer match the
          * slot defaults. "No employees" alone is deliberately not "no shift": the
          * portal replaces the week wholesale, so omitting an emptied shift would
-         * delete the shift itself.
+         * delete the shift itself. A cell the planner explicitly cleared is the one
+         * case that IS omitted, because deleting a shift has to stay possible.
          */
         const readCell = (cell) => {
-          const start = clock(cell.querySelector('[data-roster-start]')?.value);
-          const end = clock(cell.querySelector('[data-roster-end]')?.value);
-          if (!start || !end) return null;
+          const removed = cell.dataset.rosterRemoved === '1';
+          let start = clock(cell.querySelector('[data-roster-start]')?.value);
+          let end = clock(cell.querySelector('[data-roster-end]')?.value);
+          if (!start || !end) {
+            // A stored shift whose time inputs were emptied must not vanish: fall
+            // back to the times the server last confirmed and put them back in the
+            // fields, rather than dropping the shift from a wholesale replacement.
+            const originalStart = clock(cell.dataset.rosterOriginalStart);
+            const originalEnd = clock(cell.dataset.rosterOriginalEnd);
+            if (cell.dataset.rosterOriginal === 'shift' && originalStart && originalEnd) {
+              start = originalStart;
+              end = originalEnd;
+              const startField = cell.querySelector('[data-roster-start]');
+              const endField = cell.querySelector('[data-roster-end]');
+              if (startField) startField.value = originalStart.slice(0, 5);
+              if (endField) endField.value = originalEnd.slice(0, 5);
+            }
+            else {
+              return null;
+            }
+          }
           const assignments = [...cell.querySelectorAll('[data-roster-employee]')]
             .map((chip) => Number(chip.dataset.rosterEmployee || 0))
             .filter((id) => id > 0)
@@ -147,9 +175,10 @@
           const defaultStart = clock(cell.dataset.rosterDefaultStart);
           const defaultEnd = clock(cell.dataset.rosterDefaultEnd);
           const timesChanged = Boolean(defaultStart && defaultEnd) && (start !== defaultStart || end !== defaultEnd);
+          const planned = !removed && (assignments.length > 0 || cell.dataset.rosterOriginal === 'shift' || timesChanged);
           return {
             assignments,
-            planned: assignments.length > 0 || cell.dataset.rosterOriginal === 'shift' || timesChanged,
+            planned,
             shift: {
               shift_date: cell.dataset.rosterDate,
               slot_key: cell.dataset.rosterSlot,
@@ -173,6 +202,7 @@
           if (!cell) return;
           const read = readCell(cell);
           cell.classList.toggle('is-vacant', !read || !read.planned);
+          cell.classList.toggle('is-removed', cell.dataset.rosterRemoved === '1');
           const indicator = cell.querySelector('[data-roster-next-day]');
           if (indicator) indicator.hidden = !read || !read.shift.ends_next_day;
         };
@@ -244,21 +274,30 @@
           let sent = 0;
           let reload = false;
           let deferred = 0;
+          let rejected = 0;
           const next = (index) => {
             if (index >= queue.length) {
               flushInFlight = false;
               updateQueueBadge();
               const left = readQueue(queueKey).length;
-              if (left === 0) {
+              if (left === 0 && rejected === 0 && pendingRejection === '') {
                 cancelRetry();
                 retryDelay = RETRY_BASE_MS;
                 setMessage('Saved successfully.');
                 if (reload) window.location.reload();
                 return;
               }
-              if (sent > 0) setMessage(`${sent} week${sent === 1 ? '' : 's'} saved. ${left} still pending.`);
+              // A rejection is the planner's business, so it must survive: reporting
+              // "Saved successfully" over a dropped week would hide the loss, and the
+              // page stays put so the rejected week can be corrected and re-sent.
+              // It must NOT stop the drain either: the other entries are independent
+              // weeks, and holding them back would strand a valid change behind an
+              // unrelated rejection.
+              if (rejected === 0 && pendingRejection === '' && sent > 0) {
+                setMessage(`${sent} week${sent === 1 ? '' : 's'} saved. ${left} still pending.`);
+              }
               if (deferred > 0) scheduleRetry();
-              else window.setTimeout(() => flushQueue(), 0);
+              else if (left > 0) window.setTimeout(() => flushQueue(), 0);
               return;
             }
             const item = queue[index];
@@ -274,14 +313,21 @@
                   reload = true;
                   retryDelay = RETRY_BASE_MS;
                   dropFromQueue([item.submission_id]);
+                  // Settle the badge per item: waiting until the end overcounts a
+                  // multi-item queue while it drains.
+                  updateQueueBadge();
                 } else if (data?.retryable === true || response.status >= 500 || response.status === 0) {
                   // The portal could not be asked, so the week stays queued and the
                   // next attempt is scheduled with backoff.
                   deferred += 1;
                 } else {
-                  // Authoritative rejection: retrying cannot help, so say why and drop it.
-                  setMessage(String(data?.error || 'MERDPOS rejected this roster change.'));
+                  // Authoritative rejection: retrying cannot help, so say why and drop
+                  // it, remembering the reason so the drain cannot overwrite it.
+                  rejected += 1;
+                  pendingRejection = String(data?.error || 'MERDPOS rejected this roster change.');
+                  setMessage(pendingRejection);
                   dropFromQueue([item.submission_id]);
+                  updateQueueBadge();
                 }
                 next(index + 1);
               })
@@ -295,6 +341,8 @@
 
         const queueWeek = (status) => {
           if (!canManage) return;
+          // A new save is the planner acting on the last rejection, so it clears it.
+          pendingRejection = '';
           const shifts = collectShifts();
           const noteField = root.querySelector('[data-roster-note]');
           const typedNote = String(noteField?.value || '');
@@ -324,7 +372,12 @@
         if (canManage) {
           root.querySelectorAll('[data-roster-cell]').forEach((cell) => {
             cell.querySelectorAll('[data-roster-start], [data-roster-end]').forEach((input) => {
-              input.addEventListener('input', () => syncCellState(cell));
+              input.addEventListener('input', () => {
+                // Editing the times revives a cleared shift: the planner is describing
+                // a shift here again.
+                delete cell.dataset.rosterRemoved;
+                syncCellState(cell);
+              });
             });
           });
 
@@ -353,12 +406,27 @@
               remove.textContent = '×';
               chip.append(label, remove);
               list.append(chip);
+              // Staffing a cleared cell makes it a shift again.
+              delete cell.dataset.rosterRemoved;
               select.value = '';
               syncCellState(cell);
             });
           });
 
           root.addEventListener('click', (event) => {
+            const clear = event.target.closest('[data-roster-clear]');
+            if (clear) {
+              const cleared = clear.closest('[data-roster-cell]');
+              if (!cleared) return;
+              // An explicit, deliberate deletion. The cell is marked removed, its
+              // staff is taken out, and readCell then omits it from the payload -
+              // which is what deletes the shift, since the portal replaces the week
+              // wholesale. Touching the times or adding an employee revives it.
+              cleared.dataset.rosterRemoved = '1';
+              cleared.querySelectorAll('[data-roster-employee]').forEach((chip) => chip.remove());
+              syncCellState(cleared);
+              return;
+            }
             const remove = event.target.closest('[data-roster-remove]');
             if (!remove) return;
             const chip = remove.closest('[data-roster-employee]');

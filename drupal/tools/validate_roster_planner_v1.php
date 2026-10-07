@@ -159,10 +159,15 @@ foreach ([
     // The origin of a cell and the slot defaults it started from: without these
     // the script cannot tell "no employees left" from "no shift ever planned".
     'data-roster-original="{{ has_shift ? \'shift\' : \'none\' }}"',
+    // The shift's confirmed times, so emptying the time fields cannot delete it.
+    'data-roster-original-start="{{ has_shift ? shift.start_time : \'\' }}"',
     'data-roster-default-start="{{ slot.start }}"',
     'data-roster-default-end="{{ slot.end }}"',
     // A read-only derivation of the times, never a checkbox.
     'data-roster-next-day',
+    // An explicit delete, because omitting the cell is the only way to remove a
+    // shift from a wholesale replacement.
+    'data-roster-clear',
 ] as $marker) {
     if (strpos($templateCode, $marker) === false) {
         $failures[] = "roster template marker missing: {$marker}";
@@ -195,8 +200,9 @@ foreach ([
     'X-MERDPOS-CSRF',
     // The browser derives the same midnight rule the controller enforces.
     'ends_next_day: end <= start',
-    // Inclusion is decided by origin + employees + changed times, not by a class.
-    "planned: assignments.length > 0 || cell.dataset.rosterOriginal === 'shift' || timesChanged,",
+    // Inclusion is decided by origin + employees + changed times, minus an explicit
+    // clear, not by a CSS class.
+    "!removed && (assignments.length > 0 || cell.dataset.rosterOriginal === 'shift' || timesChanged)",
     'if (read && read.planned) shifts.push(read.shift);',
     'data-roster-next-day',
     'is-vacant',
@@ -209,7 +215,21 @@ foreach ([
     'scheduleRetry',
     'if (deferred > 0) scheduleRetry();',
     'retryTimer = window.setTimeout(() => {',
+    'ends_next_day: end <= start,',
+    // A deferred week must come back with growing delay rather than hammering.
     'retryDelay = Math.min(retryDelay * 2, RETRY_MAX_MS);',
+    // An emptied stored shift must survive: its confirmed times are the fallback,
+    // never a reason to omit the cell. Asserted as the whole condition - a mere
+    // reference to the dataset property would pass even with the fallback dead.
+    "if (cell.dataset.rosterOriginal === 'shift' && originalStart && originalEnd) {",
+    'delete cell.dataset.rosterRemoved;',
+    // A rejection must not be reported as success, must not stop the drain of the
+    // other independent weeks, and must outlive the flush that produced it.
+    "if (left === 0 && rejected === 0 && pendingRejection === '') {",
+    'rejected += 1;',
+    'pendingRejection = String(',
+    'pendingRejection = \'\';',
+    'else if (left > 0) window.setTimeout(() => flushQueue(), 0);',
     // The last-resort id must never be constant, or every week after the first
     // would be deduped away as a repeat.
     'Math.random()',
@@ -246,6 +266,8 @@ foreach ([
     '.merdpos-roster-nextday[hidden]' => 'the read-only next-day indicator must hide when the times do not cross midnight',
     '.merdpos-roster-grid-body' => 'the grid row grouping must be laid out without a new box',
     '.merdpos-roster-own-list' => 'the read-only own-shift list must be styled',
+    '.merdpos-roster-cell.is-removed' => 'a cleared shift must be visibly distinct from a cell that was never planned',
+    '.merdpos-roster-clear' => 'the explicit clear-shift control must be styled',
 ] as $needle => $message) {
     if (strpos($css, $needle) === false) $failures[] = $message;
 }

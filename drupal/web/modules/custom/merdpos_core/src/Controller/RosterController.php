@@ -294,10 +294,9 @@ final class RosterController extends ControllerBase {
       // An end at or before the start necessarily lands on the next day - that is
       // what the default late 16:00-00:00 shift is - and an end after the start
       // does not. The browser renders the same rule; it is not the authority here.
-      if (array_key_exists('ends_next_day', $raw)
-        && filter_var($raw['ends_next_day'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === NULL) {
-        return ['error' => 'ends_next_day must be true or false.'];
-      }
+      // A client-supplied value is accepted and ignored rather than validated:
+      // rejecting a whole week over a field this code discards would only create a
+      // way to lose data over nothing.
       $endsNextDay = $this->endsNextDay($start, $end);
       $label = trim((string) ($raw['label'] ?? ''));
       if (strlen($label) > 48) return ['error' => 'Keep each shift label under 48 characters.'];

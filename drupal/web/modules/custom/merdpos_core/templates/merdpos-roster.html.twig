@@ -155,6 +155,8 @@
                      data-roster-date="{{ day.date }}"
                      data-roster-slot="{{ slot_key }}"
                      data-roster-original="{{ has_shift ? 'shift' : 'none' }}"
+                     data-roster-original-start="{{ has_shift ? shift.start_time : '' }}"
+                     data-roster-original-end="{{ has_shift ? shift.end_time : '' }}"
                      data-roster-default-start="{{ slot.start }}"
                      data-roster-default-end="{{ slot.end }}">
                   <div class="merdpos-roster-cell-head">
@@ -199,6 +201,11 @@
                         </small>
                       {% endif %}
                     </div>
+                    {# Deleting a shift has to stay possible and deliberate: the portal
+                       replaces the week wholesale, so omitting this cell IS the
+                       deletion. Without this control a shift could only ever be
+                       emptied of staff, never removed. #}
+                    <button type="button" class="merdpos-roster-clear" data-roster-clear>Clear shift</button>
                   {% endif %}
                 </div>
               {% endfor %}

@@ -383,6 +383,33 @@
   border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
+/*
+ * is-removed means the planner explicitly cleared this shift. The portal replaces
+ * the week wholesale, so an omitted cell deletes the shift - this styling is the
+ * only signal that a deletion is pending, which is why it is a distinct state from
+ * is-vacant (nothing here was ever planned).
+ */
+.merdpos-roster-cell.is-removed {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: var(--color-danger-surface);
+}
+
+.merdpos-roster-clear {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.merdpos-roster-clear:hover {
+  color: var(--color-danger);
+}
 .merdpos-visually-hidden {
   position: absolute;
   width: 1px;
