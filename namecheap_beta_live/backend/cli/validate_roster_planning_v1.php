@@ -409,63 +409,93 @@ elseif ($endpointSource !== '') {
      * Text-based boundaries were tried first and were wrong twice over: braces and
      * the word "function" occur inside strings and comments, so counting them either
      * truncated a body or - worse - rejected a valid function and blocked a deploy.
-     * token_get_all() knows the difference, so brace depth here is tracked over real
-     * punctuation tokens only and the declaration count ignores comments entirely.
+     * token_get_all() knows the difference, so brace depth is tracked over real
+     * punctuation tokens only and comments are never counted as declarations.
      *
-     * Returns null unless the function is declared exactly once with a complete body.
+     * Returns null unless the function is declared exactly once AT TOP LEVEL with a
+     * complete body, and sets $reason to which of those conditions failed, so the
+     * caller can report what is actually wrong instead of guessing.
      */
-    $extract = static function (string $source, string $name): ?string {
-        $offset = 0;
-        $occurrences = 0;
-        $start = null;
-        $end = null;
-        $depth = 0;
-        $functionAt = null;
+    $extract = static function (string $source, string $name, ?string &$reason = null): ?string {
+        $tokens = token_get_all($source);
+        $count = count($tokens);
+        $braceDepth = 0;
+        $declarations = [];
+        $anyDepth = 0;
         $expectName = false;
-        foreach (token_get_all($source) as $token) {
+        $atTopLevel = false;
+        $functionAt = null;
+        $offset = 0;
+        // First walk: every declaration, and the global brace depth it sits at. The
+        // walk does NOT stop at the first match, so a second declaration later in the
+        // file is still counted rather than silently ignored.
+        for ($i = 0; $i < $count; $i++) {
+            $token = $tokens[$i];
             $id = is_array($token) ? $token[0] : null;
             $text = is_array($token) ? $token[1] : $token;
             if ($id === T_FUNCTION) {
                 $functionAt = $offset;
                 $expectName = true;
+                $atTopLevel = $braceDepth === 0;
             }
             elseif ($expectName) {
                 if ($id === T_STRING) {
                     $expectName = false;
                     if ($text === $name) {
-                        $occurrences++;
-                        if ($start === null) $start = $functionAt;
+                        // '&' is a character token, so a by-reference declaration
+                        // (function &name) reaches here instead of bailing out.
+                        $anyDepth++;
+                        if ($atTopLevel) $declarations[] = $functionAt;
                     }
                 }
-                elseif ($id !== T_WHITESPACE) {
+                elseif ($id !== T_WHITESPACE && $text !== '&') {
                     $expectName = false;
                 }
             }
-            if ($start !== null) {
-                if ($text === '{') $depth++;
-                elseif ($text === '}') {
-                    $depth--;
-                    if ($depth === 0) {
-                        $end = $offset + 1;
-                        break;
-                    }
-                }
-            }
+            if ($text === '{') $braceDepth++;
+            elseif ($text === '}') $braceDepth--;
             $offset += strlen($text);
         }
-        if ($occurrences !== 1 || $start === null || $end === null) return null;
-        return substr($source, $start, $end - $start);
+        if ($declarations === []) {
+            $reason = $anyDepth > 0
+                ? 'it is declared, but not at top level'
+                : 'it is not declared at all';
+            return null;
+        }
+        if (count($declarations) > 1) {
+            $reason = 'it is declared ' . count($declarations) . ' times at top level';
+            return null;
+        }
+        // Second walk: the body span of that single declaration, from its opening
+        // brace to the matching close.
+        $start = $declarations[0];
+        $depth = 0;
+        $opened = false;
+        $offset = 0;
+        foreach ($tokens as $token) {
+            $text = is_array($token) ? $token[1] : $token;
+            $here = $offset;
+            $offset += strlen($text);
+            if ($here < $start) continue;
+            if ($text === '{') {
+                $depth++;
+                $opened = true;
+            }
+            elseif ($text === '}') {
+                $depth--;
+                if ($opened && $depth === 0) return substr($source, $start, $offset - $start);
+            }
+        }
+        $reason = 'its braces never balance, so the body is incomplete';
+        return null;
     };
     $needed = ['roster_store_access_allows', 'roster_employee_may_use_store', 'roster_assignable_employees'];
     $extracted = [];
     foreach ($needed as $name) {
-        $body = $extract($endpointSource, $name);
+        $reason = null;
+        $body = $extract($endpointSource, $name, $reason);
         if ($body === null) {
-            // Comments are not counted as declarations, so this can only mean the
-            // function is genuinely absent or declared more than once. Say that,
-            // rather than sending the deployer looking for a missing function that
-            // is present.
-            $failures[] = "cannot extract {$name} from the roster endpoint for behavioural testing: expected exactly one declaration with a complete body";
+            $failures[] = "cannot extract {$name} from the roster endpoint for behavioural testing: {$reason}";
         }
         else {
             $extracted[] = $body;
@@ -478,11 +508,15 @@ elseif ($endpointSource !== '') {
         // before a separate write would be check-then-use theatre, not protection.
         $harness = tempnam(sys_get_temp_dir(), 'merd_roster_eligibility_');
         $handle = $harness === false ? false : @fopen($harness, 'wb');
+        $payload = "<?php\n" . implode("\n\n", $extracted) . "\n";
         if ($harness === false || $handle === false) {
             $failures[] = 'cannot create a temporary harness file for the behavioural eligibility check';
             if (is_string($harness)) @unlink($harness);
         }
-        elseif (fwrite($handle, "<?php\n" . implode("\n\n", $extracted) . "\n") === false) {
+        // A short write is not a false return: compare the byte count, or a truncated
+        // harness gets required and reported as a confusing parse error instead of a
+        // clean write failure.
+        elseif (fwrite($handle, $payload) !== strlen($payload)) {
             fclose($handle);
             $failures[] = 'cannot write the behavioural eligibility harness';
             @unlink($harness);
