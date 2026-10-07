@@ -392,19 +392,33 @@ if ($controller !== '') {
 // fatal is not catchable, and a validator killed mid-report explains nothing.
 $autoloadPath = $root . '/vendor/autoload.php';
 $controllerPath = $module . '/src/Controller/RosterController.php';
+$linkCheckRan = FALSE;
 if (is_file($autoloadPath) && is_file($controllerPath)) {
     // The generated probe uses SINGLE quotes only: escapeshellarg() on Windows wraps
     // in double quotes and rewrites any inner double quote, which turned the class
     // name into a parse error the first time this ran.
+    // The success signal is a sentinel compared EXACTLY, not a substring judged
+    // anywhere in the merged output - a path or notice containing the word would
+    // otherwise certify a controller that never linked.
+    $sentinel = 'MERD_ROSTER_CLASS_LINK_OK';
     $probe = 'require ' . var_export($autoloadPath, true)
         . '; require ' . var_export($controllerPath, true)
-        . '; echo class_exists(' . var_export('Drupal\merdpos_core\Controller\RosterController', true) . ") ? ' LINKED' : ' NOT_FOUND';";
+        . '; echo class_exists(' . var_export('Drupal\merdpos_core\Controller\RosterController', true) . ") ? '{$sentinel}' : 'MERD_ROSTER_CLASS_NOT_FOUND';";
+    // PHP_BINARY, not a hard-coded 'php84': this validator is already running under
+    // the intended interpreter, so reusing it cannot fail as "not found" and cannot
+    // turn a missing binary into a misleading controller defect.
     $output = [];
     $status = 0;
-    exec('php84 -d display_errors=1 -d error_reporting=E_ALL -r ' . escapeshellarg($probe) . ' 2>&1', $output, $status);
+    exec(escapeshellarg(PHP_BINARY) . ' -d display_errors=1 -d error_reporting=E_ALL -r ' . escapeshellarg($probe) . ' 2>&1', $output, $status);
     $linkText = trim(implode(' ', $output));
-    if ($status !== 0 || strpos($linkText, 'LINKED') === false) {
+    if ($status === 127) {
+        $failures[] = 'the class-link check could not run: no PHP interpreter at ' . PHP_BINARY;
+    }
+    elseif ($status !== 0 || $linkText !== $sentinel) {
         $failures[] = 'the controller does not link against the real ControllerBase: ' . $linkText;
+    }
+    else {
+        $linkCheckRan = TRUE;
     }
 }
 else {
@@ -483,5 +497,10 @@ if ($failures !== []) {
     exit(1);
 }
 
-echo "Roster planner contract validated: routes, CSRF + roster.manage write, roster.view_own served own scope read-only, no operational SQL, derived ends_next_day, emptied shifts preserved, bounded retry queue with non-constant idempotency IDs, escaped template, token-driven light/dark styling, navigation and deploy wiring.\n";
+// The summary states whether the class-link check actually ran, so a green result
+// never implies coverage it did not have - on the deploy host it runs, in a bare
+// worktree it does not.
+echo 'Roster planner contract validated: routes, CSRF + roster.manage write, roster.view_own served own scope read-only, no operational SQL, derived ends_next_day, emptied shifts preserved, bounded retry queue with non-constant idempotency IDs, escaped template, token-driven light/dark styling, navigation and deploy wiring.'
+    . ($linkCheckRan ? ' Controller class linked against the real ControllerBase.' : ' NOTE: the ControllerBase link check did not run here (no Drupal vendor tree).')
+    . "\n";
 exit(0);
