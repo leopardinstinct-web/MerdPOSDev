@@ -232,25 +232,35 @@ if ($deploy === '') {
         $inRsync = false;
         foreach (preg_split('/\R/', $deploySource) as $lineIndex => $deployLine) {
             $trimmedLine = trim($deployLine);
+            $isComment = strpos($trimmedLine, '#') === 0;
             // Track an actual rsync COMMAND, including its backslash-continued
             // argument lines: the portal path needed here sits on a continuation
             // line, not on the rsync line itself, so a "does this line contain the
             // path" test alone would also accept a COMMENT that quotes the path -
-            // re-creating the false pass this change exists to remove.
+            // re-creating the false pass this change exists to remove. Comments are
+            // excluded explicitly, and not only by the continuation window.
             if (preg_match('/^rsync\b/', $trimmedLine) === 1) {
                 $inRsync = true;
             }
             // The rsync SOURCE line; the destination line names only $LIVE. If the
             // source ever appears more than once, the LAST occurrence is the
             // refresh that matters, so keep overwriting.
-            if ($inRsync && strpos($trimmedLine, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
+            if ($inRsync && !$isComment && strpos($trimmedLine, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
                 $portalRsyncLine = $lineIndex;
             }
-            if ($trimmedLine !== '' && substr($trimmedLine, -1) !== '\\') {
+            // A line continues the command only when it ends in an ODD number of
+            // backslashes: a line ending in an escaped backslash (\\) does NOT
+            // continue it in shell, and treating it as a continuation would keep
+            // the window open over the comment lines that follow.
+            $trailingBackslashes = 0;
+            for ($scan = strlen($trimmedLine) - 1; $scan >= 0 && $trimmedLine[$scan] === '\\'; $scan--) {
+                $trailingBackslashes++;
+            }
+            if ($trimmedLine !== '' && $trailingBackslashes % 2 === 0) {
                 $inRsync = false;
             }
             // The invocation itself, never a mention inside a comment.
-            if ($gateLine === null && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $trimmedLine) === 1) {
+            if ($gateLine === null && !$isComment && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $trimmedLine) === 1) {
                 $gateLine = $lineIndex;
             }
         }

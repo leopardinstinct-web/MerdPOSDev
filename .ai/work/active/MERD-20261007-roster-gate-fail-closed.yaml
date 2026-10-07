@@ -7,7 +7,7 @@ authoritative_branch: namecheap-beta-live
 base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 branch: harness/MERD-20261007-roster-gate-fail-closed
 created_at: '2026-10-07T12:07:45Z'
-updated_at: '2026-10-07T07:30:00Z'
+updated_at: '2026-10-07T07:22:00Z'
 last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 lifecycle: CODED
 packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
@@ -79,19 +79,50 @@ remaining_work:
   - After the canonical cron deploy, confirm the marker SHA and record deployed state.
 
 review:
-  first_pass:
+  custody_rule: >-
+    A verdict belongs only to the SHA it was returned for. Findings are OPEN at
+    that SHA; a disposition ("fixed in ...") belongs to the LATER SHA that carries
+    the fix and must never be written into the earlier pass's record. An earlier
+    draft of this block broke that rule and was correctly rejected as a major
+    finding by the pass-3 review, precisely because the Gate 2.5 handoff would
+    otherwise have presented a clean SHIP for a tree whose findings were open.
+  pass_1:
     reviewed_sha: 38b7a88061ad3122c9d89523dfeb07a878bfccd5
     range: 449e89e..38b7a88
-    verdict: SHIP
-    transport: web (KIMI_WEB browser route) - no escalation needed
+    verdict_at_that_sha: SHIP
+    major_findings_at_that_sha: none
+    findings_open_at_that_sha:
+      - 'M1 (minor): the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy the check.'
+      - 'M2 (minor): the outer deploy-script-not-found skip path still lets not-found mean fine, and the stale-script candidate lookup stays open.'
+      - 'N1 (nit): ACTIVE.yaml and the packet stamps denoted instants five hours apart.'
+      - 'N2 (nit): review sequencing versus this packet own Tier 3 requirement.'
+      - 'N3 (nit): the deploy comment asserted re-runnable migrations without support.'
+    transport: web (KIMI_WEB browser route)
     evidence: C:\DSH\evidence\20261007-121311-kimi-review-449e89e-38b7a88.md
-    major_findings: none
-    findings_and_disposition:
-      - 'M1 the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy it: FIXED - the check now tracks an actual rsync command across its backslash-continued argument lines.'
-      - 'M2 the outer "deploy script not found -> skip" path still lets not-found mean fine, and the stale-script candidate lookup stays open: NOT FIXED BY DESIGN (failing closed there would abort every deploy - the exact outage PR #183 fixed); playbook section 8.1 reworded to scope the claim honestly and the candidate lookup stays a tracked follow-up.'
-      - 'N1 ACTIVE.yaml and the packet stamps denoted instants five hours apart: FIXED - both now denote 2026-10-07T12:30+05:00 = 07:30Z.'
-      - 'N2 review sequencing versus the packet own Tier 3 requirement: addressed by this review record.'
-      - 'N3 unsupported "every validator assumes re-runnability" claim in the deploy comment: FIXED - the comment now points at the validators that follow the applies, which is checkable in the same file.'
+    evidence_note: evidence files are written under C:\DSH\evidence by the harness on this workstation; the web transport refers to how the prompt reaches Kimi, not where the record is stored.
+  pass_2_dispositions:
+    note: >-
+      Dispositions of the pass-1 findings. They describe 1858ae4, NOT 38b7a88.
+    fixed_in_1858ae4: [M1, N1, N3]
+    not_fixed_by_design: >-
+      M2 - failing closed on a missing deploy script would abort every deploy,
+      which is the outage PR #183 fixed; the claim is scoped in .ai/playbook.md
+      section 8.1 and the candidate lookup remains a tracked follow-up.
+  pass_3:
+    reviewed_sha: 1858ae4
+    range: 38b7a88..1858ae4
+    verdict_at_that_sha: FIX-FIRST
+    blocking_finding: >-
+      MAJOR, and about this packet rather than the code: the pass-1 record mixed
+      a SHIP verdict with "fixed" dispositions that exist only in the later delta.
+      Corrected by the custody_rule and the pass split above.
+    other_findings_and_disposition:
+      - 'MINOR (escaped trailing backslash kept the rsync continuation window open over following comments): FIXED in 4th SHA - continuation now requires an ODD number of trailing backslashes and comment lines are excluded explicitly.'
+      - 'MINOR (the $portalRsyncLine === null fail-closed branch was not visible inside a delta-only diff): NOT A DEFECT - the branch exists and is proven by the negative control "portal rsync line removed -> exit 1"; the finding was an artifact of reviewing only the delta.'
+      - 'NIT (state stamps denoted an instant ~12 minutes in the session future): FIXED - stamps now carry the real time.'
+    code_assessment_at_that_sha: 'The code would ship; the record could not ship as written.'
+    transport: web (KIMI_WEB browser route)
+    evidence: C:\DSH\evidence\20261007-121823-kimi-review-38b7a88-1858ae4.md
 
 next_action: >-
   Re-review the post-finding delta, then open the PR with the Gate 2.5 handoff
