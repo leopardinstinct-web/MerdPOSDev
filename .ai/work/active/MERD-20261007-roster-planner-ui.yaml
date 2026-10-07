@@ -7,10 +7,10 @@ authoritative_branch: beta/drupal-webapp
 base_head: 8d1606cde4dbfcca0106241a5ddd03eb2199cce3
 branch: harness/MERD-20261007-roster-planner-ui
 created_at: '2026-10-07T13:00:18Z'
-updated_at: '2026-10-07T14:05:00Z'
-last_seen_head: 043dc545a928097ad881a185871569b1a8528e5b
-lifecycle: CODED
-packet_state: REVIEW_DEFECTS_FIXED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_DEPLOY
+updated_at: '2026-10-07T10:10:00Z'
+last_seen_head: e6ced270325fa54be077e50c0af8dc8b7eff9291
+lifecycle: DEPLOYED
+packet_state: DEPLOYED_TIER1_GREEN_BEHAVIOURAL_VERIFICATION_AWAITING_ONE_INTERACTIVE_LOGIN
 risk: HIGH
 risk_basis: >-
   A new writable surface over roster planning: it submits week data that the
