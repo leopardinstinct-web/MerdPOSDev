@@ -214,6 +214,14 @@ php "$LIVE/backend/cli/validate_query_workflow_v1.php"
 # backend permissions/routing), so it must run only after the timesheet_portal
 # rsync above has refreshed the live copy. Running it earlier reads a stale portal
 # tree, fails, and - under set -e - blocks every deploy.
+#
+# NOTE ON FAILURE ATOMICITY: this position is after the apply_0NN_*.php steps
+# above, so unlike its earlier position a roster-gate failure no longer prevents
+# those migrations from running. Every validator from
+# validate_admin_role_delegation_v1.php onward already runs after those applies, so
+# reaching the live-copy gate below assumes they are re-runnable; this line now
+# shares that assumption rather than preceding it. Independent review of
+# d0a5048..a166261 raised this as a documented trade-off rather than a defect.
 php "$LIVE/backend/cli/validate_roster_planning_v1.php"
 
 # Live-copy gate. The marker is not written unless the canonical design/runtime

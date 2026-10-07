@@ -219,9 +219,77 @@ if ($deploy === '') {
         // This contract spans both trees, so the gate must be invoked after the
         // timesheet_portal rsync. Invoked earlier it reads a stale portal tree,
         // fails, and under set -e blocks every deploy.
-        $portalRsyncAt = strpos($deploySource, '"$REPO/namecheap_beta_live/timesheet_portal/"');
-        $gateAt = strpos($deploySource, 'validate_roster_planning_v1.php');
-        if ($portalRsyncAt !== false && $gateAt !== false && $gateAt < $portalRsyncAt) {
+        //
+        // Both positions are resolved from COMMAND lines, and a position that
+        // cannot be found is ITSELF a failure. An earlier revision compared
+        // first-byte offsets and skipped the whole check whenever either needle
+        // was absent, so any cosmetic edit to the rsync line - requoting, a
+        // variable rename, a dropped trailing slash - silently stopped enforcing
+        // this invariant while the validator still reported success. A deploy gate
+        // that fails open is not a gate.
+        // Model the deploy script the way BASH read it, instead of approximating
+        // it line by line. Bash removes backslash-newline pairs before parsing, so:
+        //   - a continued command is ONE logical line, which puts the rsync verb and
+        //     its portal source argument on the same line (no window state needed);
+        //   - a COMMENT that ends in a backslash swallows the line after it, and a
+        //     commented-out command is therefore not a command at all.
+        // A logical line that starts with '#' is a comment and can satisfy neither
+        // match, which is what makes the earlier false-pass classes impossible
+        // rather than merely unlikely. Continuation requires an ODD number of
+        // trailing backslashes: an escaped backslash (\\) does not continue, and a
+        // backslash followed by a trailing space does not either.
+        $logicalLines = [];
+        $pending = '';
+        foreach (preg_split('/\R/', $deploySource) as $physicalLine) {
+            // Bash removes a backslash-newline pair WITHOUT inserting anything, so
+            // the join adds no separator: the following line keeps its own leading
+            // whitespace, which is what separates its tokens. Inserting a space here
+            // would silently rewrite a token that a legal deploy script splits
+            // across a continuation.
+            $joined = $pending . $physicalLine;
+            $trailingBackslashes = 0;
+            for ($scan = strlen($physicalLine) - 1; $scan >= 0 && $physicalLine[$scan] === '\\'; $scan--) {
+                $trailingBackslashes++;
+            }
+            if ($trailingBackslashes % 2 === 1) {
+                $pending = substr($joined, 0, -1);
+                continue;
+            }
+            $logicalLines[] = $joined;
+            $pending = '';
+        }
+        if (trim($pending) !== '') {
+            $logicalLines[] = $pending;
+        }
+
+        $portalRsyncLine = null;
+        $gateLine = null;
+        // Index is a LOGICAL line (continuations joined), not a physical line number
+        // in the deploy script, and is used only to compare the two positions.
+        foreach ($logicalLines as $logicalIndex => $logicalLine) {
+            $command = trim($logicalLine);
+            if ($command === '' || strpos($command, '#') === 0) {
+                continue;
+            }
+            // The rsync SOURCE argument; the destination names only $LIVE. If the
+            // portal tree is synced more than once, the LAST occurrence is the
+            // refresh that matters, so keep overwriting.
+            if (preg_match('/^rsync\b/', $command) === 1
+                && strpos($command, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
+                $portalRsyncLine = $logicalIndex;
+            }
+            // The invocation itself, never a mention inside a comment.
+            if ($gateLine === null && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $command) === 1) {
+                $gateLine = $logicalIndex;
+            }
+        }
+        if ($portalRsyncLine === null) {
+            $failures[] = 'cannot locate the timesheet_portal rsync in the canonical deploy script, so the roster gate ordering cannot be verified';
+        }
+        if ($gateLine === null) {
+            $failures[] = 'cannot locate the roster gate invocation (php ... validate_roster_planning_v1.php) in the canonical deploy script';
+        }
+        if ($portalRsyncLine !== null && $gateLine !== null && $gateLine < $portalRsyncLine) {
             $failures[] = 'the deploy script runs the roster gate before the timesheet_portal rsync, so it would read a stale portal tree';
         }
     }

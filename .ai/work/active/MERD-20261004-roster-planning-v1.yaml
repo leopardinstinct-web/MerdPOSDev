@@ -7,8 +7,8 @@ authoritative_branch: namecheap-beta-live
 base_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
 branch: harness/MERD-20261004-roster-planning-v1
 created_at: '2026-10-04T00:00:00Z'
-updated_at: '2026-10-06T04:55:00Z'
-last_seen_head: a1662616d4bf322e62aa565aabf5f799fe5e7df8
+updated_at: '2026-10-07T07:27:28Z'
+last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 lifecycle: DEPLOYED
 packet_state: BACKEND_DEPLOYED_DRUPAL_SURFACE_NEXT
 risk: HIGH
@@ -145,8 +145,10 @@ stages:
     state: pending
 
 next_action: >-
-  Finish stage 1 (gateway allow-list entry, validator, deploy-gate and CI wiring),
-  run the deterministic validators, then freeze the SHA and obtain the Kimi review.
+  Stage 5: build the Drupal Beta roster surface (week grid per store, edit for roster.manage), then
+  proceed to stage 6 authenticated live verification. The backend, validator, deploy gate and
+  deployment are complete (see delivery); the two review follow-ups are recorded under
+  deferred_follow_ups.
 
 evidence_so_far:
   - backend/api/integrations/portal_gateway.php capability table read (allow-list pattern confirmed).
@@ -174,9 +176,9 @@ delivery:
     roster_backend: 83cc7d46e80e65cf8dafb8531f163555b9764dcc   # PR #182, squash
     gate_layout_fix: d0a50488ab914c6859eea2478ba899ee6f56c1c7   # PR #183, squash
     gate_placement_fix: a1662616d4bf322e62aa565aabf5f799fe5e7df8 # PR #184, squash
-  deployed_sha: a1662616d4bf322e62aa565aabf5f799fe5e7df8
-  deployed_at_utc: '2026-10-06T04:50:47Z'
-  marker: 'https://app.merdpos.com/beta/.beta_release.json -> a1662616d4bf322e62aa565aabf5f799fe5e7df8'
+  deployed_sha: 449e89e50c310d60ace1ec388cfa8279db6e4439
+  deployed_at_utc: '2026-10-07T06:20:29Z'
+  marker: 'https://app.merdpos.com/beta/.beta_release.json -> 449e89e50c310d60ace1ec388cfa8279db6e4439 (re-confirmed 2026-10-07; the live revision advanced from a166261 to the later deploy-record commit 449e89e)'
   deploy_log_evidence:
     - '040 roster planning applied; tables=roster_weeks,roster_shifts,roster_assignments; weeks=0 shifts=0 assignments=0. ends_next_day=tinyint(1).'
     - 'Roster planning contract validated: migration 040, roster permissions, store-scoped endpoint and gateway capability (deploy wiring asserted in CI).'
@@ -192,14 +194,16 @@ delivery:
       pulled 83cc7d4.
     resolution: 'PR #183 (layout) and PR #184 (placement), plus a CI step that runs the validator against a replica of the deployed layout and an ordering assertion in the validator itself.'
   review_gate_gap: >-
-    The final SHA a166261 could NOT be independently reviewed: the Kimi CLI fails on this host with
-    "EPERM: operation not permitted, watch C:\Users\Imran\.kimi-code\workspaces.json" (and sandbox
-    escalation is now unavailable to lift it), and the Codex subagent's inspection commands and file
-    reads are rejected by the execution policy. It is covered instead by three deterministic cases
-    (repository layout, deployed-tree replica, and a negative control that reproduces the original
-    outage) plus 10/10 CI, and it changes no product logic - only the deployment script's invocation
-    line and a validator assertion. A post-hoc independent review of the diff
-    d0a5048..a166261 is required as soon as a reviewer route works.
+    CLOSED 2026-10-07. The final SHA a166261 could not be reviewed at the time (Kimi CLI failed with
+    EPERM on ~/.kimi-code, and no working reviewer route existed). A route now exists - the KIMI_WEB
+    browser transport, which needs no escalation - and the post-hoc review of d0a5048..a166261 was run
+    through BOTH transports: cli (k3-256k, 67s) evidence/20261007-112536-kimi-review-d0a5048-a166261.md
+    and web (107s) evidence/20261007-112842-kimi-review-d0a5048-a166261.md, both KIMI_TIER2_OK and both
+    independently reporting the same top finding. That finding is a real defect: the ordering guard
+    added by PR #184 FAILS OPEN. Verdicts were SHIP on substance but the fail-open conjunct was called
+    out as the most important issue by both runs, so it is fixed in
+    MERD-20261007-roster-gate-fail-closed rather than left open.
   deferred_follow_ups:
-    - 'Post-hoc independent review of d0a5048..a166261 (see review_gate_gap).'
-    - 'Tighten the deploy-script candidate lookup in validate_roster_planning_v1.php so a stale script at a parent path cannot produce a false pass (raised by the reviewer of PR #183).'
+    - 'DONE 2026-10-07: post-hoc independent review of d0a5048..a166261, through both Kimi transports (see review_gate_gap).'
+    - 'IN PROGRESS under MERD-20261007-roster-gate-fail-closed: the fail-open ordering guard the post-hoc review found, plus the failure-atomicity note the review asked for.'
+    - 'STILL OPEN: tighten the deploy-script candidate lookup in validate_roster_planning_v1.php so a stale script at a parent path cannot produce a false pass (raised by the reviewer of PR #183). Not addressed by MERD-20261007-roster-gate-fail-closed.'

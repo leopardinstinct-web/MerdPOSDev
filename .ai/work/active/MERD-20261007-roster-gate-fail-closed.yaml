@@ -1,0 +1,188 @@
+version: 1
+id: MERD-20261007-roster-gate-fail-closed
+title: Make the roster deploy-gate ordering check fail closed (post-hoc review of PR #184)
+project: merdpos
+track: beta
+authoritative_branch: namecheap-beta-live
+base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
+branch: harness/MERD-20261007-roster-gate-fail-closed
+created_at: '2026-10-07T07:07:45Z'
+updated_at: '2026-10-07T07:42:03Z'
+last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
+lifecycle: WIRED
+packet_state: REVIEWED_SHIP_AWAITING_OWNER_MERGE
+risk: HIGH
+risk_basis: >-
+  Touches scripts/deploy_namecheap_beta.sh and the deploy-gate validator. Under
+  .ai/task-gates.md Tier 3 (deployment scripts) this requires the full Gates 0-5
+  workflow including independent review on an immutable SHA; the product owner is
+  the merge/deploy approval authority.
+
+objective: >-
+  Close the two gaps the roster packet left open: (1) the post-hoc independent
+  review of the already-merged, already-deployed PR #184 diff d0a5048..a166261;
+  (2) the fail-open ordering guard that review exposes - the roster gate ordering
+  check silently skipped enforcement whenever it could not locate the
+  timesheet_portal rsync line, so it reported success while checking nothing.
+
+why_now: >-
+  PR #184 moved the roster contract gate to run after the timesheet_portal rsync
+  (fixing a two-deploy outage), but its Tier 2 review never produced a verdict:
+  the only attempt, evidence/20261006-kimi-review-roster-gate-placement-54c7f6d.md,
+  died on a Kimi 403 "5-hour usage limit" wall, and the packet recorded the SHA as
+  unreviewed. A reviewer route now exists (the KIMI_WEB browser transport, which
+  needs no escalation), so the review was completed and immediately found a real
+  fail-open defect in the deployed guard.
+
+pull_request:
+  number: 185
+  url: https://github.com/leopardinstinct-web/MerdPOSDev/pull/185
+  base: namecheap-beta-live
+  head_sha_under_review: 9816bcef101c7836d2d9a58557866105175205ec
+  state: open
+  created_by: tools/github-pr.mjs (deterministic GitHub REST call)
+
+changed_paths:
+  - namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
+  - scripts/deploy_namecheap_beta.sh
+  - .ai/playbook.md
+  - .ai/work/active/MERD-20261004-roster-planning-v1.yaml
+  - .ai/work/ACTIVE.yaml
+  - .ai/work/active/MERD-20261007-roster-gate-fail-closed.yaml
+
+what_changed:
+  validator: >-
+    The ordering check now resolves the rsync SOURCE line and the gate INVOCATION
+    line individually (line-based, ignoring comments), and a line it cannot locate
+    is itself a $failures[] entry. A gate that cannot resolve its inputs now fails
+    instead of passing.
+  deploy_script: >-
+    Comment only: records that the gate now runs after apply_0NN_*.php, so a gate
+    failure no longer prevents those migrations, and that reaching the live-copy
+    gate therefore requires them to be re-runnable - the documented trade-off the
+    independent review asked to be made explicit.
+  knowledge: >-
+    .ai/playbook.md section 8.1 records the fail-open class, the line-based
+    resolution rule, the requirement to prove a guard with negative controls, and
+    the fact that CI is structurally blind to a fail-open guard.
+
+checks_run:
+  - 'CI on PR #185 (head d209ac9, code SHA 9816bce): Beta source contract SUCCESS, Beta Chromium smoke SUCCESS, Beta secret scan SUCCESS, Repository hygiene SUCCESS, Detect changed areas SUCCESS, Gitleaks SUCCESS; 4 path-filtered skips (PHP 8.2 lint, Android APK, Flutter analysis, M2 catalogue). 0 failures. The Beta source contract job is the one that runs the PHP lint over the beta tree, all nine validators including validate_roster_planning_v1.php, the deployed-tree replica step, the deploy-script guards and the JS syntax check - so the same checks mirrored locally here also passed in CI.'
+  - 'Note: the local continuity validator passed while the packet was briefly unparseable after a state edit, so validate_ai_continuity.php alone does not prove a packet parses; yaml.safe_load is the check that caught it.'
+  - 'php84 -l validate_roster_planning_v1.php -> no syntax errors.'
+  - 'php84 namecheap_beta_live/backend/cli/validate_roster_planning_v1.php -> passes with deploy wiring (repo layout).'
+  - 'Deployed-tree replica (CI step reproduced): backend/ + timesheet_portal/ copied to a temp root, validator run there -> passes, printing the deploy-wiring-skipped note.'
+  - 'bash -n scripts/deploy_namecheap_beta.sh -> exit 0.'
+  - 'All 9 CI validators run locally (dashboard write audit, atomic store write, beta runtime contract, AI continuity, portal permission policy, portal loader order, beta state scope, Drupal Working Now service, roster planning) -> 9/9 exit 0.'
+  - 'Deploy recovery guard greps from the CI workflow -> all present.'
+  - 'Negative controls via MERDPOS_DEPLOY_SCRIPT: baseline exit 0; portal rsync line removed exit 1 "cannot locate the timesheet_portal rsync"; gate moved before the rsync exit 1 "runs the roster gate before the timesheet_portal rsync"; gate invocation removed exit 1 "cannot locate the roster gate invocation". The first case is the one that previously PASSED silently.'
+  - 'No UTF-8 BOM on either changed file (fatal for PHP strict_types and for a bash shebang).'
+
+evidence_so_far:
+  - 'Post-hoc review of d0a5048..a166261 completed 2026-10-07 through BOTH Kimi transports: cli (k3-256k, 67s) evidence/20261007-112536-kimi-review-d0a5048-a166261.md and web (kimi.ai browser default, 107s) evidence/20261007-112842-kimi-review-d0a5048-a166261.md, both KIMI_TIER2_OK, both independently reporting the fail-open ordering guard as the top finding.'
+  - 'The cli transport required one escalated run: it keeps state under %USERPROFILE%\.kimi-code, outside the repository, and failed unconfined with "storage write failed: permission denied".'
+
+remaining_work:
+  - Independent review of the DELTA created by the first review's findings (SHA
+    38b7a88 no longer covers the code once M1 and N3 were fixed).
+  - Product-owner approval to merge into namecheap-beta-live.
+  - After the canonical cron deploy, confirm the marker SHA and record deployed state.
+
+review:
+  custody_rule: >-
+    A verdict belongs only to the SHA it was returned for, and the findings listed
+    in a pass are OPEN at that SHA. Dispositions ("fixed") are keyed by the SHA
+    that CARRIES the fix, never written into an earlier pass's record. Two
+    successive reviews rejected drafts of this block for exactly that error, so the
+    structure below makes misattribution impossible rather than merely discouraged:
+    passes hold verdicts and open findings; the dispositions map is keyed by SHA.
+  verdict_convention: >-
+    SHIP means "no blocking finding" on substance; it explicitly permits
+    non-blocking minor/nit findings, which are listed as open findings for that SHA.
+    It does not mean "no findings".
+  passes:
+    - sha: 38b7a88061ad3122c9d89523dfeb07a878bfccd5
+      range: 449e89e..38b7a88
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha:
+        - 'M1 (minor): the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy the check.'
+        - 'M2 (minor): the outer deploy-script-not-found skip path still lets not-found mean fine, and the stale-script candidate lookup stays open.'
+        - 'N1 (nit): ACTIVE.yaml and the packet stamps denoted instants five hours apart.'
+        - 'N2 (nit): review sequencing versus this packet own Tier 3 requirement.'
+        - 'N3 (nit): the deploy comment asserted re-runnable migrations without support.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-121311-kimi-review-449e89e-38b7a88.md
+    - sha: 1858ae4800a4b2fdcf2dd93a2a6c8d85d0a37f0f
+      range: 38b7a88..1858ae4
+      verdict: FIX-FIRST
+      major_findings:
+        - 'The pass-1 record paired a SHIP verdict for 38b7a88 with dispositions that exist only in the later delta, so the handoff would have asserted a clean SHIP for a tree whose findings were open. About the RECORD, not the code.'
+      findings_open_at_this_sha:
+        - 'MINOR: a line ending in an escaped backslash kept the rsync continuation window open across following comments.'
+        - 'MINOR: the null fail-closed branch was not visible inside a delta-only diff (review-scope artifact, not a code defect).'
+        - 'NIT: state stamps denoted an instant ~12 minutes in the session future.'
+      code_assessment: 'The code would ship; the record could not ship as written.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-121823-kimi-review-38b7a88-1858ae4.md
+    - sha: 46545797be235657e6372104759298f6ef594c6e
+      range: 1858ae4..4654579
+      verdict: FIX-FIRST
+      major_findings:
+        - 'The pass-3 record embedded "FIXED in 4th SHA" dispositions inside the 1858ae4 record, repeating the custody violation it was written to fix. About the RECORD, not the code.'
+      findings_open_at_this_sha:
+        - 'MINOR: the comment model did not match shell semantics - a comment ending in a backslash continues, so a commented-out rsync was treated as live.'
+        - 'MINOR: created_at was local time mislabelled Z, so as written it came AFTER updated_at and the packet read as updated before it was created.'
+        - 'NIT: trim() before the backslash parity count misclassifies a backslash followed by a trailing space.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-122222-kimi-review-1858ae4-4654579.md
+    - sha: cd8c2a221214d68467c040b3f6986617ca63bc3d
+      range: 4654579..cd8c2a2
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha:
+        - 'MINOR: the continuation join inserted a space bash does not, so a legal token split across a continuation would fail the gate fail-closed.'
+        - 'NIT: a pass-3 finding wording contradicted the values it described.'
+        - 'NIT: severity labels were duplicated by the list convention.'
+        - 'NIT: the logical index kept a name that still read as a physical line number.'
+      reviewer_note: 'Confirmed it could not construct a false-pass input against the new matchers.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-122752-kimi-review-4654579-cd8c2a2.md
+    - sha: 9816bcef101c7836d2d9a58557866105175205ec
+      range: cd8c2a2..9816bce
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha: none
+      reviewer_note: 'No findings of any severity. The bash continuation join, the logical-index rename and the record wording changes were all accepted; the reviewer confirmed it could not construct a false pass.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-123328-kimi-review-cd8c2a2-9816bce.md
+  dispositions:
+    note: 'Keyed by the SHA that carries the fix. Nothing here is a property of an earlier SHA.'
+    '1858ae4':
+      - 'M1 fixed: the rsync leg was resolved from command lines rather than any line.'
+      - 'N1 fixed: ACTIVE.yaml and packet stamps were made to denote the same instant.'
+      - 'N3 fixed: the deploy comment cites the validators that follow the applies instead of asserting re-runnability.'
+    '9816bce':
+      - 'M-a fixed: bash removes a backslash-newline pair without inserting a character, so the join adds no separator and a legal token split across a continuation now resolves (control: exit 0).'
+      - 'Nits fixed: the logical index is renamed for its new meaning, the self-contradictory pass-3 finding wording is corrected, and duplicated severity labels are removed.'
+    '4654579':
+      - 'Record custody fixed: passes hold verdicts and open findings; dispositions are keyed by SHA.'
+      - 'Comment model fixed: bash backslash-newline joining is modelled, so a commented-out rsync is not a command and a comment cannot satisfy either match.'
+      - 'Backslash parity fixed, including the escaped-backslash and trailing-space cases.'
+      - 'State stamps corrected to real times and created_at/updated_at ordering restored.'
+  open_by_design:
+    - 'M2: failing closed on a missing deploy script would abort every deploy, which is the outage PR #183 fixed. The claim is scoped in .ai/playbook.md section 8.1.'
+    - 'The stale deploy-script CANDIDATE LOOKUP remains open and is tracked in the roster packet.'
+  evidence_paths_note: >-
+    Evidence files are written under C:\DSH\evidence by the harness on this
+    workstation; "web" describes how the prompt reaches Kimi, not where the record
+    is stored.
+
+next_action: >-
+  Product owner: approve or reject merging PR #185 (head 9816bce, independently
+  reviewed SHIP with no findings). On approval the canonical cron deploy follows and
+  the marker SHA should then be confirmed against the merged SHA; until then this
+  change is WIRED and NOT deployed.
+
+notes:
+  - 'The packet MERD-20261004-roster-planning-v1 remains the owner of the roster feature itself; this packet only closes its review gap and the deploy-gate defect. Its deferred follow-up about the deploy-script CANDIDATE LOOKUP (a stale script at a parent path could still produce a false pass) is NOT addressed here and stays open.'

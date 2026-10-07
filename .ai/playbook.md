@@ -188,6 +188,55 @@ If deployment fails, inspect `scripts/deploy_namecheap_beta.sh`, validators and 
 
 For Drupal shared UI primitive contract changes, treat deploy-time validators as dependent source. Before release, search validators for hard-coded geometry/state expectations that the shared primitive change supersedes and run the relevant deployment validators locally. If the server deploy stops on a stale validator, update that validator in Git to assert the new canonical contract, run its focused checks/CI, merge the source fix, then rerun deployment. Never skip or patch around the server guard in-place.
 
+### 8.1 A deploy gate that cannot resolve its own inputs must FAIL, not pass (2026-10-07)
+
+A gate that skips its check whenever it cannot find what it is looking for is not a
+gate: it reports success while enforcing nothing. This is how the roster ordering
+guard (`validate_roster_planning_v1.php`, added by PR #184) silently stopped
+working:
+
+```php
+$portalRsyncAt = strpos($deploySource, '"$REPO/namecheap_beta_live/timesheet_portal/"');
+$gateAt        = strpos($deploySource, 'validate_roster_planning_v1.php');
+if ($portalRsyncAt !== false && $gateAt !== false && $gateAt < $portalRsyncAt) { ... }
+```
+
+Any innocent edit to the rsync line - requoting, `${REPO}`, a variable rename,
+dropping the trailing slash - makes `$portalRsyncAt === false`, the conjunct
+short-circuits, and validation reports SUCCESS without checking ordering. The
+guard protecting the fix for an outage was itself the next outage.
+
+Rules that follow:
+
+- **Fail closed - inside the surface you are checking.** Resolve each input; when
+  one cannot be resolved, add a `$failures[]` entry naming what could not be
+  located. Never let "not found" mean "fine" *within* a surface the gate claims to
+  verify. Scope this honestly: the roster validator still skips deploy-wiring
+  assertions entirely when the deploy script is absent, because the deployed tree
+  genuinely has no `scripts/` directory and a gate that cannot find the script
+  would otherwise abort every deploy - the same mistake PR #183 fixed. That skip
+  prints a note and is covered by CI instead. The residual hole is the deploy
+  script CANDIDATE LOOKUP: a stale script at a parent path can still satisfy
+  resolution (tracked in the roster packet as an open follow-up). Do not describe
+  this class as closed while that remains open.
+- **Resolve COMMAND lines, not raw offsets.** Match the actual `php ...` /
+  `rsync ...` line, so a mention in a comment cannot satisfy or break the check.
+  First-byte `strpos` over the whole file is fragile against both drift and
+  comments - and a single needle test is not enough for a multi-line command: the
+  rsync source sits on a backslash-continued argument line, so the check must
+  track the rsync command across its continuation lines rather than ask whether
+  any line mentions the path.
+- **Prove it with negative controls, not with a green run.** A passing validator
+  proves nothing about a guard that fails open. Perturb a COPY of the input (via
+  `MERDPOS_DEPLOY_SCRIPT`, which the validator honours) and assert the exact
+  failure for each case: input line removed, statement moved out of order,
+  invocation removed. Only then is the guard known to enforce anything.
+- **Independent review is what finds this class.** Both review transports flagged
+  the fail-open conjunct independently, after the change had already merged and
+  deployed unreviewed; CI could not see it because a fail-open guard is green by
+  construction.
+
+
 ## 9. CI scoping procedure
 
 Beta portal-only work should not pay for unrelated Flutter/Android/root-backend suites.
