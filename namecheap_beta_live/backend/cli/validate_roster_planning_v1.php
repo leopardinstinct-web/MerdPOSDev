@@ -404,13 +404,20 @@ if (!extension_loaded('pdo_sqlite')) {
 }
 elseif ($endpointSource !== '') {
     $extract = static function (string $source, string $name): ?string {
-        $start = strpos($source, 'function ' . $name . '(');
-        if ($start === false) return null;
+        $declaration = 'function ' . $name . '(';
+        // Faithfulness is CHECKED, not assumed: exactly one declaration, a body that
+        // ends at a column-0 brace, and balanced braces. A truncating boundary (for
+        // example a string or heredoc containing "\n}" at column 0 inside the
+        // function) therefore fails loudly instead of testing a partial function.
+        if (substr_count($source, $declaration) !== 1) return null;
+        $start = strpos($source, $declaration);
         // Top-level functions in this file close with a column-0 brace, so the
         // first "\n}" after the declaration ends the function.
         $end = strpos($source, "\n}", $start);
         if ($end === false) return null;
-        return substr($source, $start, $end - $start + 2);
+        $body = substr($source, $start, $end - $start + 2);
+        if (substr_count($body, '{') !== substr_count($body, '}')) return null;
+        return $body;
     };
     $needed = ['roster_store_access_allows', 'roster_employee_may_use_store', 'roster_assignable_employees'];
     $extracted = [];
@@ -424,12 +431,29 @@ elseif ($endpointSource !== '') {
         }
     }
     if (count($extracted) === count($needed)) {
-        $harness = sys_get_temp_dir() . '/merd_roster_eligibility_' . getmypid() . '.php';
-        file_put_contents($harness, "<?php\n" . implode("\n\n", $extracted) . "\n");
-        require $harness;
-
-        try {
-            $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        // tempnam(), not a predictable name: this file is written and then REQUIRED
+        // as the deploying user, so a predictable path could be pre-planted as a
+        // symlink. tempnam() also creates it, so the symlink check below is cheap.
+        $harness = tempnam(sys_get_temp_dir(), 'merd_roster_eligibility_');
+        if ($harness === false) {
+            $failures[] = 'cannot create a temporary harness file for the behavioural eligibility check';
+        }
+        elseif (is_link($harness)) {
+            $failures[] = 'refusing to run the behavioural eligibility harness: the temporary path is a symlink';
+        }
+        else {
+            $written = file_put_contents($harness, "<?php\n" . implode("\n\n", $extracted) . "\n");
+            if ($written === false) {
+                $failures[] = 'cannot write the behavioural eligibility harness';
+                @unlink($harness);
+            }
+            else {
+                try {
+                    // Inside the try: an unparseable extraction must be REPORTED as a
+                    // contract failure, not kill the validator with a fatal error
+                    // before it prints what went wrong.
+                    require $harness;
+                    $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
             $pdo->exec('CREATE TABLE employees (client_id INTEGER, id INTEGER, full_name TEXT, user_id INTEGER, status TEXT)');
             $pdo->exec('CREATE TABLE employee_store_access (client_id INTEGER, employee_id INTEGER, access_mode TEXT)');
             $pdo->exec('CREATE TABLE employee_store_assignments (client_id INTEGER, employee_id INTEGER, store_id INTEGER)');
@@ -474,10 +498,12 @@ elseif ($endpointSource !== '') {
                 $failures[] = 'an inactive employee must never be assignable';
             }
         }
-        catch (Throwable $error) {
-            $failures[] = 'behavioural eligibility check failed to run: ' . $error->getMessage();
+                catch (Throwable $error) {
+                    $failures[] = 'behavioural eligibility check failed to run: ' . $error->getMessage();
+                }
+                @unlink($harness);
+            }
         }
-        @unlink($harness);
     }
 }
 
