@@ -111,7 +111,6 @@ roster:
   version: 1.x
   dependencies:
     - merdpos_core/base
-    - merdpos_core/dashboard
     - core/drupal
     - core/once
   css:

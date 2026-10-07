@@ -4,21 +4,31 @@
  * Mirrors the Financials offline contract deliberately (the same versioned queue
  * key pattern, the same UUID v4 idempotency id per submission, the same
  * `retryable` handshake), because a planner works on a shop floor where the
- * connection drops mid-week. Two rules are non-negotiable here:
+ * connection drops mid-week. Three rules are non-negotiable here:
  *
  *  1. A queued week is NEVER applied twice. Each queued submission carries its
  *     own UUID, and the portal treats a repeat of that id as a duplicate, so a
  *     retry after a dropped response is safe.
  *  2. The browser never decides what is TRUE. It decides what to RETRY. An
  *     authoritative rejection (a 4xx that is not retryable) drops the entry and
- *     tells the planner why; anything the portal could not be asked is kept.
+ *     tells the planner why; anything the portal could not be asked is kept and
+ *     retried with backoff while the tab is open and online.
+ *  3. "No employees on this shift" is not "no shift here". The portal replaces a
+ *     week wholesale, so a cell that held a stored shift is sent back as a shift
+ *     even when its last employee has just been removed.
  *
- * The week itself is rendered server-side, so the grid the planner sees offline
- * is the last confirmed week - no fetch is required to read it.
+ * The week is rendered server-side into the markup, so it stays readable for as
+ * long as this tab is open with no fetch at all. Nothing else is persisted: there
+ * is no service worker and no stored copy of the week.
  */
 ((Drupal, once) => {
   const DEFAULT_QUEUE_KEY = 'merdpos_roster_queue_v1';
-  const DEFAULT_CACHE_KEY = 'merdpos_roster_cache_v1';
+  // Bounded retry for a week the portal could not be asked about: 30s, then 60s,
+  // doubling to a ten-minute cap, and only while items remain and the tab is online.
+  const RETRY_BASE_MS = 30000;
+  const RETRY_MAX_MS = 600000;
+  // The controller limits the note in BYTES (strlen), not characters.
+  const NOTE_BYTE_LIMIT = 255;
 
   const readQueue = (key) => {
     try {
@@ -38,12 +48,21 @@
     }
   };
 
+  /**
+   * A fresh v4 submission id.
+   *
+   * The portal dedupes on submission_id, so a CONSTANT fallback id would be
+   * catastrophic: every later week would look like a repeat of the first and would
+   * be silently dropped as a duplicate. The last resort is therefore Math.random,
+   * which is weaker than a CSPRNG but is never constant - that is the property this
+   * fallback must guarantee.
+   */
   const newSubmissionId = () => {
     if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
-    // Only reached on a browser without randomUUID; still a v4-shaped id so the
-    // portal's validation accepts it.
     const bytes = new Uint8Array(16);
-    (window.crypto || {}).getRandomValues?.(bytes);
+    const crypto = window.crypto || {};
+    if (typeof crypto.getRandomValues === 'function') crypto.getRandomValues(bytes);
+    else for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256);
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
     const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -55,11 +74,31 @@
     return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text) ? `${text}:00` : null;
   };
 
+  /**
+   * Truncate to at most `limit` UTF-8 BYTES without splitting a character.
+   *
+   * Truncating by UTF-16 units (String.prototype.slice) is not the same limit the
+   * controller enforces, so a long non-ASCII note would pass here and come back as
+   * a 422 that drops the entire queued week.
+   */
+  const truncateUtf8Bytes = (value, limit) => {
+    const text = String(value || '');
+    let bytes = 0;
+    let out = '';
+    for (const char of text) {
+      const code = char.codePointAt(0) || 0;
+      const size = code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4;
+      if (bytes + size > limit) break;
+      bytes += size;
+      out += char;
+    }
+    return out;
+  };
+
   Drupal.behaviors.merdposRoster = {
     attach(context) {
       once('merdpos-roster', '[data-roster-offline-root]', context).forEach((root) => {
         const queueKey = root.dataset.rosterQueueKey || DEFAULT_QUEUE_KEY;
-        const cacheKey = root.dataset.rosterCacheKey || DEFAULT_CACHE_KEY;
         const submitUrl = root.dataset.rosterSubmitUrl || '';
         const token = root.dataset.rosterToken || '';
         const storeId = Number(root.dataset.rosterStoreId || 0);
@@ -68,6 +107,10 @@
         const badge = root.querySelector('[data-roster-queue-badge]');
         const message = root.querySelector('[data-roster-status-message]');
         const offlineNote = root.querySelector('[data-roster-offline-note]');
+
+        let retryTimer = null;
+        let retryDelay = RETRY_BASE_MS;
+        let flushInFlight = false;
 
         const setMessage = (text) => {
           if (message) message.textContent = text || '';
@@ -81,74 +124,115 @@
         const updateConnectivity = () => {
           const offline = !navigator.onLine;
           if (offlineNote) offlineNote.hidden = !offline;
-          if (offline) setMessage('Offline — showing the last confirmed week plus this device’s pending changes.');
+          if (offline) setMessage('Offline — showing the week exactly as this tab last rendered it, plus this device’s pending changes.');
         };
 
-        /** The grid as the portal expects it: one entry per cell that has a shift. */
-        const collectShifts = () => {
-          const shifts = [];
-          root.querySelectorAll('[data-roster-cell]').forEach((cell) => {
-            const assignments = [...cell.querySelectorAll('[data-roster-employee]')]
-              .map((chip) => Number(chip.dataset.rosterEmployee || 0))
-              .filter((id) => id > 0)
-              .map((employee_id) => ({ employee_id }));
-            const start = clock(cell.querySelector('[data-roster-start]')?.value);
-            const end = clock(cell.querySelector('[data-roster-end]')?.value);
-            const endsNextDay = Boolean(cell.querySelector('[data-roster-ends-next-day]')?.checked);
-            // An untouched, unassigned cell is not a shift: the portal replaces the
-            // week wholesale, so sending empty cells would erase planned shifts.
-            if (!start || !end) return;
-            if (assignments.length === 0 && cell.classList.contains('is-empty')) return;
-            shifts.push({
+        /**
+         * What a cell means, or null when its times are unusable.
+         *
+         * A cell belongs to the week when it has employees, OR when the server
+         * rendered it with a stored shift, OR when its times no longer match the
+         * slot defaults. "No employees" alone is deliberately not "no shift": the
+         * portal replaces the week wholesale, so omitting an emptied shift would
+         * delete the shift itself.
+         */
+        const readCell = (cell) => {
+          const start = clock(cell.querySelector('[data-roster-start]')?.value);
+          const end = clock(cell.querySelector('[data-roster-end]')?.value);
+          if (!start || !end) return null;
+          const assignments = [...cell.querySelectorAll('[data-roster-employee]')]
+            .map((chip) => Number(chip.dataset.rosterEmployee || 0))
+            .filter((id) => id > 0)
+            .map((employee_id) => ({ employee_id }));
+          const defaultStart = clock(cell.dataset.rosterDefaultStart);
+          const defaultEnd = clock(cell.dataset.rosterDefaultEnd);
+          const timesChanged = Boolean(defaultStart && defaultEnd) && (start !== defaultStart || end !== defaultEnd);
+          return {
+            assignments,
+            planned: assignments.length > 0 || cell.dataset.rosterOriginal === 'shift' || timesChanged,
+            shift: {
               shift_date: cell.dataset.rosterDate,
               slot_key: cell.dataset.rosterSlot,
               start_time: start,
               end_time: end,
-              ends_next_day: endsNextDay,
+              // Derived from the times, never an independent control: an end at or
+              // before the start lands on the next day (the late 16:00-00:00 shift),
+              // and an end after the start does not. The controller re-derives it.
+              ends_next_day: end <= start,
               assignments,
-            });
+            },
+          };
+        };
+
+        /**
+         * Keep the read-only "+1d" indicator and the vacant styling in step with
+         * the times and the chips. Presentation only - the payload is built by
+         * readCell, so the two can never disagree about what counts as a shift.
+         */
+        const syncCellState = (cell) => {
+          if (!cell) return;
+          const read = readCell(cell);
+          cell.classList.toggle('is-vacant', !read || !read.planned);
+          const indicator = cell.querySelector('[data-roster-next-day]');
+          if (indicator) indicator.hidden = !read || !read.shift.ends_next_day;
+        };
+
+        /** The grid as the portal expects it: one entry per cell that holds a shift. */
+        const collectShifts = () => {
+          const shifts = [];
+          root.querySelectorAll('[data-roster-cell]').forEach((cell) => {
+            const read = readCell(cell);
+            if (read && read.planned) shifts.push(read.shift);
           });
           return shifts;
         };
 
-        const queueWeek = (status) => {
-          if (!canManage) return;
-          const shifts = collectShifts();
-          const item = {
-            submission_id: newSubmissionId(),
-            store_id: storeId,
-            week_start: weekStart,
-            status,
-            note: String(root.querySelector('[data-roster-note]')?.value || '').slice(0, 255),
-            shifts,
-            queued_at: new Date().toISOString(),
-          };
-          const queue = readQueue(queueKey);
-          queue.push(item);
-          if (!writeQueue(queueKey, queue)) {
-            window.alert('This browser could not save the roster for offline retry.');
-            return;
-          }
-          updateQueueBadge();
-          setMessage(`Saved on this phone. Sending ${shifts.length} shift${shifts.length === 1 ? '' : 's'}…`);
-          flushQueue();
+        /**
+         * Settle entries by re-reading storage and filtering on submission_id.
+         *
+         * Writing back a snapshot taken before the flush would resurrect an entry
+         * the portal already rejected and would lose a save made while the flush
+         * was in flight, so removal is always a read-modify-write of current state.
+         */
+        const dropFromQueue = (submissionIds) => {
+          if (submissionIds.length === 0) return;
+          const settled = new Set(submissionIds);
+          const current = readQueue(queueKey);
+          writeQueue(queueKey, current.filter((item) => !settled.has(item.submission_id)));
         };
 
-        const cacheConfirmedWeek = () => {
-          try {
-            localStorage.setItem(cacheKey, JSON.stringify({
-              store_id: storeId,
-              week_start: weekStart,
-              cached_at: new Date().toISOString(),
-            }));
-          } catch (_) {
-            /* A full or blocked storage must not break planning. */
-          }
+        const enqueueItem = (item) => {
+          const current = readQueue(queueKey);
+          current.push(item);
+          return writeQueue(queueKey, current);
+        };
+
+        const cancelRetry = () => {
+          if (retryTimer === null) return;
+          window.clearTimeout(retryTimer);
+          retryTimer = null;
+        };
+
+        const scheduleRetry = () => {
+          if (retryTimer !== null || !navigator.onLine) return;
+          if (readQueue(queueKey).length === 0) return;
+          const delay = retryDelay;
+          retryDelay = Math.min(retryDelay * 2, RETRY_MAX_MS);
+          retryTimer = window.setTimeout(() => {
+            retryTimer = null;
+            if (!navigator.onLine || readQueue(queueKey).length === 0) return;
+            flushQueue();
+          }, delay);
         };
 
         const flushQueue = () => {
+          // An in-flight flush already holds these entries; starting a second one
+          // would race it and could send the same week twice.
+          if (flushInFlight) return;
           const queue = readQueue(queueKey);
           if (queue.length === 0) {
+            cancelRetry();
+            retryDelay = RETRY_BASE_MS;
             updateQueueBadge();
             return;
           }
@@ -156,19 +240,25 @@
             updateConnectivity();
             return;
           }
-          const remaining = [];
+          flushInFlight = true;
           let sent = 0;
           let reload = false;
+          let deferred = 0;
           const next = (index) => {
             if (index >= queue.length) {
-              writeQueue(queueKey, remaining);
+              flushInFlight = false;
               updateQueueBadge();
-              if (remaining.length === 0) {
+              const left = readQueue(queueKey).length;
+              if (left === 0) {
+                cancelRetry();
+                retryDelay = RETRY_BASE_MS;
                 setMessage('Saved successfully.');
                 if (reload) window.location.reload();
-              } else if (sent > 0) {
-                setMessage(`${sent} week${sent === 1 ? '' : 's'} saved. ${remaining.length} still pending.`);
+                return;
               }
+              if (sent > 0) setMessage(`${sent} week${sent === 1 ? '' : 's'} saved. ${left} still pending.`);
+              if (deferred > 0) scheduleRetry();
+              else window.setTimeout(() => flushQueue(), 0);
               return;
             }
             const item = queue[index];
@@ -182,24 +272,62 @@
                 if (response.ok && data?.success) {
                   sent += 1;
                   reload = true;
+                  retryDelay = RETRY_BASE_MS;
+                  dropFromQueue([item.submission_id]);
                 } else if (data?.retryable === true || response.status >= 500 || response.status === 0) {
-                  // The portal could not be asked, so the week stays queued.
-                  remaining.push(item);
+                  // The portal could not be asked, so the week stays queued and the
+                  // next attempt is scheduled with backoff.
+                  deferred += 1;
                 } else {
                   // Authoritative rejection: retrying cannot help, so say why and drop it.
                   setMessage(String(data?.error || 'MERDPOS rejected this roster change.'));
+                  dropFromQueue([item.submission_id]);
                 }
                 next(index + 1);
               })
               .catch(() => {
-                remaining.push(item);
+                deferred += 1;
                 next(index + 1);
               });
           };
           next(0);
         };
 
+        const queueWeek = (status) => {
+          if (!canManage) return;
+          const shifts = collectShifts();
+          const noteField = root.querySelector('[data-roster-note]');
+          const typedNote = String(noteField?.value || '');
+          const note = truncateUtf8Bytes(typedNote.trim(), NOTE_BYTE_LIMIT);
+          // Keep the field and the payload identical rather than truncating silently.
+          if (noteField && note !== typedNote) noteField.value = note;
+          const item = {
+            submission_id: newSubmissionId(),
+            store_id: storeId,
+            week_start: weekStart,
+            status,
+            note,
+            shifts,
+            queued_at: new Date().toISOString(),
+          };
+          if (!enqueueItem(item)) {
+            window.alert('This browser could not save the roster for offline retry.');
+            return;
+          }
+          updateQueueBadge();
+          setMessage(`Saved on this phone. Sending ${shifts.length} shift${shifts.length === 1 ? '' : 's'}…`);
+          flushQueue();
+        };
+
+        root.querySelectorAll('[data-roster-cell]').forEach(syncCellState);
+
         if (canManage) {
+          root.querySelectorAll('[data-roster-cell]').forEach((cell) => {
+            cell.querySelectorAll('[data-roster-start], [data-roster-end]').forEach((input) => {
+              input.addEventListener('input', () => syncCellState(cell));
+            });
+          });
+
           root.querySelectorAll('[data-roster-add]').forEach((select) => {
             select.addEventListener('change', () => {
               const employeeId = Number(select.value || 0);
@@ -225,8 +353,8 @@
               remove.textContent = '×';
               chip.append(label, remove);
               list.append(chip);
-              cell.classList.remove('is-empty');
               select.value = '';
+              syncCellState(cell);
             });
           });
 
@@ -236,7 +364,10 @@
             const chip = remove.closest('[data-roster-employee]');
             const cell = remove.closest('[data-roster-cell]');
             chip?.remove();
-            if (cell && !cell.querySelector('[data-roster-employee]')) cell.classList.add('is-empty');
+            // Removing the last employee empties the shift, it does not delete it:
+            // the cell keeps its times and its stored-shift origin, so the week
+            // still carries this shift with no assignments.
+            syncCellState(cell);
           });
 
           root.querySelectorAll('[data-roster-save]').forEach((button) => {
@@ -244,14 +375,18 @@
           });
         }
 
-        cacheConfirmedWeek();
         updateQueueBadge();
         updateConnectivity();
         window.addEventListener('online', () => {
+          cancelRetry();
+          retryDelay = RETRY_BASE_MS;
           updateConnectivity();
           flushQueue();
         });
-        window.addEventListener('offline', updateConnectivity);
+        window.addEventListener('offline', () => {
+          cancelRetry();
+          updateConnectivity();
+        });
         flushQueue();
       });
     },

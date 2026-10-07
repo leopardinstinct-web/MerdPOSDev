@@ -25,13 +25,18 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  *
  * Offline-first mirrors the Financials contract deliberately, because a planner
  * works on a shop floor with unreliable connectivity:
- *   - the week is RENDERED server-side, so the last confirmed week is what the
- *     browser already has when it goes offline;
+ *   - the week is RENDERED server-side, so it stays readable for as long as the
+ *     tab is open without any further read; there is no service worker and no
+ *     persisted copy of the week, and this surface does not claim one;
  *   - edits are QUEUED in localStorage under a versioned key with a UUID v4
  *     idempotency id per submission, so a retry after a dropped connection cannot
  *     double-apply a week;
  *   - the queue flushes on `online` and on page load, and the portal's own
  *     validation stays authoritative - the browser only decides what to retry.
+ *
+ * Two permissions matter and they are not interchangeable: roster.view sees the
+ * whole store (and may edit with roster.manage), while roster.view_own sees only
+ * the actor's own shifts, read-only.
  */
 final class RosterController extends ControllerBase {
 
@@ -39,12 +44,16 @@ final class RosterController extends ControllerBase {
 
   private const QUEUE_KEY = 'merdpos_roster_queue_v1';
 
-  private const CACHE_KEY = 'merdpos_roster_cache_v1';
-
-  /** Slots the note always has; a planner may rename them but not lose them. */
+  /**
+   * Slots the note always has; a planner may rename them but not lose them.
+   *
+   * `next_day` is the slot's own derivation of ends_next_day: the late shift runs
+   * 16:00 to 00:00, which is midnight of the following day, so the grid renders
+   * its "+1d" indicator rather than asking a planner to tick a box for it.
+   */
   private const DEFAULT_SLOTS = [
-    'early' => ['label' => 'Early', 'start' => '07:00', 'end' => '16:00'],
-    'late' => ['label' => 'Late', 'start' => '16:00', 'end' => '00:00'],
+    'early' => ['label' => 'Early', 'start' => '07:00', 'end' => '16:00', 'next_day' => FALSE],
+    'late' => ['label' => 'Late', 'start' => '16:00', 'end' => '00:00', 'next_day' => TRUE],
   ];
 
   public function __construct(
@@ -75,22 +84,39 @@ final class RosterController extends ControllerBase {
         'description' => 'MERDPOS could not confirm your roster permissions. This surface is read-only until it can.',
       ], []);
     }
-    if (!in_array('roster.view', $permissions, true) && !in_array('roster.view_own', $permissions, true)) {
+    $canViewStore = in_array('roster.view', $permissions, true);
+    $canViewOwn = in_array('roster.view_own', $permissions, true);
+    if (!$canViewStore && !$canViewOwn) {
       throw new AccessDeniedHttpException('MERDPOS roster.view permission is required.');
     }
-    $canManage = in_array('roster.manage', $permissions, true);
+    // roster.view_own is self-service: it must never be served the whole-store
+    // grid. The portal refuses scope=store without roster.view, so asking for it
+    // would only render a forbidden page for a permission the actor never held.
+    $scope = $canViewStore ? 'store' : 'own';
+    $canManage = $canViewStore && in_array('roster.manage', $permissions, true);
 
-    $stores = $this->stores();
+    $stores = $scope === 'store' ? $this->stores() : [];
     $storeIds = array_map(static fn(array $row): int => (int) ($row['id'] ?? 0), $stores);
     $requested = filter_var($request->query->get('store_id'), FILTER_VALIDATE_INT);
     $selectedStore = $requested !== false && in_array((int) $requested, $storeIds, true)
       ? (int) $requested
       : (int) ($storeIds[0] ?? 0);
 
-    $weekStart = $this->weekStart((string) $request->query->get('week_start', ''));
-    $week = $selectedStore > 0
-      ? $this->call('roster', ['scope' => 'store', 'store_id' => (string) $selectedStore, 'week_start' => $weekStart])
-      : ['status' => 'unavailable', 'payload' => [], 'message' => ''];
+    // A corrected week must be visible, never a silent substitution.
+    $requestedWeek = trim((string) $request->query->get('week_start', ''));
+    $weekStart = $this->weekStart($requestedWeek);
+    $weekNotice = $requestedWeek !== '' && $requestedWeek !== $weekStart && $scope === 'store'
+      ? sprintf('"%s" is not a Monday in YYYY-MM-DD form, so this is the week starting %s.', $requestedWeek, $weekStart)
+      : '';
+
+    if ($scope === 'store' && $selectedStore <= 0) {
+      $week = ['status' => 'unavailable', 'payload' => [], 'message' => ''];
+    }
+    else {
+      $week = $scope === 'store'
+        ? $this->call('roster', ['scope' => 'store', 'store_id' => (string) $selectedStore, 'week_start' => $weekStart])
+        : $this->call('roster', ['scope' => 'own', 'week_start' => $weekStart]);
+    }
 
     // The assignable-employee list is planning data and is gated on roster.manage
     // server-side; asking for it without that permission would only produce a 403.
@@ -106,15 +132,20 @@ final class RosterController extends ControllerBase {
     }
 
     $payload = is_array($week['payload'] ?? NULL) ? $week['payload'] : [];
+    $rawShifts = $payload['shifts'] ?? [];
     $status = (string) ($week['status'] ?? 'unavailable');
     $surface = [
       'status' => $status === 'ok' ? 'ok' : ($status === 'forbidden' ? 'forbidden' : 'unavailable'),
       'status_label' => $status === 'ok' ? 'LIVE' : ($status === 'forbidden' ? 'FORBIDDEN' : 'UNAVAILABLE'),
-      'title' => 'Roster planner',
-      'description' => 'Plan the week the way the hand-written note does: an early and a late shift per day, with the employees expected on each.',
+      'scope' => $scope,
+      'title' => $scope === 'own' ? 'My roster' : 'Roster planner',
+      'description' => $scope === 'own'
+        ? 'Your own published shifts for this week. This view is read-only.'
+        : 'Plan the week the way the hand-written note does: an early and a late shift per day, with the employees expected on each.',
+      'week_notice' => $weekNotice,
       'store' => [
         'id' => $selectedStore,
-        'name' => (string) ($payload['store']['store_name'] ?? $this->storeName($stores, $selectedStore)),
+        'name' => (string) ($payload['store']['store_name'] ?? ($scope === 'own' ? 'Your shifts' : $this->storeName($stores, $selectedStore))),
         'status' => (string) ($payload['store']['status'] ?? ''),
       ],
       'stores' => array_map(static fn(array $row): array => [
@@ -130,7 +161,8 @@ final class RosterController extends ControllerBase {
         'note' => (string) ($payload['week']['note'] ?? ''),
       ],
       'week_options' => $this->weekOptions($weekStart),
-      'shifts' => $this->shiftRows($payload['shifts'] ?? [], $weekStart),
+      'shifts' => $scope === 'store' ? $this->shiftRows($rawShifts, $weekStart) : [],
+      'own_shifts' => $scope === 'own' ? $this->ownShiftRows($rawShifts, $weekStart) : [],
       'slots' => self::DEFAULT_SLOTS,
       'can_view' => TRUE,
       'can_manage' => $canManage,
@@ -138,7 +170,9 @@ final class RosterController extends ControllerBase {
       'employee_scope' => $employeeScope,
       'permission_message' => $canManage
         ? 'You can plan and publish this roster.'
-        : 'You can read this roster. Planning it needs the roster.manage permission.',
+        : ($scope === 'own'
+          ? 'You can read your own shifts. Planning a store roster needs the roster.view permission.'
+          : 'You can read this roster. Planning it needs the roster.manage permission.'),
     ];
 
     return $this->build($surface, $permissions);
@@ -227,10 +261,11 @@ final class RosterController extends ControllerBase {
     if (!in_array($status, ['draft', 'published'], TRUE)) {
       return ['error' => 'Choose draft or published.'];
     }
-    $note = trim((string) ($input['note'] ?? ''));
-    if (strlen($note) > 255) {
-      return ['error' => 'Keep the note under 255 characters.'];
-    }
+    // A long note is truncated, never rejected. The portal truncates too
+    // (roster_save_week: mb_substr($note, 0, 255)), and rejecting here made the
+    // browser drop the WHOLE queued week over a note - a wildly disproportionate
+    // failure for an optional field. Truncation keeps the failure mode local.
+    $note = mb_substr(trim((string) ($input['note'] ?? '')), 0, 255);
     $rawShifts = $input['shifts'] ?? NULL;
     if (!is_array($rawShifts) || !array_is_list($rawShifts)) {
       return ['error' => 'A list of shifts is required.'];
@@ -255,10 +290,15 @@ final class RosterController extends ControllerBase {
       $end = $this->clock((string) ($raw['end_time'] ?? ''));
       if ($start === NULL || $end === NULL) return ['error' => 'Use a valid 24-hour shift time (HH:MM).'];
       if ($start === $end) return ['error' => 'A shift cannot start and end at the same time.'];
-      $flag = filter_var($raw['ends_next_day'] ?? FALSE, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-      if ($flag === NULL) return ['error' => 'ends_next_day must be true or false.'];
-      if ($flag === FALSE && $end < $start) return ['error' => 'A shift ending before it starts must be marked as ending the next day.'];
-      if ($flag === TRUE && $end > $start) return ['error' => 'A shift that ends later than it starts cannot also end the next day.'];
+      // ends_next_day is DERIVED from the times and never taken from the client.
+      // An end at or before the start necessarily lands on the next day - that is
+      // what the default late 16:00-00:00 shift is - and an end after the start
+      // does not. The browser renders the same rule; it is not the authority here.
+      if (array_key_exists('ends_next_day', $raw)
+        && filter_var($raw['ends_next_day'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === NULL) {
+        return ['error' => 'ends_next_day must be true or false.'];
+      }
+      $endsNextDay = $this->endsNextDay($start, $end);
       $label = trim((string) ($raw['label'] ?? ''));
       if (strlen($label) > 48) return ['error' => 'Keep each shift label under 48 characters.'];
       $assignmentIds = [];
@@ -274,7 +314,7 @@ final class RosterController extends ControllerBase {
         'label' => $label === '' ? NULL : $label,
         'start_time' => $start,
         'end_time' => $end,
-        'ends_next_day' => $flag ? 1 : 0,
+        'ends_next_day' => $endsNextDay ? 1 : 0,
         'position' => (int) $position,
         'assignments' => array_map(static fn(int $id): array => ['employee_id' => $id], $assignmentIds),
       ];
@@ -293,6 +333,16 @@ final class RosterController extends ControllerBase {
     $value = trim($value);
     if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $value)) return NULL;
     return strlen($value) === 5 ? $value . ':00' : $value;
+  }
+
+  /**
+   * The one rule for a shift crossing midnight, applied wherever times are read.
+   *
+   * Both times are zero-padded 24-hour clocks, so a string comparison is the same
+   * as a time comparison.
+   */
+  private function endsNextDay(string $start, string $end): bool {
+    return $end <= $start;
   }
 
   private function state(): array {
@@ -419,9 +469,47 @@ final class RosterController extends ControllerBase {
         'end_time' => substr((string) ($row['end_time'] ?? ''), 0, 5),
         'ends_next_day' => (int) ($row['ends_next_day'] ?? 0) === 1,
         'assignments' => $assignments,
-        'is_empty' => $assignments === [],
       ];
     }
+    return $shifts;
+  }
+
+  /**
+   * The scope=own view: the actor's own shifts for the week, read-only.
+   *
+   * There is no grid and no queue here. Someone who holds only roster.view_own
+   * reads their week; they do not plan a store's.
+   */
+  private function ownShiftRows(mixed $rows, string $weekStart): array {
+    if (!is_array($rows)) return [];
+    $days = [];
+    foreach ($this->weekDays($weekStart) as $day) $days[(string) $day['date']] = $day;
+    $shifts = [];
+    foreach ($rows as $row) {
+      if (!is_array($row)) continue;
+      $date = trim((string) ($row['shift_date'] ?? ''));
+      if ($date === '') continue;
+      $slot = strtolower(trim((string) ($row['slot_key'] ?? '')));
+      $start = substr((string) ($row['start_time'] ?? ''), 0, 5);
+      $end = substr((string) ($row['end_time'] ?? ''), 0, 5);
+      $label = trim((string) ($row['label'] ?? ''));
+      if ($label === '') $label = (string) (self::DEFAULT_SLOTS[$slot]['label'] ?? ($slot === '' ? 'Shift' : ucfirst($slot)));
+      $day = $days[$date] ?? ['weekday' => '', 'day' => $date];
+      $shifts[] = [
+        'date' => $date,
+        'weekday' => (string) $day['weekday'],
+        'day' => (string) $day['day'],
+        'slot_key' => $slot,
+        'label' => $label,
+        'start_time' => $start,
+        'end_time' => $end,
+        'ends_next_day' => $start !== '' && $end !== ''
+          ? $this->endsNextDay($start, $end)
+          : (int) ($row['ends_next_day'] ?? 0) === 1,
+        'store_name' => (string) ($row['store_name'] ?? ''),
+      ];
+    }
+    usort($shifts, static fn(array $a, array $b): int => [$a['date'], $a['start_time']] <=> [$b['date'], $b['start_time']]);
     return $shifts;
   }
 
@@ -429,8 +517,10 @@ final class RosterController extends ControllerBase {
     $surface += [
       'status' => 'unavailable',
       'status_label' => 'UNAVAILABLE',
+      'scope' => 'store',
       'title' => 'Roster',
       'description' => '',
+      'week_notice' => '',
       'store' => ['id' => 0, 'name' => 'Store', 'status' => ''],
       'stores' => [],
       'week_start' => '',
@@ -439,6 +529,7 @@ final class RosterController extends ControllerBase {
       'week' => ['status' => 'none', 'note' => ''],
       'week_options' => [],
       'shifts' => [],
+      'own_shifts' => [],
       'slots' => self::DEFAULT_SLOTS,
       'can_view' => FALSE,
       'can_manage' => FALSE,
@@ -450,7 +541,6 @@ final class RosterController extends ControllerBase {
       'form_token' => $this->csrf->get(self::TOKEN_ID),
       'submit_url' => Url::fromRoute('merdpos_core.roster_submit')->toString(),
       'queue_key' => self::QUEUE_KEY,
-      'cache_key' => self::CACHE_KEY,
     ];
     return [
       '#theme' => 'merdpos_roster',

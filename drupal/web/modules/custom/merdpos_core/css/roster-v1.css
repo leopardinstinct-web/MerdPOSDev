@@ -110,6 +110,16 @@
   color: var(--color-text-muted);
 }
 
+.merdpos-roster-week-notice {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.8rem;
+  color: var(--color-warning);
+  background: var(--color-warning-surface);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
 .merdpos-roster-notice {
   border: 1px solid color-mix(in srgb, var(--color-warning) 32%, transparent);
   background: var(--color-warning-surface);
@@ -157,6 +167,12 @@
   align-items: stretch;
 }
 
+/* The rowgroup wrapper is an accessibility grouping, not a box: display:contents
+   keeps the rows as grid items of the table so the layout is unchanged. */
+.merdpos-roster-grid-body {
+  display: contents;
+}
+
 .merdpos-roster-grid-head span {
   font-size: 0.72rem;
   letter-spacing: 0.05em;
@@ -200,7 +216,13 @@
   background: var(--color-surface-selected);
 }
 
-.merdpos-roster-cell.is-empty {
+/*
+ * is-vacant means "nothing would be saved for this cell": no employees, no stored
+ * shift, and the slot's default times. It is set by the script from the same
+ * predicate the payload uses, so a cell with an emptied shift (still saved, with
+ * zero assignments) is never shown as vacant.
+ */
+.merdpos-roster-cell.is-vacant {
   background: var(--color-surface-muted);
 }
 
@@ -220,6 +242,16 @@
   display: inline-flex;
   gap: 0.2rem;
   align-items: center;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+/* The indicator is a read-only derivation of the times, so it is never a control. */
+.merdpos-roster-nextday[hidden] {
+  display: none;
+}
+
+.merdpos-roster-nextday-mark {
   font-size: 0.7rem;
   color: var(--color-text-muted);
 }
@@ -268,6 +300,54 @@
 .merdpos-roster-hint {
   display: block;
   font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* scope=own is a plain read-only list: no grid, no times to edit, no queue. */
+.merdpos-roster-own-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.merdpos-roster-own-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface-main);
+}
+
+.merdpos-roster-own-day {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  min-width: 6rem;
+}
+
+.merdpos-roster-own-day small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.merdpos-roster-own-slot {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.merdpos-roster-own-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.merdpos-roster-own-store {
+  margin-left: auto;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
 }
 
