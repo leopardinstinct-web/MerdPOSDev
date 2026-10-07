@@ -43,16 +43,21 @@ concurrency_note: >-
   edits last written around 17:09-17:13 to the same requested governance/workflow
   scope, with no matching active packet. Their diff was reviewed before adoption;
   current authoritative HEAD still matched base_head and no later writes were observed.
+owner_override: >-
+  The product owner explicitly asked the current ChatGPT session to make all
+  changes itself. That is a task-specific Gate 2.5 role override; it does not
+  change the future default architecture documented by this PR (DeepSeek/DSH
+  controller+implementer, KIMI_WEB reviewer, ChatGPT/Codex Tier-3 escalation).
 handoff:
   mode: multi-model
-  implementer: "DeepSeek/DSH"
+  implementer: "ChatGPT (product-owner override for this task; adopted/reconciled pre-existing DeepSeek/DSH in-progress edits)"
   reviewer: "KIMI_WEB"
   escalation: "ChatGPT/Codex when required"
   owner: "product owner"
   branch: feature/harness-efficiency-kimi-web-v1
-  pr: null
+  pr: 189
   base_sha: 80107273644197c721057c202a4252fdcb81b893
-  head_sha: null
+  head_sha: pending-this-checkpoint-commit
 impact:
   business_logic: "NO"
   database: "NO"
