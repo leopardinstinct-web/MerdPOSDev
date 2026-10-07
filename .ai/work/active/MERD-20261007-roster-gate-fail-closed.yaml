@@ -68,7 +68,8 @@ what_changed:
 
 checks_run:
   - 'CI on PR #185 (head d209ac9, code SHA 9816bce): Beta source contract SUCCESS, Beta Chromium smoke SUCCESS, Beta secret scan SUCCESS, Repository hygiene SUCCESS, Detect changed areas SUCCESS, Gitleaks SUCCESS; 4 path-filtered skips (PHP 8.2 lint, Android APK, Flutter analysis, M2 catalogue). 0 failures. The Beta source contract job is the one that runs the PHP lint over the beta tree, all nine validators including validate_roster_planning_v1.php, the deployed-tree replica step, the deploy-script guards and the JS syntax check - so the same checks mirrored locally here also passed in CI.'
-  - 'Note: the local continuity validator passed while the packet was briefly unparseable after a state edit, so validate_ai_continuity.php alone does not prove a packet parses; yaml.safe_load is the check that caught it.'  - 'php84 -l validate_roster_planning_v1.php -> no syntax errors.'
+  - 'Note: the local continuity validator passed while the packet was briefly unparseable after a state edit, so validate_ai_continuity.php alone does not prove a packet parses; yaml.safe_load is the check that caught it.'
+  - 'php84 -l validate_roster_planning_v1.php -> no syntax errors.'
   - 'php84 namecheap_beta_live/backend/cli/validate_roster_planning_v1.php -> passes with deploy wiring (repo layout).'
   - 'Deployed-tree replica (CI step reproduced): backend/ + timesheet_portal/ copied to a temp root, validator run there -> passes, printing the deploy-wiring-skipped note.'
   - 'bash -n scripts/deploy_namecheap_beta.sh -> exit 0.'
