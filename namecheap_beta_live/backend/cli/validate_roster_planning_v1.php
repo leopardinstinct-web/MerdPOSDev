@@ -403,28 +403,69 @@ if (!extension_loaded('pdo_sqlite')) {
     fwrite(STDERR, "note: pdo_sqlite is unavailable; the behavioural eligibility check was skipped.\n");
 }
 elseif ($endpointSource !== '') {
+    /**
+     * Extract a top-level function's exact source text, using PHP's own tokenizer.
+     *
+     * Text-based boundaries were tried first and were wrong twice over: braces and
+     * the word "function" occur inside strings and comments, so counting them either
+     * truncated a body or - worse - rejected a valid function and blocked a deploy.
+     * token_get_all() knows the difference, so brace depth here is tracked over real
+     * punctuation tokens only and the declaration count ignores comments entirely.
+     *
+     * Returns null unless the function is declared exactly once with a complete body.
+     */
     $extract = static function (string $source, string $name): ?string {
-        $declaration = 'function ' . $name . '(';
-        // Faithfulness is CHECKED, not assumed: exactly one declaration, a body that
-        // ends at a column-0 brace, and balanced braces. A truncating boundary (for
-        // example a string or heredoc containing "\n}" at column 0 inside the
-        // function) therefore fails loudly instead of testing a partial function.
-        if (substr_count($source, $declaration) !== 1) return null;
-        $start = strpos($source, $declaration);
-        // Top-level functions in this file close with a column-0 brace, so the
-        // first "\n}" after the declaration ends the function.
-        $end = strpos($source, "\n}", $start);
-        if ($end === false) return null;
-        $body = substr($source, $start, $end - $start + 2);
-        if (substr_count($body, '{') !== substr_count($body, '}')) return null;
-        return $body;
+        $offset = 0;
+        $occurrences = 0;
+        $start = null;
+        $end = null;
+        $depth = 0;
+        $functionAt = null;
+        $expectName = false;
+        foreach (token_get_all($source) as $token) {
+            $id = is_array($token) ? $token[0] : null;
+            $text = is_array($token) ? $token[1] : $token;
+            if ($id === T_FUNCTION) {
+                $functionAt = $offset;
+                $expectName = true;
+            }
+            elseif ($expectName) {
+                if ($id === T_STRING) {
+                    $expectName = false;
+                    if ($text === $name) {
+                        $occurrences++;
+                        if ($start === null) $start = $functionAt;
+                    }
+                }
+                elseif ($id !== T_WHITESPACE) {
+                    $expectName = false;
+                }
+            }
+            if ($start !== null) {
+                if ($text === '{') $depth++;
+                elseif ($text === '}') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $end = $offset + 1;
+                        break;
+                    }
+                }
+            }
+            $offset += strlen($text);
+        }
+        if ($occurrences !== 1 || $start === null || $end === null) return null;
+        return substr($source, $start, $end - $start);
     };
     $needed = ['roster_store_access_allows', 'roster_employee_may_use_store', 'roster_assignable_employees'];
     $extracted = [];
     foreach ($needed as $name) {
         $body = $extract($endpointSource, $name);
         if ($body === null) {
-            $failures[] = "cannot extract {$name} from the roster endpoint for behavioural testing";
+            // Comments are not counted as declarations, so this can only mean the
+            // function is genuinely absent or declared more than once. Say that,
+            // rather than sending the deployer looking for a missing function that
+            // is present.
+            $failures[] = "cannot extract {$name} from the roster endpoint for behavioural testing: expected exactly one declaration with a complete body";
         }
         else {
             $extracted[] = $body;
@@ -432,23 +473,23 @@ elseif ($endpointSource !== '') {
     }
     if (count($extracted) === count($needed)) {
         // tempnam(), not a predictable name: this file is written and then REQUIRED
-        // as the deploying user, so a predictable path could be pre-planted as a
-        // symlink. tempnam() also creates it, so the symlink check below is cheap.
+        // as the deploying user. tempnam() creates it with an unpredictable name and
+        // 0600, and the write goes through the handle it created. An is_link() gate
+        // before a separate write would be check-then-use theatre, not protection.
         $harness = tempnam(sys_get_temp_dir(), 'merd_roster_eligibility_');
-        if ($harness === false) {
+        $handle = $harness === false ? false : @fopen($harness, 'wb');
+        if ($harness === false || $handle === false) {
             $failures[] = 'cannot create a temporary harness file for the behavioural eligibility check';
+            if (is_string($harness)) @unlink($harness);
         }
-        elseif (is_link($harness)) {
-            $failures[] = 'refusing to run the behavioural eligibility harness: the temporary path is a symlink';
+        elseif (fwrite($handle, "<?php\n" . implode("\n\n", $extracted) . "\n") === false) {
+            fclose($handle);
+            $failures[] = 'cannot write the behavioural eligibility harness';
+            @unlink($harness);
         }
         else {
-            $written = file_put_contents($harness, "<?php\n" . implode("\n\n", $extracted) . "\n");
-            if ($written === false) {
-                $failures[] = 'cannot write the behavioural eligibility harness';
-                @unlink($harness);
-            }
-            else {
-                try {
+            fclose($handle);
+            try {
                     // Inside the try: an unparseable extraction must be REPORTED as a
                     // contract failure, not kill the validator with a fatal error
                     // before it prints what went wrong.
@@ -505,7 +546,6 @@ elseif ($endpointSource !== '') {
             }
         }
     }
-}
 
 if ($failures !== []) {
     fwrite(STDERR, "Roster planning contract failed:\n");
