@@ -7,10 +7,10 @@ authoritative_branch: namecheap-beta-live
 base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 branch: harness/MERD-20261007-roster-gate-fail-closed
 created_at: '2026-10-07T07:07:45Z'
-updated_at: '2026-10-07T07:27:28Z'
+updated_at: '2026-10-07T07:42:03Z'
 last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
-lifecycle: CODED
-packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
+lifecycle: WIRED
+packet_state: REVIEWED_SHIP_AWAITING_OWNER_MERGE
 risk: HIGH
 risk_basis: >-
   Touches scripts/deploy_namecheap_beta.sh and the deploy-gate validator. Under
@@ -33,6 +33,14 @@ why_now: >-
   unreviewed. A reviewer route now exists (the KIMI_WEB browser transport, which
   needs no escalation), so the review was completed and immediately found a real
   fail-open defect in the deployed guard.
+
+pull_request:
+  number: 185
+  url: https://github.com/leopardinstinct-web/MerdPOSDev/pull/185
+  base: namecheap-beta-live
+  head_sha_under_review: 9816bcef101c7836d2d9a58557866105175205ec
+  state: open
+  created_by: tools/github-pr.mjs (deterministic GitHub REST call)
 
 changed_paths:
   - namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
@@ -126,12 +134,23 @@ review:
         - 'NIT: trim() before the backslash parity count misclassifies a backslash followed by a trailing space.'
       transport: web (KIMI_WEB browser route)
       evidence: C:\DSH\evidence\20261007-122222-kimi-review-1858ae4-4654579.md
+    - sha: 9816bcef101c7836d2d9a58557866105175205ec
+      range: cd8c2a2..9816bce
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha: none
+      reviewer_note: 'No findings of any severity. The bash continuation join, the logical-index rename and the record wording changes were all accepted; the reviewer confirmed it could not construct a false pass.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-123328-kimi-review-cd8c2a2-9816bce.md
   dispositions:
     note: 'Keyed by the SHA that carries the fix. Nothing here is a property of an earlier SHA.'
     '1858ae4':
       - 'M1 fixed: the rsync leg was resolved from command lines rather than any line.'
       - 'N1 fixed: ACTIVE.yaml and packet stamps were made to denote the same instant.'
       - 'N3 fixed: the deploy comment cites the validators that follow the applies instead of asserting re-runnability.'
+    '9816bce':
+      - 'M-a fixed: bash removes a backslash-newline pair without inserting a character, so the join adds no separator and a legal token split across a continuation now resolves (control: exit 0).'
+      - 'Nits fixed: the logical index is renamed for its new meaning, the self-contradictory pass-3 finding wording is corrected, and duplicated severity labels are removed.'
     '4654579':
       - 'Record custody fixed: passes hold verdicts and open findings; dispositions are keyed by SHA.'
       - 'Comment model fixed: bash backslash-newline joining is modelled, so a commented-out rsync is not a command and a comment cannot satisfy either match.'
@@ -146,8 +165,10 @@ review:
     is stored.
 
 next_action: >-
-  Re-review the post-finding delta, then open the PR with the Gate 2.5 handoff
-  fields and the review verdicts, and hand the merge decision to the product owner.
+  Product owner: approve or reject merging PR #185 (head 9816bce, independently
+  reviewed SHIP with no findings). On approval the canonical cron deploy follows and
+  the marker SHA should then be confirmed against the merged SHA; until then this
+  change is WIRED and NOT deployed.
 
 notes:
   - 'The packet MERD-20261004-roster-planning-v1 remains the owner of the roster feature itself; this packet only closes its review gap and the deploy-gate defect. Its deferred follow-up about the deploy-script CANDIDATE LOOKUP (a stale script at a parent path could still produce a false pass) is NOT addressed here and stays open.'
