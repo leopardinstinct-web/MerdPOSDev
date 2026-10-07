@@ -1,0 +1,86 @@
+version: 1
+id: MERD-20261007-roster-gate-fail-closed
+title: Make the roster deploy-gate ordering check fail closed (post-hoc review of PR #184)
+project: merdpos
+track: beta
+authoritative_branch: namecheap-beta-live
+base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
+branch: harness/MERD-20261007-roster-gate-fail-closed
+created_at: '2026-10-07T12:07:45Z'
+updated_at: '2026-10-07T12:20:00Z'
+last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
+lifecycle: CODED
+packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
+risk: HIGH
+risk_basis: >-
+  Touches scripts/deploy_namecheap_beta.sh and the deploy-gate validator. Under
+  .ai/task-gates.md Tier 3 (deployment scripts) this requires the full Gates 0-5
+  workflow including independent review on an immutable SHA; the product owner is
+  the merge/deploy approval authority.
+
+objective: >-
+  Close the two gaps the roster packet left open: (1) the post-hoc independent
+  review of the already-merged, already-deployed PR #184 diff d0a5048..a166261;
+  (2) the fail-open ordering guard that review exposes - the roster gate ordering
+  check silently skipped enforcement whenever it could not locate the
+  timesheet_portal rsync line, so it reported success while checking nothing.
+
+why_now: >-
+  PR #184 moved the roster contract gate to run after the timesheet_portal rsync
+  (fixing a two-deploy outage), but its Tier 2 review never produced a verdict:
+  the only attempt, evidence/20261006-kimi-review-roster-gate-placement-54c7f6d.md,
+  died on a Kimi 403 "5-hour usage limit" wall, and the packet recorded the SHA as
+  unreviewed. A reviewer route now exists (the KIMI_WEB browser transport, which
+  needs no escalation), so the review was completed and immediately found a real
+  fail-open defect in the deployed guard.
+
+changed_paths:
+  - namecheap_beta_live/backend/cli/validate_roster_planning_v1.php
+  - scripts/deploy_namecheap_beta.sh
+  - .ai/playbook.md
+  - .ai/work/active/MERD-20261004-roster-planning-v1.yaml
+  - .ai/work/ACTIVE.yaml
+  - .ai/work/active/MERD-20261007-roster-gate-fail-closed.yaml
+
+what_changed:
+  validator: >-
+    The ordering check now resolves the rsync SOURCE line and the gate INVOCATION
+    line individually (line-based, ignoring comments), and a line it cannot locate
+    is itself a $failures[] entry. A gate that cannot resolve its inputs now fails
+    instead of passing.
+  deploy_script: >-
+    Comment only: records that the gate now runs after apply_0NN_*.php, so a gate
+    failure no longer prevents those migrations, and that reaching the live-copy
+    gate therefore requires them to be re-runnable - the documented trade-off the
+    independent review asked to be made explicit.
+  knowledge: >-
+    .ai/playbook.md section 8.1 records the fail-open class, the line-based
+    resolution rule, the requirement to prove a guard with negative controls, and
+    the fact that CI is structurally blind to a fail-open guard.
+
+checks_run:
+  - 'php84 -l validate_roster_planning_v1.php -> no syntax errors.'
+  - 'php84 namecheap_beta_live/backend/cli/validate_roster_planning_v1.php -> passes with deploy wiring (repo layout).'
+  - 'Deployed-tree replica (CI step reproduced): backend/ + timesheet_portal/ copied to a temp root, validator run there -> passes, printing the deploy-wiring-skipped note.'
+  - 'bash -n scripts/deploy_namecheap_beta.sh -> exit 0.'
+  - 'All 9 CI validators run locally (dashboard write audit, atomic store write, beta runtime contract, AI continuity, portal permission policy, portal loader order, beta state scope, Drupal Working Now service, roster planning) -> 9/9 exit 0.'
+  - 'Deploy recovery guard greps from the CI workflow -> all present.'
+  - 'Negative controls via MERDPOS_DEPLOY_SCRIPT: baseline exit 0; portal rsync line removed exit 1 "cannot locate the timesheet_portal rsync"; gate moved before the rsync exit 1 "runs the roster gate before the timesheet_portal rsync"; gate invocation removed exit 1 "cannot locate the roster gate invocation". The first case is the one that previously PASSED silently.'
+  - 'No UTF-8 BOM on either changed file (fatal for PHP strict_types and for a bash shebang).'
+
+evidence_so_far:
+  - 'Post-hoc review of d0a5048..a166261 completed 2026-10-07 through BOTH Kimi transports: cli (k3-256k, 67s) evidence/20261007-112536-kimi-review-d0a5048-a166261.md and web (kimi.ai browser default, 107s) evidence/20261007-112842-kimi-review-d0a5048-a166261.md, both KIMI_TIER2_OK, both independently reporting the fail-open ordering guard as the top finding.'
+  - 'The cli transport required one escalated run: it keeps state under %USERPROFILE%\.kimi-code, outside the repository, and failed unconfined with "storage write failed: permission denied".'
+
+remaining_work:
+  - Independent review of THIS change on its pushed SHA (Tier 3 requirement).
+  - Product-owner approval to merge into namecheap-beta-live.
+  - After the canonical cron deploy, confirm the marker SHA and record deployed state.
+
+next_action: >-
+  Push the branch, open the PR with the Gate 2.5 handoff fields, then obtain the
+  independent review of the pushed SHA and hand the merge decision to the product
+  owner.
+
+notes:
+  - 'The packet MERD-20261004-roster-planning-v1 remains the owner of the roster feature itself; this packet only closes its review gap and the deploy-gate defect. Its deferred follow-up about the deploy-script CANDIDATE LOOKUP (a stale script at a parent path could still produce a false pass) is NOT addressed here and stays open.'

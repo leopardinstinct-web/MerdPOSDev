@@ -188,6 +188,44 @@ If deployment fails, inspect `scripts/deploy_namecheap_beta.sh`, validators and 
 
 For Drupal shared UI primitive contract changes, treat deploy-time validators as dependent source. Before release, search validators for hard-coded geometry/state expectations that the shared primitive change supersedes and run the relevant deployment validators locally. If the server deploy stops on a stale validator, update that validator in Git to assert the new canonical contract, run its focused checks/CI, merge the source fix, then rerun deployment. Never skip or patch around the server guard in-place.
 
+### 8.1 A deploy gate that cannot resolve its own inputs must FAIL, not pass (2026-10-07)
+
+A gate that skips its check whenever it cannot find what it is looking for is not a
+gate: it reports success while enforcing nothing. This is how the roster ordering
+guard (`validate_roster_planning_v1.php`, added by PR #184) silently stopped
+working:
+
+```php
+$portalRsyncAt = strpos($deploySource, '"$REPO/namecheap_beta_live/timesheet_portal/"');
+$gateAt        = strpos($deploySource, 'validate_roster_planning_v1.php');
+if ($portalRsyncAt !== false && $gateAt !== false && $gateAt < $portalRsyncAt) { ... }
+```
+
+Any innocent edit to the rsync line - requoting, `${REPO}`, a variable rename,
+dropping the trailing slash - makes `$portalRsyncAt === false`, the conjunct
+short-circuits, and validation reports SUCCESS without checking ordering. The
+guard protecting the fix for an outage was itself the next outage.
+
+Rules that follow:
+
+- **Fail closed.** Resolve each input; when one cannot be resolved, add a
+  `$failures[]` entry naming what could not be located. Never let "not found"
+  mean "fine".
+- **Resolve COMMAND lines, not raw offsets.** Match the actual `php ...` /
+  `rsync ...` line, so a mention in a comment cannot satisfy or break the check.
+  First-byte `strpos` over the whole file is fragile against both drift and
+  comments.
+- **Prove it with negative controls, not with a green run.** A passing validator
+  proves nothing about a guard that fails open. Perturb a COPY of the input (via
+  `MERDPOS_DEPLOY_SCRIPT`, which the validator honours) and assert the exact
+  failure for each case: input line removed, statement moved out of order,
+  invocation removed. Only then is the guard known to enforce anything.
+- **Independent review is what finds this class.** Both review transports flagged
+  the fail-open conjunct independently, after the change had already merged and
+  deployed unreviewed; CI could not see it because a fail-open guard is green by
+  construction.
+
+
 ## 9. CI scoping procedure
 
 Beta portal-only work should not pay for unrelated Flutter/Android/root-backend suites.

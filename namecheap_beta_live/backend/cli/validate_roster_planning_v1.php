@@ -219,9 +219,36 @@ if ($deploy === '') {
         // This contract spans both trees, so the gate must be invoked after the
         // timesheet_portal rsync. Invoked earlier it reads a stale portal tree,
         // fails, and under set -e blocks every deploy.
-        $portalRsyncAt = strpos($deploySource, '"$REPO/namecheap_beta_live/timesheet_portal/"');
-        $gateAt = strpos($deploySource, 'validate_roster_planning_v1.php');
-        if ($portalRsyncAt !== false && $gateAt !== false && $gateAt < $portalRsyncAt) {
+        //
+        // Both positions are resolved from COMMAND lines, and a position that
+        // cannot be found is ITSELF a failure. An earlier revision compared
+        // first-byte offsets and skipped the whole check whenever either needle
+        // was absent, so any cosmetic edit to the rsync line - requoting, a
+        // variable rename, a dropped trailing slash - silently stopped enforcing
+        // this invariant while the validator still reported success. A deploy gate
+        // that fails open is not a gate.
+        $portalRsyncLine = null;
+        $gateLine = null;
+        foreach (preg_split('/\R/', $deploySource) as $lineIndex => $deployLine) {
+            $trimmedLine = trim($deployLine);
+            // The rsync SOURCE line; the destination line names only $LIVE. If the
+            // source ever appears more than once, the LAST occurrence is the
+            // refresh that matters, so keep overwriting.
+            if (strpos($trimmedLine, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
+                $portalRsyncLine = $lineIndex;
+            }
+            // The invocation itself, never a mention inside a comment.
+            if ($gateLine === null && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $trimmedLine) === 1) {
+                $gateLine = $lineIndex;
+            }
+        }
+        if ($portalRsyncLine === null) {
+            $failures[] = 'cannot locate the timesheet_portal rsync in the canonical deploy script, so the roster gate ordering cannot be verified';
+        }
+        if ($gateLine === null) {
+            $failures[] = 'cannot locate the roster gate invocation (php ... validate_roster_planning_v1.php) in the canonical deploy script';
+        }
+        if ($portalRsyncLine !== null && $gateLine !== null && $gateLine < $portalRsyncLine) {
             $failures[] = 'the deploy script runs the roster gate before the timesheet_portal rsync, so it would read a stale portal tree';
         }
     }
