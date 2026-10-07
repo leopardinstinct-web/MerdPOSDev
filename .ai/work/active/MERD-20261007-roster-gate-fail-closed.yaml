@@ -6,8 +6,8 @@ track: beta
 authoritative_branch: namecheap-beta-live
 base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 branch: harness/MERD-20261007-roster-gate-fail-closed
-created_at: '2026-10-07T12:07:45Z'
-updated_at: '2026-10-07T07:22:00Z'
+created_at: '2026-10-07T07:07:45Z'
+updated_at: '2026-10-07T07:27:28Z'
 last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 lifecycle: CODED
 packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
@@ -80,49 +80,70 @@ remaining_work:
 
 review:
   custody_rule: >-
-    A verdict belongs only to the SHA it was returned for. Findings are OPEN at
-    that SHA; a disposition ("fixed in ...") belongs to the LATER SHA that carries
-    the fix and must never be written into the earlier pass's record. An earlier
-    draft of this block broke that rule and was correctly rejected as a major
-    finding by the pass-3 review, precisely because the Gate 2.5 handoff would
-    otherwise have presented a clean SHIP for a tree whose findings were open.
-  pass_1:
-    reviewed_sha: 38b7a88061ad3122c9d89523dfeb07a878bfccd5
-    range: 449e89e..38b7a88
-    verdict_at_that_sha: SHIP
-    major_findings_at_that_sha: none
-    findings_open_at_that_sha:
-      - 'M1 (minor): the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy the check.'
-      - 'M2 (minor): the outer deploy-script-not-found skip path still lets not-found mean fine, and the stale-script candidate lookup stays open.'
-      - 'N1 (nit): ACTIVE.yaml and the packet stamps denoted instants five hours apart.'
-      - 'N2 (nit): review sequencing versus this packet own Tier 3 requirement.'
-      - 'N3 (nit): the deploy comment asserted re-runnable migrations without support.'
-    transport: web (KIMI_WEB browser route)
-    evidence: C:\DSH\evidence\20261007-121311-kimi-review-449e89e-38b7a88.md
-    evidence_note: evidence files are written under C:\DSH\evidence by the harness on this workstation; the web transport refers to how the prompt reaches Kimi, not where the record is stored.
-  pass_2_dispositions:
-    note: >-
-      Dispositions of the pass-1 findings. They describe 1858ae4, NOT 38b7a88.
-    fixed_in_1858ae4: [M1, N1, N3]
-    not_fixed_by_design: >-
-      M2 - failing closed on a missing deploy script would abort every deploy,
-      which is the outage PR #183 fixed; the claim is scoped in .ai/playbook.md
-      section 8.1 and the candidate lookup remains a tracked follow-up.
-  pass_3:
-    reviewed_sha: 1858ae4
-    range: 38b7a88..1858ae4
-    verdict_at_that_sha: FIX-FIRST
-    blocking_finding: >-
-      MAJOR, and about this packet rather than the code: the pass-1 record mixed
-      a SHIP verdict with "fixed" dispositions that exist only in the later delta.
-      Corrected by the custody_rule and the pass split above.
-    other_findings_and_disposition:
-      - 'MINOR (escaped trailing backslash kept the rsync continuation window open over following comments): FIXED in 4th SHA - continuation now requires an ODD number of trailing backslashes and comment lines are excluded explicitly.'
-      - 'MINOR (the $portalRsyncLine === null fail-closed branch was not visible inside a delta-only diff): NOT A DEFECT - the branch exists and is proven by the negative control "portal rsync line removed -> exit 1"; the finding was an artifact of reviewing only the delta.'
-      - 'NIT (state stamps denoted an instant ~12 minutes in the session future): FIXED - stamps now carry the real time.'
-    code_assessment_at_that_sha: 'The code would ship; the record could not ship as written.'
-    transport: web (KIMI_WEB browser route)
-    evidence: C:\DSH\evidence\20261007-121823-kimi-review-38b7a88-1858ae4.md
+    A verdict belongs only to the SHA it was returned for, and the findings listed
+    in a pass are OPEN at that SHA. Dispositions ("fixed") are keyed by the SHA
+    that CARRIES the fix, never written into an earlier pass's record. Two
+    successive reviews rejected drafts of this block for exactly that error, so the
+    structure below makes misattribution impossible rather than merely discouraged:
+    passes hold verdicts and open findings; the dispositions map is keyed by SHA.
+  verdict_convention: >-
+    SHIP means "no blocking finding" on substance; it explicitly permits
+    non-blocking minor/nit findings, which are listed as open findings for that SHA.
+    It does not mean "no findings".
+  passes:
+    - sha: 38b7a88061ad3122c9d89523dfeb07a878bfccd5
+      range: 449e89e..38b7a88
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha:
+        - 'M1 (minor): the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy the check.'
+        - 'M2 (minor): the outer deploy-script-not-found skip path still lets not-found mean fine, and the stale-script candidate lookup stays open.'
+        - 'N1 (nit): ACTIVE.yaml and the packet stamps denoted instants five hours apart.'
+        - 'N2 (nit): review sequencing versus this packet own Tier 3 requirement.'
+        - 'N3 (nit): the deploy comment asserted re-runnable migrations without support.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-121311-kimi-review-449e89e-38b7a88.md
+    - sha: 1858ae4800a4b2fdcf2dd93a2a6c8d85d0a37f0f
+      range: 38b7a88..1858ae4
+      verdict: FIX-FIRST
+      major_findings:
+        - 'The pass-1 record paired a SHIP verdict for 38b7a88 with dispositions that exist only in the later delta, so the handoff would have asserted a clean SHIP for a tree whose findings were open. About the RECORD, not the code.'
+      findings_open_at_this_sha:
+        - 'MINOR (minor): a line ending in an escaped backslash kept the rsync continuation window open across following comments.'
+        - 'MINOR (minor): the null fail-closed branch was not visible inside a delta-only diff (review-scope artifact, not a code defect).'
+        - 'NIT (nit): state stamps denoted an instant ~12 minutes in the session future.'
+      code_assessment: 'The code would ship; the record could not ship as written.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-121823-kimi-review-38b7a88-1858ae4.md
+    - sha: 46545797be235657e6372104759298f6ef594c6e
+      range: 1858ae4..4654579
+      verdict: FIX-FIRST
+      major_findings:
+        - 'The pass-3 record embedded "FIXED in 4th SHA" dispositions inside the 1858ae4 record, repeating the custody violation it was written to fix. About the RECORD, not the code.'
+      findings_open_at_this_sha:
+        - 'MINOR: the comment model did not match shell semantics - a comment ending in a backslash continues, so a commented-out rsync was treated as live.'
+        - 'MINOR: created_at (local time mislabelled Z) preceded updated_at, so the packet read as updated before it was created.'
+        - 'NIT: trim() before the backslash parity count misclassifies a backslash followed by a trailing space.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-122222-kimi-review-1858ae4-4654579.md
+  dispositions:
+    note: 'Keyed by the SHA that carries the fix. Nothing here is a property of an earlier SHA.'
+    '1858ae4':
+      - 'M1 fixed: the rsync leg was resolved from command lines rather than any line.'
+      - 'N1 fixed: ACTIVE.yaml and packet stamps were made to denote the same instant.'
+      - 'N3 fixed: the deploy comment cites the validators that follow the applies instead of asserting re-runnability.'
+    '4654579':
+      - 'Record custody fixed: passes hold verdicts and open findings; dispositions are keyed by SHA.'
+      - 'Comment model fixed: bash backslash-newline joining is modelled, so a commented-out rsync is not a command and a comment cannot satisfy either match.'
+      - 'Backslash parity fixed, including the escaped-backslash and trailing-space cases.'
+      - 'State stamps corrected to real times and created_at/updated_at ordering restored.'
+  open_by_design:
+    - 'M2: failing closed on a missing deploy script would abort every deploy, which is the outage PR #183 fixed. The claim is scoped in .ai/playbook.md section 8.1.'
+    - 'The stale deploy-script CANDIDATE LOOKUP remains open and is tracked in the roster packet.'
+  evidence_paths_note: >-
+    Evidence files are written under C:\DSH\evidence by the harness on this
+    workstation; "web" describes how the prompt reaches Kimi, not where the record
+    is stored.
 
 next_action: >-
   Re-review the post-finding delta, then open the PR with the Gate 2.5 handoff
