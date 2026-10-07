@@ -235,12 +235,44 @@ if ($endpointBody !== '') {
         $failures[] = 'roster_assignable_employees is missing from the roster endpoint';
     }
     else {
-        $assignableBranch = substr($endpointBody, $assignableStart, 1400);
-        if (strpos($assignableBranch, 'roster_employee_may_use_store($pdo, $clientId, $employeeId, $storeId)') === false) {
-            $failures[] = 'the assignable employee list must reuse roster_employee_may_use_store rather than restating the rule';
+        // Read to the NEXT function declaration (or the end of the file) rather
+        // than a fixed character window: a magic length would start failing for a
+        // longer body, and a false failure on a correct file is its own defect.
+        $assignableEnd = strpos($endpointBody, "\nfunction ", $assignableStart + 1);
+        $assignableBranch = $assignableEnd === false
+            ? substr($endpointBody, $assignableStart)
+            : substr($endpointBody, $assignableStart, $assignableEnd - $assignableStart);
+        if (strpos($assignableBranch, 'roster_store_access_allows(') === false) {
+            $failures[] = 'the assignable employee list must decide store access through roster_store_access_allows';
         }
         if (strpos($assignableBranch, "!== 'active'") === false) {
             $failures[] = 'the assignable employee list must exclude non-active employees';
+        }
+    }
+    // The shared rule itself, and the single-employee helper that must also use it,
+    // so the picker and the writer cannot drift apart.
+    if (strpos($endpointBody, 'function roster_store_access_allows(') === false) {
+        $failures[] = 'the shared store-access rule roster_store_access_allows is missing';
+    }
+    $singleStart = strpos($endpointBody, 'function roster_employee_may_use_store(');
+    if ($singleStart === false) {
+        $failures[] = 'roster_employee_may_use_store is missing from the roster endpoint';
+    }
+    else {
+        $singleEnd = strpos($endpointBody, "\nfunction ", $singleStart + 1);
+        $singleBranch = $singleEnd === false
+            ? substr($endpointBody, $singleStart)
+            : substr($endpointBody, $singleStart, $singleEnd - $singleStart);
+        if (strpos($singleBranch, 'roster_store_access_allows(') === false) {
+            $failures[] = 'roster_employee_may_use_store must decide through the shared roster_store_access_allows rule';
+        }
+        // Presence of the function name is not enough: the restricted path must feed
+        // the assignment result into the rule. Without this, replacing that call with
+        // `return true` still satisfied the check above via the short-circuit call -
+        // proven by a tamper control, and the reason the header states plainly that
+        // these are structural checks, not proof.
+        if (strpos($singleBranch, 'roster_store_access_allows($mode, (bool)') === false) {
+            $failures[] = 'roster_employee_may_use_store must apply the shared rule to the fetched store assignment';
         }
     }
 }
