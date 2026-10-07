@@ -173,30 +173,33 @@ function roster_assignable_employees(PDO $pdo, int $clientId, int $storeId): arr
 
     $modeStmt = $pdo->prepare('SELECT employee_id,access_mode FROM employee_store_access WHERE client_id=?');
     $modeStmt->execute([$clientId]);
-    $restricted = [];
+    $modeByEmployee = [];
     foreach ($modeStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $employeeId = (int)$row['employee_id'];
-        if (!roster_store_access_allows(strtolower((string)$row['access_mode']), true)) {
-            $restricted[$employeeId] = true;
-        }
+        $modeByEmployee[(int)$row['employee_id']] = strtolower((string)$row['access_mode']);
     }
+    // Every assignment for this store, in one query. Access needs both facts - the
+    // employee's access mode and whether an assignment exists - and the DECISION
+    // itself is made once, below, by the shared rule.
     $allowed = [];
-    if ($restricted !== []) {
-        $allowedStmt = $pdo->prepare(
-            'SELECT employee_id FROM employee_store_assignments WHERE client_id=? AND store_id=?'
-        );
-        $allowedStmt->execute([$clientId, $storeId]);
-        foreach ($allowedStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $allowed[(int)$row['employee_id']] = true;
-        }
+    $allowedStmt = $pdo->prepare(
+        'SELECT employee_id FROM employee_store_assignments WHERE client_id=? AND store_id=?'
+    );
+    $allowedStmt->execute([$clientId, $storeId]);
+    foreach ($allowedStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $allowed[(int)$row['employee_id']] = true;
     }
 
     $assignable = [];
     foreach ($employees as $employee) {
         if (strtolower((string)$employee['status']) !== 'active') continue;
         $employeeId = (int)$employee['id'];
-        // No access row at all means "all stores", which is not in $restricted.
-        if (isset($restricted[$employeeId]) && !isset($allowed[$employeeId])) continue;
+        // The one place store access is decided for this list. The second argument
+        // is a real fact, never a constant: an earlier revision passed a literal
+        // true here, which made the rule vacuously true for every employee and
+        // silently returned restricted staff the write path would reject.
+        if (!roster_store_access_allows($modeByEmployee[$employeeId] ?? 'all', isset($allowed[$employeeId]))) {
+            continue;
+        }
         $assignable[] = [
             'id' => $employeeId,
             'full_name' => (string)$employee['full_name'],

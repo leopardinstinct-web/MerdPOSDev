@@ -238,12 +238,25 @@ if ($endpointBody !== '') {
         // Read to the NEXT function declaration (or the end of the file) rather
         // than a fixed character window: a magic length would start failing for a
         // longer body, and a false failure on a correct file is its own defect.
+        // This boundary is newline- and indentation-sensitive on purpose: it is a
+        // pinned structural check on one known file, not a general PHP parser.
         $assignableEnd = strpos($endpointBody, "\nfunction ", $assignableStart + 1);
         $assignableBranch = $assignableEnd === false
             ? substr($endpointBody, $assignableStart)
             : substr($endpointBody, $assignableStart, $assignableEnd - $assignableStart);
         if (strpos($assignableBranch, 'roster_store_access_allows(') === false) {
             $failures[] = 'the assignable employee list must decide store access through roster_store_access_allows';
+        }
+        // Presence of the call is not enough - it can be vacuous. The decision must
+        // consume a REAL assignment fact, not a constant. A review found exactly this
+        // defect in a shipped revision: roster_store_access_allows($mode, true) is
+        // true for every mode, so the picker silently stopped filtering restricted
+        // employees. Both checks below fail on that shape.
+        if (strpos($assignableBranch, 'isset($allowed[$employeeId])') === false) {
+            $failures[] = 'the assignable employee list must decide access from the employee mode AND the store assignment, not a constant';
+        }
+        if (preg_match('/roster_store_access_allows\([^;]*,\s*true\s*\)/', $assignableBranch) === 1) {
+            $failures[] = 'the assignable employee list must not pass a constant true to the shared rule: it makes the rule vacuous for every employee';
         }
         if (strpos($assignableBranch, "!== 'active'") === false) {
             $failures[] = 'the assignable employee list must exclude non-active employees';
@@ -372,6 +385,99 @@ if ($deploy === '') {
         if ($portalRsyncLine !== null && $gateLine !== null && $gateLine < $portalRsyncLine) {
             $failures[] = 'the deploy script runs the roster gate before the timesheet_portal rsync, so it would read a stale portal tree';
         }
+    }
+}
+
+// ---- behavioural: the picker and the writer must agree ---------------------
+// Structural checks cannot see a vacuous call. A review found exactly that class
+// of defect in a shipped revision of this scope (a constant passed as the
+// assignment flag made the eligibility rule true for every employee, so the
+// picker stopped filtering), and the string checks above passed it. So the
+// eligibility functions are now EXERCISED, against an in-memory SQLite fixture.
+//
+// The function bodies are extracted from roster.php rather than copied here: a
+// copy would be a second implementation that could drift from the shipped source,
+// which is the very failure mode under test. Extraction is asserted faithful.
+if (!extension_loaded('pdo_sqlite')) {
+    // Skipping is not silently equivalent to passing; say so on the record.
+    fwrite(STDERR, "note: pdo_sqlite is unavailable; the behavioural eligibility check was skipped.\n");
+}
+elseif ($endpointSource !== '') {
+    $extract = static function (string $source, string $name): ?string {
+        $start = strpos($source, 'function ' . $name . '(');
+        if ($start === false) return null;
+        // Top-level functions in this file close with a column-0 brace, so the
+        // first "\n}" after the declaration ends the function.
+        $end = strpos($source, "\n}", $start);
+        if ($end === false) return null;
+        return substr($source, $start, $end - $start + 2);
+    };
+    $needed = ['roster_store_access_allows', 'roster_employee_may_use_store', 'roster_assignable_employees'];
+    $extracted = [];
+    foreach ($needed as $name) {
+        $body = $extract($endpointSource, $name);
+        if ($body === null) {
+            $failures[] = "cannot extract {$name} from the roster endpoint for behavioural testing";
+        }
+        else {
+            $extracted[] = $body;
+        }
+    }
+    if (count($extracted) === count($needed)) {
+        $harness = sys_get_temp_dir() . '/merd_roster_eligibility_' . getmypid() . '.php';
+        file_put_contents($harness, "<?php\n" . implode("\n\n", $extracted) . "\n");
+        require $harness;
+
+        try {
+            $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo->exec('CREATE TABLE employees (client_id INTEGER, id INTEGER, full_name TEXT, user_id INTEGER, status TEXT)');
+            $pdo->exec('CREATE TABLE employee_store_access (client_id INTEGER, employee_id INTEGER, access_mode TEXT)');
+            $pdo->exec('CREATE TABLE employee_store_assignments (client_id INTEGER, employee_id INTEGER, store_id INTEGER)');
+            // 1: no access row at all (all stores)   2: explicit "all"
+            // 3: selected WITH an assignment to 7    4: selected WITHOUT one
+            // 5: inactive                            6: selected, assigned to another store
+            $pdo->exec("INSERT INTO employees VALUES
+                (1,1,'No Access Row',NULL,'active'),(1,2,'Mode All',NULL,'active'),
+                (1,3,'Selected With',NULL,'active'),(1,4,'Selected Without',NULL,'active'),
+                (1,5,'Inactive',NULL,'inactive'),(1,6,'Selected Other Store',NULL,'active')");
+            $pdo->exec("INSERT INTO employee_store_access VALUES
+                (1,2,'all'),(1,3,'selected'),(1,4,'selected'),(1,5,'all'),(1,6,'selected')");
+            $pdo->exec('INSERT INTO employee_store_assignments VALUES (1,3,7),(1,6,9)');
+
+            $assignable = roster_assignable_employees($pdo, 1, 7);
+            $assignableIds = array_map(static fn(array $row): int => (int)$row['id'], $assignable);
+            sort($assignableIds);
+            if ($assignableIds !== [1, 2, 3]) {
+                $failures[] = 'the assignable list for store 7 must be exactly the all-store employees plus the one assigned to it; got [' . implode(',', $assignableIds) . ']';
+            }
+            // The property that matters: for every ACTIVE employee, the picker's
+            // answer and the write path's store-access answer must be identical.
+            // Inactive employees are excluded from the picker by a separate rule
+            // (you cannot roster someone who has left), so they are checked
+            // separately below rather than folded into this comparison.
+            foreach ([1, 2, 3, 4, 6] as $employeeId) {
+                $inPicker = in_array($employeeId, $assignableIds, true);
+                $writePath = roster_employee_may_use_store($pdo, 1, $employeeId, 7);
+                if ($inPicker !== $writePath) {
+                    $failures[] = "picker and write path disagree about employee {$employeeId} for store 7: picker="
+                        . ($inPicker ? 'yes' : 'no') . ' write=' . ($writePath ? 'yes' : 'no');
+                }
+            }
+            // Direct checks, so a symmetric bug in both paths is still caught.
+            if (roster_employee_may_use_store($pdo, 1, 4, 7)) {
+                $failures[] = 'a selected-mode employee with no assignment must not be allowed at that store';
+            }
+            if (roster_employee_may_use_store($pdo, 1, 6, 7)) {
+                $failures[] = 'a selected-mode employee assigned to another store must not be allowed at store 7';
+            }
+            if (in_array(5, $assignableIds, true)) {
+                $failures[] = 'an inactive employee must never be assignable';
+            }
+        }
+        catch (Throwable $error) {
+            $failures[] = 'behavioural eligibility check failed to run: ' . $error->getMessage();
+        }
+        @unlink($harness);
     }
 }
 
