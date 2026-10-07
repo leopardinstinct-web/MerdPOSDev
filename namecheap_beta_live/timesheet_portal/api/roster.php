@@ -28,13 +28,27 @@ function roster_employee_may_use_store(PDO $pdo, int $clientId, int $employeeId,
     $stmt = $pdo->prepare('SELECT access_mode FROM employee_store_access WHERE client_id=? AND employee_id=? LIMIT 1');
     $stmt->execute([$clientId, $employeeId]);
     $mode = strtolower((string)($stmt->fetchColumn() ?: 'all'));
-    if ($mode !== 'selected') return true;
+    // Every decision goes through roster_store_access_allows(); the short circuit
+    // only avoids a second query when the mode is not 'selected'.
+    if ($mode !== 'selected') return roster_store_access_allows($mode, false);
 
     $allowed = $pdo->prepare(
         'SELECT 1 FROM employee_store_assignments WHERE client_id=? AND employee_id=? AND store_id=? LIMIT 1'
     );
     $allowed->execute([$clientId, $employeeId, $storeId]);
-    return (bool)$allowed->fetchColumn();
+    return roster_store_access_allows($mode, (bool)$allowed->fetchColumn());
+}
+
+/**
+ * The store-access rule itself, in one place.
+ *
+ * roster_employee_may_use_store() (one employee, used by the write path) and
+ * roster_assignable_employees() (the whole list, batched for the picker) both call
+ * this, so the rule cannot drift between the two. No row means "all stores".
+ */
+function roster_store_access_allows(string $mode, bool $hasAssignment): bool
+{
+    return $mode !== 'selected' || $hasAssignment;
 }
 
 function roster_actor_scope(PDO $pdo, array $actor, int $clientId, int $storeId): bool
@@ -130,6 +144,69 @@ function roster_own_assignments(PDO $pdo, int $clientId, int $employeeId, string
     );
     $stmt->execute([$clientId, $employeeId, $weekStart]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Active employees who may actually be rostered at this store.
+ *
+ * Eligibility is decided by roster_store_access_allows(), the same rule the write
+ * path uses, so the picker a planner sees and the employees the writer accepts
+ * cannot disagree. Store access is resolved in two queries for the whole list:
+ * calling the single-employee helper per person would turn one picker load into a
+ * round trip per employee for a client with a few hundred staff.
+ *
+ * What this exposes, stated plainly: the full names and user ids of every ACTIVE
+ * employee of the client who may work at the requested store, to an actor who holds
+ * roster.manage, has access to that store, and (through the route layer) can
+ * already read rosters. It is an aggregate list, not a per-store slice - a planner
+ * legitimately needs it - but it is more than any single roster read returns, so it
+ * is gated on the planning permission rather than the viewing one alone.
+ */
+function roster_assignable_employees(PDO $pdo, int $clientId, int $storeId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT id,full_name,user_id,status FROM employees WHERE client_id=? ORDER BY full_name,id'
+    );
+    $stmt->execute([$clientId]);
+    $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($employees === []) return [];
+
+    $modeStmt = $pdo->prepare('SELECT employee_id,access_mode FROM employee_store_access WHERE client_id=?');
+    $modeStmt->execute([$clientId]);
+    $modeByEmployee = [];
+    foreach ($modeStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $modeByEmployee[(int)$row['employee_id']] = strtolower((string)$row['access_mode']);
+    }
+    // Every assignment for this store, in one query. Access needs both facts - the
+    // employee's access mode and whether an assignment exists - and the DECISION
+    // itself is made once, below, by the shared rule.
+    $allowed = [];
+    $allowedStmt = $pdo->prepare(
+        'SELECT employee_id FROM employee_store_assignments WHERE client_id=? AND store_id=?'
+    );
+    $allowedStmt->execute([$clientId, $storeId]);
+    foreach ($allowedStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $allowed[(int)$row['employee_id']] = true;
+    }
+
+    $assignable = [];
+    foreach ($employees as $employee) {
+        if (strtolower((string)$employee['status']) !== 'active') continue;
+        $employeeId = (int)$employee['id'];
+        // The one place store access is decided for this list. The second argument
+        // is a real fact, never a constant: an earlier revision passed a literal
+        // true here, which made the rule vacuously true for every employee and
+        // silently returned restricted staff the write path would reject.
+        if (!roster_store_access_allows($modeByEmployee[$employeeId] ?? 'all', isset($allowed[$employeeId]))) {
+            continue;
+        }
+        $assignable[] = [
+            'id' => $employeeId,
+            'full_name' => (string)$employee['full_name'],
+            'user_id' => $employee['user_id'] === null ? null : (int)$employee['user_id'],
+        ];
+    }
+    return $assignable;
 }
 
 function roster_save_week(PDO $pdo, array $actor, int $clientId, array $input): array
@@ -359,6 +436,35 @@ try {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         beta_require_any_permission($sessionUser, ['roster.view', 'roster.view_own'], $pdo);
         $scope = strtolower(trim((string)($_GET['scope'] ?? 'store')));
+
+        // The assignable-employee list is planning data, so it needs roster.manage
+        // AND store access on top of the route layer's requirement that the actor
+        // can read rosters at all: beta_api.php requires roster.view or
+        // roster.view_own for every GET, and this branch does not bypass that.
+        // Stating the combined gate matters, because the catalogue grants
+        // roster.view at the same LOA as roster.manage - so in practice manage
+        // implies view - but the code is the authority, and this is what it
+        // actually enforces.
+        // It deliberately needs no week: the picker is not week-specific.
+        if ($scope === 'employees') {
+            beta_require_permission($sessionUser, 'roster.manage', $pdo);
+            $storeId = (int)($_GET['store_id'] ?? 0);
+            $store = roster_require_store($pdo, $clientId, $storeId);
+            if (!roster_actor_scope($pdo, $sessionUser, $clientId, $storeId)) {
+                throw new MerdWorkforceException('store_forbidden', 'You do not have access to that store.');
+            }
+            json_response([
+                'success' => true,
+                'scope' => 'employees',
+                'csrf' => csrf_token(),
+                'actor_role' => $actorRole,
+                'actor_loa' => $actorLoa,
+                'active_client_id' => $clientId,
+                'store' => $store,
+                'employees' => roster_assignable_employees($pdo, $clientId, $storeId),
+            ]);
+        }
+
         $weekStart = roster_week_start($_GET['week_start'] ?? '');
 
         if ($scope === 'own') {
