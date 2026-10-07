@@ -8,7 +8,7 @@ base_head: bf9bd85fb2588d5860b202f1ff62d733cecaf10a
 branch: harness/MERD-20261004-roster-planning-v1
 created_at: '2026-10-04T00:00:00Z'
 updated_at: '2026-10-07T07:27:28Z'
-last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
+last_seen_head: 2d44b2a2e6d7aa8c9ffabb62a85b8c43fdd39edc
 lifecycle: DEPLOYED
 packet_state: BACKEND_DEPLOYED_DRUPAL_SURFACE_NEXT
 risk: HIGH
@@ -176,9 +176,9 @@ delivery:
     roster_backend: 83cc7d46e80e65cf8dafb8531f163555b9764dcc   # PR #182, squash
     gate_layout_fix: d0a50488ab914c6859eea2478ba899ee6f56c1c7   # PR #183, squash
     gate_placement_fix: a1662616d4bf322e62aa565aabf5f799fe5e7df8 # PR #184, squash
-  deployed_sha: 449e89e50c310d60ace1ec388cfa8279db6e4439
-  deployed_at_utc: '2026-10-07T06:20:29Z'
-  marker: 'https://app.merdpos.com/beta/.beta_release.json -> 449e89e50c310d60ace1ec388cfa8279db6e4439 (re-confirmed 2026-10-07; the live revision advanced from a166261 to the later deploy-record commit 449e89e)'
+  deployed_sha: 2d44b2a2e6d7aa8c9ffabb62a85b8c43fdd39edc
+  deployed_at_utc: '2026-10-07T07:51:05Z'
+  marker: 'https://app.merdpos.com/beta/.beta_release.json -> 2026-10-07T07:51:05Z 2d44b2a (the live portal revision advanced to the roster-gate fix)'
   deploy_log_evidence:
     - '040 roster planning applied; tables=roster_weeks,roster_shifts,roster_assignments; weeks=0 shifts=0 assignments=0. ends_next_day=tinyint(1).'
     - 'Roster planning contract validated: migration 040, roster permissions, store-scoped endpoint and gateway capability (deploy wiring asserted in CI).'
@@ -205,5 +205,5 @@ delivery:
     MERD-20261007-roster-gate-fail-closed rather than left open.
   deferred_follow_ups:
     - 'DONE 2026-10-07: post-hoc independent review of d0a5048..a166261, through both Kimi transports (see review_gate_gap).'
-    - 'IN PROGRESS under MERD-20261007-roster-gate-fail-closed: the fail-open ordering guard the post-hoc review found, plus the failure-atomicity note the review asked for.'
+    - 'DONE 2026-10-07: the fail-open ordering guard the post-hoc review found, and the failure-atomicity note, were merged as 2d44b2a (PR #185) and deployed; see .ai/work/archive/MERD-20261007-roster-gate-fail-closed.yaml.'
     - 'STILL OPEN: tighten the deploy-script candidate lookup in validate_roster_planning_v1.php so a stale script at a parent path cannot produce a false pass (raised by the reviewer of PR #183). Not addressed by MERD-20261007-roster-gate-fail-closed.'

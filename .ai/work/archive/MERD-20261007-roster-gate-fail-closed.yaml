@@ -7,10 +7,10 @@ authoritative_branch: namecheap-beta-live
 base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 branch: harness/MERD-20261007-roster-gate-fail-closed
 created_at: '2026-10-07T07:07:45Z'
-updated_at: '2026-10-07T07:42:03Z'
-last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
-lifecycle: WIRED
-packet_state: REVIEWED_SHIP_AWAITING_OWNER_MERGE
+updated_at: '2026-10-07T07:52:20Z'
+last_seen_head: 2d44b2a2e6d7aa8c9ffabb62a85b8c43fdd39edc
+lifecycle: DEPLOYED
+packet_state: CLOSED_MERGED_AND_DEPLOYED
 risk: HIGH
 risk_basis: >-
   Touches scripts/deploy_namecheap_beta.sh and the deploy-gate validator. Under
@@ -178,11 +178,32 @@ review:
     workstation; "web" describes how the prompt reaches Kimi, not where the record
     is stored.
 
-next_action: >-
-  Product owner: approve or reject merging PR #185 (head 9816bce, independently
-  reviewed SHIP with no findings). On approval the canonical cron deploy follows and
-  the marker SHA should then be confirmed against the merged SHA; until then this
-  change is WIRED and NOT deployed.
+next_action: none - CLOSED. Merged and deployed; nothing is outstanding except the
+  unrelated candidate-lookup follow-up still tracked in the roster packet.
+
+delivery:
+  pull_request: 185
+  branch_head_merged: 92f0196e202ed80e744829ec761a5e83d0b0569e
+  reviewed_code_sha: 9816bcef101c7836d2d9a58557866105175205ec
+  post_review_deltas: >-
+    docs-only: the pass-5 verdict, the PR reference, the pass-4 record entry and the
+    CI result were recorded after the reviewed SHA. No product code changed after
+    9816bce.
+  merged_sha: 2d44b2a2e6d7aa8c9ffabb62a85b8c43fdd39edc
+  merge_method: squash
+  deployed_sha: 2d44b2a2e6d7aa8c9ffabb62a85b8c43fdd39edc
+  deployed_marker: 'https://app.merdpos.com/beta/.beta_release.json -> 2026-10-07T07:51:05Z 2d44b2a'
+  deploy_confirmed_by: 'tools/merdpos-deploy.ps1 -ExpectedSha 2d44b2a... -> status DEPLOYED, deployedSha == expectedSha, waited 95s'
+  runtime_inference: >-
+    The deploy runs scripts/deploy_namecheap_beta.sh under set -e, and the roster
+    gate now runs before the live-copy gate that guards the marker write, so the
+    marker advancing to the merged SHA means the fail-closed gate executed in
+    production and PASSED. The gate's failing path is proven only by the negative
+    controls, never by breaking production.
+  merge_approved_by: product owner (explicit approval in session, 2026-10-07)
+  lifecycle_closed: >-
+    DEPLOYED. VERIFIED is claimed only for the gate's PASS path, via the marker
+    inference above; the alter-and-refuse path is covered by negative controls.
 
 notes:
   - 'The packet MERD-20261004-roster-planning-v1 remains the owner of the roster feature itself; this packet only closes its review gap and the deploy-gate defect. Its deferred follow-up about the deploy-script CANDIDATE LOOKUP (a stale script at a parent path could still produce a false pass) is NOT addressed here and stays open.'

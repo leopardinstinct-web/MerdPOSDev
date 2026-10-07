@@ -2,10 +2,6 @@ version: 1
 authoritative_branch: namecheap-beta-live
 updated_at: '2026-10-07T12:42:03+05:00'
 active:
-- id: MERD-20261007-roster-gate-fail-closed
-  path: .ai/work/active/MERD-20261007-roster-gate-fail-closed.yaml
-  lifecycle: CODED
-  packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED
