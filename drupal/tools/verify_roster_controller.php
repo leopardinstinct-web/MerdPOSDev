@@ -10,6 +10,12 @@ declare(strict_types=1);
  * copy of it. The gateway and CSRF dependencies are never touched.
  *
  * Run: php84 drupal/tools/verify_roster_controller.php <RosterController.php>
+ *
+ * LIMIT, learned from a failed deploy: this harness STUBS ControllerBase so the
+ * method can run without Drupal. A stubbed parent cannot reveal an inheritance
+ * conflict - a private method named after a protected ControllerBase member is a
+ * fatal error at class load, and this harness passed while the real class could not
+ * even be loaded. drupal/tools/validate_roster_planner_v1.php owns that check.
  */
 
 namespace Drupal\Core\Controller {

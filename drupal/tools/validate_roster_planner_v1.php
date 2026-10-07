@@ -259,6 +259,60 @@ $forbid($js, 'cacheConfirmedWeek', 'the script must not write a persisted local 
 $forbid($js, 'slice(0, 255)', 'the note must be truncated in UTF-8 bytes, not UTF-16 units');
 $forbid($js, 'classList.add(\'is-empty\')', 'removing the last employee must not mark the cell as having no shift');
 
+// ---- controller class surface: no inherited member may be narrowed ----------
+// This check exists because a deploy failed on exactly this, after php84 -l, the
+// contract validator and the reflection harness had all passed:
+//
+//   Fatal error: Access level to RosterController::state() must be protected
+//   (as in class Drupal\Core\Controller\ControllerBase) or weaker
+//
+// A private method whose name matches a public/protected ControllerBase method is a
+// fatal error at class load, which no syntax check can see, and the reflection
+// harness stubs ControllerBase - so it cannot see it either. The list below is the
+// public+protected surface of Drupal\Core\Controller\ControllerBase as reported by
+// ReflectionClass (25 members); declaring any of them private or protected here is
+// a deploy-breaking defect.
+$inherited = [
+    'cache', 'config', 'create', 'createInstanceAutowired', 'currentUser', 'entityFormBuilder',
+    'entityTypeManager', 'formBuilder', 'formatPlural', 'getDestinationArray', 'getLogger',
+    'getNumberOfPlurals', 'getRedirectDestination', 'getStringTranslation', 'keyValue',
+    'languageManager', 'messenger', 'moduleHandler', 'redirect', 'setLoggerFactory',
+    'setMessenger', 'setRedirectDestination', 'setStringTranslation', 'state', 't',
+];
+if ($controller !== '') {
+    foreach ($inherited as $inheritedName) {
+        foreach (['private', 'protected'] as $visibility) {
+            if (preg_match('/\b' . $visibility . '\s+(?:static\s+)?function\s+' . preg_quote($inheritedName, '/') . '\s*\(/', $controller) === 1) {
+                $failures[] = "the controller must not declare {$visibility} {$inheritedName}(): it narrows Drupal\\Core\\Controller\\ControllerBase and is a fatal error at class load";
+            }
+        }
+    }
+    // When Drupal's autoloader happens to be present (it is on the deploy host after
+    // composer install), check the real parent instead of trusting the list above.
+    $autoload = $root . '/vendor/autoload.php';
+    if (is_file($autoload)) {
+        try {
+            require_once $autoload;
+            if (class_exists('Drupal\Core\Controller\ControllerBase')) {
+                $parent = new ReflectionClass('Drupal\Core\Controller\ControllerBase');
+                $parentNames = [];
+                foreach ($parent->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED) as $method) {
+                    $parentNames[$method->getName()] = TRUE;
+                }
+                preg_match_all('/\b(private|protected)\s+(?:static\s+)?function\s+(\w+)\s*\(/', $controller, $matches, PREG_SET_ORDER);
+                foreach ($matches as $match) {
+                    if (isset($parentNames[$match[2]])) {
+                        $failures[] = "the controller declares {$match[1]} {$match[2]}() which conflicts with the real ControllerBase (verified by reflection)";
+                    }
+                }
+            }
+        }
+        catch (Throwable $error) {
+            // Reflection is a bonus layer; the static list above is the guaranteed one.
+        }
+    }
+}
+
 // ---- styling: light/dark safety -------------------------------------------
 foreach ([
     '.merdpos-roster-queue-pill' => 'roster queue styling is missing',
