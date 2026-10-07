@@ -1,11 +1,7 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-07T17:48:00+05:00'
+updated_at: '2026-10-07T19:38:00+05:00'
 active:
-- id: MERD-20261007-harness-ci-efficiency-v1
-  path: .ai/work/active/MERD-20261007-harness-ci-efficiency-v1.yaml
-  lifecycle: WIRED
-  packet_state: CHECKED
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED

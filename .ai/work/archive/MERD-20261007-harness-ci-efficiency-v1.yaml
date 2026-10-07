@@ -1,0 +1,114 @@
+version: 1
+id: MERD-20261007-harness-ci-efficiency-v1
+title: Harness model routing, feature integration, and CI efficiency
+project: merdpos
+track: beta
+authoritative_branch: namecheap-beta-live
+base_head: 80107273644197c721057c202a4252fdcb81b893
+last_seen_head: f18aa0ccc3c7b4195d9089f1c596ae575b019c79
+branch: feature/harness-efficiency-kimi-web-v1
+pr: 189
+created_at: '2026-10-07T17:34:00+05:00'
+updated_at: '2026-10-07T19:38:00+05:00'
+closed_at: '2026-10-07T19:38:00+05:00'
+lifecycle: VERIFIED
+packet_state: CLOSED
+risk: HIGH
+risk_basis: >-
+  Changed CI/security/review governance and workflow execution. Product business
+  logic, schema, authorization behavior and deployment architecture were unchanged.
+objective: >-
+  Make the MERDPOS operating model subscription-aware and KIMI_WEB-only, make
+  cross-layer feature integration explicit, and reduce GitHub Actions runner/setup
+  duplication without weakening security or runtime coverage.
+final_state: >-
+  SHIPPED. PR #189 merged to namecheap-beta-live as
+  f18aa0ccc3c7b4195d9089f1c596ae575b019c79. The affected CI runtime then
+  executed successfully on the authoritative branch: CI #263, Secret scan #262
+  and Beta guardrails #435 all passed.
+acceptance:
+  - PASS - DeepSeek/DSH is the default controller/implementer, KIMI_WEB the read-only independent reviewer, ChatGPT/Codex Tier-3 escalation, and Kimi Code is not a fallback.
+  - PASS - Gate 1.5 requires every applicable feature-integration layer to be DONE with evidence or NOT APPLICABLE before WIRED.
+  - PASS - CI scope detection and repository hygiene share one runner; ordinary hygiene no longer uses full history.
+  - PASS - Beta static contracts and Chromium smoke share one runner; duplicate Beta Gitleaks was removed.
+  - PASS - Dedicated Gitleaks covers PRs and namecheap-beta-live pushes and retains complete Git history; obsolete PR scans cancel, branch-push scans do not.
+  - PASS - Flutter analysis/tests/debug APK reuse one checkout and Flutter setup.
+  - PASS - continuity validation, workflow syntax/semantic checks, GitHub Actions and independent KIMI_WEB review passed.
+owner_override: >-
+  The product owner explicitly asked the current ChatGPT session to implement
+  this task. That was a task-specific Gate 2.5 role override and does not change
+  the future default architecture established by this work.
+handoff:
+  mode: multi-model
+  implementer: "ChatGPT (product-owner override for this task; adopted/reconciled pre-existing DeepSeek/DSH in-progress edits)"
+  reviewer: "KIMI_WEB"
+  escalation: "ChatGPT/Codex when required"
+  owner: "product owner"
+  branch: feature/harness-efficiency-kimi-web-v1
+  pr: 189
+  base_sha: 80107273644197c721057c202a4252fdcb81b893
+  reviewed_head_sha: a04cd8ad048446ac091a6d966fd7c1369d760aa5
+  merge_sha: f18aa0ccc3c7b4195d9089f1c596ae575b019c79
+impact:
+  business_logic: "NO"
+  database: "NO"
+  authentication_authorization: "NO - reviewer/CI governance only"
+  deployment_runtime: "YES - CI/release validation execution reorganized; no product deployment architecture change"
+integration_layers:
+  data_schema_persistence: "NOT APPLICABLE - no product data/schema change"
+  migration_backfill_rollback: "NOT APPLICABLE - no migration"
+  backend_service_logic: "NOT APPLICABLE - no product service/business logic"
+  api_contract_compatibility: "NOT APPLICABLE - no API contract change"
+  authorization_tenant_scope: "NOT APPLICABLE - no product authorization change"
+  session_client_state_rerender: "NOT APPLICABLE - no product client/session change"
+  shared_ui_navigation: "NOT APPLICABLE - no product UI/navigation change"
+  rollout_feature_flag: "NOT APPLICABLE - governance/CI change did not need staged product rollout"
+  loader_cache_deployment: "DONE - workflow and continuity-validator wiring are the affected runtime integration points"
+  runtime_visual_verification: "DONE - authoritative-branch CI/Beta/Secret workflows executed successfully; no product visual surface changed"
+completed:
+  - Authoritative starting HEAD resolved as 80107273644197c721057c202a4252fdcb81b893.
+  - Gate 1.5, KIMI_WEB-only model roles, handoff integration matrix and continuity enforcement added.
+  - CI scope/hygiene, Flutter setup/build and Beta static/browser runners consolidated.
+  - Duplicate Beta Gitleaks removed in favor of the dedicated Secret scan.
+  - Synthetic shallow-history regression proved fetch-depth 50 could expose only 50 of 81 base..merge commits while the base object was present.
+  - Dedicated Secret scan restored complete history, closing that hidden Gitleaks coverage hole while ordinary jobs remain shallow.
+  - KIMI_WEB independently reviewed exact head a04cd8ad048446ac091a6d966fd7c1369d760aa5 and returned SHIP.
+  - PR #189 merged as f18aa0ccc3c7b4195d9089f1c596ae575b019c79.
+  - Post-merge authoritative-branch CI #263, Secret scan #262 and Beta guardrails #435 all passed.
+checks:
+  - name: git diff --check
+    result: PASS
+    evidence: no whitespace errors
+  - name: php84 -l namecheap_beta_live/backend/cli/validate_ai_continuity.php
+    result: PASS
+    evidence: no syntax errors
+  - name: php84 namecheap_beta_live/backend/cli/validate_ai_continuity.php
+    result: PASS
+    evidence: continuity knowledge and packet index self-consistent before merge
+  - name: workflow YAML parse
+    result: PASS
+    evidence: all 4 workflow YAML files parsed
+  - name: workflow embedded shell syntax
+    result: PASS
+    evidence: 37 workflow run blocks passed bash -n; deploy_namecheap_beta.sh also passed bash -n
+  - name: synthetic shallow-history security regression
+    result: PASS
+    evidence: depth 50 exposed 50/81 commits; complete history exposed 81/81
+  - name: KIMI_WEB independent review
+    result: PASS
+    evidence: exact reviewed head a04cd8ad048446ac091a6d966fd7c1369d760aa5; VERDICT SHIP
+  - name: GitHub CI authoritative-branch runtime
+    result: PASS
+    evidence: CI #263 on f18aa0ccc3c7b4195d9089f1c596ae575b019c79
+  - name: GitHub Secret scan authoritative-branch runtime
+    result: PASS
+    evidence: Secret scan #262 on f18aa0ccc3c7b4195d9089f1c596ae575b019c79
+  - name: GitHub Beta guardrails authoritative-branch runtime
+    result: PASS
+    evidence: Beta guardrails #435 on f18aa0ccc3c7b4195d9089f1c596ae575b019c79
+non_blocking_followups:
+  - Consider a future catch-up/reconciliation strategy if a branch-push secret-scan event is failed or externally dropped; current BEFORE..CURRENT behavior is the pre-existing incremental tradeoff.
+  - If required status checks/rulesets are later added to namecheap-beta-live, revisit beta-guardrails workflow-level paths filters to avoid the required-check/path-filter trap.
+blocked: false
+blocker: null
+next_action: null
