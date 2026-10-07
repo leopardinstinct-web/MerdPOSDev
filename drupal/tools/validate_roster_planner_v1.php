@@ -379,6 +379,38 @@ if ($controller !== '') {
     }
 }
 
+// ---- the controller must LINK against the real parent -----------------------
+// The deploy that first shipped this surface died here, and no local check saw it:
+//
+//   Fatal error: Access level to RosterController::state() must be protected
+//   (as in class Drupal\Core\Controller\ControllerBase) or weaker
+//
+// A visibility conflict is raised when the class LINKS, so the only honest check is
+// to link it against the real parent. That needs Drupal's vendor tree, which exists
+// on the deploy host after composer install and not in a bare worktree, so the check
+// runs where it can and says so where it cannot. It runs in a SUBPROCESS: a visibility
+// fatal is not catchable, and a validator killed mid-report explains nothing.
+$autoloadPath = $root . '/vendor/autoload.php';
+$controllerPath = $module . '/src/Controller/RosterController.php';
+if (is_file($autoloadPath) && is_file($controllerPath)) {
+    // The generated probe uses SINGLE quotes only: escapeshellarg() on Windows wraps
+    // in double quotes and rewrites any inner double quote, which turned the class
+    // name into a parse error the first time this ran.
+    $probe = 'require ' . var_export($autoloadPath, true)
+        . '; require ' . var_export($controllerPath, true)
+        . '; echo class_exists(' . var_export('Drupal\merdpos_core\Controller\RosterController', true) . ") ? ' LINKED' : ' NOT_FOUND';";
+    $output = [];
+    $status = 0;
+    exec('php84 -d display_errors=1 -d error_reporting=E_ALL -r ' . escapeshellarg($probe) . ' 2>&1', $output, $status);
+    $linkText = trim(implode(' ', $output));
+    if ($status !== 0 || strpos($linkText, 'LINKED') === false) {
+        $failures[] = 'the controller does not link against the real ControllerBase: ' . $linkText;
+    }
+}
+else {
+    fwrite(STDERR, "note: Drupal's autoloader or the controller file is absent; the class-link check was skipped.\n");
+}
+
 // ---- styling: light/dark safety -------------------------------------------
 foreach ([
     '.merdpos-roster-queue-pill' => 'roster queue styling is missing',
