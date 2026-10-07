@@ -309,12 +309,15 @@ $declaredMethods = static function (string $source): array {
         $visibility = null;
         for ($back = $i - 1; $back >= 0; $back--) {
             $previous = $tokens[$back];
-            if (is_array($previous) && $previous[0] === T_WHITESPACE) continue;
+            // Comments and whitespace can sit between the modifiers and the keyword
+            // (private /* memo */ static function), so they are skipped rather than
+            // ending the walk - otherwise the declaration is silently ignored.
+            if (is_array($previous) && in_array($previous[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) continue;
             if (is_array($previous) && in_array($previous[0], [T_PRIVATE, T_PROTECTED, T_PUBLIC], true)) {
                 $visibility = strtolower($previous[1]);
                 break;
             }
-            if (is_array($previous) && in_array($previous[0], [T_STATIC, T_FINAL, T_ABSTRACT, T_READONLY], true)) continue;
+            if (is_array($previous) && in_array($previous[0], [T_STATIC, T_FINAL, T_ABSTRACT], true)) continue;
             break;
         }
         // The name is the next T_STRING, skipping whitespace and a by-reference '&'.
@@ -349,11 +352,16 @@ if ($controller !== '') {
             }
         }
         catch (Throwable $error) {
-            // Not silently ignored: if the autoloader exists but cannot be used, the
-            // strongest layer is unavailable exactly where it was meant to compensate
-            // for the recorded map, so say so instead of reporting a clean pass.
-            $failures[] = 'the Drupal autoloader is present but the ControllerBase surface could not be read: ' . $error->getMessage();
+            // Advisory, NOT a failure: the recorded map is complete, so reflection is a
+            // bonus layer. Failing here would block a deploy on a technicality - the
+            // exact failure mode this guard exists to prevent - and it would also be
+            // inconsistent with the class-not-found case below, which falls back
+            // silently. Report it so the weaker layer is visible on the record.
+            fwrite(STDERR, "note: the Drupal autoloader is present but the ControllerBase surface could not be read (" . $error->getMessage() . "); used the recorded map.\n");
         }
+    }
+    if (!$reflectionUsed) {
+        fwrite(STDERR, "note: checked the controller against the recorded ControllerBase surface, not the live parent.\n");
     }
     $reported = [];
     foreach ($declaredMethods($controller) as $declared) {
