@@ -49,6 +49,7 @@ $taskGates = continuity_read($repo . '/.ai/task-gates.md', $errors);
 $betaScope = continuity_read($repo . '/.ai/BETA_SCOPE.md', $errors);
 $memory = continuity_read($repo . '/.ai/memory.md', $errors);
 $activeIndex = continuity_read($repo . '/.ai/work/ACTIVE.yaml', $errors);
+$handoffTemplate = continuity_read($repo . '/.ai/work/HANDOFF_TEMPLATE.yaml', $errors);
 $decisions = continuity_read($repo . '/.ai/decisions.md', $errors);
 $regressions = continuity_read($repo . '/.ai/regression-inventory.md', $errors);
 $studioDoc = continuity_read($repo . '/namecheap_beta_live/timesheet_portal/UI_STUDIO.md', $errors);
@@ -65,6 +66,28 @@ continuity_require($memory, 'No chat-only continuity', 'memory Git writeback rul
 continuity_require($decisions, 'Git writeback is mandatory continuity', 'durable Git writeback decision', $errors);
 continuity_require($bootstrap, '.ai/BETA_SCOPE.md', 'Beta-scope bootstrap', $errors);
 continuity_require($bootstrap, '.ai/work/ACTIVE.yaml', 'work-packet bootstrap', $errors);
+continuity_require($taskGates, 'Gate 1.5 — Feature integration completeness', 'feature integration task gate', $errors);
+continuity_require($taskGates, 'KIMI_WEB = INDEPENDENT REVIEWER', 'KIMI_WEB reviewer role gate', $errors);
+continuity_require($agents, 'DeepSeek/DSH — CONTROLLER + IMPLEMENTER', 'DeepSeek controller/implementer role', $errors);
+continuity_require($agents, 'KIMI_WEB — INDEPENDENT REVIEWER', 'KIMI_WEB read-only reviewer role', $errors);
+continuity_require($memory, 'Kimi Code CLI/API/native routes are not fallbacks', 'Kimi Web-only memory policy', $errors);
+continuity_require($decisions, 'Use Kimi Web only and make feature integration explicit', 'Kimi Web/feature integration durable decision', $errors);
+continuity_require($handoffTemplate, 'implementer: "DeepSeek/DSH"', 'handoff DeepSeek implementer', $errors);
+continuity_require($handoffTemplate, 'reviewer: "KIMI_WEB"', 'handoff KIMI_WEB reviewer', $errors);
+foreach ([
+    'data_schema_persistence:',
+    'migration_backfill_rollback:',
+    'backend_service_logic:',
+    'api_contract_compatibility:',
+    'authorization_tenant_scope:',
+    'session_client_state_rerender:',
+    'shared_ui_navigation:',
+    'rollout_feature_flag:',
+    'loader_cache_deployment:',
+    'runtime_visual_verification:',
+] as $integrationField) {
+    continuity_require($handoffTemplate, $integrationField, "handoff integration layer {$integrationField}", $errors);
+}
 continuity_require_iso_date($memory, 'current memory date', $errors);
 continuity_require($memory, 'Current DevStudio checkpoint', 'current DevStudio memory', $errors);
 continuity_require($memory, 'Studio29', 'Studio29 memory marker', $errors);

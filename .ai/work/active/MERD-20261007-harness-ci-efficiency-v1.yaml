@@ -1,0 +1,106 @@
+version: 1
+id: MERD-20261007-harness-ci-efficiency-v1
+title: Harness model routing, feature integration, and CI efficiency
+project: merdpos
+track: beta
+authoritative_branch: namecheap-beta-live
+base_head: 80107273644197c721057c202a4252fdcb81b893
+last_seen_head: 80107273644197c721057c202a4252fdcb81b893
+branch: feature/harness-efficiency-kimi-web-v1
+created_at: '2026-10-07T17:34:00+05:00'
+updated_at: '2026-10-07T17:48:00+05:00'
+lifecycle: WIRED
+packet_state: CHECKED
+risk: HIGH
+risk_basis: >-
+  Changes CI/security/review governance and workflow execution. Product business
+  logic and database behavior are unchanged, but a bad change could weaken release
+  assurance, so the final immutable SHA requires independent review.
+objective: >-
+  Make the MERDPOS operating model subscription-aware and KIMI_WEB-only, make
+  cross-layer feature integration explicit, and reduce GitHub Actions runner/setup
+  duplication without weakening security or runtime coverage.
+acceptance:
+  - DeepSeek/DSH is documented as controller/implementer, KIMI_WEB as read-only reviewer, and ChatGPT/Codex as Tier-3 escalation; Kimi Code is not a fallback.
+  - New/material features cannot claim WIRED without accounting for every applicable integration layer with evidence or NOT APPLICABLE.
+  - CI scope detection and repository hygiene share one runner and no ordinary hygiene job performs a full-history checkout.
+  - Beta static contracts and Chromium smoke share one runner; duplicate Beta Gitleaks is removed while the dedicated Secret scan covers namecheap-beta-live.
+  - Secret scan cancels obsolete PR scans but never cancels branch-push scans, and ordinary scans avoid full-history checkout unless the relevant range exceeds the shallow window.
+  - Flutter analysis/tests/debug build reuse one checkout/Flutter setup.
+  - Continuity validation, workflow syntax checks, targeted local checks and independent review pass on the frozen SHA.
+affected_paths:
+  - AGENTS.md
+  - .ai/
+  - .github/workflows/
+  - namecheap_beta_live/backend/cli/validate_ai_continuity.php
+constraints:
+  - Preserve all existing security/business/runtime validation coverage.
+  - Do not add API-priced model routes or restore Kimi Code fallback.
+  - Do not change MERDPOS product business logic or deployment architecture.
+  - Do not commit browser credentials, storage state, secrets or private test output.
+concurrency_note: >-
+  This worktree was clean when created. At 17:34 it contained stable uncommitted
+  edits last written around 17:09-17:13 to the same requested governance/workflow
+  scope, with no matching active packet. Their diff was reviewed before adoption;
+  current authoritative HEAD still matched base_head and no later writes were observed.
+handoff:
+  mode: multi-model
+  implementer: "DeepSeek/DSH"
+  reviewer: "KIMI_WEB"
+  escalation: "ChatGPT/Codex when required"
+  owner: "product owner"
+  branch: feature/harness-efficiency-kimi-web-v1
+  pr: null
+  base_sha: 80107273644197c721057c202a4252fdcb81b893
+  head_sha: null
+impact:
+  business_logic: "NO"
+  database: "NO"
+  authentication_authorization: "NO - reviewer/CI governance only"
+  deployment_runtime: "YES - CI/release validation execution is reorganized without changing product deployment"
+integration_layers:
+  data_schema_persistence: "NOT APPLICABLE - no product data/schema change"
+  migration_backfill_rollback: "NOT APPLICABLE - no migration"
+  backend_service_logic: "NOT APPLICABLE - no product service/business logic"
+  api_contract_compatibility: "NOT APPLICABLE - no API contract change"
+  authorization_tenant_scope: "NOT APPLICABLE - no product authorization change"
+  session_client_state_rerender: "NOT APPLICABLE - no product client/session change"
+  shared_ui_navigation: "NOT APPLICABLE - no product UI/navigation change"
+  rollout_feature_flag: "NOT APPLICABLE - governance/CI change does not need staged product rollout"
+  loader_cache_deployment: "DONE - workflow and continuity-validator wiring are the affected runtime integration points"
+  runtime_visual_verification: "NOT APPLICABLE - no product visual behavior change"
+completed:
+  - Authoritative remote HEAD re-resolved as 80107273644197c721057c202a4252fdcb81b893.
+  - Current governance/workflow diff reviewed before adopting overlapping uncommitted work.
+  - Existing Gate 1.5, KIMI_WEB role split, handoff integration matrix and continuity guards confirmed in the in-progress diff.
+checks:
+  - name: git diff --check
+    result: PASS
+    evidence: no whitespace errors; only line-ending conversion warnings
+  - name: php84 -l namecheap_beta_live/backend/cli/validate_ai_continuity.php
+    result: PASS
+    evidence: no syntax errors
+  - name: php84 namecheap_beta_live/backend/cli/validate_ai_continuity.php
+    result: PASS
+    evidence: repository continuity self-consistent with new roles/integration contract and active packet
+  - name: workflow YAML parse
+    result: PASS
+    evidence: PyYAML parsed all 4 workflow files
+  - name: workflow embedded shell syntax
+    result: PASS
+    evidence: Git Bash parsed 32 run blocks with bash -n; deploy_namecheap_beta.sh also passes bash -n
+  - name: workflow semantic assertions
+    result: PASS
+    evidence: one CI scope/hygiene job; one Beta source/browser job; no duplicate Beta Gitleaks; Flutter build consolidated; adaptive Secret scan present
+  - name: KIMI_WEB independent review
+    result: NOT_RUN
+    evidence: pending frozen pushed SHA
+remaining:
+  - Commit and push the checked branch, open the PR and wait for GitHub Actions.
+  - Run KIMI_WEB independent review on the exact pushed head SHA and fix forward if needed.
+  - Merge only when CI and review pass, observe the canonical deploy as applicable, then archive this packet on authoritative branch.
+next_action: >-
+  Freeze the checked implementation in Git, push it, create the PR and hand the
+  exact immutable head SHA to KIMI_WEB for independent review.
+blocked: false
+blocker: null

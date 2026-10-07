@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - namecheap-beta-live
+    paths:
+      - 'namecheap_beta_live/**'
+      - 'scripts/**'
+      - '.ai/**'
+      - 'AGENTS.md'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - namecheap-beta-live
+    paths:
+      - 'namecheap_beta_live/**'
+      - 'scripts/**'
+      - '.ai/**'
+      - 'AGENTS.md'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
@@ -119,18 +131,6 @@ jobs:
             exit 1
           fi
 
-  beta-browser-smoke:
-    name: Beta Chromium smoke
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
       - name: Confirm system Chrome
         shell: bash
         run: |
@@ -144,43 +144,3 @@ jobs:
       - name: Run beta browser regressions
         shell: bash
         run: npx playwright test namecheap_beta_live/browser_tests --workers=1 --reporter=line
-
-  beta-secret-scan:
-    name: Beta secret scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source history
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Select commit range
-        id: range
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          BEFORE_SHA: ${{ github.event.before }}
-          CURRENT_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            range="${PR_BASE_SHA}..${CURRENT_SHA}"
-          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
-            range="${BEFORE_SHA}..${CURRENT_SHA}"
-          else
-            range="${CURRENT_SHA}^..${CURRENT_SHA}"
-          fi
-          echo "value=$range" >> "$GITHUB_OUTPUT"
-
-      - name: Scan beta change without printing secret values
-        shell: bash
-        env:
-          COMMIT_RANGE: ${{ steps.range.outputs.value }}
-        run: |
-          set -euo pipefail
-          docker run --rm \
-            -v "$PWD:/repo" \
-            -w /repo \
-            zricethezav/gitleaks:v8.24.3 \
-            git --redact --no-banner --exit-code 1 --log-opts="$COMMIT_RANGE" .

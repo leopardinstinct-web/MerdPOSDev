@@ -65,6 +65,17 @@ When the product owner explicitly asks to implement/fix/apply/do/start/continue,
 
 ## Task-specific reading map
 
+### New feature / cross-layer integration
+
+Read:
+
+- Gate 1.5 in `.ai/task-gates.md`;
+- current source and recent history for every affected data/backend/API/UI owner;
+- applicable authorization, deployment and shared-UI invariants;
+- the feature-specific validator/browser coverage that already owns adjacent behavior.
+
+Build one applicability map across data/schema, service/business logic, auth/client scope, API compatibility, client/session state, shared UI/navigation, rollout controls, loader/deployment and runtime verification. Mark non-applicable layers explicitly instead of inventing new infrastructure.
+
 ### Authorization, roles, LOA, tenant/client access
 
 Read:
