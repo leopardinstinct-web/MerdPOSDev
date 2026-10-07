@@ -109,9 +109,9 @@ review:
       major_findings:
         - 'The pass-1 record paired a SHIP verdict for 38b7a88 with dispositions that exist only in the later delta, so the handoff would have asserted a clean SHIP for a tree whose findings were open. About the RECORD, not the code.'
       findings_open_at_this_sha:
-        - 'MINOR (minor): a line ending in an escaped backslash kept the rsync continuation window open across following comments.'
-        - 'MINOR (minor): the null fail-closed branch was not visible inside a delta-only diff (review-scope artifact, not a code defect).'
-        - 'NIT (nit): state stamps denoted an instant ~12 minutes in the session future.'
+        - 'MINOR: a line ending in an escaped backslash kept the rsync continuation window open across following comments.'
+        - 'MINOR: the null fail-closed branch was not visible inside a delta-only diff (review-scope artifact, not a code defect).'
+        - 'NIT: state stamps denoted an instant ~12 minutes in the session future.'
       code_assessment: 'The code would ship; the record could not ship as written.'
       transport: web (KIMI_WEB browser route)
       evidence: C:\DSH\evidence\20261007-121823-kimi-review-38b7a88-1858ae4.md
@@ -122,7 +122,7 @@ review:
         - 'The pass-3 record embedded "FIXED in 4th SHA" dispositions inside the 1858ae4 record, repeating the custody violation it was written to fix. About the RECORD, not the code.'
       findings_open_at_this_sha:
         - 'MINOR: the comment model did not match shell semantics - a comment ending in a backslash continues, so a commented-out rsync was treated as live.'
-        - 'MINOR: created_at (local time mislabelled Z) preceded updated_at, so the packet read as updated before it was created.'
+        - 'MINOR: created_at was local time mislabelled Z, so as written it came AFTER updated_at and the packet read as updated before it was created.'
         - 'NIT: trim() before the backslash parity count misclassifies a backslash followed by a trailing space.'
       transport: web (KIMI_WEB browser route)
       evidence: C:\DSH\evidence\20261007-122222-kimi-review-1858ae4-4654579.md

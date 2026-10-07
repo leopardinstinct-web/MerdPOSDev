@@ -241,7 +241,12 @@ if ($deploy === '') {
         $logicalLines = [];
         $pending = '';
         foreach (preg_split('/\R/', $deploySource) as $physicalLine) {
-            $joined = $pending === '' ? $physicalLine : $pending . ' ' . $physicalLine;
+            // Bash removes a backslash-newline pair WITHOUT inserting anything, so
+            // the join adds no separator: the following line keeps its own leading
+            // whitespace, which is what separates its tokens. Inserting a space here
+            // would silently rewrite a token that a legal deploy script splits
+            // across a continuation.
+            $joined = $pending . $physicalLine;
             $trailingBackslashes = 0;
             for ($scan = strlen($physicalLine) - 1; $scan >= 0 && $physicalLine[$scan] === '\\'; $scan--) {
                 $trailingBackslashes++;
@@ -259,7 +264,9 @@ if ($deploy === '') {
 
         $portalRsyncLine = null;
         $gateLine = null;
-        foreach ($logicalLines as $lineIndex => $logicalLine) {
+        // Index is a LOGICAL line (continuations joined), not a physical line number
+        // in the deploy script, and is used only to compare the two positions.
+        foreach ($logicalLines as $logicalIndex => $logicalLine) {
             $command = trim($logicalLine);
             if ($command === '' || strpos($command, '#') === 0) {
                 continue;
@@ -269,11 +276,11 @@ if ($deploy === '') {
             // refresh that matters, so keep overwriting.
             if (preg_match('/^rsync\b/', $command) === 1
                 && strpos($command, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
-                $portalRsyncLine = $lineIndex;
+                $portalRsyncLine = $logicalIndex;
             }
             // The invocation itself, never a mention inside a comment.
             if ($gateLine === null && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $command) === 1) {
-                $gateLine = $lineIndex;
+                $gateLine = $logicalIndex;
             }
         }
         if ($portalRsyncLine === null) {
