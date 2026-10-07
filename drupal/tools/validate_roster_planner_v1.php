@@ -224,11 +224,12 @@ foreach ([
     "if (cell.dataset.rosterOriginal === 'shift' && originalStart && originalEnd) {",
     'delete cell.dataset.rosterRemoved;',
     // A rejection must not be reported as success, must not stop the drain of the
-    // other independent weeks, and must outlive the flush that produced it.
-    "if (left === 0 && rejected === 0 && pendingRejection === '') {",
+    // other independent weeks, and every reason must outlive the flush that produced
+    // it - only the last one being kept would lose the earliest cause.
+    "if (left === 0 && rejected === 0 && pendingRejectionReasons.length === 0) {",
     'rejected += 1;',
-    'pendingRejection = String(',
-    'pendingRejection = \'\';',
+    'pendingRejectionReasons.push(String(',
+    'pendingRejectionReasons = [];',
     'else if (left > 0) window.setTimeout(() => flushQueue(), 0);',
     // The last-resort id must never be constant, or every week after the first
     // would be deduped away as a repeat.

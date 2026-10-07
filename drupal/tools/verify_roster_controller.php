@@ -9,7 +9,7 @@ declare(strict_types=1);
  * nothing from the base class, so this executes the shipped implementation, not a
  * copy of it. The gateway and CSRF dependencies are never touched.
  *
- * Run: php84 dsh-roster-controller-proof.php <RosterController.php>
+ * Run: php84 drupal/tools/verify_roster_controller.php <RosterController.php>
  */
 
 namespace Drupal\Core\Controller {

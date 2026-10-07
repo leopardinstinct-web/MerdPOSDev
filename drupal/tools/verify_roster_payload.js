@@ -8,7 +8,7 @@
  * not a browser: it executes the real roster-v1.js module and asserts the payload
  * the module would POST, nothing more.
  *
- * Run: node dsh-roster-payload-proof.js <path to roster-v1.js>
+ * Run: node drupal/tools/verify_roster_payload.js <path to roster-v1.js>
  */
 const fs = require('fs');
 const path = require('path');
@@ -36,6 +36,13 @@ class El {
       get: (_t, prop) => (typeof prop === 'string' ? self.attrs['data-' + kebab(prop)] : undefined),
       set: (_t, prop, value) => { self.attrs['data-' + kebab(prop)] = String(value); return true; },
       has: (_t, prop) => typeof prop === 'string' && ('data-' + kebab(prop)) in self.attrs,
+      // A real DOMStringMap supports `delete element.dataset.x`, and the script relies
+      // on it to revive a cell that was cleared. Without this trap the stub silently
+      // ignored the delete, which made that behaviour untestable.
+      deleteProperty: (_t, prop) => {
+        if (typeof prop === 'string') delete self.attrs['data-' + kebab(prop)];
+        return true;
+      },
     });
   }
   setAttribute(name, value) { this.attrs[name] = String(value); if (name === 'class') this.setClasses(value); }
@@ -125,6 +132,10 @@ const buildHarness = (options) => {
       'data-roster-date': '2026-10-05',
       'data-roster-slot': spec.slot,
       'data-roster-original': spec.original,
+      // The confirmed times of a stored shift, which the template renders so an
+      // emptied time input cannot silently delete the shift.
+      'data-roster-original-start': spec.originalStart || '',
+      'data-roster-original-end': spec.originalEnd || '',
       'data-roster-default-start': spec.defaultStart,
       'data-roster-default-end': spec.defaultEnd,
     });
@@ -152,7 +163,9 @@ const buildHarness = (options) => {
     select.options = [{ value: '', textContent: 'Add employee…' }, { value: '7', textContent: 'Ada' }];
     select.selectedIndex = 0;
     add.append(select);
-    cell.append(start, end, indicator, list, add);
+    const clear = new El('button', { 'data-roster-clear': '' });
+    clear.textContent = 'Clear shift';
+    cell.append(start, end, indicator, list, add, clear);
     root.append(cell);
   });
 
@@ -191,6 +204,8 @@ const buildHarness = (options) => {
     pendingFetches, queue: () => JSON.parse(storage.get('test_queue_v1') || '[]'),
     cells: root.querySelectorAll('[data-roster-cell]'),
     clickSave: () => saveDraft.dispatch('click', { target: saveDraft }),
+    // What the planner actually reads: the status line beside the queue badge.
+    messageText: () => String(message.textContent || ''),
   };
 };
 
@@ -238,6 +253,106 @@ const v4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
   check('M2a the emptied stored shift survives the save', Boolean(kept), JSON.stringify(shifts));
   check('M2a the surviving shift carries zero assignments', kept && Array.isArray(kept.assignments) && kept.assignments.length === 0, kept && JSON.stringify(kept.assignments));
   check('M2a the surviving shift keeps its own times', kept && kept.start_time === '09:00:00' && kept.end_time === '17:00:00', kept && kept.start_time + '-' + kept.end_time);
+}
+
+// ---- M2d: an emptied time input must not delete a stored shift ----
+// A "time" input can be cleared from the keyboard, and the portal replaces the week
+// wholesale, so a cell omitted from the payload takes its shift with it. The shift's
+// confirmed times are the fallback. This path previously had NO behavioural coverage:
+// every other case supplies non-empty times, so a silently dead fallback would have
+// passed the whole suite while still deleting the shift.
+{
+  const h = buildHarness({
+    cells: [{ key: '2026-10-06|early', slot: 'early', original: 'shift', originalStart: '09:00', originalEnd: '17:00', defaultStart: '07:00', defaultEnd: '16:00', start: '', end: '', employees: [7], nextDayInitial: false }],
+  });
+  const cell = h.cells[0];
+  h.clickSave();
+  const shifts = h.queue()[0].shifts;
+  const kept = shifts.find((s) => s.slot_key === 'early');
+  check('M2d a stored shift with cleared times is still sent', Boolean(kept), JSON.stringify(shifts));
+  check('M2d it is sent with the times the server last confirmed', kept && kept.start_time === '09:00:00' && kept.end_time === '17:00:00', kept && kept.start_time + '-' + kept.end_time);
+  check('M2d the cleared inputs are restored to those times', cell.querySelector('[data-roster-start]').value === '09:00' && cell.querySelector('[data-roster-end]').value === '17:00', cell.querySelector('[data-roster-start]').value + '/' + cell.querySelector('[data-roster-end]').value);
+  check('M2d it keeps its employee', kept && kept.assignments.length === 1 && kept.assignments[0].employee_id === 7, kept && JSON.stringify(kept.assignments));
+}
+
+// ---- M2e: the fallback must not depend on the time FORMAT ----
+// The template renders HH:MM while the controller's normal form is HH:MM:SS. If the
+// parser accepted only one of them, the fallback would no-op silently - the same
+// data loss - so both spellings are exercised.
+{
+  const h = buildHarness({
+    cells: [{ key: '2026-10-06|early', slot: 'early', original: 'shift', originalStart: '09:00:00', originalEnd: '17:30:00', defaultStart: '07:00', defaultEnd: '16:00', start: '', end: '', employees: [7], nextDayInitial: false }],
+  });
+  h.clickSave();
+  const kept = h.queue()[0].shifts.find((s) => s.slot_key === 'early');
+  check('M2e seconds-bearing confirmed times are accepted as a fallback', kept && kept.start_time === '09:00:00' && kept.end_time === '17:30:00', kept && kept.start_time + '-' + kept.end_time);
+}
+
+// ---- M2f: negative control - a cell that never held a shift stays omitted ----
+{
+  const h = buildHarness({
+    cells: [{ key: '2026-10-07|early', slot: 'early', original: 'none', defaultStart: '07:00', defaultEnd: '16:00', start: '', end: '', employees: [] }],
+  });
+  h.clickSave();
+  const shifts = h.queue()[0].shifts;
+  check('M2f an emptied never-planned cell is still omitted', shifts.length === 0, JSON.stringify(shifts));
+}
+
+// ---- M3: clearing a shift is deliberate, visible, and omits the cell ----
+{
+  const h = buildHarness({
+    cells: [{ key: '2026-10-08|early', slot: 'early', original: 'shift', originalStart: '09:00', originalEnd: '17:00', defaultStart: '07:00', defaultEnd: '16:00', start: '09:00', end: '17:00', employees: [7], nextDayInitial: false }],
+  });
+  const cell = h.cells[0];
+  h.root.dispatch('click', { target: cell.querySelector('[data-roster-clear]') });
+  check('M3 a cleared cell is marked removed and not vacant', cell.dataset.rosterRemoved === '1' && cell.classList.contains('is-removed') && cell.classList.contains('is-vacant') === false, 'removed=' + cell.dataset.rosterRemoved + ' vacant=' + cell.classList.contains('is-vacant'));
+  check('M3 clearing takes the staff out', cell.querySelectorAll('[data-roster-employee]').length === 0);
+  h.clickSave();
+  check('M3 a cleared shift is omitted, which is what deletes it', h.queue()[0].shifts.filter((s) => s.slot_key === 'early').length === 0, JSON.stringify(h.queue()[0].shifts));
+}
+
+// ---- M3b: touching a cleared cell revives it ----
+{
+  const h = buildHarness({
+    cells: [{ key: '2026-10-08|early', slot: 'early', original: 'shift', originalStart: '09:00', originalEnd: '17:00', defaultStart: '07:00', defaultEnd: '16:00', start: '09:00', end: '17:00', employees: [7], nextDayInitial: false }],
+  });
+  const cell = h.cells[0];
+  h.root.dispatch('click', { target: cell.querySelector('[data-roster-clear]') });
+  const startInput = cell.querySelector('[data-roster-start]');
+  startInput.value = '10:00';
+  // Dispatched on the input itself: the script registers time listeners per element
+  // and only delegates clicks to the root, and this stub does not bubble.
+  startInput.dispatch('input', { target: startInput });
+  check('M3b editing the times revives a cleared cell', cell.dataset.rosterRemoved === undefined && cell.classList.contains('is-removed') === false);
+  h.clickSave();
+  const revived = h.queue()[0].shifts.find((s) => s.slot_key === 'early');
+  check('M3b the revived shift is sent again', revived && revived.start_time === '10:00:00', revived && revived.start_time);
+}
+
+// ---- N1/N2: a rejection must be reported, must not be called success, and must not
+// strand the OTHER queued week ----
+// Async because it has to let the drain run between responses; wrapped in a function
+// rather than using top-level await, which Node refuses alongside require().
+async function checkRejectionAndDrain() {
+  const h = buildHarness({
+    cells: [{ key: '2026-10-05|late', slot: 'late', original: 'none', defaultStart: '16:00', defaultEnd: '00:00', start: '16:00', end: '00:00' }],
+    seedQueue: [
+      { submission_id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee', store_id: 4, week_start: '2026-10-05', status: 'draft', note: '', shifts: [] },
+      { submission_id: 'bbbbbbbb-cccc-4ddd-8eee-ffffffffffff', store_id: 4, week_start: '2026-10-12', status: 'draft', note: '', shifts: [] },
+    ],
+  });
+  check('N1 the seeded queue is being flushed', h.pendingFetches.length === 1, 'fetches=' + h.pendingFetches.length);
+  h.pendingFetches[0].resolve({ ok: false, status: 422, json: () => Promise.resolve({ success: false, error: 'That store is not active.' }) });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const text = h.messageText();
+  check('N1 the rejection reason is shown', /not active/.test(text), text);
+  check('N1 the rejection is not reported as success', !/Saved successfully/.test(text), text);
+  check('N1 the rejected week is dropped from the queue', !h.queue().some((i) => i.submission_id === 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'), JSON.stringify(h.queue().map((i) => i.submission_id)));
+  check('N1 the second week is still sent rather than stranded', h.pendingFetches.length === 2, 'fetches=' + h.pendingFetches.length);
+  if (h.pendingFetches[1]) h.pendingFetches[1].resolve({ ok: true, status: 200, json: () => Promise.resolve({ success: true }) });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  check('N1 the queue drains to empty', h.queue().length === 0, 'queued=' + h.queue().length);
+  check('N1 a later successful drain still does not claim success over the rejection', !/Saved successfully/.test(h.messageText()), h.messageText());
 }
 
 // ---- M2b: a never-planned cell that was added to and emptied is not a shift ----
@@ -331,7 +446,7 @@ const runConcurrency = async () => {
   check('m6 the queue drains to empty', h.queue().length === 0, 'queued=' + h.queue().length);
 };
 
-runConcurrency().then(() => {
+runConcurrency().then(checkRejectionAndDrain).then(() => {
   const failed = results.filter((r) => !r.ok);
   for (const r of results) {
     console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.ok || !r.detail ? '' : '  [' + r.detail + ']'}`);

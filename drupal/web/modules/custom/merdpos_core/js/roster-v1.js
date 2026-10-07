@@ -27,10 +27,11 @@
   // doubling to a ten-minute cap, and only while items remain and the tab is online.
   const RETRY_BASE_MS = 30000;
   const RETRY_MAX_MS = 600000;
-  // The note is truncated here in UTF-8 BYTES, which is stricter than either
-  // server: the portal keeps 255 CHARACTERS (roster_save_week: mb_substr($note, 0, 255))
-  // and the controller truncates the same way. 255 bytes never exceeds 255
-  // characters, so a payload this script accepts always fits.
+  // The note is truncated here in UTF-8 BYTES, which is stricter than either server:
+  // the portal keeps 255 CHARACTERS (roster_save_week: mb_substr($note, 0, 255)) and
+  // RosterController::normalizeQueuedWeek() truncates the same way - asserted by
+  // drupal/tools/verify_roster_controller.php, which runs that method directly.
+  // 255 bytes never exceeds 255 characters, so a payload this script accepts fits.
   const NOTE_BYTE_LIMIT = 255;
 
   const readQueue = (key) => {
@@ -74,7 +75,14 @@
 
   const clock = (value) => {
     const text = String(value || '').trim();
-    return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text) ? `${text}:00` : null;
+    // Seconds are optional because both forms reach this function: the template
+    // renders HH:MM while the controller's own normal form is HH:MM:SS. Accepting
+    // only one of them would let the emptied-shift fallback silently no-op if the
+    // template ever emitted the other - and that is silent data loss, not a
+    // cosmetic difference.
+    return /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(text)
+      ? (text.length === 5 ? `${text}:00` : text)
+      : null;
   };
 
   /**
@@ -114,10 +122,13 @@
         let retryTimer = null;
         let retryDelay = RETRY_BASE_MS;
         let flushInFlight = false;
-        // A rejection outlives the flush that produced it: a later re-entrant flush
-        // drains the remaining entries and would otherwise overwrite the reason with
-        // "Saved successfully", hiding the loss. Cleared when the planner saves again.
-        let pendingRejection = '';
+        // Rejection reasons outlive the flush that produced them: a later re-entrant
+        // flush drains the remaining entries and would otherwise overwrite the reason
+        // with "Saved successfully", hiding the loss. All of them are kept, not just
+        // the last, and they are cleared when the planner saves again - so the message
+        // can outlive an empty queue, which is deliberate: a rejection must never be
+        // silently dropped in favour of a success notice.
+        let pendingRejectionReasons = [];
 
         const setMessage = (text) => {
           if (message) message.textContent = text || '';
@@ -201,8 +212,12 @@
         const syncCellState = (cell) => {
           if (!cell) return;
           const read = readCell(cell);
-          cell.classList.toggle('is-vacant', !read || !read.planned);
-          cell.classList.toggle('is-removed', cell.dataset.rosterRemoved === '1');
+          const removed = cell.dataset.rosterRemoved === '1';
+          // The two states are mutually exclusive on purpose: is-vacant means "nothing
+          // here was ever planned", is-removed means "the planner deleted this shift".
+          // Letting both apply would leave whichever background wins by source order.
+          cell.classList.toggle('is-vacant', !removed && (!read || !read.planned));
+          cell.classList.toggle('is-removed', removed);
           const indicator = cell.querySelector('[data-roster-next-day]');
           if (indicator) indicator.hidden = !read || !read.shift.ends_next_day;
         };
@@ -280,20 +295,21 @@
               flushInFlight = false;
               updateQueueBadge();
               const left = readQueue(queueKey).length;
-              if (left === 0 && rejected === 0 && pendingRejection === '') {
+              if (left === 0) {
+                // Nothing is queued any more, so no retry may stay scheduled - that
+                // invariant has to hold on the rejection path too, not only on success.
                 cancelRetry();
                 retryDelay = RETRY_BASE_MS;
+              }
+              if (left === 0 && rejected === 0 && pendingRejectionReasons.length === 0) {
                 setMessage('Saved successfully.');
                 if (reload) window.location.reload();
                 return;
               }
-              // A rejection is the planner's business, so it must survive: reporting
-              // "Saved successfully" over a dropped week would hide the loss, and the
-              // page stays put so the rejected week can be corrected and re-sent.
-              // It must NOT stop the drain either: the other entries are independent
-              // weeks, and holding them back would strand a valid change behind an
-              // unrelated rejection.
-              if (rejected === 0 && pendingRejection === '' && sent > 0) {
+              // A rejection must not be reported as success, and it must not stop the
+              // drain either: the other entries are independent weeks, and holding them
+              // back would strand a valid change behind an unrelated rejection.
+              if (rejected === 0 && pendingRejectionReasons.length === 0 && sent > 0) {
                 setMessage(`${sent} week${sent === 1 ? '' : 's'} saved. ${left} still pending.`);
               }
               if (deferred > 0) scheduleRetry();
@@ -322,10 +338,13 @@
                   deferred += 1;
                 } else {
                   // Authoritative rejection: retrying cannot help, so say why and drop
-                  // it, remembering the reason so the drain cannot overwrite it.
+                  // it. Every reason is remembered, and the first is the one shown when
+                  // several arrive, so the earliest cause is not lost behind the latest.
                   rejected += 1;
-                  pendingRejection = String(data?.error || 'MERDPOS rejected this roster change.');
-                  setMessage(pendingRejection);
+                  pendingRejectionReasons.push(String(data?.error || 'MERDPOS rejected this roster change.'));
+                  setMessage(pendingRejectionReasons.length === 1
+                    ? pendingRejectionReasons[0]
+                    : `${pendingRejectionReasons.length} changes rejected by MERDPOS. First: ${pendingRejectionReasons[0]}`);
                   dropFromQueue([item.submission_id]);
                   updateQueueBadge();
                 }
@@ -342,7 +361,7 @@
         const queueWeek = (status) => {
           if (!canManage) return;
           // A new save is the planner acting on the last rejection, so it clears it.
-          pendingRejection = '';
+          pendingRejectionReasons = [];
           const shifts = collectShifts();
           const noteField = root.querySelector('[data-roster-note]');
           const typedNote = String(noteField?.value || '');
