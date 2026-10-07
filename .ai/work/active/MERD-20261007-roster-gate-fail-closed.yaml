@@ -134,6 +134,18 @@ review:
         - 'NIT: trim() before the backslash parity count misclassifies a backslash followed by a trailing space.'
       transport: web (KIMI_WEB browser route)
       evidence: C:\DSH\evidence\20261007-122222-kimi-review-1858ae4-4654579.md
+    - sha: cd8c2a221214d68467c040b3f6986617ca63bc3d
+      range: 4654579..cd8c2a2
+      verdict: SHIP
+      major_findings: none
+      findings_open_at_this_sha:
+        - 'MINOR: the continuation join inserted a space bash does not, so a legal token split across a continuation would fail the gate fail-closed.'
+        - 'NIT: a pass-3 finding wording contradicted the values it described.'
+        - 'NIT: severity labels were duplicated by the list convention.'
+        - 'NIT: the logical index kept a name that still read as a physical line number.'
+      reviewer_note: 'Confirmed it could not construct a false-pass input against the new matchers.'
+      transport: web (KIMI_WEB browser route)
+      evidence: C:\DSH\evidence\20261007-122752-kimi-review-4654579-cd8c2a2.md
     - sha: 9816bcef101c7836d2d9a58557866105175205ec
       range: cd8c2a2..9816bce
       verdict: SHIP
