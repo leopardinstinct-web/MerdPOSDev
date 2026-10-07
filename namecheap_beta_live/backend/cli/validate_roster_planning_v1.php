@@ -229,13 +229,25 @@ if ($deploy === '') {
         // that fails open is not a gate.
         $portalRsyncLine = null;
         $gateLine = null;
+        $inRsync = false;
         foreach (preg_split('/\R/', $deploySource) as $lineIndex => $deployLine) {
             $trimmedLine = trim($deployLine);
+            // Track an actual rsync COMMAND, including its backslash-continued
+            // argument lines: the portal path needed here sits on a continuation
+            // line, not on the rsync line itself, so a "does this line contain the
+            // path" test alone would also accept a COMMENT that quotes the path -
+            // re-creating the false pass this change exists to remove.
+            if (preg_match('/^rsync\b/', $trimmedLine) === 1) {
+                $inRsync = true;
+            }
             // The rsync SOURCE line; the destination line names only $LIVE. If the
             // source ever appears more than once, the LAST occurrence is the
             // refresh that matters, so keep overwriting.
-            if (strpos($trimmedLine, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
+            if ($inRsync && strpos($trimmedLine, '"$REPO/namecheap_beta_live/timesheet_portal/"') !== false) {
                 $portalRsyncLine = $lineIndex;
+            }
+            if ($trimmedLine !== '' && substr($trimmedLine, -1) !== '\\') {
+                $inRsync = false;
             }
             // The invocation itself, never a mention inside a comment.
             if ($gateLine === null && preg_match('/^php\s+\S*validate_roster_planning_v1\.php/', $trimmedLine) === 1) {

@@ -208,13 +208,24 @@ guard protecting the fix for an outage was itself the next outage.
 
 Rules that follow:
 
-- **Fail closed.** Resolve each input; when one cannot be resolved, add a
-  `$failures[]` entry naming what could not be located. Never let "not found"
-  mean "fine".
+- **Fail closed - inside the surface you are checking.** Resolve each input; when
+  one cannot be resolved, add a `$failures[]` entry naming what could not be
+  located. Never let "not found" mean "fine" *within* a surface the gate claims to
+  verify. Scope this honestly: the roster validator still skips deploy-wiring
+  assertions entirely when the deploy script is absent, because the deployed tree
+  genuinely has no `scripts/` directory and a gate that cannot find the script
+  would otherwise abort every deploy - the same mistake PR #183 fixed. That skip
+  prints a note and is covered by CI instead. The residual hole is the deploy
+  script CANDIDATE LOOKUP: a stale script at a parent path can still satisfy
+  resolution (tracked in the roster packet as an open follow-up). Do not describe
+  this class as closed while that remains open.
 - **Resolve COMMAND lines, not raw offsets.** Match the actual `php ...` /
   `rsync ...` line, so a mention in a comment cannot satisfy or break the check.
   First-byte `strpos` over the whole file is fragile against both drift and
-  comments.
+  comments - and a single needle test is not enough for a multi-line command: the
+  rsync source sits on a backslash-continued argument line, so the check must
+  track the rsync command across its continuation lines rather than ask whether
+  any line mentions the path.
 - **Prove it with negative controls, not with a green run.** A passing validator
   proves nothing about a guard that fails open. Perturb a COPY of the input (via
   `MERDPOS_DEPLOY_SCRIPT`, which the validator honours) and assert the exact

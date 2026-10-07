@@ -7,7 +7,7 @@ authoritative_branch: namecheap-beta-live
 base_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 branch: harness/MERD-20261007-roster-gate-fail-closed
 created_at: '2026-10-07T12:07:45Z'
-updated_at: '2026-10-07T12:20:00Z'
+updated_at: '2026-10-07T07:30:00Z'
 last_seen_head: 449e89e50c310d60ace1ec388cfa8279db6e4439
 lifecycle: CODED
 packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_OWNER_MERGE
@@ -73,14 +73,29 @@ evidence_so_far:
   - 'The cli transport required one escalated run: it keeps state under %USERPROFILE%\.kimi-code, outside the repository, and failed unconfined with "storage write failed: permission denied".'
 
 remaining_work:
-  - Independent review of THIS change on its pushed SHA (Tier 3 requirement).
+  - Independent review of the DELTA created by the first review's findings (SHA
+    38b7a88 no longer covers the code once M1 and N3 were fixed).
   - Product-owner approval to merge into namecheap-beta-live.
   - After the canonical cron deploy, confirm the marker SHA and record deployed state.
 
+review:
+  first_pass:
+    reviewed_sha: 38b7a88061ad3122c9d89523dfeb07a878bfccd5
+    range: 449e89e..38b7a88
+    verdict: SHIP
+    transport: web (KIMI_WEB browser route) - no escalation needed
+    evidence: C:\DSH\evidence\20261007-121311-kimi-review-449e89e-38b7a88.md
+    major_findings: none
+    findings_and_disposition:
+      - 'M1 the rsync leg matched its needle anywhere in a line, so a comment quoting the path could satisfy it: FIXED - the check now tracks an actual rsync command across its backslash-continued argument lines.'
+      - 'M2 the outer "deploy script not found -> skip" path still lets not-found mean fine, and the stale-script candidate lookup stays open: NOT FIXED BY DESIGN (failing closed there would abort every deploy - the exact outage PR #183 fixed); playbook section 8.1 reworded to scope the claim honestly and the candidate lookup stays a tracked follow-up.'
+      - 'N1 ACTIVE.yaml and the packet stamps denoted instants five hours apart: FIXED - both now denote 2026-10-07T12:30+05:00 = 07:30Z.'
+      - 'N2 review sequencing versus the packet own Tier 3 requirement: addressed by this review record.'
+      - 'N3 unsupported "every validator assumes re-runnability" claim in the deploy comment: FIXED - the comment now points at the validators that follow the applies, which is checkable in the same file.'
+
 next_action: >-
-  Push the branch, open the PR with the Gate 2.5 handoff fields, then obtain the
-  independent review of the pushed SHA and hand the merge decision to the product
-  owner.
+  Re-review the post-finding delta, then open the PR with the Gate 2.5 handoff
+  fields and the review verdicts, and hand the merge decision to the product owner.
 
 notes:
   - 'The packet MERD-20261004-roster-planning-v1 remains the owner of the roster feature itself; this packet only closes its review gap and the deploy-gate defect. Its deferred follow-up about the deploy-script CANDIDATE LOOKUP (a stale script at a parent path could still produce a false pass) is NOT addressed here and stays open.'
