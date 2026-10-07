@@ -8,7 +8,7 @@ base_head: 80107273644197c721057c202a4252fdcb81b893
 last_seen_head: 80107273644197c721057c202a4252fdcb81b893
 branch: feature/harness-efficiency-kimi-web-v1
 created_at: '2026-10-07T17:34:00+05:00'
-updated_at: '2026-10-07T17:48:00+05:00'
+updated_at: '2026-10-07T19:21:06+05:00'
 lifecycle: WIRED
 packet_state: CHECKED
 risk: HIGH
@@ -25,7 +25,7 @@ acceptance:
   - New/material features cannot claim WIRED without accounting for every applicable integration layer with evidence or NOT APPLICABLE.
   - CI scope detection and repository hygiene share one runner and no ordinary hygiene job performs a full-history checkout.
   - Beta static contracts and Chromium smoke share one runner; duplicate Beta Gitleaks is removed while the dedicated Secret scan covers namecheap-beta-live.
-  - Secret scan cancels obsolete PR scans but never cancels branch-push scans, and ordinary scans avoid full-history checkout unless the relevant range exceeds the shallow window.
+  - Secret scan cancels obsolete PR scans but never cancels branch-push scans; the dedicated history-sensitive Gitleaks job keeps complete Git history while ordinary lint/scope/UI jobs remain shallow.
   - Flutter analysis/tests/debug build reuse one checkout/Flutter setup.
   - Continuity validation, workflow syntax checks, targeted local checks and independent review pass on the frozen SHA.
 affected_paths:
@@ -57,7 +57,7 @@ handoff:
   branch: feature/harness-efficiency-kimi-web-v1
   pr: 189
   base_sha: 80107273644197c721057c202a4252fdcb81b893
-  head_sha: pending-this-checkpoint-commit
+  head_sha: null
 impact:
   business_logic: "NO"
   database: "NO"
@@ -78,6 +78,7 @@ completed:
   - Authoritative remote HEAD re-resolved as 80107273644197c721057c202a4252fdcb81b893.
   - Current governance/workflow diff reviewed before adopting overlapping uncommitted work.
   - Existing Gate 1.5, KIMI_WEB role split, handoff integration matrix and continuity guards confirmed in the in-progress diff.
+  - Synthetic shallow-history regression reproduced: an 80-commit PR fetched at depth 50 had the base commit present but only 50 of 81 base..merge commits visible; the Secret scan was changed back to complete history so Gitleaks cannot silently miss older PR commits.
 checks:
   - name: git diff --check
     result: PASS
@@ -93,19 +94,22 @@ checks:
     evidence: PyYAML parsed all 4 workflow files
   - name: workflow embedded shell syntax
     result: PASS
-    evidence: Git Bash parsed 32 run blocks with bash -n; deploy_namecheap_beta.sh also passes bash -n
+    evidence: Git Bash parsed 37 workflow run blocks with bash -n; deploy_namecheap_beta.sh also passes bash -n
   - name: workflow semantic assertions
     result: PASS
-    evidence: one CI scope/hygiene job; one Beta source/browser job; no duplicate Beta Gitleaks; Flutter build consolidated; adaptive Secret scan present
+    evidence: one CI scope/hygiene job; one Beta source/browser job; no duplicate Beta Gitleaks; Flutter build consolidated; dedicated Secret scan uses complete history while ordinary jobs remain shallow
+  - name: synthetic shallow-history security regression
+    result: PASS
+    evidence: 80-commit synthetic PR at fetch depth 50 reproduced base commit present but only 50 of 81 base..merge commits visible; fix restores complete history for Gitleaks
   - name: KIMI_WEB independent review
-    result: NOT_RUN
-    evidence: pending frozen pushed SHA
+    result: PENDING_REREVIEW
+    evidence: head 20e1223 received SHIP after focused re-review, but that review is superseded by the subsequent Secret-scan security fix; final immutable head requires a fresh review
 remaining:
-  - Commit and push the checked branch, open the PR and wait for GitHub Actions.
-  - Run KIMI_WEB independent review on the exact pushed head SHA and fix forward if needed.
-  - Merge only when CI and review pass, observe the canonical deploy as applicable, then archive this packet on authoritative branch.
+  - Commit and push the Secret-scan completeness fix to PR #189 and wait for GitHub Actions on the new exact head.
+  - Run KIMI_WEB independent review on that exact pushed head SHA and fix forward if needed.
+  - Merge only when CI and review pass, verify the merged workflow runtime on namecheap-beta-live, then archive this packet on authoritative branch.
 next_action: >-
-  Freeze the checked implementation in Git, push it, create the PR and hand the
-  exact immutable head SHA to KIMI_WEB for independent review.
+  Freeze and push the complete-history Secret-scan fix, then hand the new exact
+  immutable PR head to KIMI_WEB for independent review.
 blocked: false
 blocker: null

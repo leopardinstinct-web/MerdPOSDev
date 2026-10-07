@@ -273,6 +273,7 @@ Efficiency rules:
 - never commit a temporary workflow or temporary branch trigger merely to run a one-off check; use `workflow_dispatch` or an existing reusable workflow;
 - use `cancel-in-progress` for replaceable PR checks so obsolete SHAs stop consuming runners;
 - reserve full-history checkout for checks that genuinely need repository history (for example the dedicated Gitleaks scan); ordinary lint/scope/UI jobs should fetch only the revisions they need;
+- **do not infer commit-range completeness from `git cat-file` on the base commit in a shallow PR checkout.** A synthetic 80-commit PR proved that `fetch-depth: 50` can contain the base commit while exposing only 50 of the 81 commits in `base..merge`; a history-sensitive security scan can therefore miss older PR commits even though the base object resolves. Use complete history for Gitleaks unless a future implementation proves the entire scanned ancestry is present, not merely the base object;
 - do not run the same expensive security/test suite twice under different workflow names for the same event;
 - consolidate repeated Flutter setup/dependency resolution before tests and debug build unless parallelism materially shortens a release-critical path.
 
