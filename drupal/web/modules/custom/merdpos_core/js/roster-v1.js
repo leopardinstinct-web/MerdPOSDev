@@ -338,8 +338,10 @@
                   deferred += 1;
                 } else {
                   // Authoritative rejection: retrying cannot help, so say why and drop
-                  // it. Every reason is remembered, and the first is the one shown when
-                  // several arrive, so the earliest cause is not lost behind the latest.
+                  // it. Every reason is counted, but the status line shows only the
+                  // FIRST with a count of the rest: the earliest cause is the most
+                  // likely root cause and the line is too small to list them all, so
+                  // the later reasons are NOT individually displayed.
                   rejected += 1;
                   pendingRejectionReasons.push(String(data?.error || 'MERDPOS rejected this roster change.'));
                   setMessage(pendingRejectionReasons.length === 1
