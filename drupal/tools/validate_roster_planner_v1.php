@@ -259,56 +259,114 @@ $forbid($js, 'cacheConfirmedWeek', 'the script must not write a persisted local 
 $forbid($js, 'slice(0, 255)', 'the note must be truncated in UTF-8 bytes, not UTF-16 units');
 $forbid($js, 'classList.add(\'is-empty\')', 'removing the last employee must not mark the cell as having no shift');
 
-// ---- controller class surface: no inherited member may be narrowed ----------
+// ---- controller class surface: no inherited member may be NARROWED ----------
 // This check exists because a deploy failed on exactly this, after php84 -l, the
 // contract validator and the reflection harness had all passed:
 //
 //   Fatal error: Access level to RosterController::state() must be protected
 //   (as in class Drupal\Core\Controller\ControllerBase) or weaker
 //
-// A private method whose name matches a public/protected ControllerBase method is a
-// fatal error at class load, which no syntax check can see, and the reflection
-// harness stubs ControllerBase - so it cannot see it either. The list below is the
-// public+protected surface of Drupal\Core\Controller\ControllerBase as reported by
-// ReflectionClass (25 members); declaring any of them private or protected here is
-// a deploy-breaking defect.
-$inherited = [
-    'cache', 'config', 'create', 'createInstanceAutowired', 'currentUser', 'entityFormBuilder',
-    'entityTypeManager', 'formBuilder', 'formatPlural', 'getDestinationArray', 'getLogger',
-    'getNumberOfPlurals', 'getRedirectDestination', 'getStringTranslation', 'keyValue',
-    'languageManager', 'messenger', 'moduleHandler', 'redirect', 'setLoggerFactory',
-    'setMessenger', 'setRedirectDestination', 'setStringTranslation', 'state', 't',
+// PHP fatals only when visibility is REDUCED below the parent's. Re-declaring an
+// inherited member at the same visibility is legal, so a check that flags every
+// private/protected match would block valid deploys - which is its own defect, and
+// the first version of this check did exactly that. The map below therefore records
+// the PARENT's visibility per member (ReflectionClass on ControllerBase: 7 public,
+// 18 protected) and only a strictly weaker declaration fails.
+$inheritedVisibility = [
+    'cache' => 'protected', 'config' => 'protected', 'create' => 'public',
+    'createInstanceAutowired' => 'public', 'currentUser' => 'protected',
+    'entityFormBuilder' => 'protected', 'entityTypeManager' => 'protected',
+    'formBuilder' => 'protected', 'formatPlural' => 'protected',
+    'getDestinationArray' => 'protected', 'getLogger' => 'protected',
+    'getNumberOfPlurals' => 'protected', 'getRedirectDestination' => 'protected',
+    'getStringTranslation' => 'protected', 'keyValue' => 'protected',
+    'languageManager' => 'protected', 'messenger' => 'public', 'moduleHandler' => 'protected',
+    'redirect' => 'protected', 'setLoggerFactory' => 'public', 'setMessenger' => 'public',
+    'setRedirectDestination' => 'public', 'setStringTranslation' => 'public',
+    'state' => 'protected', 't' => 'protected',
 ];
-if ($controller !== '') {
-    foreach ($inherited as $inheritedName) {
-        foreach (['private', 'protected'] as $visibility) {
-            if (preg_match('/\b' . $visibility . '\s+(?:static\s+)?function\s+' . preg_quote($inheritedName, '/') . '\s*\(/', $controller) === 1) {
-                $failures[] = "the controller must not declare {$visibility} {$inheritedName}(): it narrows Drupal\\Core\\Controller\\ControllerBase and is a fatal error at class load";
+$rank = ['private' => 0, 'protected' => 1, 'public' => 2];
+
+/**
+ * Declared methods with their visibility, read through the tokenizer.
+ *
+ * The tokenizer matters here: a pattern over raw source matches inside comments,
+ * docblocks and strings, and this validator's own explanatory comments mention
+ * "private function state()". Tokenizing also handles `final`/`static`/`&` in any
+ * order and PHP's case-insensitive method names, which a regex chain did not.
+ */
+$declaredMethods = static function (string $source): array {
+    $found = [];
+    $tokens = token_get_all($source);
+    $count = count($tokens);
+    for ($i = 0; $i < $count; $i++) {
+        $token = $tokens[$i];
+        if (!is_array($token) || $token[0] !== T_FUNCTION) continue;
+        // Walk back over the modifiers to find this declaration's visibility. Every
+        // modifier must be skipped, not just whitespace: `private static function`
+        // puts T_STATIC directly before the keyword, and stopping there lost the
+        // visibility entirely - which made a narrowed public member invisible.
+        $visibility = null;
+        for ($back = $i - 1; $back >= 0; $back--) {
+            $previous = $tokens[$back];
+            if (is_array($previous) && $previous[0] === T_WHITESPACE) continue;
+            if (is_array($previous) && in_array($previous[0], [T_PRIVATE, T_PROTECTED, T_PUBLIC], true)) {
+                $visibility = strtolower($previous[1]);
+                break;
             }
+            if (is_array($previous) && in_array($previous[0], [T_STATIC, T_FINAL, T_ABSTRACT, T_READONLY], true)) continue;
+            break;
+        }
+        // The name is the next T_STRING, skipping whitespace and a by-reference '&'.
+        for ($next = $i + 1; $next < $count; $next++) {
+            $candidate = $tokens[$next];
+            if (is_array($candidate) && $candidate[0] === T_WHITESPACE) continue;
+            if ($candidate === '&') continue;
+            if (is_array($candidate) && $candidate[0] === T_STRING) {
+                $found[] = ['name' => $candidate[1], 'visibility' => $visibility];
+            }
+            break;
         }
     }
-    // When Drupal's autoloader happens to be present (it is on the deploy host after
-    // composer install), check the real parent instead of trusting the list above.
+    return $found;
+};
+if ($controller !== '') {
+    // Prefer the real parent when Drupal's autoloader is present (it is on the deploy
+    // host after composer install); fall back to the recorded map otherwise.
+    $parentVisibility = $inheritedVisibility;
+    $reflectionUsed = FALSE;
     $autoload = $root . '/vendor/autoload.php';
     if (is_file($autoload)) {
         try {
             require_once $autoload;
             if (class_exists('Drupal\Core\Controller\ControllerBase')) {
                 $parent = new ReflectionClass('Drupal\Core\Controller\ControllerBase');
-                $parentNames = [];
+                $parentVisibility = [];
                 foreach ($parent->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED) as $method) {
-                    $parentNames[$method->getName()] = TRUE;
+                    $parentVisibility[$method->getName()] = $method->isPublic() ? 'public' : 'protected';
                 }
-                preg_match_all('/\b(private|protected)\s+(?:static\s+)?function\s+(\w+)\s*\(/', $controller, $matches, PREG_SET_ORDER);
-                foreach ($matches as $match) {
-                    if (isset($parentNames[$match[2]])) {
-                        $failures[] = "the controller declares {$match[1]} {$match[2]}() which conflicts with the real ControllerBase (verified by reflection)";
-                    }
-                }
+                $reflectionUsed = TRUE;
             }
         }
         catch (Throwable $error) {
-            // Reflection is a bonus layer; the static list above is the guaranteed one.
+            // Not silently ignored: if the autoloader exists but cannot be used, the
+            // strongest layer is unavailable exactly where it was meant to compensate
+            // for the recorded map, so say so instead of reporting a clean pass.
+            $failures[] = 'the Drupal autoloader is present but the ControllerBase surface could not be read: ' . $error->getMessage();
+        }
+    }
+    $reported = [];
+    foreach ($declaredMethods($controller) as $declared) {
+        if ($declared['visibility'] === null) continue;
+        // PHP treats method names case-insensitively.
+        foreach ($parentVisibility as $parentName => $parentLevel) {
+            if (strcasecmp($parentName, $declared['name']) !== 0) continue;
+            if ($rank[$declared['visibility']] >= $rank[$parentLevel]) continue;
+            $key = strtolower($declared['name']);
+            if (isset($reported[$key])) continue;
+            $reported[$key] = TRUE;
+            $failures[] = "the controller declares {$declared['visibility']} {$declared['name']}() where ControllerBase has {$parentLevel}: reducing visibility is a fatal error at class load"
+                . ($reflectionUsed ? ' (checked against the real parent)' : ' (checked against the recorded parent surface)');
         }
     }
 }
