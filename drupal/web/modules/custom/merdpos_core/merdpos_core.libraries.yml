@@ -106,3 +106,18 @@ disputes:
       css/ui-primitives.css: {}
   js:
     js/disputes-v1.js: {}
+
+roster:
+  version: 1.x
+  dependencies:
+    - merdpos_core/base
+    - merdpos_core/dashboard
+    - core/drupal
+    - core/once
+  css:
+    theme:
+      css/roster-v1.css: {}
+      css/dark-normalization.css: {}
+      css/ui-primitives.css: {}
+  js:
+    js/roster-v1.js: {}

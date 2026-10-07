@@ -32,15 +32,15 @@ $required = [
   '@media(max-width:51.25rem)',
 ];
 foreach ($required as $needle) if (!str_contains($css, $needle)) $errors[] = "global UI primitive missing: $needle";
-$surfaceTemplates = ['merdpos-dashboard.html.twig','merdpos-operations.html.twig','merdpos-reports.html.twig','merdpos-finance.html.twig','merdpos-dev.html.twig','merdpos-administration.html.twig','merdpos-disputes.html.twig','merdpos-surface.html.twig','merdpos-section.html.twig'];
+$surfaceTemplates = ['merdpos-dashboard.html.twig','merdpos-operations.html.twig','merdpos-reports.html.twig','merdpos-finance.html.twig','merdpos-dev.html.twig','merdpos-administration.html.twig','merdpos-disputes.html.twig','merdpos-roster.html.twig','merdpos-surface.html.twig','merdpos-section.html.twig'];
 foreach ($surfaceTemplates as $template) {
   $path = $root . '/web/modules/custom/merdpos_core/templates/' . $template;
   $body = is_file($path) ? (string) file_get_contents($path) : '';
   if (!preg_match('/<section\s+class="[^"]*\bmerdpos-app\b/', $body)) $errors[] = "surface root missing merdpos-app scope: $template";
 }
 $occurrences = substr_count($libs, 'css/ui-primitives.css: {}');
-if ($occurrences !== 8) $errors[] = "ui-primitives.css must be wired to base plus seven feature libraries; found $occurrences";
-foreach (['dashboard','operations','reports','finance','dev','administration','disputes'] as $name) {
+if ($occurrences !== 9) $errors[] = "ui-primitives.css must be wired to base plus eight feature libraries; found $occurrences";
+foreach (['dashboard','operations','reports','finance','dev','administration','disputes','roster'] as $name) {
   $start = strpos($libs, "\n$name:\n");
   if ($start === false) { $errors[] = "library missing: $name"; continue; }
   $next = strpos($libs, "\n\n", $start + 2);

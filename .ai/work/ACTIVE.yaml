@@ -2,6 +2,10 @@ version: 1
 authoritative_branch: namecheap-beta-live
 updated_at: '2026-10-01T02:38:06+05:00'
 active:
+- id: MERD-20261007-roster-planner-ui
+  path: .ai/work/active/MERD-20261007-roster-planner-ui.yaml
+  lifecycle: CODED
+  packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_DEPLOY
 - id: MERD-20260929-drupal-reports-aa-makeover-v1
   path: .ai/work/active/MERD-20260929-drupal-reports-aa-makeover-v1.yaml
   lifecycle: DEPLOYED

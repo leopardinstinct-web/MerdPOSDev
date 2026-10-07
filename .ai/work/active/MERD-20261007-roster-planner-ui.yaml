@@ -1,0 +1,97 @@
+version: 1
+id: MERD-20261007-roster-planner-ui
+title: Roster planner UI (week grid, offline-first, light/dark) in the Drupal Beta app
+project: merdpos
+track: beta
+authoritative_branch: beta/drupal-webapp
+base_head: 8d1606cde4dbfcca0106241a5ddd03eb2199cce3
+branch: harness/MERD-20261007-roster-planner-ui
+created_at: '2026-10-07T13:00:18Z'
+updated_at: '2026-10-07T13:40:00Z'
+last_seen_head: 8d1606cde4dbfcca0106241a5ddd03eb2199cce3
+lifecycle: CODED
+packet_state: IMPLEMENTED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_DEPLOY
+risk: HIGH
+risk_basis: >-
+  A new writable surface over roster planning: it submits week data that the
+  portal persists, and it reads an assignable-employee list. Under
+  .ai/task-gates.md this is Tier 3-adjacent (authorization-visible write plus
+  planning data), so it needs independent review on an immutable SHA and the
+  product owner's merge decision, exactly like the roster deploy-gate work.
+
+objective: >-
+  Give a manager the roster planner the hand-written weekly note does today: seven
+  days, an early and a late shift per day, several employees per shift, times that
+  cross midnight, draft/published - stored canonically in the Beta backend via the
+  gateway, readable offline, and correct in both light and dark themes.
+
+why_now: >-
+  The roster backend, permissions, endpoint and deploy gate are live and verified,
+  but no UI existed: zero .twig/.js/.css files mentioned roster. The feature was
+  unusable by a human. This packet closes that gap.
+
+integration_gap_found_and_fixed:
+  problem: >-
+    No capability exposed the employees a store may actually be rostered with.
+    store_identity returns stores; dashboard_data's workforce rows are attendance;
+    the roster endpoint returned only already-assigned employees.
+  fix: >-
+    The portal roster endpoint gained scope=employees (see the companion packet
+    MERD-20261007-roster-employees-scope on namecheap-beta-live), gated on
+    roster.manage plus store access and reusing roster_employee_may_use_store() so
+    the picker and the writer cannot disagree. The Drupal app asks for it only when
+    the actor holds roster.manage, and degrades to "shifts queue; the portal
+    validates them" when the scope is unavailable.
+
+changed_paths:
+  - drupal/web/modules/custom/merdpos_core/src/Controller/RosterController.php
+  - drupal/web/modules/custom/merdpos_core/templates/merdpos-roster.html.twig
+  - drupal/web/modules/custom/merdpos_core/js/roster-v1.js
+  - drupal/web/modules/custom/merdpos_core/css/roster-v1.css
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.module
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.routing.yml
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.libraries.yml
+  - drupal/web/themes/custom/merdpos_app/merdpos_app.theme
+  - drupal/tools/validate_roster_planner_v1.php
+  - drupal/tools/validate_global_ui_primitives_v1.php
+  - drupal/tools/namecheap_deploy.sh
+
+design_notes:
+  surface_owned_by_controller: >-
+    The grid is built in RosterController rather than ParityDataProvider because it
+    is an editable grid, not the metric/group/filter shape that provider returns
+    for read-only sections.
+  offline_first: >-
+    The week is rendered server-side, so the last confirmed week IS what the
+    browser already holds when connectivity drops. Edits queue in localStorage
+    under a versioned key, each submission carries its own UUID v4 idempotency id,
+    and the queue flushes on `online` and on load. The browser decides what to
+    retry; the portal decides what is true - an authoritative rejection drops the
+    entry and says why, while anything the portal could not be asked stays queued.
+  light_dark: >-
+    No literal colours: every value comes from design-tokens.css, which the theme
+    resolves per [data-theme], so both modes are correct from one stylesheet. The
+    contract validator fails if a hex or rgb()/hsl() literal appears.
+  permissions: >-
+    The page requires roster.view or roster.view_own; the write requires
+    roster.manage and is re-checked server-side on every queued submission. The
+    nav entry is gated on the same backend permissions and, unlike Financials, does
+    NOT require an active shop session - planning a week is not a shop-floor action.
+
+checks_run:
+  - 'php84 -l RosterController.php, validate_roster_planner_v1.php -> no syntax errors.'
+  - 'node --check roster-v1.js -> exit 0.'
+  - 'bash -n drupal/tools/namecheap_deploy.sh -> exit 0.'
+  - 'php84 drupal/tools/validate_roster_planner_v1.php -> passes (routes, POST-only write, CSRF + roster.manage, no operational SQL, offline markers, token-only colours, nav, deploy wiring).'
+  - 'Full local validator sweep: 26 pass, 0 real failures; 15 skipped only because they need composer vendor/, a deploy-generated release marker, or --self-test mode.'
+  - 'Contract-as-dependent-source: validate_global_ui_primitives_v1.php asserts the shared primitive is wired to base plus N feature libraries; adding the roster feature updated that expectation from 8 to 9 and added merdpos-roster.html.twig to the surface list.'
+
+remaining_work:
+  - Push the branch and open the PR; publish the companion portal PR for the employees scope.
+  - Independent Tier 2 review of both SHAs.
+  - Product-owner merge approval for both, then the two canonical deploys.
+  - Live verification on drupal-beta.merdpos.com with an authenticated session: the grid renders for a real store/week, editing obeys roster.manage, the queue survives going offline and flushes on reconnect, and both themes render correctly.
+
+next_action: >-
+  Commit, push and open the PR for this branch; then open the companion portal PR
+  for scope=employees and request review of both SHAs.
