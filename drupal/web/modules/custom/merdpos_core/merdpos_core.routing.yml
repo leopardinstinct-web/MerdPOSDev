@@ -96,6 +96,22 @@ merdpos_core.finance_submit:
     _permission: 'access merdpos portal'
   methods: [POST]
 
+merdpos_core.roster:
+  path: '/merdpos/roster'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\RosterController::roster'
+    _title: 'Roster'
+  requirements:
+    _permission: 'access merdpos portal'
+
+merdpos_core.roster_submit:
+  path: '/merdpos/roster/submit'
+  defaults:
+    _controller: 'Drupal\merdpos_core\Controller\RosterController::submitJson'
+  requirements:
+    _permission: 'access merdpos portal'
+  methods: [POST]
+
 merdpos_core.change_password:
   path: '/merdpos/account/change-password'
   defaults:

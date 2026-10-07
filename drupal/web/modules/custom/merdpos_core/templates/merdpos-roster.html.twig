@@ -1,0 +1,234 @@
+{#
+  Roster planner surface.
+
+  The grid is rendered server-side on purpose: the week is in the markup, so it
+  stays readable for as long as this tab is open with no further read at all.
+  Nothing is persisted separately - there is no service worker and no stored copy
+  of the week - while changes the planner makes queue in localStorage and are
+  replayed through /merdpos/roster/submit, where the portal stays authoritative.
+
+  A cell knows whether it STARTED with a stored shift (data-roster-original) and
+  what this slot's default times are (data-roster-default-*), so "no employees on
+  this shift" and "no shift here" stay different facts: the portal replaces a week
+  wholesale, and clearing a shift's employees must not delete the shift.
+
+  ends_next_day is not a control. It is derived from the times - an end at or
+  before the start lands on the next day - and both this template and the script
+  only display the derivation; the controller re-derives it.
+
+  No |raw anywhere: every value is escaped by Twig.
+#}
+<section class="merdpos-app merdpos-roster"
+         aria-label="{{ surface.scope == 'own' ? 'My roster' : 'Roster planner' }}"
+         data-roster-offline-root
+         data-roster-queue-key="{{ surface.write.queue_key }}"
+         data-roster-submit-url="{{ surface.write.submit_url }}"
+         data-roster-token="{{ surface.write.form_token }}"
+         data-roster-scope="{{ surface.scope }}"
+         data-roster-store-id="{{ surface.store.id }}"
+         data-roster-week-start="{{ surface.week_start }}"
+         data-roster-week-status="{{ surface.week.status }}"
+         data-roster-can-manage="{{ surface.can_manage ? '1' : '0' }}"
+         data-roster-status="{{ surface.status }}">
+
+  <header class="merdpos-page-header merdpos-roster-hero">
+    <div class="merdpos-page-header__copy">
+      <p class="merdpos-page-header__eyebrow">Roster</p>
+      <h1 class="merdpos-page-header__title">{{ surface.title }}</h1>
+      <p class="merdpos-page-header__description">{{ surface.description }}</p>
+    </div>
+    <div class="merdpos-roster-state" aria-live="polite">
+      <span class="merdpos-roster-status" data-status="{{ surface.status|lower }}">{{ surface.status_label }}</span>
+      <span class="merdpos-roster-queue-pill" data-roster-queue-badge>✓ Up to date</span>
+      <span class="merdpos-roster-queue-message" data-roster-status-message></span>
+    </div>
+  </header>
+
+  <form class="merdpos-roster-filters" method="get" aria-label="Roster week and store">
+    {% if surface.scope == 'store' %}
+      <label>
+        <span>Store</span>
+        <select name="store_id" data-roster-store>
+          {% for store in surface.stores %}
+            <option value="{{ store.id }}"{{ store.selected ? ' selected' : '' }}>{{ store.name }}</option>
+          {% else %}
+            <option value="0">No store available</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endif %}
+    <label>
+      <span>Week starting (Monday)</span>
+      <select name="week_start" data-roster-week>
+        {% for week in surface.week_options %}
+          <option value="{{ week.value }}"{{ week.selected ? ' selected' : '' }}>{{ week.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="merdpos-btn merdpos-btn--primary" type="submit">Show week</button>
+    <span class="merdpos-roster-permission">{{ surface.permission_message }}</span>
+  </form>
+
+  {% if surface.week_notice %}
+    <p class="merdpos-roster-week-notice" role="status">{{ surface.week_notice }}</p>
+  {% endif %}
+
+  {% if surface.status != 'ok' %}
+    <div class="merdpos-roster-notice" role="status">
+      <strong>Roster unavailable</strong>
+      {% if surface.scope == 'own' %}
+        <p>MERDPOS did not return your shifts for this week. Try another week, or check with whoever maintains the roster.</p>
+      {% else %}
+        <p>MERDPOS did not return this week. The grid stays read-only until it does; anything already queued on this device is kept.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if surface.scope == 'own' %}
+    <section class="merdpos-roster-board" aria-label="My shifts this week">
+      <header class="merdpos-roster-board-head">
+        <div>
+          <p class="merdpos-eyebrow">MY WEEK</p>
+          <h2>My roster{% if surface.week_label %} · {{ surface.week_label }}{% endif %}</h2>
+        </div>
+        <div class="merdpos-roster-board-meta">
+          <span>Read-only</span>
+          <span>{{ surface.own_shifts|length }} shift{{ surface.own_shifts|length == 1 ? '' : 's' }}</span>
+        </div>
+      </header>
+
+      {% if surface.own_shifts is empty %}
+        <p class="merdpos-roster-hint">No shifts are planned for you in this week.</p>
+      {% else %}
+        <ul class="merdpos-roster-own-list">
+          {% for shift in surface.own_shifts %}
+            <li class="merdpos-roster-own-row">
+              <span class="merdpos-roster-own-day">
+                <strong>{{ shift.weekday }}</strong><small>{{ shift.day }}</small>
+              </span>
+              <span class="merdpos-roster-own-slot">{{ shift.label }}</span>
+              <span class="merdpos-roster-own-time">{{ shift.start_time }}–{{ shift.end_time }}{% if shift.ends_next_day %} <span class="merdpos-roster-nextday-mark">+1d</span>{% endif %}</span>
+              {% if shift.store_name %}<span class="merdpos-roster-own-store">{{ shift.store_name }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% else %}
+    <section class="merdpos-roster-board" aria-label="Planned week">
+      <header class="merdpos-roster-board-head">
+        <div>
+          <p class="merdpos-eyebrow">PLANNED WEEK</p>
+          <h2>{{ surface.store.name }}{% if surface.week_label %} · {{ surface.week_label }}{% endif %}</h2>
+        </div>
+        <div class="merdpos-roster-board-meta">
+          <span>Status: {{ surface.week.status|capitalize }}</span>
+          <span>{{ surface.slots.early.label }} {{ surface.slots.early.start }}–{{ surface.slots.early.end }}</span>
+          <span>{{ surface.slots.late.label }} {{ surface.slots.late.start }}–{{ surface.slots.late.end }} +1d</span>
+        </div>
+      </header>
+
+      <div class="merdpos-roster-grid" role="table" aria-label="Week grid">
+        <div class="merdpos-roster-grid-head" role="row">
+          <span role="columnheader">Shift</span>
+          {% for day in surface.week_days %}
+            <span role="columnheader" class="merdpos-roster-dayhead{{ day.is_today ? ' is-today' : '' }}">
+              <strong>{{ day.weekday }}</strong><small>{{ day.day }}</small>
+            </span>
+          {% endfor %}
+        </div>
+
+        <div class="merdpos-roster-grid-body" role="rowgroup">
+          {% for slot_key, slot in surface.slots %}
+            <div class="merdpos-roster-grid-row" role="row">
+              <span class="merdpos-roster-slot" role="rowheader">
+                <strong>{{ slot.label }}</strong><small>{{ slot.start }}–{{ slot.end }}</small>
+              </span>
+              {% for day in surface.week_days %}
+                {% set key = day.date ~ '|' ~ slot_key %}
+                {% set shift = surface.shifts[key] ?? null %}
+                {% set has_shift = shift is not null %}
+                {% set cell_next_day = has_shift ? shift.ends_next_day : slot.next_day %}
+                <div class="merdpos-roster-cell{{ day.is_today ? ' is-today' : '' }}{{ has_shift ? '' : ' is-vacant' }}"
+                     role="cell"
+                     data-roster-cell="{{ key }}"
+                     data-roster-date="{{ day.date }}"
+                     data-roster-slot="{{ slot_key }}"
+                     data-roster-original="{{ has_shift ? 'shift' : 'none' }}"
+                     data-roster-original-start="{{ has_shift ? shift.start_time : '' }}"
+                     data-roster-original-end="{{ has_shift ? shift.end_time : '' }}"
+                     data-roster-default-start="{{ slot.start }}"
+                     data-roster-default-end="{{ slot.end }}">
+                  <div class="merdpos-roster-cell-head">
+                    <label class="merdpos-roster-time">
+                      <span class="merdpos-visually-hidden">Start</span>
+                      <input type="time" value="{{ has_shift ? shift.start_time : slot.start }}" data-roster-start{{ surface.can_manage ? '' : ' disabled' }}>
+                    </label>
+                    <label class="merdpos-roster-time">
+                      <span class="merdpos-visually-hidden">End</span>
+                      <input type="time" value="{{ has_shift ? shift.end_time : slot.end }}" data-roster-end{{ surface.can_manage ? '' : ' disabled' }}>
+                    </label>
+                    <span class="merdpos-roster-nextday" data-roster-next-day title="Ends the next day"{% if not cell_next_day %} hidden{% endif %}>
+                      <span aria-hidden="true">+1d</span>
+                      <span class="merdpos-visually-hidden">Ends the next day</span>
+                    </span>
+                  </div>
+                  <ul class="merdpos-roster-assignments" data-roster-assignments>
+                    {% for assignment in has_shift ? shift.assignments : [] %}
+                      <li class="merdpos-roster-chip" data-roster-employee="{{ assignment.employee_id }}">
+                        <span>{{ assignment.name }}</span>
+                        {% if surface.can_manage %}
+                          <button type="button" class="merdpos-roster-chip-remove" data-roster-remove aria-label="Remove {{ assignment.name }}">×</button>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% if surface.can_manage %}
+                    <div class="merdpos-roster-add">
+                      <label>
+                        <span class="merdpos-visually-hidden">Add employee</span>
+                        <select data-roster-add>
+                          <option value="">Add employee…</option>
+                          {% for employee in surface.employees %}
+                            <option value="{{ employee.id }}">{{ employee.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </label>
+                      {% if surface.employees is empty %}
+                        <small class="merdpos-roster-hint">
+                          {% if surface.employee_scope == 'ok' %}No employee may work at this store yet.
+                          {% else %}The assignable employee list is unavailable; shifts still queue and the portal validates them.{% endif %}
+                        </small>
+                      {% endif %}
+                    </div>
+                    {# Deleting a shift has to stay possible and deliberate: the portal
+                       replaces the week wholesale, so omitting this cell IS the
+                       deletion. Without this control a shift could only ever be
+                       emptied of staff, never removed. #}
+                    <button type="button" class="merdpos-roster-clear" data-roster-clear aria-label="Clear the {{ slot.label|lower }} shift on {{ day.weekday }} {{ day.day }}">Clear shift</button>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {% if surface.can_manage %}
+      <section class="merdpos-roster-actions" aria-label="Publish">
+        <label class="merdpos-roster-note">
+          <span>Note for the week</span>
+          <input type="text" value="{{ surface.week.note }}" data-roster-note placeholder="Optional note (for example: Rose Bay early start 06:00)">
+        </label>
+        <div class="merdpos-roster-action-buttons">
+          <button type="button" class="merdpos-btn" data-roster-save="draft">Save draft</button>
+          <button type="button" class="merdpos-btn merdpos-btn--primary" data-roster-save="published">Publish week</button>
+        </div>
+        <p class="merdpos-roster-hint">Saved on this device first, then sent to MERDPOS. A queued week keeps its submission ID, so retrying after a dropped connection cannot double-apply it. A shift with no employees is still a shift: the whole week is replaced on save, so an empty shift is saved as an empty shift.</p>
+      </section>
+    {% endif %}
+  {% endif %}
+
+  <p class="merdpos-roster-offline-note" data-roster-offline-note hidden>Offline — showing the week exactly as this tab last rendered it, plus changes waiting to sync.</p>
+</section>

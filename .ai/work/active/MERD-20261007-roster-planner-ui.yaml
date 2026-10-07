@@ -1,0 +1,153 @@
+version: 1
+id: MERD-20261007-roster-planner-ui
+title: Roster planner UI (week grid, offline-first, light/dark) in the Drupal Beta app
+project: merdpos
+track: beta
+authoritative_branch: beta/drupal-webapp
+base_head: 8d1606cde4dbfcca0106241a5ddd03eb2199cce3
+branch: harness/MERD-20261007-roster-planner-ui
+created_at: '2026-10-07T13:00:18Z'
+updated_at: '2026-10-07T14:05:00Z'
+last_seen_head: 043dc545a928097ad881a185871569b1a8528e5b
+lifecycle: CODED
+packet_state: REVIEW_DEFECTS_FIXED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_DEPLOY
+risk: HIGH
+risk_basis: >-
+  A new writable surface over roster planning: it submits week data that the
+  portal persists, and it reads an assignable-employee list. Under
+  .ai/task-gates.md this is Tier 3-adjacent (authorization-visible write plus
+  planning data), so it needs independent review on an immutable SHA and the
+  product owner's merge decision, exactly like the roster deploy-gate work.
+
+objective: >-
+  Give a manager the roster planner the hand-written weekly note does today: seven
+  days, an early and a late shift per day, several employees per shift, times that
+  cross midnight, draft/published - stored canonically in the Beta backend via the
+  gateway, readable offline, and correct in both light and dark themes.
+
+why_now: >-
+  The roster backend, permissions, endpoint and deploy gate are live and verified,
+  but no UI existed: zero .twig/.js/.css files mentioned roster. The feature was
+  unusable by a human. This packet closes that gap.
+
+integration_gap_found_and_fixed:
+  problem: >-
+    No capability exposed the employees a store may actually be rostered with.
+    store_identity returns stores; dashboard_data's workforce rows are attendance;
+    the roster endpoint returned only already-assigned employees.
+  fix: >-
+    The portal roster endpoint gained scope=employees (see the companion packet
+    MERD-20261007-roster-employees-scope on namecheap-beta-live), gated on
+    roster.manage plus store access and reusing roster_employee_may_use_store() so
+    the picker and the writer cannot disagree. The Drupal app asks for it only when
+    the actor holds roster.manage, and degrades to "shifts queue; the portal
+    validates them" when the scope is unavailable.
+
+changed_paths:
+  - drupal/web/modules/custom/merdpos_core/src/Controller/RosterController.php
+  - drupal/web/modules/custom/merdpos_core/templates/merdpos-roster.html.twig
+  - drupal/web/modules/custom/merdpos_core/js/roster-v1.js
+  - drupal/web/modules/custom/merdpos_core/css/roster-v1.css
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.module
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.routing.yml
+  - drupal/web/modules/custom/merdpos_core/merdpos_core.libraries.yml
+  - drupal/web/themes/custom/merdpos_app/merdpos_app.theme
+  - drupal/tools/validate_roster_planner_v1.php
+  - drupal/tools/validate_global_ui_primitives_v1.php
+  - drupal/tools/namecheap_deploy.sh
+  - .ai/work/ACTIVE.yaml
+  - .ai/work/active/MERD-20261007-roster-planner-ui.yaml
+
+design_notes:
+  surface_owned_by_controller: >-
+    The grid is built in RosterController rather than ParityDataProvider because it
+    is an editable grid, not the metric/group/filter shape that provider returns
+    for read-only sections.
+  offline_first: >-
+    The week is rendered server-side, so it stays readable for as long as the tab is
+    open with no fetch. Nothing is persisted separately: there is no service worker
+    and no stored copy of the week, and the surface no longer claims one. Edits queue
+    in localStorage under a versioned key, each submission carries its own UUID v4
+    idempotency id, and the queue flushes on `online` and on load. The browser
+    decides what to retry; the portal decides what is true - an authoritative
+    rejection drops the entry and says why, anything the portal could not be asked
+    stays queued and is retried with backoff (30s, 60s, doubling to a 10-minute cap)
+    while items remain and the tab is online.
+  ends_next_day_is_derived: >-
+    A shift whose end is at or before its start necessarily ends the next day, and
+    one whose end is after its start does not. The grid shows that as a read-only
+    "+1d" indicator, the script derives the flag when it builds the payload, and the
+    controller derives it again from the times. The late slot's default 16:00-00:00
+    is therefore saveable with no checkbox to tick.
+  cells_that_held_a_shift: >-
+    The portal replaces a week wholesale, so a cell records whether the server
+    rendered it with a stored shift (data-roster-original) and what its slot's
+    default times are (data-roster-default-*). A cell is submitted when it has
+    employees, or it held a stored shift, or its times changed; removing the last
+    employee of a stored shift therefore leaves the shift in place with zero
+    assignments, while a never-planned cell that was added to and emptied is not
+    invented. "is-empty" no longer exists as a payload input.
+  permissions: >-
+    roster.view renders the whole-store grid, editable with roster.manage.
+    roster.view_own is self-service and renders only the actor's own shifts for the
+    week as a read-only list: it asks the portal for scope=own, never scope=store.
+    The write requires roster.manage and is re-checked server-side on every queued
+    submission. The nav entry is gated on the same backend permissions and, unlike
+    Financials, does NOT require an active shop session - planning a week is not a
+    shop-floor action.
+  light_dark: >-
+    No literal colours: every value comes from design-tokens.css, which the theme
+    resolves per [data-theme], so both modes are correct from one stylesheet. The
+    contract validator fails if a hex or rgb()/hsl() literal appears.
+
+review_findings_fixed_from_043dc54:
+  M1_default_late_shift_unsaveable: >-
+    ends_next_day is derived from the times on both sides and the interactive checkbox
+    became a read-only indicator; a 16:00-00:00 shift now saves with the flag true.
+  M2_emptied_shift_deleted: >-
+    Cells carry their origin and the slot defaults, so an emptied stored shift is still
+    submitted (with zero assignments) and a never-planned cell still is not.
+  m1_dead_week_cache: >-
+    The cache write, its data attribute, its key and the offline-readability claim are
+    gone; the honest guarantee is stated instead in the template, the script and here.
+  m2_view_own_scope_confusion: >-
+    roster.view gets scope=store (editable with roster.manage); roster.view_own gets
+    scope=own and a read-only titled list of its own shifts.
+  m3_no_retry_after_5xx: >-
+    Bounded retry with backoff (30s, 60s, doubling, 10-minute cap) while items remain
+    and the tab is online.
+  m4_constant_uuid_fallback: >-
+    The last-resort id uses Math.random, so it is never constant; a constant id would
+    make every later week dedupe against the first.
+  m5_note_byte_limit: >-
+    The note is truncated in UTF-8 bytes client-side, so the payload the browser
+    accepts is the one the controller accepts.
+  m6_queue_mutation_during_flush: >-
+    Settled entries are removed by re-reading storage and filtering on submission_id,
+    and overlapping flushes are refused, so a save during a flush can neither be lost
+    nor resurrect a dropped week.
+  n1_stale_index_timestamp: "ACTIVE.yaml updated_at bumped to the packet's date."
+  n2_dashboard_dependency: >-
+    The roster library depends on merdpos_core/base and core/drupal/once only.
+
+checks_run:
+  - 'php84 -l RosterController.php, validate_roster_planner_v1.php, verify_roster_controller.php -> no syntax errors.'
+  - 'node --check roster-v1.js -> exit 0.'
+  - 'bash -n drupal/tools/namecheap_deploy.sh -> exit 0.'
+  - 'php84 drupal/tools/validate_roster_planner_v1.php -> passes (routes, POST-only write, CSRF + roster.manage, scope=store vs scope=own, no operational SQL, derived ends_next_day, stored-shift preservation, explicit clear-shift deletion, non-constant idempotency ids, bounded retry, rejection reporting that survives a drain, no week cache, token-only colours, nav, deploy wiring).'
+  - 'validate_global_ui_primitives_v1.php, validate_source_encoding.php, validate_global_page_headers_v1.php, validate_deploy_clean_checkout_v1.php -> all exit 0.'
+  - 'Payload proof, COMMITTED and reproducible: node drupal/tools/verify_roster_payload.js drupal/web/modules/custom/merdpos_core/js/roster-v1.js -> 32/32 assertions pass. It runs the shipped script against a purpose-built DOM stub (jsdom is not installed) and covers the cell-inclusion rules, the derived +1d flag, the UTF-8 note truncation, the non-constant id, and the queue/flush concurrency cases.'
+  - 'Controller proof, COMMITTED and reproducible: php84 drupal/tools/verify_roster_controller.php drupal/web/modules/custom/merdpos_core/src/Controller/RosterController.php -> 14/14 assertions pass. It invokes normalizeQueuedWeek() on the shipped class through reflection with a stubbed ControllerBase (no Drupal container needed) and asserts the derived ends_next_day, the acceptance of a zero-assignment shift, the same-time refusal, and note truncation.'
+  - 'Fail-closed controls: each of empty-times fallback removed, clear control removed, rejection reported as success, drain-continuation removed, note rejection reinstated, and is-removed styling removed makes the contract validator exit 1 with a specific message. An earlier control run was a no-op because of a line-ending mismatch in the harness, which is why it is now anchored on a single line.'
+  - 'The payload proof found a real regression in an intermediate revision of the rejection fix: stopping the drain on the first rejection stranded a second, valid queued week. That is now asserted by the harness and by the contract validator.'
+  - 'Full local validator sweep: 26 pass, 0 real failures; 15 skipped only because they need composer vendor/, a deploy-generated release marker, or --self-test mode.'
+  - 'Contract-as-dependent-source: validate_global_ui_primitives_v1.php asserts the shared primitive is wired to base plus N feature libraries; adding the roster feature updated that expectation from 8 to 9 and added merdpos-roster.html.twig to the surface list.'
+
+remaining_work:
+  - Independent Tier 2 review of the fixed SHA (the 043dc54 review no longer applies to changed product code).
+  - Product-owner merge approval, then the Drupal canonical deploy.
+  - Live verification on drupal-beta.merdpos.com with an authenticated session: the grid renders for a real store/week, editing obeys roster.manage, a roster.view_own actor sees only their own read-only week, the queue survives going offline and flushes on reconnect, a 16:00-00:00 late shift saves, an emptied shift survives a save, and both themes render correctly.
+
+next_action: >-
+  Push the review fixes, then request independent review of the new SHA before
+  merging and deploying the drupal component.
