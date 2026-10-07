@@ -74,7 +74,7 @@ final class RosterController extends ControllerBase {
     $request = $this->requestStack->getCurrentRequest();
     if (!$request instanceof Request) throw new AccessDeniedHttpException();
 
-    $state = $this->state();
+    $state = $this->betaState();
     $permissions = $state['permissions'];
     if (($state['status'] ?? '') !== 'ok') {
       // An unavailable permission check must not render an editable grid.
@@ -200,7 +200,7 @@ final class RosterController extends ControllerBase {
       return new JsonResponse(['success' => FALSE, 'error' => 'Invalid roster submission.'], 400);
     }
 
-    $state = $this->state();
+    $state = $this->betaState();
     if (($state['status'] ?? '') !== 'ok') {
       $http = (int) ($state['http_status'] ?? 0);
       $retryable = $http === 0 && ($state['status'] ?? '') === 'unavailable';
@@ -344,7 +344,7 @@ final class RosterController extends ControllerBase {
     return $end <= $start;
   }
 
-  private function state(): array {
+  private function betaState(): array {
     $result = $this->gateway->call('beta_state', 'GET');
     $payload = is_array($result['payload'] ?? NULL) ? $result['payload'] : [];
     $permissions = [];
