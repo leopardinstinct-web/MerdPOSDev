@@ -7,10 +7,10 @@ authoritative_branch: beta/drupal-webapp
 base_head: 8d1606cde4dbfcca0106241a5ddd03eb2199cce3
 branch: harness/MERD-20261007-roster-planner-ui
 created_at: '2026-10-07T13:00:18Z'
-updated_at: '2026-10-07T14:05:00Z'
-last_seen_head: 043dc545a928097ad881a185871569b1a8528e5b
-lifecycle: CODED
-packet_state: REVIEW_DEFECTS_FIXED_LOCAL_CHECKS_PASS_AWAITING_REVIEW_AND_DEPLOY
+updated_at: '2026-10-07T10:10:00Z'
+last_seen_head: e6ced270325fa54be077e50c0af8dc8b7eff9291
+lifecycle: DEPLOYED
+packet_state: DEPLOYED_TIER1_GREEN_BEHAVIOURAL_VERIFICATION_AWAITING_ONE_INTERACTIVE_LOGIN
 risk: HIGH
 risk_basis: >-
   A new writable surface over roster planning: it submits week data that the
@@ -139,6 +139,7 @@ checks_run:
   - 'Payload proof, COMMITTED and reproducible: node drupal/tools/verify_roster_payload.js drupal/web/modules/custom/merdpos_core/js/roster-v1.js -> 32/32 assertions pass. It runs the shipped script against a purpose-built DOM stub (jsdom is not installed) and covers the cell-inclusion rules, the derived +1d flag, the UTF-8 note truncation, the non-constant id, and the queue/flush concurrency cases.'
   - 'Controller proof, COMMITTED and reproducible: php84 drupal/tools/verify_roster_controller.php drupal/web/modules/custom/merdpos_core/src/Controller/RosterController.php -> 14/14 assertions pass. It invokes normalizeQueuedWeek() on the shipped class through reflection with a stubbed ControllerBase (no Drupal container needed) and asserts the derived ends_next_day, the acceptance of a zero-assignment shift, the same-time refusal, and note truncation.'
   - 'Fail-closed controls: each of empty-times fallback removed, clear control removed, rejection reported as success, drain-continuation removed, note rejection reinstated, and is-removed styling removed makes the contract validator exit 1 with a specific message. An earlier control run was a no-op because of a line-ending mismatch in the harness, which is why it is now anchored on a single line.'
+  - 'Class-link check: the validator links the controller against Drupal''s real ControllerBase in a subprocess whenever a vendor tree is present, because a visibility conflict is raised at link time and is not catchable. Proven against a real Drupal vendor tree: the shipped controller links (exit 0, and the summary says so explicitly) and reinstating the private state() reproduces the exact fatal Drush printed (exit 1). In a bare worktree the check skips and the summary says the coverage was absent rather than implying it.'
   - 'The payload proof found a real regression in an intermediate revision of the rejection fix: stopping the drain on the first rejection stranded a second, valid queued week. That is now asserted by the harness and by the contract validator.'
   - 'Full local validator sweep: 26 pass, 0 real failures; 15 skipped only because they need composer vendor/, a deploy-generated release marker, or --self-test mode.'
   - 'Contract-as-dependent-source: validate_global_ui_primitives_v1.php asserts the shared primitive is wired to base plus N feature libraries; adding the roster feature updated that expectation from 8 to 9 and added merdpos-roster.html.twig to the surface list.'
