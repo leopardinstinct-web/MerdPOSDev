@@ -352,3 +352,10 @@ Deleting it in isolation would intentionally make the source/deploy contract fai
 - Any checkpoint, blocker, next action or durable implementation fact required by another session must be committed and pushed.
 - Active work packets are the canonical mid-task resume layer; after merge/closure the authoritative branch must contain the final checkpoint/archive and curated durable state.
 - A substantive turn with unpushed continuity state is not handoff-ready.
+
+## 2026-10-07 - Use Kimi Web only and make feature integration explicit
+
+- **Model roles:** DeepSeek/DSH is the controller/implementer; KIMI_WEB is the read-only independent reviewer; ChatGPT/Codex is Tier-3 escalation after hard failure/conflict or as mandatory-review fallback when KIMI_WEB is unavailable. Kimi Code CLI/API/native routes are intentionally excluded so MERDPOS automation does not consume Kimi Code allowance.
+- **Visual QA:** deterministic browser/runtime evidence remains the base requirement. Kimi Web may independently review safe screenshots/workflow evidence through the browser route when the local Browser Extension upload permission is available; visual review never receives repository/Git/deploy capability.
+- **Feature integration:** a new feature is not WIRED until every applicable data/schema, service, auth/scope, API, client/session state, shared UI/navigation, rollout, loader/deployment and runtime-verification layer is accounted for with evidence or an explicit NOT APPLICABLE reason. Generic RAG/vector/model-routing/API-version machinery is not introduced unless the feature actually needs it.
+- **CI efficiency:** preserve coverage while reducing runner/setup duplication: consolidate work sharing the same environment, cancel obsolete PR runs, avoid temporary workflow commits, and reserve full-history checkouts for history/security checks that truly need them.

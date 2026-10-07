@@ -45,15 +45,16 @@ For questions about why earlier work behaved or failed a certain way, current so
 
 Follow `.ai/task-gates.md` for the full contract.
 
-## Dual-agent implementation/review rule
+## Multi-model implementation/review rule
 
-When the product owner uses Kimi K3 and ChatGPT together for MERDPOS, the default role split is:
+Default MERDPOS role split:
 
-- **Kimi K3 — IMPLEMENTER:** inspect the current authoritative source/history, implement the scoped change, run available targeted checks, commit/push the work and provide Git evidence.
-- **ChatGPT — INDEPENDENT REVIEWER / RELEASE GATE:** inspect the actual Git diff, affected-path history, test/CI evidence, security/business-rule impact and deployment implications. Do not accept an implementer summary as proof.
+- **DeepSeek/DSH — CONTROLLER + IMPLEMENTER:** inspect current authoritative source/history, implement the scoped change, run deterministic checks, fix forward, and own Git/PR evidence.
+- **KIMI_WEB — INDEPENDENT REVIEWER:** falsify the completed immutable SHA/diff through the signed-in Kimi web subscription. It is read-only: no repository edits, shell, Git, commit, push or deploy. For UI work it may review safe screenshots through the browser route.
+- **ChatGPT/Codex — TIER-3 ESCALATION:** one-shot senior reasoning for hard debugging, architectural conflict, two failed fix-forward cycles, or mandatory-review fallback when KIMI_WEB is unavailable.
 - **Product owner — APPROVAL AUTHORITY:** decides whether a reviewed change may merge or deploy unless that decision is explicitly delegated for the specific task.
 
-This is a role contract, not a model-trust shortcut. In dual-agent mode:
+Kimi Code CLI/API/native routes are not part of the MERDPOS workflow and must not be used as a fallback. This is a role contract, not a model-trust shortcut. In multi-model mode:
 
 - the implementer and reviewer must identify themselves in the task/work-packet handoff;
 - the reviewer reviews a concrete immutable SHA/PR, not an uncommitted workspace description;

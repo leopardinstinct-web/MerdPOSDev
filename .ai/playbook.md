@@ -87,6 +87,26 @@ Avoid making these permanent contracts unless explicitly stabilised:
 
 Promote important behavior into regression coverage. Prefer outcome assertions such as permissions, balances, record states and tenant boundaries over incidental UI selectors.
 
+## 3.5 Feature integration procedure
+
+For every new feature or material expansion, use one end-to-end integration map instead of implementing UI/backend/database as separate mini-projects:
+
+`data/schema → service/business logic → server-side auth/scope → API contract → client/session state → shared UI/navigation → loader/deploy → runtime verification`.
+
+For each layer, record **DONE with evidence** or **NOT APPLICABLE with a reason**. The goal is complete integration with the existing app, not maximum new infrastructure.
+
+- **Database/schema:** prefer existing canonical tables and relationships. When schema must change, use an explicit migration with safe existing-record behavior, backfill where required, and a rollback/recovery plan appropriate to the risk.
+- **Backend:** keep business rules in the existing canonical service/runtime owner; do not duplicate authoritative calculations in the browser.
+- **Auth/tenant scope:** extend the established role → LOA → named permission → UI/API/data-scope chain and verify both allowed and denied behavior.
+- **API compatibility:** preserve existing consumers. Introduce a versioned contract only for a real breaking change, not as a default feature-development ritual.
+- **Client/session state:** trace active user, client, store, theme and session context plus post-write refresh/re-render behavior.
+- **UI:** reuse the shared MERDPOS primitives/tokens and integrate navigation/discoverability/permissions into the existing information architecture.
+- **Feature flags:** add one only when staged rollout, rollback or conditional exposure genuinely needs it.
+- **Deployment:** update loaders, cache/version keys, deploy copies and validators together when a new runtime asset/path is introduced.
+- **Verification:** use deterministic business/security checks first, then affected-role runtime and visual verification.
+
+Do not import LLM-app patterns such as vector namespaces, RAG metadata or model routers unless the MERDPOS feature actually introduces those subsystems.
+
 ## 4. Authorization change procedure
 
 Binding model:
@@ -246,6 +266,16 @@ Current CI design path-scopes product areas. Preserve that principle:
 - beta portal changes → beta guardrails + repository hygiene/secret checks;
 - mobile app changes → Flutter/Android checks;
 - root backend/catalogue changes → their own PHP/schema checks.
+
+Efficiency rules:
+
+- **many validation modules, few runner environments** — keep focused validator scripts but share checkout/runtime setup when they need the same environment;
+- never commit a temporary workflow or temporary branch trigger merely to run a one-off check; use `workflow_dispatch` or an existing reusable workflow;
+- use `cancel-in-progress` for replaceable PR checks so obsolete SHAs stop consuming runners;
+- reserve full-history checkout for checks that genuinely need repository history (for example the dedicated Gitleaks scan); ordinary lint/scope/UI jobs should fetch only the revisions they need;
+- **do not infer commit-range completeness from `git cat-file` on the base commit in a shallow PR checkout.** A synthetic 80-commit PR proved that `fetch-depth: 50` can contain the base commit while exposing only 50 of the 81 commits in `base..merge`; a history-sensitive security scan can therefore miss older PR commits even though the base object resolves. Use complete history for Gitleaks unless a future implementation proves the entire scanned ancestry is present, not merely the base object;
+- do not run the same expensive security/test suite twice under different workflow names for the same event;
+- consolidate repeated Flutter setup/dependency resolution before tests and debug build unless parallelism materially shortens a release-critical path.
 
 Do not weaken a relevant check merely to make CI green. Skip unrelated product-area jobs by path detection instead.
 

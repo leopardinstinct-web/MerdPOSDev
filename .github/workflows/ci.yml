@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - namecheap-beta-live
   workflow_dispatch:
 
 permissions:
@@ -16,16 +17,19 @@ concurrency:
 
 jobs:
   changes:
-    name: Detect changed areas
+    name: Scope and repository hygiene
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.scope.outputs.backend }}
       mobile: ${{ steps.scope.outputs.mobile }}
+      base: ${{ steps.scope.outputs.base }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          # Two commits keep manual dispatch whitespace checks meaningful while
+          # avoiding the former full-history checkout.
+          fetch-depth: 2
 
       - name: Detect product-area changes
         id: scope
@@ -37,6 +41,8 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            base="$(git rev-parse HEAD^)"
+            echo "base=$base" >> "$GITHUB_OUTPUT"
             echo "backend=true" >> "$GITHUB_OUTPUT"
             echo "mobile=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -46,8 +52,13 @@ jobs:
           elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
             base="$BEFORE_SHA"
           else
+            git fetch --no-tags --deepen=1 origin
             base="$(git rev-parse HEAD^)"
           fi
+          if ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$base"
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
           changed="$(git diff --name-only "$base" HEAD)"
           if grep -q '^backend/' <<< "$changed"; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
@@ -59,15 +70,6 @@ jobs:
           else
             echo "mobile=false" >> "$GITHUB_OUTPUT"
           fi
-
-  repository-hygiene:
-    name: Repository hygiene
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Reject forbidden tracked files
         shell: bash
@@ -95,19 +97,10 @@ jobs:
       - name: Check patch whitespace
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ steps.scope.outputs.base }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            base="$PR_BASE_SHA"
-          elif [[ -n "${BEFORE_SHA:-}" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
-            base="$BEFORE_SHA"
-          else
-            base="$(git rev-parse HEAD^)"
-          fi
-          git diff --check "$base" HEAD
+          git diff --check "$BASE_SHA" HEAD
 
       - name: Ensure tests are local-only
         shell: bash
@@ -192,7 +185,7 @@ jobs:
           php backend/tests/run_durable_sale_model.php
 
   flutter-checks:
-    name: Flutter 3.44.2 analysis and tests
+    name: Flutter 3.44.2 analysis, tests and debug APK
     needs: changes
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
@@ -203,7 +196,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Flutter 3.44.2
         uses: subosito/flutter-action@v2
@@ -217,11 +210,15 @@ jobs:
 
       - name: Verify formatting
         shell: bash
+        env:
+          BASE_SHA: ${{ needs.changes.outputs.base }}
         run: |
           set -euo pipefail
-          base="$(git merge-base HEAD origin/main)"
+          if ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          fi
           mapfile -d '' changed_files < <(
-            git diff --name-only --diff-filter=ACMR -z "$base" HEAD -- lib test
+            git diff --relative --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD -- lib test
           )
           dart_files=()
           for file in "${changed_files[@]}"; do
@@ -240,31 +237,6 @@ jobs:
 
       - name: Test
         run: flutter test
-
-  android-debug-build:
-    name: Android debug APK
-    needs:
-      - changes
-      - repository-hygiene
-      - flutter-checks
-    if: needs.changes.outputs.mobile == 'true' && needs.flutter-checks.result == 'success'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: merdpos_staff
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter 3.44.2
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.2'
-          channel: stable
-          cache: true
-
-      - name: Resolve locked dependencies
-        run: flutter pub get
 
       - name: Build debug APK
         run: flutter build apk --debug

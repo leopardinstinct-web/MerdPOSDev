@@ -79,6 +79,28 @@ When changing or assessing shared UI/typography/design-system behavior:
 - do not treat token usage as proof of semantic/readability compliance;
 - verify dark/light surface semantics, disabled/selected states, opacity and actual rendered readability where relevant.
 
+## Gate 1.5 — Feature integration completeness
+
+A new feature or a material expansion of an existing feature is not complete merely because a screen, endpoint or table exists. Before claiming **WIRED**, account for every applicable layer below and record either concrete evidence or an explicit **NOT APPLICABLE** reason:
+
+1. **Data/schema/persistence** — existing tables/records reused correctly, or a migration/backfill/rollback path exists for schema changes. Preserve existing data and frozen business rules.
+2. **Backend/service/business logic** — the feature uses the canonical service/runtime owner instead of duplicating business logic in UI code.
+3. **Authorization + tenant/client scope** — server-side permissions, role/LOA rules and data scoping cover the new path. UI hiding never substitutes for backend enforcement.
+4. **API/contract compatibility** — existing consumers remain compatible. Version an API only when a breaking contract genuinely requires it; do not create versioned endpoints by habit.
+5. **Session/client state + re-render** — active user/client/store/theme/session state and post-write refresh behavior are traced through the real consumer path.
+6. **Shared UI/design system + navigation** — reuse canonical primitives/tokens/layout ownership and integrate discoverability/navigation/permission visibility where the feature belongs.
+7. **Rollout control** — use a feature flag only when staged/conditional rollout is required. Do not add flag infrastructure to every feature by default.
+8. **Loader/cache/deployment wiring** — new assets, routes, validators, cache/version keys and deployment copies are included where applicable.
+9. **Testing + runtime verification** — deterministic contract/security/business checks plus affected-role runtime and visual verification cover what changed.
+
+For database-backed work, trace the whole path:
+
+`UI → client state/JS → API → auth/client scope → service/query → database → response → re-render`.
+
+For non-database features, explicitly mark the data layer **NOT APPLICABLE** rather than inventing storage. Likewise, do not introduce vector databases, RAG namespaces, LLM routers or generic API-version layers unless the feature actually uses those subsystems.
+
+A feature may be **CODED** with only part of this path implemented. It may be **WIRED** only when every applicable layer is connected to the real application path. **VERIFIED** still requires Gate 3 runtime evidence.
+
 ## Gate 2 — Explicit implementation requests require implementation
 
 When the product owner says `implement`, `fix`, `apply`, `do it`, `start`, `continue` or otherwise clearly asks for execution:
@@ -94,13 +116,16 @@ A user request to explain, review or diagnose does not by itself authorize a cod
 
 ## Gate 2.5 — Independent implementer/reviewer handoff
 
-When more than one AI/coding agent participates in a task, or the product owner invokes the Kimi K3 + ChatGPT workflow, use an explicit implementer/reviewer handoff.
+When more than one AI/coding agent participates in a task, use an explicit implementer/reviewer handoff.
 
-Default MERDPOS dual-agent assignment unless the product owner states otherwise:
+Default MERDPOS assignment unless the product owner states otherwise:
 
-- **Kimi K3 = IMPLEMENTER**
-- **ChatGPT = INDEPENDENT REVIEWER / RELEASE GATE**
-- **Product owner = merge/deploy approval authority**
+- **DeepSeek/DSH = CONTROLLER + IMPLEMENTER** — owns repository changes, deterministic validation, Git/PR flow and fix-forward work.
+- **KIMI_WEB = INDEPENDENT REVIEWER** — read-only falsifying review of the immutable SHA/diff; for visual work it may review safe screenshots through the browser route. It receives no repository write/Git/deploy capability.
+- **ChatGPT/Codex = TIER-3 ESCALATION** — one-shot senior analysis for hard debugging, architectural conflict, two failed fix-forward cycles, or mandatory-review fallback when KIMI_WEB is unavailable.
+- **Product owner = merge/deploy approval authority**, unless explicitly delegated for the task.
+
+Kimi Code CLI/API/native routes are not part of the MERDPOS workflow and must not be used as a fallback.
 
 For non-trivial dual-agent work, copy the relevant fields from `.ai/work/HANDOFF_TEMPLATE.yaml` into the active work packet or maintain an equivalent committed handoff record. It must identify the implementer, reviewer, branch/PR, base SHA, exact head SHA under review, changed paths, business/database/auth impact, checks actually run, deployment state, known risks/open decisions and reviewer status.
 
@@ -142,6 +167,7 @@ For visual changes involving alignment, spacing, typography, contrast, responsiv
 - after the targeted element check, scan the whole affected surface for packing/whitespace, overflow, balance, clipping, alignment and obviously stranded controls or cards;
 - when role/permission variants materially change composition, compare representative variants instead of verifying only one identity;
 - for alignment changes, compare the rendered visual/box centers of the elements that are meant to align rather than assuming common top edges or shared containers imply optical alignment;
+- preserve deterministic screenshots/runtime evidence. KIMI_WEB may provide an additional independent visual/usability review of safe screenshots when the browser upload route is available; its absence never converts uninspected UI into VERIFIED, and Kimi Code is not a fallback;
 - if the intended runtime has not deployed yet, stop at **CODED/WIRED** and state that rendered verification remains pending.
 
 Never convert intent, analysis or a passing unrelated test into a higher lifecycle state.

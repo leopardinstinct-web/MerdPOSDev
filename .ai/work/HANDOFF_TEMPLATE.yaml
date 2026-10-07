@@ -1,9 +1,10 @@
 version: 1
 task_id: MERD-YYYYMMDD-short-name
 handoff:
-  mode: dual-agent
-  implementer: "Kimi K3"
-  reviewer: "ChatGPT"
+  mode: multi-model
+  implementer: "DeepSeek/DSH"
+  reviewer: "KIMI_WEB"
+  escalation: "ChatGPT/Codex when required"
   owner: "product owner"
   branch: null
   pr: null
@@ -15,6 +16,17 @@ impact:
   database: "NO | YES - describe"
   authentication_authorization: "NO | YES - describe"
   deployment_runtime: "NO | YES - describe"
+integration_layers:
+  data_schema_persistence: "NOT APPLICABLE | DONE - evidence"
+  migration_backfill_rollback: "NOT APPLICABLE | DONE - evidence"
+  backend_service_logic: "NOT APPLICABLE | DONE - evidence"
+  api_contract_compatibility: "NOT APPLICABLE | DONE - evidence"
+  authorization_tenant_scope: "NOT APPLICABLE | DONE - evidence"
+  session_client_state_rerender: "NOT APPLICABLE | DONE - evidence"
+  shared_ui_navigation: "NOT APPLICABLE | DONE - evidence"
+  rollout_feature_flag: "NOT APPLICABLE | DONE - evidence"
+  loader_cache_deployment: "NOT APPLICABLE | DONE - evidence"
+  runtime_visual_verification: "NOT APPLICABLE | DONE - evidence"
 implementation:
   lifecycle_claim: "DOCUMENTED | CODED | WIRED | DEPLOYED"
   checks: []

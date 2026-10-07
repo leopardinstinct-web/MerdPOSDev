@@ -66,19 +66,20 @@ updated_at: "ISO-8601 timestamp with offset when known"
 
 Optional fields such as `commits`, `deployment_evidence`, `verification_evidence`, `related_packets`, or `notes` may be added when they reduce future reconstruction. Keep them factual and compact.
 
-## Dual-agent handoff
+## Multi-model handoff
 
-When Kimi K3 and ChatGPT (or any two agents) participate in the same non-trivial task, preserve the separation between implementation and independent review.
+When more than one model participates in the same non-trivial task, preserve the separation between implementation, independent review and escalation.
 
-Default MERDPOS pairing:
+Default MERDPOS roles:
 
-- Kimi K3: implementer.
-- ChatGPT: independent reviewer / release gate.
-- Product owner: merge/deploy approval authority.
+- DeepSeek/DSH: controller + implementer; owns source changes, deterministic validation, Git/PR flow and fix-forward work.
+- KIMI_WEB: read-only independent reviewer of the immutable SHA/diff and, when safe screenshot upload is available, visual/usability evidence. No repository write/Git/deploy capability.
+- ChatGPT/Codex: Tier-3 escalation for hard debugging, architectural conflict, two failed fix-forward cycles, or mandatory-review fallback when KIMI_WEB is unavailable.
+- Product owner: merge/deploy approval authority unless explicitly delegated for the task.
 
-Start from `HANDOFF_TEMPLATE.yaml` or copy its `handoff`, `impact`, `implementation`, `review` and `owner_gate` fields into the task's active packet. The reviewer must pin the exact `head_sha` it reviewed. A review of one SHA does not automatically cover later commits.
+Kimi Code CLI/API/native routes are not workflow fallbacks. Start from `HANDOFF_TEMPLATE.yaml` or copy its `handoff`, `impact`, `integration_layers`, `implementation`, `review` and `owner_gate` fields into the task's active packet. The reviewer must pin the exact `head_sha` it reviewed. A review of one SHA does not automatically cover later commits.
 
-The implementation report points the reviewer to evidence; it does not replace independent Git/diff/history inspection. If the reviewer changes implementation code, a fresh independent review is required for the resulting SHA.
+The implementation report points the reviewer to evidence; it does not replace independent Git/diff/history inspection. If the reviewer changes implementation code, reviewer independence is consumed only for the files actually edited: the original implementer reviews that delta, or relevant CI plus a product-owner spot-check validates it. A fresh full independent review is required only for a large delta or Tier-3 surface, matching Gate 2.5.
 
 ## Checkpoint discipline
 
