@@ -54,7 +54,8 @@ try {
             $result=order_update_pending($user,(string)$editing['id'],(int)$editing['revision'],$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at']);
             $message='Updated pending order for SUPER review. You may start another order.';
         } else {
-            $result=order_create($user,$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at']);
+            $test=($_POST['test_order']??'')==='1' && !empty($user['is_super']);
+            $result=order_create($user,$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at'],$test);
             $message='Submitted to SUPER for approval. You may start another order.';
         }
         // A successful submission leaves a blank new draft for the same store.
@@ -82,6 +83,12 @@ try {
         if (!is_string($store)||!in_array($store,['MX','ET','DT','RT'],true)) throw new InvalidArgumentException('Select a store first.');
         unset($_SESSION['order_draft_catalogue'][$store],$_SESSION['order_draft_counts'][$store],$_SESSION['order_draft_nonce'][$store],$_SESSION['order_draft_edit'][$store]);
         json_response(['success'=>true,'message'=>'New blank order started.']);
+    }
+    if ($action==='delete') {
+        if (empty($user['is_super'])) json_response(['success'=>false,'error'=>'SUPER required.'],403);
+        $id=$_POST['order_id']??'';
+        if (!is_string($id)) throw new InvalidArgumentException('Invalid order ID.');
+        json_response(['success'=>true,'order'=>order_delete_super($user,$id)]);
     }
     if ($action==='approve' || $action==='reject') {
         if (empty($user['is_super'])) json_response(['success'=>false,'error'=>'SUPER approval required.'],403);

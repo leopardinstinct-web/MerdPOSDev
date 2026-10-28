@@ -453,3 +453,5 @@ tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.l
 .order-history-pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:16px}
 .order-history-pager button{min-height:44px}.order-history-pager button:disabled{opacity:.45;cursor:not-allowed}
 .order-history-pager span{font-size:12px;font-weight:800;color:#405773}
+
+.order-test-option{display:flex;align-items:center;gap:10px;margin:12px 0;font-weight:850;color:#a12821}.order-test-option input{width:20px;height:20px}.order-danger{color:#9b2621;background:#ffeded;border:1px solid #efc0bd}

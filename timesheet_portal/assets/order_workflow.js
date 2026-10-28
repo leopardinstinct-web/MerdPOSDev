@@ -52,7 +52,7 @@
       const head=el('div','order-history-head');
       const main=el('div','');
       main.append(el('strong','',o.id),el('span','order-history-meta',' · '+o.store+' · '+new Date(o.submitted_at).toLocaleString()));
-      head.append(main,el('span','order-status order-status-'+o.status.toLowerCase(),o.status));
+      head.append(main,el('span','order-status order-status-'+o.status.toLowerCase(),(o.test_order?'QA TEST · ':'')+o.status));
       card.append(head);
       card.append(el('p','order-history-meta','Submitted by '+o.author_name+
         ' · Cigarettes '+o.cigarette_units+' units · Accessories '+o.accessory_units+' units'));
@@ -97,6 +97,20 @@
           catch(e){notice(e.message,true);busy=false;editButton.disabled=false;}
         });
         card.append(editButton);
+      }
+      if(o.deletable && isSuper){
+        const del=el('button','secondary-btn order-danger','Delete non-approved order');
+        del.type='button';
+        del.addEventListener('click',async()=>{
+          if(busy)return;
+          const typed=window.prompt('Delete '+o.id+' from active history? This is a soft delete: a permanent audit record remains. Type the exact order ID to confirm.','');
+          if(typed!==o.id)return;
+          busy=true;del.disabled=true;
+          try{await api({action:'delete',order_id:o.id});notice(o.id+' deleted from active history.');await refresh();}
+          catch(e){notice(e.message,true);}
+          finally{busy=false;del.disabled=false;}
+        });
+        card.append(del);
       }
       if(o.status==='PENDING'&&isSuper){
         const actions=el('div','order-history-actions');
@@ -161,7 +175,8 @@
           ' cigarette units; '+accessories+' accessory units.\n'+excluded+' cigarette products have no ceiling and will be excluded.\nYou can start another order after submission.')){
           return;
         }
-        const out=await api({action:'submit',draft_nonce:draft.draft_nonce});
+        const isTest=!!$('testOrder')?.checked;
+        const out=await api({action:'submit',draft_nonce:draft.draft_nonce,test_order:isTest?'1':''});
         notice(out.message+' Order ID: '+out.order.id);
         window.location.href='orders.php?submitted='+encodeURIComponent(out.order.id);
       }catch(e){

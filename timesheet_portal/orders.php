@@ -161,7 +161,10 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
       <section class="report-card">
         <h2 class="orders-section-heading">Generate order for SUPER review</h2>
         <p>Preview your calculated cigarette quantities and requested accessories above. Generating submits an immutable order for SUPER approval. <strong>It does not place a supplier order or change Inventory DBA.</strong></p>
-        <button id="submitOrder" type="button" class="primary-btn"><?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? "Save changes for SUPER review" : "Generate &amp; send to SUPER" ?></button>
+        <?php if (!empty($user['is_super'])): ?>
+          <label class="order-test-option"><input id="testOrder" type="checkbox" value="1"> QA TEST ORDER — not for supplier</label>
+        <?php endif; ?>
+        <button id="submitOrder" type="button"  class="primary-btn"><?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? "Save changes for SUPER review" : "Generate &amp; send to SUPER" ?></button>
         <button id="newOrderDraft" type="button" class="secondary-btn">Start a new order</button>
         <p id="submissionNotice" class="order-notice" hidden role="status"></p>
       </section>
