@@ -93,3 +93,9 @@ Verified current **Inventory DBA → Inventory** columns:
 - Existing timesheet logic, login sheet links, and CSV parser behaviour remain unchanged.
 - Current supported backend: private host SQLite + server-side PDF and XLSX. **Automatic creation of Google Drive files is not wired**: the production legacy PHP portal has no verified Google Drive write token/service account. Do not substitute browser credentials or call the old sales-based Apps Script. Google Drive publishing remains a separately blocked integration until a supported server-side authorization method is supplied. Never claim the exported files were saved to Drive.
 - Local deterministic test `tests/order_approval_smoke.py` uses isolated temporary private storage/synthetic roles; tests multiple orders, edit pending, CSRF, reject/approve lock, SUPER-only PDF/XLSX, no Google data mutations. `tests/order_alpha_browser.py` tests mobile steppers and pending edit UX.
+
+## Independent review fixes — 2026-10-28
+
+- All PDF table text is now wrapped based on actual FPDF font metrics with row height reserved before rendering, repeated headers on page breaks, and fail-closed handling when one row cannot fit a page. Regression `tests/order_pdf_layout.py` checks 65 long-name rows across 17 pages, every product once and no overflow.
+- If PHP crashes between approving-file promotion and SQLite transaction commit, a later SUPER approval attempt safely regenerates orphan files while the order is still PENDING and under a SQLite write lock. Approved orders cannot be modified or regenerated.
+- Order history is **server-side paginated**, 40 entries per page, across all submitted orders with store and status filters. SUPER's pending counts per store are computed from the entire SQLite ledger, not the current page. Older pending and approved orders remain navigable/downloadable.

@@ -93,16 +93,40 @@ function order_create(array $user,string $store,string $nonce,array $catalog,arr
         return ['id'=>$id,'status'=>'PENDING','store'=>$store];
     } catch(Throwable $e) {if ($db->inTransaction()) $db->rollBack();throw $e;}
 }
+function order_list_page(array $user,int $page=1,string $store='',string $status=''): array {
+    if ($page<1 || $page>100000) throw new InvalidArgumentException('Invalid history page.');
+    if ($store!=='' && !in_array($store,['MX','ET','DT','RT'],true)) throw new InvalidArgumentException('Invalid history store.');
+    if ($status!=='' && !in_array($status,['PENDING','APPROVED','REJECTED'],true)) throw new InvalidArgumentException('Invalid history status.');
+    $db=order_db();$limit=40;$viewer=order_user_id($user);
+    $where=[];$params=[];
+    if (empty($user['is_super'])) {$where[]='author_id=:author';$params[':author']=$viewer;}
+    if ($store!=='') {$where[]='store=:store';$params[':store']=$store;}
+    if ($status!=='') {$where[]='status=:status';$params[':status']=$status;}
+    $condition=$where?' WHERE '.implode(' AND ',$where):'';
+    $count=$db->prepare('SELECT COUNT(*) FROM orders'.$condition);
+    foreach ($params as $key=>$value) $count->bindValue($key,$value,PDO::PARAM_STR);
+    $count->execute();$total=(int)$count->fetchColumn();
+    $stmt=$db->prepare('SELECT * FROM orders'.$condition.' ORDER BY submitted_at DESC,id DESC LIMIT :take OFFSET :skip');
+    foreach ($params as $key=>$value) $stmt->bindValue($key,$value,PDO::PARAM_STR);
+    $stmt->bindValue(':take',$limit,PDO::PARAM_INT);
+    $stmt->bindValue(':skip',($page-1)*$limit,PDO::PARAM_INT);
+    $stmt->execute();
+    $summarySql="SELECT store,COUNT(*) AS pending FROM orders WHERE status='PENDING'";
+    $summaryParams=[];
+    if(empty($user['is_super'])){$summarySql.=' AND author_id=:author';$summaryParams[':author']=$viewer;}
+    $summarySql.=' GROUP BY store';
+    $summary=$db->prepare($summarySql);
+    foreach($summaryParams as $key=>$value)$summary->bindValue($key,$value,PDO::PARAM_STR);
+    $summary->execute();
+    $pending=['MX'=>0,'ET'=>0,'DT'=>0,'RT'=>0];
+    foreach($summary->fetchAll() as $record) $pending[$record['store']]=(int)$record['pending'];
+    return [
+        'orders'=>array_map(fn($record)=>order_public_row($record,$viewer),$stmt->fetchAll()),
+        'page'=>$page,'page_size'=>$limit,'total'=>$total,'pending_by_store'=>$pending
+    ];
+}
 function order_rows(array $user): array {
-    $db=order_db();
-    if (!empty($user['is_super'])) {
-        $rows=$db->query('SELECT * FROM orders ORDER BY submitted_at DESC, id DESC LIMIT 500')->fetchAll();
-    } else {
-        $stmt=$db->prepare('SELECT * FROM orders WHERE author_id=? ORDER BY submitted_at DESC,id DESC LIMIT 100');
-        $stmt->execute([order_user_id($user)]);$rows=$stmt->fetchAll();
-    }
-    $viewer=order_user_id($user);
-    return array_map(fn($row)=>order_public_row($row,$viewer),$rows);
+    return order_list_page($user)['orders'];
 }
 function order_public_row(array $row,string $viewerId): array {
     $payload=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);

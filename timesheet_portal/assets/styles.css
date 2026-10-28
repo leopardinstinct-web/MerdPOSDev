@@ -449,3 +449,7 @@ tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.l
  .order-history-filters { gap:8px; }
  .order-history-head strong { font-size:12px; }
 }
+
+.order-history-pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:16px}
+.order-history-pager button{min-height:44px}.order-history-pager button:disabled{opacity:.45;cursor:not-allowed}
+.order-history-pager span{font-size:12px;font-weight:800;color:#405773}

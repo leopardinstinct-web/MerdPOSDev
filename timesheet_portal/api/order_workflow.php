@@ -7,7 +7,16 @@ $user=require_login();
 $method=$_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method==='GET') {
     try {
-        json_response(['success'=>true,'orders'=>order_rows($user),'super'=>!empty($user['is_super'])]);
+        $page=$_GET['page']??'1';
+        $store=$_GET['store']??'';
+        $status=$_GET['status']??'';
+        if(!is_string($page)||!ctype_digit($page)||!is_string($store)||!is_string($status)) {
+            throw new InvalidArgumentException('Invalid history filter.');
+        }
+        $result=order_list_page($user,(int)$page,$store,$status);
+        json_response(['success'=>true]+$result+['super'=>!empty($user['is_super'])]);
+    } catch(InvalidArgumentException $e) {
+        json_response(['success'=>false,'error'=>$e->getMessage()],422);
     } catch(Throwable $e) {
         error_log('Alpha order list: '.$e->getMessage());
         json_response(['success'=>false,'error'=>'Order history is unavailable.'],503);

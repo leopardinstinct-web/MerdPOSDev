@@ -7,6 +7,8 @@
   const isSuper=panel.dataset.super==='1';
   const csrf=panel.dataset.csrf;
   let orders=[];
+  let page=1, total=0, pageSize=40;
+  let pendingByStore={MX:0,ET:0,DT:0,RT:0};
   let busy=false;
   const notice=(message,error=false)=>{
     const box=$('orderHistoryNotice');
@@ -22,7 +24,8 @@
   async function api(data=null) {
     const options={credentials:'same-origin',cache:'no-store'};
     if(data){options.method='POST';options.body=new URLSearchParams({...data,csrf_token:csrf});}
-    const response=await fetch('api/order_workflow.php',options);
+    const query=new URLSearchParams({page:String(page),store:$('historyStore').value,status:$('historyStatus').value});
+    const response=await fetch('api/order_workflow.php'+(data?'':'?'+query),options);
     let out;
     try{out=await response.json();}catch(_){throw new Error('Server response could not be read.');}
     if(!response.ok||!out.success)throw new Error(out.error||'Order request failed.');
@@ -31,12 +34,14 @@
   function render(){
     const wrap=$('orderHistory');
     wrap.replaceChildren();
-    const filtered=orders.filter(x=>(!$('historyStore').value||x.store===$('historyStore').value)
-      &&(!$('historyStatus').value||x.status===$('historyStatus').value));
+    const filtered=orders;
+    $('historyPrevious').disabled=page<=1;
+    $('historyNext').disabled=page*pageSize>=total;
+    $('historyPageInfo').textContent='Page '+page+' of '+Math.max(1,Math.ceil(total/pageSize))+' · '+total+' orders';
     if(isSuper){
       const strip=el('div','order-status-strip');
       ['MX','ET','DT','RT'].forEach(store=>{
-        const count=orders.filter(o=>o.store===store&&o.status==='PENDING').length;
+        const count=pendingByStore[store]||0;
         strip.append(el('span','order-store-stat',store+' · '+count+' pending'));
       });
       wrap.append(strip);
@@ -128,12 +133,14 @@
   }
   async function refresh(){
     try{
-      const out=await api();orders=out.orders;render();
+      const out=await api();orders=out.orders;total=out.total;pageSize=out.page_size;pendingByStore=out.pending_by_store||pendingByStore;render();
     }catch(e){notice(e.message,true);$('orderHistory').textContent='Order history temporarily unavailable.';}
   }
-  $('historyStore').addEventListener('change',render);
-  $('historyStatus').addEventListener('change',render);
+  $('historyStore').addEventListener('change',()=>{page=1;refresh();});
+  $('historyStatus').addEventListener('change',()=>{page=1;refresh();});
   $('refreshOrders').addEventListener('click',refresh);
+  $('historyPrevious').addEventListener('click',()=>{if(page>1){page--;refresh();}});
+  $('historyNext').addEventListener('click',()=>{if(page*pageSize<total){page++;refresh();}});
   const submit=$('submitOrder');
   if(submit){
     submit.addEventListener('click',async()=>{

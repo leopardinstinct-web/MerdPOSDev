@@ -8,7 +8,7 @@ branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
 last_seen_head: 1d8588bd6324a10ee5d258f861d883b8175022c2
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T16:05:00+05:00'
+updated_at: '2026-10-28T16:20:00+05:00'
 lifecycle: WIRED
 packet_state: ALPHA_APPROVAL_LOCAL_PASS_INDEPENDENT_REVIEW_PENDING
 risk: HIGH
@@ -77,6 +77,8 @@ stage_3_4:
   scope: "Inline minus/editable numeric/plus controls for AUTO and MANUAL; distinct multiorders; SQLite private pending ledger; USER edit pending; SUPER approval/reject lock; approved PDF/XLSX downloads restricted to SUPER."
   files: "timesheet_portal/includes/order_repository.php and order_export.php, api/order_workflow.php and order_download.php, assets/order_workflow.js and orders.js, orders.php, styles.css, FPDF vendor fonts/license, tests."
   local_evidence:
+    - "Independent KIMI_WEB initial review e13fc87: FIX-FIRST, one major PDF row height, two minor crash recovery and history truncation; corrected in follow-up commit."
+    - "PDF actual-font metric wrapping validated with 65 long rows over 17 pages, no overflow, single row unrenderable fails closed; simulated interrupted pre-commit approval recovers; 45 pending records paginated without loss."
     - "Isolated synthetic USER/SUPER role HTTP workflow passes: submit 2 orders same session, duplicate nonce 409, edit pending same ID and revision, role/CSRF denies, approve locks, repeat approval 409, reject, approved PDF + XLSX opened by openpyxl."
     - "Mobile Chromium 390px UI browser test PASS: minus/plus/input, manual accessories, pending order submit/reopen; zero JS page errors."
     - "No Google Sheets modification, supplier ordering, or sales retrieval."

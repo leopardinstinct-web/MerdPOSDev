@@ -179,6 +179,11 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
         <button type="button" id="refreshOrders" class="secondary-btn">Refresh</button>
       </div>
       <div id="orderHistory" class="order-history" aria-live="polite">Loading order history…</div>
+      <nav class="order-history-pager" aria-label="Order history pages">
+        <button type="button" id="historyPrevious" class="secondary-btn">Previous</button>
+        <span id="historyPageInfo" aria-live="polite">Page 1</span>
+        <button type="button" id="historyNext" class="secondary-btn">Next</button>
+      </nav>
     </section>
   </main>
 

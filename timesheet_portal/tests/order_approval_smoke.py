@@ -102,6 +102,10 @@ def main():
    stoken=re.search(r'name="csrf_token" value="([a-f0-9]{64})"',html.decode()).group(1)
    code,body=superuser.get(f'api/order_download.php?id={one}&format=pdf')
    ok(code==409,'PDF unavailable before SUPER approval')
+   # Simulate PHP crash after generating files but before committing approval.
+   orphan=Path(tmp)/'private'/'approved';orphan.mkdir(exist_ok=True)
+   (orphan/(one+'.pdf')).write_bytes(b'STALE_PRECOMMIT_PDF')
+   (orphan/(one+'.xlsx')).write_bytes(b'STALE_PRECOMMIT_XLSX')
    code,body=superuser.post('api/order_workflow.php',{'action':'approve','csrf_token':stoken,'order_id':one,'note':''})
    print('APPROVE_RESPONSE',code,body[:350],flush=True)
    ok(code==200 and json.loads(body)['order']['status']=='APPROVED','SUPER approves and locks')
@@ -118,6 +122,28 @@ def main():
    ok(code==200,'SUPER rejects second order')
    code,body=superuser.get(f'api/order_download.php?id={two}&format=pdf')
    ok(code==409,'rejected order cannot download')
+   # Seed 45 additional synthetic pending orders to assert older records remain
+   # reachable by server-side pagination (not truncated by a fixed UI cap).
+   import sqlite3
+   db=sqlite3.connect(str(Path(tmp)/'private'/'orders.sqlite3'))
+   payload=db.execute('SELECT payload FROM orders WHERE id=?',(one,)).fetchone()[0]
+   for idx in range(45):
+    store=['MX','ET','DT','RT'][idx%4]
+    oid='ORD-20261028-'+format(idx+1,'010X')
+    db.execute("INSERT INTO orders(id,store,author_id,author_name,submitted_at,status,payload,draft_nonce) VALUES (?,?,?,?,?,'PENDING',?,?)",(oid,store,'111','User A',f'2026-10-28T23:{idx:02d}:00Z',payload,format(idx+10,'032x')))
+   db.commit();db.close()
+   code,body=superuser.get('api/order_workflow.php?page=1&status=PENDING')
+   first_page=json.loads(body)
+   ok(code==200 and first_page['total']==45 and len(first_page['orders'])==40,'SUPER pagination page 1 and true pending count')
+   ok(sum(first_page['pending_by_store'].values())==45,'global pending counts across all shops')
+   code,body=superuser.get('api/order_workflow.php?page=2&status=PENDING')
+   ok(code==200 and len(json.loads(body)['orders'])==5,'SUPER can access older pending orders page 2')
+   code,body=superuser.get('api/order_workflow.php?page=2')
+   ok(code==200 and any(o['id']==one for o in json.loads(body)['orders']),'older approved order remains discoverable via history pages')
+   code,body=other.get('api/order_workflow.php?page=1')
+   ok(code==200 and json.loads(body)['total']==0,'other USER still sees no history')
+   code,body=superuser.get('api/order_workflow.php?page=1&status=BAD')
+   ok(code==422,'invalid history filter rejected')
    print('RESULT ALL ACCEPTANCE PASS',flush=True)
   finally:
    server.terminate()

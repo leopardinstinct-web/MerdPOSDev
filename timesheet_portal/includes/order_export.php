@@ -21,6 +21,20 @@ function order_pdf_text(string $value): string {
     $out=@iconv('UTF-8','windows-1252//TRANSLIT//IGNORE',$value);
     return $out!==false ? $out : preg_replace('/[^\x20-\x7E]/','?',$value);
 }
+function order_pdf_wrap(FPDF $pdf,string $text,float $width): array {
+    // Wrap using the actual current PDF font metrics, not guessed character counts.
+    $lines=[];$line='';
+    foreach (str_split($text) as $ch) {
+        if ($ch==="\n") { $lines[]=rtrim($line);$line='';continue; }
+        if ($pdf->GetStringWidth($line.$ch)>$width) {
+            if ($line==='') throw new RuntimeException('Unrenderable PDF product text.');
+            $lines[]=rtrim($line);
+            $line=ltrim($ch);
+        } else {$line.=$ch;}
+    }
+    $lines[]=rtrim($line);
+    return $lines;
+}
 class MerdOrderPdf extends FPDF {
     public string $orderId='';
     public function Footer() {
@@ -63,19 +77,28 @@ function order_pdf(array $row,string $path): void {
         $barcode=order_pdf_text((string)$entry['barcodes']);
         $cat=order_pdf_text((string)$entry['category']);
         $q=(string)$entry['order_quantity'];
-        // Two lines where needed, with safe page break before row.
-        $lines=max(1, (int)ceil(strlen($name)/49), (int)ceil(strlen($barcode)/26));
-        $height=max(8,min(24,$lines*6));
-        if ($doc->GetY()+$height>270) {$doc->AddPage();$drawHeader();$doc->SetFont('Arial','',8);$doc->SetTextColor(27,36,48);}
+        $columns=[
+            order_pdf_wrap($doc,$cat,$widths[0]-2),
+            order_pdf_wrap($doc,$barcode,$widths[1]-2),
+            order_pdf_wrap($doc,$name,$widths[2]-2)
+        ];
+        $lines=max(array_map('count',$columns));
+        $height=max(8,$lines*5+2);
+        if ($height>210) throw new RuntimeException('Order line is too long to fit a PDF page.');
+        if ($doc->GetY()+$height>267) {$doc->AddPage();$drawHeader();$doc->SetFont('Arial','',8);$doc->SetTextColor(27,36,48);}
         $y=$doc->GetY();$x=$doc->GetX();
         $doc->Rect($x,$y,array_sum($widths),$height);
         $offset=$x;
         for($col=0;$col<3;$col++){ $offset+=$widths[$col];$doc->Line($offset,$y,$offset,$y+$height); }
-        $doc->SetXY($x+1,$y+1);$doc->MultiCell($widths[0]-2,5,$cat,0,'L');
-        $doc->SetXY($x+$widths[0]+1,$y+1);$doc->MultiCell($widths[1]-2,5,$barcode,0,'L');
-        $doc->SetXY($x+$widths[0]+$widths[1]+1,$y+1);$doc->MultiCell($widths[2]-2,5,$name,0,'L');
-        $doc->SetXY($x+$widths[0]+$widths[1]+$widths[2],$y);
-        $doc->Cell($widths[3],$height,$q,0,0,'C');
+        $at=$x;
+        foreach ($columns as $col=>$fragments) {
+            foreach ($fragments as $line=>$fragment) {
+                $doc->SetXY($at+1,$y+1+$line*5);
+                $doc->Cell($widths[$col]-2,5,$fragment,0,0,'L');
+            }
+            $at+=$widths[$col];
+        }
+        $doc->SetXY($at,$y);$doc->Cell($widths[3],$height,$q,0,0,'C');
         $doc->SetXY($x,$y+$height);
     }
     $excluded=count($data['excluded_missing_ceiling']??[]);
@@ -133,7 +156,13 @@ function order_build_files(array $row): array {
     $id=$row['id'];
     $pdf=order_export_path($id,'pdf');
     $xlsx=order_export_path($id,'xlsx');
-    if (file_exists($pdf)||file_exists($xlsx)) throw new RuntimeException('Approved order file collision.');
+    // Called only while a PENDING order is held under SQLite BEGIN IMMEDIATE.
+    // If PHP crashed after file promotion but before the approval transaction
+    // committed, these are orphan outputs: safely replace them on retry.
+    foreach([$pdf,$xlsx] as $orphan) {
+        if (is_link($orphan)) throw new RuntimeException('Unsafe approved order file.');
+        if (is_file($orphan) && !@unlink($orphan)) throw new RuntimeException('Cannot recover incomplete approval file.');
+    }
     $pdfTmp=$pdf.'.'.bin2hex(random_bytes(4)).'.tmp';
     $xlsxTmp=$xlsx.'.'.bin2hex(random_bytes(4)).'.tmp';
     try {
