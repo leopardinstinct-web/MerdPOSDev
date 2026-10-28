@@ -20,16 +20,16 @@
 - **No order files, stock entries, Sheets modifications, Drive writes or sales scraping at this stage.**
 - Selection is session-only, not a durable submitted order.
 
-## Stage 2 — stock counting (not implemented)
+## Stage 2 — stock counting and accessories draft (coded; release review/deployment pending, 2026-10-28)
 
 - Reuse includes/sheets.php transport for Inventory DBA CSV. Add exact barcode alias resolution, robust blanks handling, constrained cache lifetime.
 - Read selected store's Y/Z/AA/AB ceiling; phone scan and manual search/count fallback.
 - Missing scans default to zero when calculating orders; invalid/missing ceiling needs explicit business handling rather than inferred values.
-- Draft persistence and editing must be designed before collecting counts.
+- Current implementation persists draft counts and a fixed Inventory DBA catalogue snapshot in the authenticated PHP session, isolated by store; subsequent Sheet edits do not silently reset counts. A new login session reloads the catalogue. Stock counts are not permanently submitted or restored after session expiry. Quantity editing and resetting are implemented.
 
-## Stage 3 — accessories / preview (not implemented)
+## Stage 3 — accessory generation / final preview (partly coded; submission still not implemented)
 
-- Scan or manual search accessories; user-specified order quantities.
+- Scan or manual search accessories; explicit quantities, repeated +1 and keypad corrections are implemented as session drafts.
 - Server-side preview with per-item replenishment, zero quantities excluded, duplicates resolved, accessories kept separate from cigarette ceilings.
 
 ## Stage 4 — Drive generation / SUPER status (not implemented)
@@ -67,7 +67,7 @@ Verified current **Inventory DBA → Inventory** columns:
 - Derive cigarette **OrderQty** separately and server-side: `max(0, selectedStoreCeiling - countedPhysicalStock)`, never from sales. Show ceiling, counted stock and calculated order as separate fields. Never conflate the counted-stock quantity with the order quantity.
 - On the **accessories** step, match the old Add/Increment/Keypad/Delete behaviour for manual products, with an explicit requested order quantity (first add 1, repeat +1).
 - Recognize the Inventory Sheet's barcode aliases wherever unambiguous, not merely `Code_1`; require a documented policy for carton/box scanning and non-unique barcodes before implementing a conversion.
-- This document records inspected reference UX and accepted Alpha requirements. These stages remain **not implemented** until code and runtime evidence demonstrate otherwise.
+- This document records inspected reference UX and accepted Alpha requirements. Stage 2 draft-counting screens and session-only API now have local test evidence; order finalization, Google Drive saving and SUPER submission remain unimplemented.
 
 ## Packaging barcode quantity — product-owner decision 2026-10-28
 
@@ -75,7 +75,7 @@ Verified current **Inventory DBA → Inventory** columns:
 - `Code_1`, `Code_2`, `Code_3` scans each add **one unit**. Manually selecting a product adds **one unit** unless staff explicitly change its quantity in the keypad. Repeated scans accumulate the same respective increment.
 - For example, if `Packaging=10`, one carton scan increases the cigarette on-hand count by 10; if the applicable ceiling is 16, calculated order quantity becomes 6. Counts are physical individual units; `Packaging` affects barcode increments, not the ceiling.
 - If a box barcode is present but `Packaging` is missing, zero, nonintegral or negative, **do not silently count one**. Reject the conversion with a clear operator-visible error; manual quantity correction remains available.
-- If a barcode maps to more than one distinct product or both a unit and box identity, **do not guess**: require explicit product selection before changing quantities. Store codes and `TobaccoOrder` eligibility must still be enforced.
+- If a barcode maps to more than one distinct eligible product across either AUTO/MANUAL or both a unit and box identity, **do not guess**: require explicit product selection before changing quantities. Store codes and `TobaccoOrder` eligibility must still be enforced.
 - A product with `TobaccoOrder=NO` must not be silently included in the Alpha tobacco ordering catalogue merely because its barcode is recognizable. `AUTO` cigarette physical counts and `MANUAL` accessories remain separate workflows.
 - As of the live 2026-10-28 Inventory DBA audit: **121** of 728 product rows have a nonempty box barcode (F:H), and all 121 have positive integer `Packaging` values; all 121 currently have `TobaccoOrder=NO`. **No AUTO or MANUAL product currently has a box barcode populated.** Another 250 rows have positive packaging values but no box barcode; those must not trigger carton conversion on unit barcode scans. Eleven barcodes occur on multiple different product rows, all within the NO catalogue, and should be treated as ambiguous if brought into scope in future.
-- This is an approved requirement **for Stage 2+**, not a claim that camera scanning or stock counting has been implemented or deployed yet.
+- Stage 2 implementation uses this rule. No eligible AUTO/MANUAL product currently has box barcodes in Inventory DBA, so the carton conversion is tested with a synthetic eligible product; an on-site carton scan remains untested.

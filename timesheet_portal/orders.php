@@ -47,7 +47,7 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Portal (Alpha) — Cigarette Orders</title>
-  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha1">
+  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha2">
 </head>
 <body>
   <header class="topbar">
@@ -64,9 +64,9 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
 
   <main class="page-shell order-page">
     <section class="orders-intro">
-      <p class="orders-eyebrow">Cigarette Orders · Step 1</p>
-      <h1>Choose a store</h1>
-      <p>Select any store to begin its stock-counting and ordering workflow. Your selection is retained for this login session.</p>
+      <p class="orders-eyebrow">Cigarette Orders · Alpha counting preview</p>
+      <h1><?= $selectedStore ? "Count stock &amp; accessories" : "Choose a store" ?></h1>
+      <p>Choose a store, scan stock and review the ceiling-based quantities. This is a <strong>draft only</strong>: nothing is ordered or saved to Google Drive yet.</p>
     </section>
 
     <?php if ($error !== ''): ?>
@@ -98,13 +98,77 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
       <?php endif; ?>
       <ol class="order-steps">
         <li><strong>Select store</strong> <span><?= $selectedStore !== null ? 'Completed' : 'Current step' ?></span></li>
-        <li><strong>Scan cigarette stock</strong> <span>Coming next</span></li>
-        <li><strong>Add tobacco accessories</strong> <span>Coming next</span></li>
+        <li><strong>Scan cigarette stock</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
+        <li><strong>Add tobacco accessories</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
         <li><strong>Review, generate and save order</strong> <span>Coming next</span></li>
       </ol>
-      <p class="orders-note">This first milestone only saves your store selection in the login session. It does not yet create an order, change the Inventory DBA sheet or save files to Google Drive.</p>
+      <p class="orders-note">Draft counts are held only in your login session, separately by store. No sales retrieval, inventory write, PDF or Drive submission is performed.</p>
     </section>
+
+    <?php if ($selectedStore !== null): ?>
+    <p id="countLoading" class="order-notice">Loading Inventory DBA catalogue…</p>
+    <section id="countWorkspace" class="order-workspace" data-csrf="<?= htmlspecialchars($_SESSION['order_store_csrf'], ENT_QUOTES, 'UTF-8') ?>" hidden>
+      <div class="order-metrics" aria-label="Order calculation summary">
+        <div class="order-metric"><span>Cigarettes counted</span><strong id="countedProducts">0</strong></div>
+        <div class="order-metric"><span>Cigarette units to order</span><strong id="orderTotal">0</strong></div>
+        <div class="order-metric"><span>Accessory units requested</span><strong id="accessoryTotal">0</strong></div>
+      </div>
+      <p id="ceilingProblems" class="orders-note"></p>
+      <section class="report-card" aria-labelledby="countHead">
+        <div class="order-tabs" role="group" aria-label="Count type">
+          <button id="typeAuto" type="button" aria-pressed="true">1. Cigarette physical stock</button>
+          <button id="typeManual" type="button" aria-pressed="false">2. Accessories to order</button>
+        </div>
+        <h2 id="countHead" class="orders-section-heading">Cigarette physical stock</h2>
+        <p id="countHelp" class="muted"></p>
+        <div id="countNotice" class="order-notice" role="status" aria-live="polite" hidden></div>
+        <div class="order-inputs">
+          <div>
+            <label for="barcodeEntry">Barcode (manual scanner or typed)</label>
+            <form id="barcodeForm" class="order-barcode-form">
+              <input id="barcodeEntry" type="text" autocomplete="off" inputmode="numeric" placeholder="Scan barcode, press Enter" aria-label="Barcode">
+              <button type="submit" class="secondary-btn">Add scan</button>
+            </form>
+          </div>
+          <div>
+            <label for="productSearch">Or select from the standard product list</label>
+            <input id="productSearch" type="search" autocomplete="off" placeholder="Search product name">
+            <div id="productSuggestions" class="order-suggestions" role="listbox" aria-label="Matching products" hidden></div>
+          </div>
+        </div>
+        <div class="order-camera-actions">
+          <button type="button" id="startCamera" class="secondary-btn">Scan with camera</button>
+          <span>Mobile browser requires camera permission and HTTPS.</span>
+        </div>
+        <div id="cameraPanel" class="order-camera" hidden>
+          <div id="cameraReader"></div>
+          <button id="stopCamera" class="ghost-btn" type="button">Close camera</button>
+        </div>
+        <div class="order-list-controls">
+          <label><input id="showAllCigarettes" type="checkbox"> Show all eligible cigarettes, including unscanned (0 stock)</label>
+          <p>Tap a quantity to correct it. Counts and orders are in individual units.</p>
+        </div>
+        <h3 id="countedLabel">Counted cigarettes</h3>
+        <div class="order-table-wrap">
+          <table id="countTable" class="order-count-table" hidden>
+            <thead><tr><th>Product</th><th id="countCeilingHeading">Ceiling</th><th id="countQtyLabel">On hand</th><th id="countOrderHeading">To order</th><th>Actions</th></tr></thead>
+            <tbody id="countedBody"></tbody>
+          </table>
+          <p id="emptyCounts" class="order-empty">Nothing counted yet. Scan a barcode or select a product above.</p>
+        </div>
+      </section>
+      <section class="report-card">
+        <h2 class="orders-section-heading">Draft only — no order submitted</h2>
+        <p>Physical counts use your selected store's ceilings from Inventory DBA. Products not scanned are treated as zero. Accessories are separate requested quantities. Google Sheets/PDF creation and SUPER submission status are the next release.</p>
+      </section>
+    </section>
+    <?php endif; ?>
   </main>
+
+  <?php if ($selectedStore !== null): ?>
+    <script src="assets/vendor/html5-qrcode.min.js?v=2.3.8"></script>
+    <script src="assets/orders.js?v=20261028alpha2" defer></script>
+  <?php endif; ?>
 
   <script>
     document.getElementById('logoutBtn').addEventListener('click', async () => {
