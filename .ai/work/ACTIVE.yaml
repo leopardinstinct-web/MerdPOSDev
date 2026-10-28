@@ -1,18 +1,18 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-28T14:55:00+05:00'
+updated_at: '2026-10-28T16:00:00+05:00'
 active:
 - id: MERD-20261028-legacy-order-alpha-v1
   path: .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
   lifecycle: DEPLOYED
-  packet_state: STAGE2_LOCAL_TESTS_PASS_PR_REVIEW_PENDING
+  packet_state: STAGE2_DEPLOYED_HASH_HTTP_VERIFIED_PHONE_TEST_PENDING
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED
   packet_state: BACKEND_DEPLOYED_DRUPAL_SURFACE_NEXT
 - id: MERD-20260909-dashboard-write-audit
   path: .ai/work/active/MERD-20260909-dashboard-write-audit.yaml
-  lifecycle: WIRED
+  lifecycle: DEPLOYED
   packet_state: POST_PLATFORM_DEPLOY_COMPAT_LOCAL_VALIDATED
 - id: MERD-20260908-finance-beta-acceptance
   path: .ai/work/active/MERD-20260908-finance-beta-acceptance.yaml

@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: b31b96795a78d620722db6c2c6c23b0c8a4ead9a
+last_seen_head: 6d68b6e0c93938b6aa43a14ba836934b65674a51
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T14:55:00+05:00'
-lifecycle: WIRED
-packet_state: STAGE2_LOCAL_TESTS_PASS_PR_REVIEW_PENDING
+updated_at: '2026-10-28T16:00:00+05:00'
+lifecycle: DEPLOYED
+packet_state: STAGE2_DEPLOYED_HASH_HTTP_VERIFIED_PHONE_TEST_PENDING
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -53,8 +53,8 @@ completed_evidence:
   - "timesheet_portal/ORDERING_ALPHA.md records the ceiling-based, no-sales roadmap."
 pending:
   - "Authenticated live USER and SUPER UI acceptance against authorized accounts; synthetic local role checks are PASS but real production role sessions not exercised."
-  - "Stage 2: mobile cigarette barcode counting and Inventory DBA universal CSV reader; no sales scraping."
-  - "Stage 3: accessories selection; Stage 4: Drive Sheet+PDF and SUPER order status."
+  - "Stage 2 deployed; real authenticated phone-camera acceptance pending."
+  - "Stage 3: persist/review/submit orders; Stage 4: Drive Sheet+PDF and SUPER order status. Accessories draft scanning already deployed."
   - "Minor reviewer nit: add Allow: POST header to HTTP 405 in next release or a small reviewed patch."
 stage_2:
   scope: "Inventory DBA CSV AUTO ceiling stock count, MANUAL accessory draft, camera scanner, unit/box Packaging multiplier, per-store PHP session drafts"
@@ -65,7 +65,12 @@ stage_2:
     - "Independent delta review 3b9d72e returned FIX-FIRST: camera stop/restart race during async stop; added cameraStopping guard and Chromium reentrancy test; final delta review pending."
     - "PHP lint + Node JS syntax PASS; Inventory DBA live CSV and header schema verified"
     - "Local HTTP smoke 19 PASS including CSRF, store isolation, AUTO/MANUAL, unit aliases, unscanned zero and synthetic Packaging=10"
-    - "Chromium mobile 390px browser smoke PASS with no JavaScript page errors; camera not yet tested on physical phone"
+    - "Chromium mobile 390px browser smoke PASS including mocked camera races; real physical phone remains owner acceptance."
+    - "Independent KIMI_WEB final delta 8e1e8b4 SHIP, zero major/minor/nit; CI, Secret scan and Beta guardrails all green."
+    - "PR #191 merged 6d68b6e; deployment final source SHA 8e1e8b4105aca58b59ec345eeba56e9c3ed6ae64."
+    - "Namecheap legacy SSH/SFTP stage2 deployment: old baseline verified; remote backup /home/dridsheikh/.merdpos_alpha_backups/pr191-8e1e8b4-retry2-20261028; eight staged hash checks and PHP lint pass; promoted; eight production hashes match exact local reviewed source; includes/config.php unchanged."
+    - "Production public HTTP verified: assets/orders.js, assets/styles.css, assets/vendor/html5-qrcode.min.js, index.php all 200 with release marker; unauthenticated orders.php 302 and api/order_count.php 401."
+    - "Initial deploy rollback occurred on stylesheet CRLF mismatch, resolved via exact PR190 deployed stylesheet fingerprint; second deploy rolled back on vendor dir 700 permission, corrected to public assets/vendor 755; successful guarded third deploy."
   excluded: "No orders generated, no Drive writes, no external sales retrieval, no payroll changes"
-  pending: "Independent review, CI and direct legacy-portal deployment after remote hash backup, then product-owner mobile-camera verification"
-next_action: "Review immutable stage-2 SHA and green CI, deploy only the legacy root timesheet_portal delta with config preserved, then owner verifies phone camera."
+  pending: "Product-owner physical phone-camera and authenticated USER/SUPER acceptance; no actual orders or Drive writes"
+next_action: "Product owner verifies phone camera barcode capture, product search, packaging/counting and selected-store ceiling results on https://app.merdpos.com/timesheet_portal/orders.php; record findings before Stage 3/4."
