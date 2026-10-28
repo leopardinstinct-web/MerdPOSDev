@@ -27,3 +27,7 @@ Deploy the reviewed source to the **legacy production Alpha portal**, then creat
 - `tests/order_pdf_layout.py`: font-metric wrapping, repeated branded store/date/address and column headers over long multi-page orders, correct blue fill, fail-closed pathological row.
 - `tests/order_approval_smoke.py`: existing isolated USER/SUPER workflow, approvals, locks and PDF/XLSX.
 - PHP lint, JS syntax, Git clean diff and independent review before deployment.
+
+## Independent review corrections
+
+Initial immutable KIMI_WEB review of `58edd1d` returned FIX-FIRST for a permitted near-limit row overflowing the reduced PDF body beneath the new repeating header; also noted timezone-less timestamps and potentially mangled punctuation. The PDF now rechecks available body space **after** a new branded page plus table header before rendering, failing closed if the row still will not fit. Both PHP and JS interpret timezone-less legacy timestamps as UTC; output text is ASCII-safe. A targeted QA-layout test probes short through near-limit rows and requires both safe rendering and safe refusal. Await independent delta review and current CI before production deployment.

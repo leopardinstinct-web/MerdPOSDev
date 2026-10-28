@@ -47,4 +47,25 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   error=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
   assert error.returncode!=0 and not pdf.exists(),'Excessive row must fail rather than corrupt approved PDF'
   print('PASS pathologically long row fails closed',flush=True)
+  # Verify the real usable body height after a branded Header() and table header.
+  # QA banners further reduce capacity; a row that cannot fit must fail closed.
+  payload['test_order']=True
+  oversized_blocked=False
+  rendered_safe=False
+  for chars in [120,160,200,240,280,320,360,400]:
+   payload['rows']=[dict(payload['rows'][0],category='W'*chars)]
+   jsonpath.write_text(json.dumps(payload),encoding='utf8')
+   if pdf.exists():pdf.unlink()
+   output=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
+   if output.returncode!=0:
+    oversized_blocked=True
+    assert not pdf.exists(),('failed QA PDF must not be published',chars)
+    continue
+   doc=fitz.open(pdf)
+   assert all('QA TEST ORDER - NOT FOR SUPPLIER' in pg.get_text() for pg in doc)
+   assert all(block[3] <= pg.rect.height-20 for pg in doc for block in pg.get_text('blocks'))
+   rendered_safe=True
+   doc.close()
+  assert oversized_blocked and rendered_safe,'QA body-height regression did not exercise both fit and overflow rejection'
+  print('PASS near-limit QA row respects branded page body and rejects oversized rows',flush=True)
 if __name__=='__main__':main()

@@ -15,7 +15,10 @@
     return out;
   };
   const auDate=(value)=>{
-    const parsed=value?new Date(value):new Date();
+    // Submitted-at values originate from the UTC SQLite ledger. If a legacy
+    // timestamp lacks an offset, interpret it as UTC instead of browser local.
+    const timestamp=typeof value==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/.test(value) ? value+'Z' : value;
+    const parsed=timestamp?new Date(timestamp):new Date();
     if(Number.isNaN(parsed.getTime()))return 'Date unavailable';
     return new Intl.DateTimeFormat('en-AU',{
       timeZone:'Australia/Sydney',month:'long',day:'numeric',year:'numeric'
@@ -43,8 +46,8 @@
     const storeRow=node('div','manual-order-store',storeData.name);
     const addressRow=node('div','manual-order-address','Address: '+storeData.address);
     title.append(dateRow,storeRow,addressRow);
-    if(testOrder)title.append(node('div','manual-order-test','QA TEST ORDER — NOT FOR SUPPLIER'));
-    const meta=node('div','manual-order-meta',orderId?('Order '+orderId+' · '+phase):'Live order preview · '+phase);
+    if(testOrder)title.append(node('div','manual-order-test','QA TEST ORDER - NOT FOR SUPPLIER'));
+    const meta=node('div','manual-order-meta',orderId?('Order '+orderId+' | '+phase):'Live order preview | '+phase);
     title.append(meta);
     paper.append(title);
     const scroll=node('div','manual-order-scroll');
@@ -73,7 +76,7 @@
     table.append(body);scroll.append(table);paper.append(scroll);
     const foot=node('div','manual-order-foot');
     foot.append(node('span','',rows.length+' order lines'));
-    foot.append(node('span','','Quantities are calculated from the selected store’s stock ceilings and accessories.'));
+    foot.append(node('span','','Quantities are calculated from the selected store stock ceilings and accessories.'));
     paper.append(foot);host.append(paper);
   }
   window.MerdManualOrder={render,draftRows,storeInfo};

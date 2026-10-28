@@ -87,7 +87,9 @@ function order_pdf(array $row,string $path): void {
     $doc->orderId=$row['id'];
     $doc->storeName=$storeName;
     $doc->storeAddress=$address;
-    $submitted=new DateTimeImmutable($row['submitted_at']);
+    // The order ledger stores UTC timestamps with Z. For legacy timestamps
+    // missing an offset, interpret the original database value as UTC.
+    $submitted=new DateTimeImmutable($row['submitted_at'],new DateTimeZone('UTC'));
     $doc->orderDate=$submitted->setTimezone(new DateTimeZone('Australia/Sydney'))->format('F j, Y');
     $doc->isQaTest=!empty($data['test_order']);
     $doc->AliasNbPages();$doc->SetMargins(13,12,13);$doc->SetAutoPageBreak(true,22);
@@ -116,8 +118,16 @@ function order_pdf(array $row,string $path): void {
         ];
         $lines=max(array_map('count',$columns));
         $height=max(8,$lines*5+2);
-        if ($height>210) throw new RuntimeException('Order line is too long to fit a PDF page.');
-        if ($doc->GetY()+$height>267) {$doc->AddPage();$drawHeader();$doc->SetFont('Arial','',8);$doc->SetTextColor(27,36,48);}
+        if ($doc->GetY()+$height>267) {
+            $doc->AddPage();
+            $drawHeader();
+        }
+        // The branded Header() is taller than the prior design. Measure real
+        // remaining body space AFTER a fresh page and table header are drawn.
+        // Never let a long row overlap the footer or silently clip PDF text.
+        if ($doc->GetY()+$height>267) {
+            throw new RuntimeException('Order line is too long to fit the printable PDF body.');
+        }
         $y=$doc->GetY();$x=$doc->GetX();
         // Column fills mirror the workbook (neutral category, cream barcode,
         // white product and pale-blue quantity).
