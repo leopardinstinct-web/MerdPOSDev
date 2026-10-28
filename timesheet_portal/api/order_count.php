@@ -25,7 +25,16 @@ if ($method === 'POST') {
 }
 
 try {
-    $catalog = order_catalog($store);
+    // Pin the reference catalogue for this draft's login session. Changes to
+    // Google Sheet names/aliases/ceilings must never silently detach counts.
+    if (!isset($_SESSION['order_draft_catalogue'][$store])) {
+        $_SESSION['order_draft_catalogue'][$store] = [
+            'products' => order_catalog($store),
+            'captured_at' => gmdate('c')
+        ];
+    }
+    $snapshot = $_SESSION['order_draft_catalogue'][$store];
+    $catalog = $snapshot['products'];
     if (!isset($_SESSION['order_draft_counts']) || !is_array($_SESSION['order_draft_counts'])) {
         $_SESSION['order_draft_counts'] = [];
     }
@@ -83,6 +92,7 @@ try {
         'store' => $store,
         'products' => order_response_products($catalog, $counts),
         'csrf_token' => $_SESSION['order_store_csrf'],
+        'catalogue_captured_at' => $snapshot['captured_at'],
         'draft_only' => true
     ]);
 } catch (InvalidArgumentException $e) {

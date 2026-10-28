@@ -33,10 +33,20 @@ def run():
                 page.locator('.order-suggestion').first.click()
                 page.wait_for_function("() => document.querySelector('#countedProducts').textContent === '1'")
                 assert page.locator('#countedBody').inner_text().find("B & H")>=0
+                # Deliver 2 clicks in one event loop while first API request is pending.
+                page.evaluate("() => {const b=document.querySelector('#countedBody .order-row-action'); b.click(); b.click();}")
+                page.wait_for_function("() => document.querySelector('#countedBody .order-qty').textContent === '3'",timeout=30000)
                 page.locator('#typeManual').click()
                 page.locator('#productSearch').fill('BIC Plain Big')
                 page.locator('.order-suggestion').first.click()
                 page.wait_for_function("() => document.querySelector('#accessoryTotal').textContent === '1'")
+                # Camera cancellation during async startup must stop once start resolves.
+                page.evaluate("""() => { window.__cameraStopped = false;
+                  window.Html5Qrcode = class { constructor(){} start(){return new Promise(resolve=>setTimeout(resolve,250));} stop(){window.__cameraStopped=true;return Promise.resolve();} clear(){} };
+                }""")
+                page.locator('#startCamera').click()
+                page.locator('#stopCamera').click()
+                page.wait_for_function('() => window.__cameraStopped === true',timeout=5000)
                 assert not errors, errors
                 page.screenshot(path=str(dst/'order-alpha-mobile.png'),full_page=True)
                 print('PASS mobile Chromium 390px UI, store selection, Inventory CSV load, search, AUTO/MANUAL increments and zero JS page errors',flush=True)

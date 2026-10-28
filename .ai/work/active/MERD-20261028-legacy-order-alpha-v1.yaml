@@ -60,6 +60,8 @@ stage_2:
   scope: "Inventory DBA CSV AUTO ceiling stock count, MANUAL accessory draft, camera scanner, unit/box Packaging multiplier, per-store PHP session drafts"
   implemented: "timesheet_portal/includes/order_inventory.php, api/order_count.php, assets/orders.js, locally bundled html5-qrcode v2.3.8, orders.php and styles.css"
   evidence:
+    - "Independent Kimi review of d6050e4 returned FIX-FIRST: 2 major (dropped rapid scans, catalogue ID drift), 2 minor (cross-type barcodes, camera startup race). Implementation fixes made; delta review pending."
+    - "PINNED catalogue per-store session snapshot, sequential client mutation queue, global eligible-type barcode ambiguity, deferred camera stop during start."
     - "PHP lint + Node JS syntax PASS; Inventory DBA live CSV and header schema verified"
     - "Local HTTP smoke 19 PASS including CSRF, store isolation, AUTO/MANUAL, unit aliases, unscanned zero and synthetic Packaging=10"
     - "Chromium mobile 390px browser smoke PASS with no JavaScript page errors; camera not yet tested on physical phone"

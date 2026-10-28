@@ -4,7 +4,7 @@
   const root = document.getElementById('countWorkspace');
   if (!root) return;
   const $ = id => document.getElementById(id);
-  const state = {products: [], type: 'AUTO', csrf: root.dataset.csrf, busy: false, scanner: null, scanning: false, lastId: null};
+  const state = {products: [], type: 'AUTO', csrf: root.dataset.csrf, queue: Promise.resolve(), scanner: null, scanning: false, cameraStarting: false, cameraCancelled: false, lastId: null};
   const types = {AUTO: 'Cigarettes', MANUAL: 'Accessories'};
   const badge = (text, cls) => {
     const e = document.createElement('span');
@@ -22,7 +22,7 @@
     const options = {credentials:'same-origin',cache:'no-store'};
     if (data) {
       options.method = 'POST';
-      options.body = new URLSearchParams({...data, csrf_token:state.csrf, type:state.type});
+      options.body = new URLSearchParams({...data, csrf_token:state.csrf, type:data.type || state.type});
     }
     const response = await fetch('api/order_count.php', options);
     let payload;
@@ -121,29 +121,30 @@
     $('emptyCounts').hidden = rows.length > 0;
     $('countTable').hidden = rows.length === 0;
   }
-  async function mutate(data, notice) {
-    if (state.busy) return;
-    state.busy = true;
-    try {
-      const out = await request(data);
-      state.lastId = data.product_id || null;
-      if (data.action === 'scan') {
-        const match = out.products.find(p => [...p.unit_barcodes,...p.box_barcodes].includes(data.barcode) && p.type === state.type);
-        if (match) {
-          state.lastId=match.id;
-          const qty=match.box_barcodes.includes(data.barcode) ? match.packaging : 1;
-          notice=match.name+' · +'+qty+' units ('+match.count+' total)';
+  function mutate(data, notice) {
+    // Queue mutations in arrival order: a fast second scan must never disappear.
+    const queued = {...data, type:state.type};
+    state.queue = state.queue.then(async () => {
+      try {
+        const out = await request(queued);
+        state.lastId = queued.product_id || null;
+        if (queued.action === 'scan') {
+          const match = out.products.find(p => [...p.unit_barcodes,...p.box_barcodes].includes(queued.barcode) && p.type === queued.type);
+          if (match) {
+            state.lastId=match.id;
+            const qty=match.box_barcodes.includes(queued.barcode) ? match.packaging : 1;
+            notice=match.name+' · +'+qty+' units ('+match.count+' total)';
+          }
         }
+        $('productSearch').value = '';
+        $('productSuggestions').hidden = true;
+        render();
+        if (notice) info(notice);
+      } catch (error) {
+        info(error.message || 'Unable to update draft', true);
       }
-      render();
-      if (notice) info(notice);
-      $('productSearch').value = '';
-      $('productSuggestions').hidden = true;
-      // Draw rows again now that search is cleared.
-      render();
-    } catch (error) {
-      info(error.message || 'Unable to update draft', true);
-    } finally {state.busy = false;}
+    });
+    return state.queue;
   }
   async function addProduct(id) {await mutate({action:'select',product_id:id},'Product quantity increased by 1.');}
   async function editCount(product) {
@@ -155,24 +156,37 @@
   async function enterBarcode(value) {
     const code=String(value||'').trim();
     if (!code) return;
-    await mutate({action:'scan',barcode:code});
     $('barcodeEntry').value = '';
+    await mutate({action:'scan',barcode:code});
   }
   async function stopCamera() {
-    if (!state.scanner) return;
-    try {if (state.scanning) await state.scanner.stop();} catch (_) {}
-    try {state.scanner.clear();} catch (_) {}
-    state.scanning = false;
+    if (state.cameraStarting) {
+      // start() may still resolve after Stop is pressed. Defer cleanup until then.
+      state.cameraCancelled = true;
+      $('startCamera').textContent = 'Stopping camera…';
+      return;
+    }
+    const scanner = state.scanner;
+    const wasScanning = state.scanning;
     state.scanner = null;
+    state.scanning = false;
+    if (scanner) {
+      try {if (wasScanning) await scanner.stop();} catch (_) {}
+      try {scanner.clear();} catch (_) {}
+    }
     $('cameraPanel').hidden = true;
     $('startCamera').textContent = 'Scan with camera';
   }
   async function startCamera() {
+    if (state.cameraStarting) return;
     if (state.scanning) {await stopCamera();return;}
     if (typeof Html5Qrcode === 'undefined') {
       info('Camera scanner not available. Enter barcode or use product search.',true);return;
     }
+    state.cameraCancelled = false;
+    state.cameraStarting = true;
     $('cameraPanel').hidden=false;
+    $('startCamera').textContent='Starting camera…';
     try {
       const opts={formatsToSupport:[
         Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,
@@ -189,10 +203,13 @@
           await stopCamera();
           await enterBarcode(value);
         },()=>{});
+      state.cameraStarting=false;
       state.scanning=true;
+      if (state.cameraCancelled) {await stopCamera();return;}
       $('startCamera').textContent='Stop camera';
       info('Point the camera at a barcode. One recognized scan is counted at a time.');
     } catch (e) {
+      state.cameraStarting=false;
       await stopCamera();
       info('Camera permission/format unavailable. Use barcode entry or search. '+(e.message||''),true);
     }

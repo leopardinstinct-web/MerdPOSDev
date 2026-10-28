@@ -93,23 +93,26 @@ function order_catalog(string $store): array
 
 function order_barcode_match(array $catalog, string $barcode, string $type): array
 {
+    // Match across BOTH eligible types to prevent cross-tab barcode collisions.
     $matches = [];
     foreach ($catalog as $product) {
-        if ($product['type'] !== $type) continue;
         if (in_array($barcode, $product['unit_barcodes'], true)) {
             $matches[] = ['product' => $product, 'quantity' => 1];
         }
         if (in_array($barcode, $product['box_barcodes'], true)) {
-            if ($product['packaging'] === null) {
-                throw new InvalidArgumentException('Box barcode has no valid Packaging value. Correct the count manually.');
-            }
             $matches[] = ['product' => $product, 'quantity' => $product['packaging']];
         }
     }
     if (count($matches) !== 1) {
         throw new InvalidArgumentException(count($matches) === 0
-            ? 'No matching ' . ($type === 'AUTO' ? 'cigarette' : 'accessory') . ' barcode in Inventory DBA.'
+            ? 'Barcode not found among eligible Inventory DBA products.'
             : 'Barcode matches multiple catalogue entries. Select the product by name instead.');
+    }
+    if ($matches[0]['product']['type'] !== $type) {
+        throw new InvalidArgumentException('Barcode belongs to the other product type. Switch tabs to count it.');
+    }
+    if ($matches[0]['quantity'] === null || $matches[0]['quantity'] <= 0) {
+        throw new InvalidArgumentException('Box barcode has no valid Packaging value. Correct the count manually.');
     }
     return $matches[0];
 }

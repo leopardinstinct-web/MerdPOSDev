@@ -52,6 +52,7 @@ def main():
             code,data=req("api/order_count.php")
             check(code==200,"Inventory DBA CSV catalogue loaded")
             payload=json.loads(data); products=payload["products"]
+            captured=payload['catalogue_captured_at']
             auto={p["name"]:p for p in products if p["type"]=="AUTO"}
             manual={p["name"]:p for p in products if p["type"]=="MANUAL"}
             check(len(auto)>10 and len(manual)>10,"eligible AUTO / MANUAL products available")
@@ -70,6 +71,7 @@ def main():
             code,p=post({"type":"AUTO","action":"scan","barcode":"93208949"})
             hit=next(x for x in p["products"] if x["id"]==cigarettes["id"])
             check(hit["count"]==1 and hit["order_quantity"]==3,"unit barcode increments and calculates")
+            check(p['catalogue_captured_at']==captured, 'inventory reference snapshot pinned through draft')
             code,p=post({"type":"AUTO","action":"scan","barcode":"9310797301190"})
             hit=next(x for x in p["products"] if x["id"]==cigarettes["id"])
             check(hit["count"]==2 and hit["order_quantity"]==2,"barcode alias same product increments")
@@ -88,7 +90,7 @@ def main():
             code,_=post({"type":"AUTO","action":"set","product_id":lighter["id"],"quantity":"3"})
             check(code==422,"cross-kind product manipulation blocked")
             # Validate the carton matching function with a synthetic record (no live eligible carton exists).
-            snippet="""<?php require_once %s; $p=['type'=>'AUTO','id'=>'example','unit_barcodes'=>['00123'],'box_barcodes'=>['00456'],'packaging'=>10]; $m=order_barcode_match(['example'=>$p],'00456','AUTO'); if($m['quantity']!==10)exit(1); $m=order_barcode_match(['example'=>$p],'00123','AUTO'); if($m['quantity']!==1)exit(2); echo 'OK';"""%repr(str(dst/"includes"/"order_inventory.php")).replace("\\\\","/")
+            snippet="""<?php require_once %s; $p=['type'=>'AUTO','id'=>'example','unit_barcodes'=>['00123'],'box_barcodes'=>['00456'],'packaging'=>10]; $m=order_barcode_match(['example'=>$p],'00456','AUTO'); if($m['quantity']!==10)exit(1); $m=order_barcode_match(['example'=>$p],'00123','AUTO'); if($m['quantity']!==1)exit(2); $q=['type'=>'MANUAL','id'=>'other','unit_barcodes'=>['00456'],'box_barcodes'=>[],'packaging'=>null]; try {order_barcode_match(['example'=>$p,'other'=>$q],'00456','AUTO');exit(3);} catch(InvalidArgumentException $e) {echo 'OK';}"""%repr(str(dst/"includes"/"order_inventory.php")).replace("\\\\","/")
             phpfile=dst/"box-test.php";phpfile.write_text(snippet,encoding="utf8")
             output=subprocess.check_output([php,str(phpfile)],text=True,timeout=15).strip()
             check(output=="OK","Packaging multiplier and unit fallback (synthetic eligible product)")
