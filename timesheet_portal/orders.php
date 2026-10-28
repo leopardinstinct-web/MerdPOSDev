@@ -59,7 +59,7 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
       <a href="dashboard.php">Timesheets</a>
       <a href="orders.php" aria-current="page">Cigarette Orders</a>
     </nav>
-    <button id="logoutBtn" class="ghost-btn" type="button">Log Out</button>
+    <button id="logoutBtn" class="ghost-btn" type="button" data-logout-csrf="<?= htmlspecialchars(portal_logout_csrf(), ENT_QUOTES, 'UTF-8') ?>">Log Out</button>
   </header>
 
   <main class="page-shell order-page">
@@ -72,6 +72,8 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
     <?php if ($error !== ''): ?>
       <p class="status-card error-card" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
+
+    <p id="logoutError" class="status-card error-card" role="alert" hidden></p>
 
     <section class="report-card" aria-labelledby="storeSelectionHeading">
       <h2 id="storeSelectionHeading" class="orders-section-heading">Select a store</h2>
@@ -106,8 +108,24 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
 
   <script>
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      try { await fetch('api/logout.php', { credentials: 'same-origin' }); } catch (_) {}
-      window.location.href = 'index.php';
+      const button = document.getElementById('logoutBtn');
+      const error = document.getElementById('logoutError');
+      button.disabled = true;
+      error.hidden = true;
+      try {
+        const response = await fetch('api/logout.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: new URLSearchParams({ csrf_token: button.dataset.logoutCsrf || '' })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Logout failed');
+        window.location.href = 'index.php';
+      } catch (_) {
+        error.textContent = 'Could not sign out. Please retry.';
+        error.hidden = false;
+        button.disabled = false;
+      }
     });
   </script>
 </body>

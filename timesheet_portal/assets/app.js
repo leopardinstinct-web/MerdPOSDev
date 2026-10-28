@@ -302,8 +302,20 @@ if (!window.__timesheetPortalLoaded) {
   }
 
   els.logout.addEventListener('click', async () => {
-    try { await fetchJson('api/logout.php'); } catch (_) {}
-    window.location.href = 'index.php';
+    els.logout.disabled = true;
+    try {
+      const response = await fetch('api/logout.php', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: new URLSearchParams({ csrf_token: els.logout.dataset.logoutCsrf || '' })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || 'Logout failed');
+      window.location.href = 'index.php';
+    } catch (_) {
+      showStatus('Could not sign out. Please retry.', true);
+      els.logout.disabled = false;
+    }
   });
 
   init();

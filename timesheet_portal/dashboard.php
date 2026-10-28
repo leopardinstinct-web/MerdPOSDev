@@ -24,7 +24,7 @@ if (!$user) {
       <a href="dashboard.php" aria-current="page">Timesheets</a>
       <a href="orders.php">Cigarette Orders</a>
     </nav>
-    <button id="logoutBtn" class="ghost-btn">Log Out</button>
+    <button id="logoutBtn" class="ghost-btn" type="button" data-logout-csrf="<?= htmlspecialchars(portal_logout_csrf(), ENT_QUOTES, 'UTF-8') ?>">Log Out</button>
   </header>
 
   <main class="page-shell">
