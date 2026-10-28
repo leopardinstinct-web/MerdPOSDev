@@ -4,7 +4,7 @@
   const root = document.getElementById('countWorkspace');
   if (!root) return;
   const $ = id => document.getElementById(id);
-  const state = {products: [], type: 'AUTO', csrf: root.dataset.csrf, queue: Promise.resolve(), scanner: null, scanning: false, cameraStarting: false, cameraCancelled: false, lastId: null};
+  const state = {products: [], type: 'AUTO', csrf: root.dataset.csrf, queue: Promise.resolve(), scanner: null, scanning: false, cameraStarting: false, cameraStopping: false, cameraCancelled: false, lastId: null};
   const types = {AUTO: 'Cigarettes', MANUAL: 'Accessories'};
   const badge = (text, cls) => {
     const e = document.createElement('span');
@@ -166,19 +166,25 @@
       $('startCamera').textContent = 'Stopping camera…';
       return;
     }
+    if (state.cameraStopping) return;
+    state.cameraStopping = true;
     const scanner = state.scanner;
     const wasScanning = state.scanning;
     state.scanner = null;
     state.scanning = false;
-    if (scanner) {
-      try {if (wasScanning) await scanner.stop();} catch (_) {}
-      try {scanner.clear();} catch (_) {}
+    try {
+      if (scanner) {
+        try {if (wasScanning) await scanner.stop();} catch (_) {}
+        try {scanner.clear();} catch (_) {}
+      }
+    } finally {
+      $('cameraPanel').hidden = true;
+      $('startCamera').textContent = 'Scan with camera';
+      state.cameraStopping = false;
     }
-    $('cameraPanel').hidden = true;
-    $('startCamera').textContent = 'Scan with camera';
   }
   async function startCamera() {
-    if (state.cameraStarting) return;
+    if (state.cameraStarting || state.cameraStopping) return;
     if (state.scanning) {await stopCamera();return;}
     if (typeof Html5Qrcode === 'undefined') {
       info('Camera scanner not available. Enter barcode or use product search.',true);return;
@@ -221,7 +227,7 @@
   $('barcodeForm').addEventListener('submit',e=>{e.preventDefault();enterBarcode($('barcodeEntry').value);});
   $('startCamera').addEventListener('click',startCamera);
   $('stopCamera').addEventListener('click',stopCamera);
-  window.addEventListener('pagehide',()=>{if(state.scanning)stopCamera();});
+  window.addEventListener('pagehide',()=>{if(state.scanning || state.cameraStarting)stopCamera();});
   request().then(()=>{render();$('countLoading').hidden=true;root.hidden=false;}).catch(e=>{
     $('countLoading').textContent='Cannot load Inventory DBA: '+(e.message||'Unknown error');
     $('countLoading').className='order-notice order-error';

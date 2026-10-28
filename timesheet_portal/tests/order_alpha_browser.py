@@ -47,6 +47,14 @@ def run():
                 page.locator('#startCamera').click()
                 page.locator('#stopCamera').click()
                 page.wait_for_function('() => window.__cameraStopped === true',timeout=5000)
+                page.evaluate("""() => {window.__starts=0;window.__stops=0;
+                  window.Html5Qrcode = class { constructor(){} start(){window.__starts++;return Promise.resolve();} stop(){return new Promise(resolve=>setTimeout(()=>{window.__stops++;resolve();},300));} clear(){} };
+                }""")
+                page.locator('#startCamera').click()
+                page.wait_for_function("() => document.querySelector('#startCamera').textContent === 'Stop camera'")
+                page.evaluate("() => {document.querySelector('#stopCamera').click();document.querySelector('#startCamera').click();}")
+                page.wait_for_timeout(500)
+                assert page.evaluate('() => window.__starts===1 && window.__stops===1 && document.querySelector("#cameraPanel").hidden')
                 assert not errors, errors
                 page.screenshot(path=str(dst/'order-alpha-mobile.png'),full_page=True)
                 print('PASS mobile Chromium 390px UI, store selection, Inventory CSV load, search, AUTO/MANUAL increments and zero JS page errors',flush=True)

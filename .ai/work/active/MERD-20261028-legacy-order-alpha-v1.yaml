@@ -62,6 +62,7 @@ stage_2:
   evidence:
     - "Independent Kimi review of d6050e4 returned FIX-FIRST: 2 major (dropped rapid scans, catalogue ID drift), 2 minor (cross-type barcodes, camera startup race). Implementation fixes made; delta review pending."
     - "PINNED catalogue per-store session snapshot, sequential client mutation queue, global eligible-type barcode ambiguity, deferred camera stop during start."
+    - "Independent delta review 3b9d72e returned FIX-FIRST: camera stop/restart race during async stop; added cameraStopping guard and Chromium reentrancy test; final delta review pending."
     - "PHP lint + Node JS syntax PASS; Inventory DBA live CSV and header schema verified"
     - "Local HTTP smoke 19 PASS including CSRF, store isolation, AUTO/MANUAL, unit aliases, unscanned zero and synthetic Packaging=10"
     - "Chromium mobile 390px browser smoke PASS with no JavaScript page errors; camera not yet tested on physical phone"
