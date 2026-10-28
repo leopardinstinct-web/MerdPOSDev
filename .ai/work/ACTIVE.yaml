@@ -5,7 +5,7 @@ active:
 - id: MERD-20261028-legacy-order-alpha-v1
   path: .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
   lifecycle: DEPLOYED
-  packet_state: MX_DT_PRODUCTION_ACCESSORIES_VERIFIED_RT_CEILINGS_BLOCKED
+  packet_state: MX_DT_RT_PRODUCTION_PDF_XLSX_VERIFIED_DISCONTINUED_EXCLUSIONS
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED
