@@ -54,7 +54,8 @@ try {
             $result=order_update_pending($user,(string)$editing['id'],(int)$editing['revision'],$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at']);
             $message='Updated pending order for SUPER review. You may start another order.';
         } else {
-            $result=order_create($user,$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at']);
+            $test=($_POST['test_order']??'')==='1' && !empty($user['is_super']);
+            $result=order_create($user,$store,$nonce,$snapshot['products'],$counts,(string)$snapshot['captured_at'],$test);
             $message='Submitted to SUPER for approval. You may start another order.';
         }
         // A successful submission leaves a blank new draft for the same store.
@@ -65,16 +66,18 @@ try {
         $id=$_POST['order_id'] ?? '';
         if (!is_string($id)) throw new InvalidArgumentException('Invalid order ID.');
         $row=order_pending_for_user($user,$id);
-        $payload=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
-        if (!isset($payload['draft']['catalogue'],$payload['draft']['counts'])) {
+        // Reopened order classification comes only from immutable stored payload.
+        $storedOrder=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
+        $storedTestOrder=(bool)($storedOrder['test_order'] ?? false);
+        if (!isset($storedOrder['draft']['catalogue'],$storedOrder['draft']['counts'])) {
             throw new DomainException('Original count snapshot is unavailable for editing. Start a new order.');
         }
         $store=$row['store'];
         $_SESSION['order_store_code']=$store;
-        $_SESSION['order_draft_catalogue'][$store]=['products'=>$payload['draft']['catalogue'],'captured_at'=>$payload['captured_at']];
-        $_SESSION['order_draft_counts'][$store]=$payload['draft']['counts'];
+        $_SESSION['order_draft_catalogue'][$store]=['products'=>$storedOrder['draft']['catalogue'],'captured_at'=>$storedOrder['captured_at']];
+        $_SESSION['order_draft_counts'][$store]=$storedOrder['draft']['counts'];
         $_SESSION['order_draft_nonce'][$store]=bin2hex(random_bytes(16));
-        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision']];
+        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision'],'test_order'=>$storedTestOrder];
         json_response(['success'=>true,'store'=>$store,'editing'=>$id]);
     }
     if ($action==='new') {
@@ -82,6 +85,12 @@ try {
         if (!is_string($store)||!in_array($store,['MX','ET','DT','RT'],true)) throw new InvalidArgumentException('Select a store first.');
         unset($_SESSION['order_draft_catalogue'][$store],$_SESSION['order_draft_counts'][$store],$_SESSION['order_draft_nonce'][$store],$_SESSION['order_draft_edit'][$store]);
         json_response(['success'=>true,'message'=>'New blank order started.']);
+    }
+    if ($action==='delete') {
+        if (empty($user['is_super'])) json_response(['success'=>false,'error'=>'SUPER required.'],403);
+        $id=$_POST['order_id']??'';
+        if (!is_string($id)) throw new InvalidArgumentException('Invalid order ID.');
+        json_response(['success'=>true,'order'=>order_delete_super($user,$id)]);
     }
     if ($action==='approve' || $action==='reject') {
         if (empty($user['is_super'])) json_response(['success'=>false,'error'=>'SUPER approval required.'],403);

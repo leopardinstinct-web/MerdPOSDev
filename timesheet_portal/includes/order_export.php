@@ -62,6 +62,11 @@ function order_pdf(array $row,string $path): void {
     $doc->Cell(0,6,'Address: '.order_pdf_text($address),0,1,'C');
     $doc->SetFont('Arial','',8);
     $doc->Cell(0,5,'Approved Order  |  '.$row['id'],0,1,'C');
+    if (!empty($data['test_order'])) {
+        $doc->SetTextColor(165,33,27);$doc->SetFont('Arial','B',13);
+        $doc->Cell(0,9,'QA TEST ORDER - NOT FOR SUPPLIER',0,1,'C');
+        $doc->SetTextColor(27,36,48);
+    }
     $doc->Ln(7);
     $widths=[27,40,90,27];
     $drawHeader=static function () use ($doc,$widths): void {
@@ -131,7 +136,7 @@ function order_sheet_xml(array $cells): string {
 function order_xlsx(array $row,string $path): void {
     $payload=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
     $rows=[
-        ['MERDPOS Approved Tobacco Order',$row['id']],
+        [!empty($payload['test_order'])?'MERDPOS QA TEST - NOT FOR SUPPLIER':'MERDPOS Approved Tobacco Order',$row['id']],
         ['Store',$row['store']],
         ['Submitted by',$row['author_name']],
         ['Submitted at',$row['submitted_at']],

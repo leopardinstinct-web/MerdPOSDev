@@ -34,12 +34,27 @@ CREATE TABLE IF NOT EXISTS orders (
  status TEXT NOT NULL CHECK(status IN ('PENDING','APPROVED','REJECTED')),
  payload TEXT NOT NULL, draft_nonce TEXT NOT NULL UNIQUE,
  revision INTEGER NOT NULL DEFAULT 1, updated_at TEXT,
+ deleted_at TEXT, deleted_by TEXT,
  reviewer_id TEXT, reviewer_name TEXT, reviewed_at TEXT,
  review_note TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_orders_store_date ON orders (store,submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status,submitted_at DESC);
 SQL);
+    // Backwards-compatible additive migration, executed before live queries.
+    $ensureColumn = static function (string $column) use ($pdo): void {
+        $current = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+        if (in_array($column, $current, true)) return;
+        try {
+            $pdo->exec('ALTER TABLE orders ADD COLUMN ' . $column . ' TEXT');
+        } catch (PDOException $e) {
+            // Concurrent first request may have completed the same migration.
+            $latest = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+            if (!in_array($column, $latest, true)) throw $e;
+        }
+    };
+    $ensureColumn('deleted_at');
+    $ensureColumn('deleted_by');
     return $pdo;
 }
 function order_user_id(array $user): string {
@@ -75,10 +90,11 @@ function order_build_payload(string $store, array $catalog, array $counts, strin
         'cigarette_units'=>array_sum(array_map(fn($x)=>$x['type']==='AUTO'?$x['order_quantity']:0,$rows)),
         'accessory_units'=>array_sum(array_map(fn($x)=>$x['type']==='MANUAL'?$x['order_quantity']:0,$rows))];
 }
-function order_create(array $user,string $store,string $nonce,array $catalog,array $counts,string $captured): array {
+function order_create(array $user,string $store,string $nonce,array $catalog,array $counts,string $captured,bool $test=false): array {
     if (!preg_match('/^[a-f0-9]{32}$/D',$nonce)) throw new InvalidArgumentException('Draft token invalid. Reload the page.');
     $payload=order_build_payload($store,$catalog,$counts,$captured);
     $payload['draft']=['catalogue'=>$catalog,'counts'=>$counts];
+    $payload['test_order']=$test;
     $db=order_db();
     $db->exec('BEGIN IMMEDIATE');
     try {
@@ -89,16 +105,16 @@ function order_create(array $user,string $store,string $nonce,array $catalog,arr
         $now=gmdate('Y-m-d\TH:i:s\Z');
         $stmt=$db->prepare("INSERT INTO orders(id,store,author_id,author_name,submitted_at,status,payload,draft_nonce) VALUES (?,?,?,?,?,'PENDING',?,?)");
         $stmt->execute([$id,$store,order_user_id($user),(string)$user['name'],$now,json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$nonce]);
-        $db->commit();
+        $db->exec('COMMIT');
         return ['id'=>$id,'status'=>'PENDING','store'=>$store];
-    } catch(Throwable $e) {if ($db->inTransaction()) $db->rollBack();throw $e;}
+    } catch(Throwable $e) {try { $db->exec('ROLLBACK'); } catch (PDOException $ignored) {}throw $e;}
 }
 function order_list_page(array $user,int $page=1,string $store='',string $status=''): array {
     if ($page<1 || $page>100000) throw new InvalidArgumentException('Invalid history page.');
     if ($store!=='' && !in_array($store,['MX','ET','DT','RT'],true)) throw new InvalidArgumentException('Invalid history store.');
     if ($status!=='' && !in_array($status,['PENDING','APPROVED','REJECTED'],true)) throw new InvalidArgumentException('Invalid history status.');
     $db=order_db();$limit=40;$viewer=order_user_id($user);
-    $where=[];$params=[];
+    $where=['deleted_at IS NULL'];$params=[];
     if (empty($user['is_super'])) {$where[]='author_id=:author';$params[':author']=$viewer;}
     if ($store!=='') {$where[]='store=:store';$params[':store']=$store;}
     if ($status!=='') {$where[]='status=:status';$params[':status']=$status;}
@@ -111,7 +127,7 @@ function order_list_page(array $user,int $page=1,string $store='',string $status
     $stmt->bindValue(':take',$limit,PDO::PARAM_INT);
     $stmt->bindValue(':skip',($page-1)*$limit,PDO::PARAM_INT);
     $stmt->execute();
-    $summarySql="SELECT store,COUNT(*) AS pending FROM orders WHERE status='PENDING'";
+    $summarySql="SELECT store,COUNT(*) AS pending FROM orders WHERE status='PENDING' AND deleted_at IS NULL";
     $summaryParams=[];
     if(empty($user['is_super'])){$summarySql.=' AND author_id=:author';$summaryParams[':author']=$viewer;}
     $summarySql.=' GROUP BY store';
@@ -121,31 +137,33 @@ function order_list_page(array $user,int $page=1,string $store='',string $status
     $pending=['MX'=>0,'ET'=>0,'DT'=>0,'RT'=>0];
     foreach($summary->fetchAll() as $record) $pending[$record['store']]=(int)$record['pending'];
     return [
-        'orders'=>array_map(fn($record)=>order_public_row($record,$viewer),$stmt->fetchAll()),
+        'orders'=>array_map(fn($record)=>order_public_row($record,$viewer,!empty($user['is_super'])),$stmt->fetchAll()),
         'page'=>$page,'page_size'=>$limit,'total'=>$total,'pending_by_store'=>$pending
     ];
 }
 function order_rows(array $user): array {
     return order_list_page($user)['orders'];
 }
-function order_public_row(array $row,string $viewerId): array {
+function order_public_row(array $row,string $viewerId,bool $isSuper=false): array {
     $payload=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
     return [
         'id'=>$row['id'],'store'=>$row['store'],'author_name'=>$row['author_name'],
-        'editable'=>$row['status']==='PENDING' && $row['author_id']===$viewerId,
+        'editable'=>$row['status']==='PENDING' && ($row['author_id']===$viewerId || $isSuper),
+        'deletable'=>$row['status']!=='APPROVED' && $isSuper,
         'revision'=>(int)$row['revision'],
         'submitted_at'=>$row['submitted_at'],'status'=>$row['status'],
         'reviewer_name'=>$row['reviewer_name'],'reviewed_at'=>$row['reviewed_at'],
         'review_note'=>$row['review_note'],
         'cigarette_units'=>$payload['cigarette_units'],'accessory_units'=>$payload['accessory_units'],
         'rows'=>$payload['rows'],
+        'test_order'=>(bool)($payload['test_order'] ?? false),
         'excluded_missing_ceiling'=>$payload['excluded_missing_ceiling'] ?? []
     ];
 }
 function order_get_super(array $user,string $id): array {
     if (empty($user['is_super'])) throw new DomainException('Only SUPER can access approved order files.');
     if (!preg_match('/^ORD-[0-9]{8}-[A-F0-9]{10}$/D',$id)) throw new InvalidArgumentException('Invalid order ID.');
-    $stmt=order_db()->prepare('SELECT * FROM orders WHERE id=?');
+    $stmt=order_db()->prepare('SELECT * FROM orders WHERE id=? AND deleted_at IS NULL');
     $stmt->execute([$id]);$row=$stmt->fetch();
     if (!$row) throw new InvalidArgumentException('Order not found.');
     return $row;
@@ -157,7 +175,7 @@ function order_review(array $user,string $id,string $action,string $note=''): ar
     $db=order_db();$db->exec('BEGIN IMMEDIATE');
     $generated=[];
     try {
-        $stmt=$db->prepare('SELECT * FROM orders WHERE id=?');
+        $stmt=$db->prepare('SELECT * FROM orders WHERE id=? AND deleted_at IS NULL');
         $stmt->execute([$id]);$row=$stmt->fetch();
         if (!$row) throw new InvalidArgumentException('Order not found.');
         if ($row['status']!=='PENDING') throw new DomainException('Order is already reviewed and locked.');
@@ -166,13 +184,13 @@ function order_review(array $user,string $id,string $action,string $note=''): ar
             $row['reviewer_name']=(string)$user['name'];
             $generated=order_build_files($row);
         }
-        $stmt=$db->prepare('UPDATE orders SET status=?,reviewer_id=?,reviewer_name=?,reviewed_at=?,review_note=? WHERE id=? AND status=?');
+        $stmt=$db->prepare('UPDATE orders SET status=?,reviewer_id=?,reviewer_name=?,reviewed_at=?,review_note=? WHERE id=? AND deleted_at IS NULL AND status=?');
         $stmt->execute([$action==='approve'?'APPROVED':'REJECTED',order_user_id($user),(string)$user['name'],gmdate('Y-m-d\TH:i:s\Z'),trim($note),$id,'PENDING']);
         if ($stmt->rowCount()!==1) throw new RuntimeException('Order review conflict.');
-        $db->commit();
+        $db->exec('COMMIT');
         return ['id'=>$id,'status'=>$action==='approve'?'APPROVED':'REJECTED'];
     } catch(Throwable $e) {
-        if ($db->inTransaction()) $db->rollBack();
+        try { $db->exec('ROLLBACK'); } catch (PDOException $ignored) {}
         foreach ($generated as $file) @unlink($file);
         throw $e;
     }
@@ -181,8 +199,8 @@ function order_review(array $user,string $id,string $action,string $note=''): ar
 
 function order_pending_for_user(array $user,string $id): array {
     if (!preg_match('/^ORD-[0-9]{8}-[A-F0-9]{10}$/D',$id)) throw new InvalidArgumentException('Invalid order ID.');
-    $stmt=order_db()->prepare('SELECT * FROM orders WHERE id=? AND author_id=?');
-    $stmt->execute([$id,order_user_id($user)]);
+    $stmt=order_db()->prepare('SELECT * FROM orders WHERE id=? AND deleted_at IS NULL AND (author_id=? OR CAST(? AS INTEGER)=1)');
+    $stmt->execute([$id,order_user_id($user),!empty($user['is_super'])?1:0]);
     $row=$stmt->fetch();
     if (!$row) throw new DomainException('Order not found or not yours.');
     if ($row['status']!=='PENDING') throw new DomainException('Approved or rejected orders cannot be edited.');
@@ -193,16 +211,34 @@ function order_update_pending(array $user,string $id,int $revision,string $store
     $payload['draft']=['catalogue'=>$catalog,'counts'=>$counts];
     $db=order_db();$db->exec('BEGIN IMMEDIATE');
     try {
-        $stmt=$db->prepare('SELECT * FROM orders WHERE id=? AND author_id=? AND status=?');
-        $stmt->execute([$id,order_user_id($user),'PENDING']);
+        $stmt=$db->prepare('SELECT * FROM orders WHERE id=? AND deleted_at IS NULL AND (author_id=? OR CAST(? AS INTEGER)=1) AND status=?');
+        $stmt->execute([$id,order_user_id($user),!empty($user['is_super'])?1:0,'PENDING']);
         $row=$stmt->fetch();
+        if ($row) $payload['test_order']=(bool)(json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR)['test_order'] ?? false);
         if (!$row || $row['store']!==$store || (int)$row['revision']!==$revision) {
             throw new DomainException('Order was reviewed or changed. Reload the list before editing.');
         }
-        $update=$db->prepare("UPDATE orders SET payload=?,draft_nonce=?,revision=revision+1,updated_at=? WHERE id=? AND author_id=? AND status='PENDING' AND revision=?");
-        $update->execute([json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$nonce,gmdate('Y-m-d\TH:i:s\Z'),$id,order_user_id($user),$revision]);
+        $update=$db->prepare("UPDATE orders SET payload=?,draft_nonce=?,revision=revision+1,updated_at=? WHERE id=? AND deleted_at IS NULL AND (author_id=? OR CAST(? AS INTEGER)=1) AND status='PENDING' AND revision=?");
+        $update->execute([json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$nonce,gmdate('Y-m-d\TH:i:s\Z'),$id,order_user_id($user),!empty($user['is_super'])?1:0,$revision]);
         if ($update->rowCount()!==1) throw new RuntimeException('Concurrent order update.');
-        $db->commit();
+        $db->exec('COMMIT');
         return ['id'=>$id,'status'=>'PENDING','store'=>$store];
-    } catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+    } catch(Throwable $e){try{$db->exec('ROLLBACK');}catch(PDOException $ignored){}throw $e;}
+}
+
+function order_delete_super(array $user,string $id): array {
+    if (empty($user['is_super'])) throw new DomainException('Only SUPER can delete non-approved orders.');
+    if (!preg_match('/^ORD-[0-9]{8}-[A-F0-9]{10}$/D',$id)) throw new InvalidArgumentException('Invalid order ID.');
+    $db=order_db();
+    $db->exec('BEGIN IMMEDIATE');
+    try {
+        $stmt=$db->prepare("UPDATE orders SET deleted_at=?,deleted_by=? WHERE id=? AND deleted_at IS NULL AND status IN ('PENDING','REJECTED')");
+        $stmt->execute([gmdate('Y-m-d\\TH:i:s\\Z'),order_user_id($user),$id]);
+        if ($stmt->rowCount()!==1) throw new DomainException('Only pending or rejected orders can be deleted. Approved orders remain locked.');
+        $db->exec('COMMIT');
+        return ['id'=>$id,'deleted'=>true];
+    } catch(Throwable $e) {
+        try {$db->exec('ROLLBACK');} catch(PDOException $ignored) {}
+        throw $e;
+    }
 }

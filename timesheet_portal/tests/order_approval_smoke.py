@@ -102,6 +102,17 @@ def main():
    stoken=re.search(r'name="csrf_token" value="([a-f0-9]{64})"',html.decode()).group(1)
    code,body=superuser.get(f'api/order_download.php?id={one}&format=pdf')
    ok(code==409,'PDF unavailable before SUPER approval')
+   # SUPER can reopen and revise a USER-authored pending order, but not change author.
+   code,body=superuser.post('api/order_workflow.php',{'action':'edit','csrf_token':stoken,'order_id':one})
+   print('SUPER_EDIT_RESPONSE',code,body[:250],flush=True)
+   ok(code==200,'SUPER reopens USER pending order')
+   code,body=superuser.get('api/order_count.php')
+   super_nonce=json.loads(body)['draft_nonce']
+   code,body=superuser.post('api/order_workflow.php',{'action':'submit','csrf_token':stoken,'draft_nonce':super_nonce})
+   ok(code==200 and json.loads(body)['order']['id']==one,'SUPER saves pending edit under same order ID')
+   code,body=superuser.get('api/order_workflow.php')
+   changed=next(o for o in json.loads(body)['orders'] if o['id']==one)
+   ok(changed['author_name']=='User A' and changed['revision']>=3,'SUPER edits preserve original author')
    # Simulate PHP crash after generating files but before committing approval.
    orphan=Path(tmp)/'private'/'approved';orphan.mkdir(exist_ok=True)
    (orphan/(one+'.pdf')).write_bytes(b'STALE_PRECOMMIT_PDF')
@@ -122,6 +133,14 @@ def main():
    ok(code==200,'SUPER rejects second order')
    code,body=superuser.get(f'api/order_download.php?id={two}&format=pdf')
    ok(code==409,'rejected order cannot download')
+   code,body=superuser.post('api/order_workflow.php',{'action':'delete','csrf_token':stoken,'order_id':one})
+   ok(code==409,'SUPER cannot delete APPROVED locked orders')
+   code,body=user.post('api/order_workflow.php',{'action':'delete','csrf_token':token,'order_id':two})
+   ok(code==403,'USER cannot delete')
+   code,body=superuser.post('api/order_workflow.php',{'action':'delete','csrf_token':stoken,'order_id':two})
+   ok(code==200,'SUPER soft-deletes REJECTED order')
+   code,body=superuser.get('api/order_workflow.php')
+   ok(len(json.loads(body)['orders'])==1,'deleted order hidden from active history')
    # Seed 45 additional synthetic pending orders to assert older records remain
    # reachable by server-side pagination (not truncated by a fixed UI cap).
    import sqlite3
@@ -144,6 +163,30 @@ def main():
    ok(code==200 and json.loads(body)['total']==0,'other USER still sees no history')
    code,body=superuser.get('api/order_workflow.php?page=1&status=BAD')
    ok(code==422,'invalid history filter rejected')
+   # SUPER-only QA submission stays visibly marked and is safe to delete while pending.
+   code,html=superuser.get('orders.php')
+   new_token=re.search(r'name="csrf_token" value="([a-f0-9]{64})"',html.decode()).group(1)
+   code,_=superuser.post('orders.php',{'csrf_token':new_token,'store_code':'ET'})
+   code,body=superuser.get('api/order_count.php')
+   test_nonce=json.loads(body)['draft_nonce']
+   code,body=superuser.post('api/order_workflow.php',{'action':'submit','csrf_token':new_token,'draft_nonce':test_nonce,'test_order':'1'})
+   ok(code==200,'SUPER can submit explicitly marked QA test order')
+   test_id=json.loads(body)['order']['id']
+   code,body=superuser.get('api/order_workflow.php?store=ET&status=PENDING')
+   flagged=next(o for o in json.loads(body)['orders'] if o['id']==test_id)
+   ok(flagged['test_order'] is True,'QA test order clearly labeled in history')
+   code,body=superuser.post('api/order_workflow.php',{'action':'edit','csrf_token':new_token,'order_id':test_id})
+   ok(code==200,'SUPER can edit a pending QA TEST order')
+   code,html=superuser.get('orders.php')
+   ok(code==200 and b'id="testOrder"' not in html and b'QA TEST pending order' in html,'QA classification cannot be silently toggled during edit')
+   code,body=superuser.get('api/order_count.php')
+   edit_nonce=json.loads(body)['draft_nonce']
+   code,body=superuser.post('api/order_workflow.php',{'action':'submit','csrf_token':new_token,'draft_nonce':edit_nonce,'test_order':''})
+   ok(code==200 and json.loads(body)['order']['id']==test_id,'resubmitting QA edit preserves same ID')
+   code,body=superuser.get('api/order_workflow.php?store=ET&status=PENDING')
+   ok(next(o for o in json.loads(body)['orders'] if o['id']==test_id)['test_order'] is True,'QA marker remains immutable')
+   code,body=superuser.post('api/order_workflow.php',{'action':'delete','csrf_token':new_token,'order_id':test_id})
+   ok(code==200,'SUPER can delete unapproved QA test order')
    print('RESULT ALL ACCEPTANCE PASS',flush=True)
   finally:
    server.terminate()
