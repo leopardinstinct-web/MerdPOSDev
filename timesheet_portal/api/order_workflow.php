@@ -66,16 +66,18 @@ try {
         $id=$_POST['order_id'] ?? '';
         if (!is_string($id)) throw new InvalidArgumentException('Invalid order ID.');
         $row=order_pending_for_user($user,$id);
-        $payload=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
-        if (!isset($payload['draft']['catalogue'],$payload['draft']['counts'])) {
+        // Reopened order classification comes only from immutable stored payload.
+        $storedOrder=json_decode($row['payload'],true,512,JSON_THROW_ON_ERROR);
+        $storedTestOrder=(bool)($storedOrder['test_order'] ?? false);
+        if (!isset($storedOrder['draft']['catalogue'],$storedOrder['draft']['counts'])) {
             throw new DomainException('Original count snapshot is unavailable for editing. Start a new order.');
         }
         $store=$row['store'];
         $_SESSION['order_store_code']=$store;
-        $_SESSION['order_draft_catalogue'][$store]=['products'=>$payload['draft']['catalogue'],'captured_at'=>$payload['captured_at']];
-        $_SESSION['order_draft_counts'][$store]=$payload['draft']['counts'];
+        $_SESSION['order_draft_catalogue'][$store]=['products'=>$storedOrder['draft']['catalogue'],'captured_at'=>$storedOrder['captured_at']];
+        $_SESSION['order_draft_counts'][$store]=$storedOrder['draft']['counts'];
         $_SESSION['order_draft_nonce'][$store]=bin2hex(random_bytes(16));
-        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision'],'test_order'=>(bool)($payload['test_order']??false)];
+        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision'],'test_order'=>$storedTestOrder];
         json_response(['success'=>true,'store'=>$store,'editing'=>$id]);
     }
     if ($action==='new') {
