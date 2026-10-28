@@ -6,39 +6,54 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
+last_seen_head: cd1a8fd7b32d2160e615458eaee67122c4c34b84
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T00:00:00Z'
-lifecycle: WIRED
-packet_state: LOCAL_SMOKE_PASS_REVIEW_AND_DEPLOY_PENDING
+updated_at: '2026-10-28T12:25:00+05:00'
+lifecycle: DEPLOYED
+packet_state: PRODUCTION_SOURCE_AND_PUBLIC_HTTP_VERIFIED_LIVE_ROLE_ACCEPTANCE_PENDING
 risk: HIGH
-risk_basis: "New authenticated POST/session path and legacy production deployment need review; never alter the Drupal Beta payroll route."
-objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection for cigarette ordering while preserving timesheets."
+risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
+objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
 owned_paths:
   - timesheet_portal/
   - .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
 product_requirements:
   - "Any signed-in USER or SUPER may select MX, ET, DT or RT."
-  - "Do not retrieve sales for order calculations."
-  - "Inventory DBA Inventory sheet: Y=MX, Z=ET, AA=DT, AB=RT maximum ceilings."
-  - "Unscanned cigarettes mean zero stock; order quantity max(0, ceiling - counted)."
-  - "Later stock scan, accessories, Sheets+PDF Drive save, SUPER submissions monitoring."
-  - "Keep existing Google Sheets links / universal CSV reader; do not alter frozen payroll."
+  - "No sales retrieval/scraping for cigarette order calculation."
+  - "Inventory DBA Inventory tab columns Y=MX, Z=ET, AA=DT, AB=RT hold maximum ceilings."
+  - "Unscanned cigarettes count as zero; replenish max(0, ceiling minus physical counted stock)."
+  - "Later phone barcode scanning, accessories, Google Sheets+PDF Drive save, SUPER submission overview."
+  - "Keep existing Google Sheet links and universal CSV reader; frozen payroll unchanged."
 acceptance:
   - "Unauthenticated orders page redirects to login."
-  - "All four stores available to both USER and SUPER."
-  - "Only allowlisted store codes; POST CSRF enforced."
-  - "Selection survives page refresh within the session and does not write live data."
-  - "Portal brand and Timesheets link work without altering payroll."
+  - "All four stores available to USER and SUPER."
+  - "Only allowed store codes; store selection and logout have CSRF checks."
+  - "Session selection survives refresh; does not write inventory or generate an order."
+  - "Timesheets remain available under MERDPOS Portal (Alpha)."
+deployment:
+  source_pr: 190
+  reviewed_source_sha: ea45350a33248ae09cae4d125fe0235ac5ff7198
+  merged_sha: cd1a8fd7b32d2160e615458eaee67122c4c34b84
+  target: /home/dridsheikh/merdpos.com/app/timesheet_portal/
+  method: "Read-only SHA baseline then authenticated Namecheap SSH/SFTP staged uploads, server-side PHP lint and file promotion"
+  remote_backup: /home/dridsheikh/.merdpos_alpha_backups/pr190-ea45350-20261028
+  config: "Existing includes/config.php presence and SHA validated unchanged; never uploaded"
+  promoted_files: 7
 completed_evidence:
-  - "PHP 8.4 lint orders.php/dashboard.php/index.php PASS."
+  - "PHP 8.4 lint orders.php/dashboard.php/index.php/auth.php/logout.php PASS."
   - "Node --check assets/app.js PASS; git diff --check PASS."
-  - "Isolated localhost HTTP smoke with synthetic PHP sessions PASS: anonymous guard, all stores, USER/SUPER, CSRF, invalid store, POST 303, persistence."
-  - "timesheet_portal/ORDERING_ALPHA.md documents future stages and constraints."
+  - "Isolated localhost synthetic session HTTP smoke PASS: anonymous/USER/SUPER, all four stores, store-CSRF, invalid store, POST-303 and persistence."
+  - "Regression smoke PASS: logout GET 405, forged POST 403, valid POST 200 and session invalidation."
+  - "Independent KIMI_WEB initial immutable e041900 review: FIX-FIRST for logout; fixed at ea45350; independent delta review: SHIP (one nonblocking missing HTTP Allow header nit)."
+  - "CI, Secret scan and Beta guardrails on ea45350 PASS."
+  - "Remote pre-deploy baseline identical to Git for all six existing files; orders.php absent; production public JS identical to remote copy."
+  - "Remote backup verified; 7 staging hashes verified; remote PHP lint PASS; promoted 7 files; deployed hashes matched reviewed source."
+  - "Post-deploy production HTTP: index.php/app.js/styles.css content checks PASS, orders.php unauthorized redirect 302 PASS, logout.php GET 405 PASS."
+  - "Private production includes/config.php SHA unchanged. Separate Drupal Beta portal untouched."
+  - "timesheet_portal/ORDERING_ALPHA.md records the ceiling-based, no-sales roadmap."
 pending:
-  - "Review immutable PR SHA independently (Tier-3 auth/session surface)."
-  - "Resolve authorized deployment method for legacy production path (beta deployment only copies namecheap_beta_live/)."
-  - "Deploy reviewed root timesheet_portal changes without replacing production includes/config.php."
-  - "Verify live USER/SUPER and production asset hashes."
-  - "Implement stage 2 physical stock count and Inventory DBA CSV adapter."
-next_action: "Open PR and obtain independent review, then deploy via an authorized legacy-path-specific upload and verify live."
+  - "Authenticated live USER and SUPER UI acceptance against authorized accounts; synthetic local role checks are PASS but real production role sessions not exercised."
+  - "Stage 2: mobile cigarette barcode counting and Inventory DBA universal CSV reader; no sales scraping."
+  - "Stage 3: accessories selection; Stage 4: Drive Sheet+PDF and SUPER order status."
+  - "Minor reviewer nit: add Allow: POST header to HTTP 405 in next release or a small reviewed patch."
+next_action: "Verify store selection with real authorized USER and SUPER sessions without submitting production order data, then implement Stage 2 against Inventory DBA Y:AB ceiling CSV."
