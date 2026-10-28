@@ -188,6 +188,19 @@ function order_review(array $user,string $id,string $action,string $note=''): ar
         $stmt->execute([$action==='approve'?'APPROVED':'REJECTED',order_user_id($user),(string)$user['name'],gmdate('Y-m-d\TH:i:s\Z'),trim($note),$id,'PENDING']);
         if ($stmt->rowCount()!==1) throw new RuntimeException('Order review conflict.');
         $db->exec('COMMIT');
+        // Publish only after the irreversible approval commit. A Drive outage
+        // must never roll back an approved order or erase its local PDFs.
+        if ($action==='approve') {
+            try {
+                require_once __DIR__.'/order_drive.php';
+                $approved=$db->prepare('SELECT * FROM orders WHERE id=? AND status=?');
+                $approved->execute([$id,'APPROVED']);
+                $saved=order_drive_publish($approved->fetch());
+                if (($saved['state']??'')!=='SAVED') error_log('Alpha Drive not configured for order '.$id);
+            } catch(Throwable $driveError) {
+                error_log('Alpha Drive publish pending for order '.$id.': '.$driveError->getMessage());
+            }
+        }
         return ['id'=>$id,'status'=>$action==='approve'?'APPROVED':'REJECTED'];
     } catch(Throwable $e) {
         try { $db->exec('ROLLBACK'); } catch (PDOException $ignored) {}
