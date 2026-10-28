@@ -1,11 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-28T18:09:39+05:00'
+updated_at: '2026-10-28T18:41:23+05:00'
 active:
 - id: MERD-20261028-legacy-order-alpha-v1
   path: .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
-  lifecycle: WIRED
-  packet_state: MANUAL_ORDER_LAYOUT_IMPLEMENTED_LOCAL_VERIFIED_RELEASE_PENDING
+  lifecycle: DEPLOYED
+  packet_state: PR194_DEPLOYED_QA_PREVIEWS_VERIFIED_LIVE_SUPER_LOGIN_REQUIRED
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED
