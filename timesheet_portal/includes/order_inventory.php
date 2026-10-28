@@ -8,17 +8,21 @@ require_once __DIR__ . '/sheets.php';
  */
 const ORDER_INVENTORY_SPREADSHEET_ID = '1SBgewVkpcEOe7yf8E4FSBRoArr6vJfX_vuxCZ60Mw08';
 const ORDER_INVENTORY_TTL = 180;
+const ORDER_INVENTORY_SHEET_GID = 0; // Inventory tab, verified from Google Sheets metadata.
 
 function order_inventory_csv(): array
 {
-    $cache = sys_get_temp_dir() . '/merd_alpha_inventory_' . sha1(ORDER_INVENTORY_SPREADSHEET_ID) . '.csv';
+    $cache = sys_get_temp_dir() . '/merd_alpha_inventory_full_export_v2_' . sha1(ORDER_INVENTORY_SPREADSHEET_ID) . '.csv';
     $csv = false;
     if (is_file($cache) && (time() - (int)filemtime($cache)) < ORDER_INVENTORY_TTL) {
         $csv = file_get_contents($cache);
     }
     if ($csv === false) {
+        // GViz only exposes the currently filtered 82 product rows on this workbook,
+        // omitting MANUAL accessories. The canonical Inventory tab's full CSV
+        // export returns all 728 rows, including AUTO and MANUAL products.
         $url = 'https://docs.google.com/spreadsheets/d/' . rawurlencode(ORDER_INVENTORY_SPREADSHEET_ID)
-            . '/gviz/tq?tqx=out:csv&sheet=Inventory';
+            . '/export?format=csv&gid=' . ORDER_INVENTORY_SHEET_GID;
         $csv = fetch_url($url);
         if (stripos($csv, '<html') !== false || strlen($csv) < 500) {
             throw new RuntimeException('Inventory DBA did not return a valid CSV export.');
@@ -41,6 +45,16 @@ function order_inventory_csv(): array
         if (!in_array($column, $parsed['headers'], true)) {
             throw new RuntimeException('Inventory DBA missing required column: ' . $column);
         }
+    }
+    // A public CSV feed must never silently omit the MANUAL catalogue.
+    // These are conservative minimums, not assumptions about fixed row counts.
+    $eligible=['AUTO'=>0,'MANUAL'=>0];
+    foreach ($parsed['rows'] as $row) {
+        $type=strtoupper(trim((string)($row['TobaccoOrder'] ?? '')));
+        if (isset($eligible[$type])) $eligible[$type]++;
+    }
+    if (count($parsed['rows']) < 100 || $eligible['AUTO'] === 0 || $eligible['MANUAL'] === 0) {
+        throw new RuntimeException('Inventory DBA export is incomplete; refusing tobacco order catalogue.');
     }
     return $parsed['rows'];
 }
