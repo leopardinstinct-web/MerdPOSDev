@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: 9ae3d5e37a32e6ba5db5f2205949cfa1e7ebf466
+last_seen_head: 465bc59b84982269a1e130e291136d6dc4f97596
 created_at: '2026-10-28T00:00:00Z'
 updated_at: '2026-10-28T18:41:23+05:00'
 lifecycle: DEPLOYED
-packet_state: PR194_DEPLOYED_QA_PREVIEWS_VERIFIED_LIVE_SUPER_LOGIN_REQUIRED
+packet_state: MX_DT_PRODUCTION_ACCESSORIES_VERIFIED_RT_CEILINGS_BLOCKED
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -101,7 +101,7 @@ stage_3_4:
     - "No authorized server-side Drive writer configured; approved PDF/XLSX remain private-host downloads rather than automatically saved to owner's Google Drive."
     - "No real production role writes or phone camera tested before release; use synthetic tests and owner acceptance."
   status: "DEPLOYED_PUBLIC_HTTP_AND_HASH_PASS_OWNER_ROLE_ACCEPTANCE_PENDING"
-next_action: "Product owner authenticates as USER and SUPER on https://app.merdpos.com/timesheet_portal/orders.php and verifies physical phone camera counting, inline steppers, multiple pending submissions, SUPER review/approval locks, PDF/XLSX downloads; connect approved server-side Drive auth separately before enabling Drive saves."
+next_action: "Resolve four missing RT ceilings in the authoritative Inventory DBA with owner-confirmed values, then generate and verify the non-test RT order including 10 MANUAL accessories; preserve existing QA classification."
 
 pr193_live_qa:
   source_pr: 193
@@ -180,3 +180,19 @@ namecheap_qa_kimi_bridge_20261028:
   windows_artifact: "C:/Users/Imran/Downloads/MERDPOS_Alpha_Namecheap_QA_20261028/MERDPOS_Alpha_Namecheap_QA_20261028.zip"
   known_data_gap: "Live Inventory DBA now exposes only 71 AUTO, 0 MANUAL per tested store. Earlier count plan mismatches: MX 14 of 29, DT 4 of 20, RT 21 of 43; QA counted only exact ID/name/type/ceiling matches, so documents are PARTIAL QA outputs, not complete supplier purchase orders."
   production_next_action: "Reconcile Inventory DBA catalogue/ceilings and MANUAL eligibility against owner-supplied plan before submitting unmarked real supplier orders; never reclassify approved QA snapshots."
+
+production_accessories_recovery_20261028:
+  lifecycle: DEPLOYED
+  implementation_sha: 954ed9d6bb748edd95a80cd908957a7ab3efcb18
+  production_source: "timesheet_portal/includes/order_inventory.php, full export of Inventory gid=0"
+  defect: "Public GViz returned 82 source rows, 71 AUTO, no MANUAL; full CSV export returned 728 rows, 193 AUTO, 78 MANUAL."
+  server_verified_sha256: bca9aaf875bb1eb6b55bc6e89f0e3125163fd87f4c0d1ea6fe18a4160963bb0e
+  browser_route: "Remote Desktop Commander -> Kimi bridge :10086 -> authenticated Alpha SUPER session"
+  production_orders:
+    MX: "ORD-20261028-C60C46680F, APPROVED, test_order=false, 33 lines incl 11 MANUAL, PDF 2p"
+    DT: "ORD-20261028-4A3DF81270, APPROVED, test_order=false, 36 lines incl 1 MANUAL, PDF 2p"
+    RT: "BLOCKED, NOT SUBMITTED: 4 previously populated Inventory DBA RT ceilings are now blank"
+  evidence: "SUPER authenticated HTTP PDF/XLSX 200, private Namecheap store/date files and PDF/XLSX content/hash and SQLite test_order=false checked, no QA label in production PDF, Category/Barcode never wrapped."
+  computer_exports: "C:/Users/Imran/Downloads/MERDPOS_Production_Orders_Accessories_20261028/MERDPOS_Approved_MX_DT_With_Accessories.zip"
+  rt_missing_ceiling_items: "JPS 25's Red; JPS 30's Red; Winfield RYO 20g Red; Winfield RYO 25g Red"
+  next_action: "Get owner-confirmed RT ceilings, restore them in Inventory DBA by authorized write, refresh RT blank draft, rerun exact-match plan and create production RT PDF/XLSX."
