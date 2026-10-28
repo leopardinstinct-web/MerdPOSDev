@@ -165,3 +165,18 @@ namecheap_private_storage_20261028:
   existing_approved_files: "Flat location remains readable; immutable QA documents were not relabelled as real production orders."
   lifecycle: "DEPLOYED"
   next_action: "Execute a genuine authenticated SUPER non-test approval and verify its PDF/XLSX downloads plus server subfolder and permissions."
+
+namecheap_qa_kimi_bridge_20261028:
+  lifecycle: VERIFIED
+  scope: "Namecheap private store/date PDF/XLSX storage and SUPER authenticated QA workflow; test-only, not supplier production validation."
+  transport: "Remote Desktop Commander -> authorized Windows PC -> Kimi web extension bridge port 10086 -> authenticated Alpha SUPER browser."
+  browser_session: "merdpos-auth-recovery-check (older merdpos-alpha-pr193-qa session had stale/deleted tab)."
+  approved_qa_orders:
+    MX: "ORD-20261028-C2B1FBCBE2 (21 lines, PDF 1 page)"
+    DT: "ORD-20261028-AD306C3B1C (34 lines, PDF 2 pages)"
+    RT: "ORD-20261028-BDA8B6D7B4 (46 lines, PDF 2 pages)"
+  validation: "Portal authenticated POST submitted test_order=true and SUPER approved. All six authenticated PDF/XLSX HTTP downloads returned 200 and valid signatures. Read-only Namecheap SFTP inspected matching store/date paths, private directory/file mode, PDF content and XLSX identities, every category/barcode single-line, no page overflow."
+  server_path: "/home/dridsheikh/.merdpos_alpha_orders/approved/<STORE>/2026-10-28/<ID>.pdf|xlsx"
+  windows_artifact: "C:/Users/Imran/Downloads/MERDPOS_Alpha_Namecheap_QA_20261028/MERDPOS_Alpha_Namecheap_QA_20261028.zip"
+  known_data_gap: "Live Inventory DBA now exposes only 71 AUTO, 0 MANUAL per tested store. Earlier count plan mismatches: MX 14 of 29, DT 4 of 20, RT 21 of 43; QA counted only exact ID/name/type/ceiling matches, so documents are PARTIAL QA outputs, not complete supplier purchase orders."
+  production_next_action: "Reconcile Inventory DBA catalogue/ceilings and MANUAL eligibility against owner-supplied plan before submitting unmarked real supplier orders; never reclassify approved QA snapshots."
