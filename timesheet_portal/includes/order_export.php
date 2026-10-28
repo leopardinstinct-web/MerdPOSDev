@@ -35,12 +35,30 @@ function order_pdf_wrap(FPDF $pdf,string $text,float $width): array {
     $lines[]=rtrim($line);
     return $lines;
 }
+/**
+ * Determine an exact one-line FPDF font size, measured using actual glyph
+ * widths. Never spill into neighbouring cells or silently truncate barcode
+ * identities. Values not renderable in portrait A4 fail closed.
+ */
+function order_pdf_single_line_size(FPDF $pdf,string $value,float $available,float $base=8): float {
+    if (str_contains($value, "\n") || str_contains($value, "\r")) {
+        throw new RuntimeException('Category and barcode must be single-line fields.');
+    }
+    for ($size=$base; $size>=5.0; $size-=0.25) {
+        $pdf->SetFont('Arial','',$size);
+        if ($pdf->GetStringWidth($value)<=$available) {
+            $pdf->SetFont('Arial','',8);
+            return $size;
+        }
+    }
+    $pdf->SetFont('Arial','',8);
+    throw new RuntimeException('A barcode or category is too wide for the order sheet.');
+}
 class MerdOrderPdf extends FPDF {
     public string $orderId='';
     public string $storeName='';
     public string $storeAddress='';
     public string $orderDate='';
-    public bool $isQaTest=false;
     public function Header() {
         // Matches Manual Order.xlsx: navy date/address strips, blue store title
         // and a four-column order table. Repeated on every page.
@@ -61,12 +79,6 @@ class MerdOrderPdf extends FPDF {
         $this->SetFont('Arial','',8);
         $this->Ln(3);
         $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.$this->orderId.'  |  SUPER approved',0,1,'C');
-        if ($this->isQaTest) {
-            $this->SetFillColor(254,235,232);
-            $this->SetTextColor(156,27,24);
-            $this->SetFont('Arial','B',11);
-            $this->Cell(0,9,'QA TEST ORDER - NOT FOR SUPPLIER',0,1,'C',true);
-        }
         $this->SetTextColor(27,36,48);
         $this->Ln(4);
     }
@@ -91,10 +103,12 @@ function order_pdf(array $row,string $path): void {
     // missing an offset, interpret the original database value as UTC.
     $submitted=new DateTimeImmutable($row['submitted_at'],new DateTimeZone('UTC'));
     $doc->orderDate=$submitted->setTimezone(new DateTimeZone('Australia/Sydney'))->format('F j, Y');
-    $doc->isQaTest=!empty($data['test_order']);
     $doc->AliasNbPages();$doc->SetMargins(13,12,13);$doc->SetAutoPageBreak(true,22);
     $doc->AddPage();
-    $widths=[27,40,90,27];
+    // Portrait A4: keep the complete category and barcode identities on a
+    // single line. Product descriptions can wrap naturally.
+    // The four widths MUST total 184 mm between 13 mm margins.
+    $widths=[32,68,56,28];
     $drawHeader=static function () use ($doc,$widths): void {
         $doc->SetFont('Arial','B',9);$doc->SetFillColor(58,118,216);
         $doc->SetTextColor(255,255,255);$doc->SetDrawColor(35,66,115);
@@ -111,10 +125,16 @@ function order_pdf(array $row,string $path): void {
         $barcode=order_pdf_text((string)$entry['barcodes']);
         $cat=order_pdf_text((string)$entry['category']);
         $q=(string)$entry['order_quantity'];
+        // Explicitly forbid wrapping for Category and Bar Code, including
+        // comma-separated codes. Fit text in its own cell without cropping.
         $columns=[
-            order_pdf_wrap($doc,$cat,$widths[0]-2),
-            order_pdf_wrap($doc,$barcode,$widths[1]-2),
+            [$cat],
+            [$barcode],
             order_pdf_wrap($doc,$name,$widths[2]-2)
+        ];
+        $singleLineFonts=[
+            order_pdf_single_line_size($doc,$cat,$widths[0]-2,8),
+            order_pdf_single_line_size($doc,$barcode,$widths[1]-2,8)
         ];
         $lines=max(array_map('count',$columns));
         $height=max(8,$lines*5+2);
@@ -149,11 +169,13 @@ function order_pdf(array $row,string $path): void {
         $at=$x;
         foreach ($columns as $col=>$fragments) {
             foreach ($fragments as $line=>$fragment) {
+                $doc->SetFont('Arial','', $col<2 ? $singleLineFonts[$col] : 8);
                 $doc->SetXY($at+1,$y+1+$line*5);
                 $doc->Cell($widths[$col]-2,5,$fragment,0,0,'L');
             }
             $at+=$widths[$col];
         }
+        $doc->SetFont('Arial','',8);
         $doc->SetXY($at,$y);$doc->Cell($widths[3],$height,$q,0,0,'C');
         $doc->SetXY($x,$y+$height);
     }
