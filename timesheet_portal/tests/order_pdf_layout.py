@@ -80,6 +80,7 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   assert output.returncode==0,output.stderr
   doc=fitz.open(pdf)
   assert all('QA TEST ORDER - NOT FOR SUPPLIER' not in pg.get_text() for pg in doc)
+  assert all('APPROVED TEST COPY - DO NOT FULFIL' in pg.get_text() and 'TEST COPY' in pg.get_text() for pg in doc)
   assert all('Tobacco' in pg.get_text() and 'Bar Code' in pg.get_text() for pg in doc)
   doc.close()
   print('PASS QA classified record PDF without visual QA warning',flush=True)

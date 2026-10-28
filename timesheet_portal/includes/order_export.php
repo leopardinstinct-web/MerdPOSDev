@@ -59,6 +59,7 @@ class MerdOrderPdf extends FPDF {
     public string $storeName='';
     public string $storeAddress='';
     public string $orderDate='';
+    public bool $isQaTest=false;
     public function Header() {
         // Matches Manual Order.xlsx: navy date/address strips, blue store title
         // and a four-column order table. Repeated on every page.
@@ -78,14 +79,14 @@ class MerdOrderPdf extends FPDF {
         $this->SetTextColor(46,67,92);
         $this->SetFont('Arial','',8);
         $this->Ln(3);
-        $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.$this->orderId.'  |  SUPER approved',0,1,'C');
+        $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.$this->orderId.'  |  '.($this->isQaTest ? 'APPROVED TEST COPY - DO NOT FULFIL' : 'SUPER approved'),0,1,'C');
         $this->SetTextColor(27,36,48);
         $this->Ln(4);
     }
     public function Footer() {
         $this->SetY(-18);
         $this->SetFont('Arial','',8);$this->SetTextColor(95,109,128);
-        $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.$this->orderId.'  |  Page '.$this->PageNo().' / {nb}',0,0,'R');
+        $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.($this->isQaTest ? 'TEST COPY  |  ' : '').$this->orderId.'  |  Page '.$this->PageNo().' / {nb}',0,0,'R');
     }
 }
 function order_pdf(array $row,string $path): void {
@@ -103,6 +104,7 @@ function order_pdf(array $row,string $path): void {
     // missing an offset, interpret the original database value as UTC.
     $submitted=new DateTimeImmutable($row['submitted_at'],new DateTimeZone('UTC'));
     $doc->orderDate=$submitted->setTimezone(new DateTimeZone('Australia/Sydney'))->format('F j, Y');
+    $doc->isQaTest=!empty($data['test_order']);
     $doc->AliasNbPages();$doc->SetMargins(13,12,13);$doc->SetAutoPageBreak(true,22);
     $doc->AddPage();
     // Portrait A4: keep the complete category and barcode identities on a
