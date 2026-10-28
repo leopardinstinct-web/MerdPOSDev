@@ -154,3 +154,14 @@ pr194_release:
     status: "PDF files independently opened, QA test store/order header and column titles verified."
   live_qa_blocker: "Kimi browser bridge navigated to https://app.merdpos.com/timesheet_portal/index.php, SUPER session expired, login fields empty; no unattended alpha-super credential target configured. The three NEW live QA submissions were not executed, no new orders or approvals created. Do not bypass portal authentication or forge SUPER session."
   next_action: "User must sign in as SUPER again in the Kimi-connected browser tab. Then run C:/Temp/merd-manual-order-live-qa.py with zero unsent draft checks; it will submit and approve NEW QA TEST orders MX/DT/RT using existing user-provided count plans and verify PDF signatures; run C:/Temp/merd-manual-order-pdfs-verify.py to check production PDF blue branded rows and page bounds. Do not rerun if C:/Temp/merd-manual-order-qa-executed.json already exists; inspect it first."
+
+namecheap_private_storage_20261028:
+  decision: "Namecheap private store/date order folders replace Google Drive publishing."
+  commit: "93bfba0e6fadbcd6cf09b025ced227660eea4987"
+  deployed_file: "timesheet_portal/includes/order_export.php"
+  remote_sha256: "898121a22566268c41cfcf789dcd81af17ec5e5757dd1729a914188a3ac9a4c1"
+  deployment: "Guarded SSH/SFTP backup, server PHP lint PASS, exact live SHA PASS; no old approved file moved."
+  location: "/home/dridsheikh/.merdpos_alpha_orders/approved/<STORE>/<YYYY-MM-DD>/<ID>.pdf|xlsx"
+  existing_approved_files: "Flat location remains readable; immutable QA documents were not relabelled as real production orders."
+  lifecycle: "DEPLOYED"
+  next_action: "Execute a genuine authenticated SUPER non-test approval and verify its PDF/XLSX downloads plus server subfolder and permissions."
