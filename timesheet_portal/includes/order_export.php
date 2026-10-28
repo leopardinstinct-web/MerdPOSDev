@@ -12,10 +12,30 @@ function order_file_dir(): string {
     return $dir;
 }
 function order_export_path(string $id,string $format): string {
-    if (!preg_match('/^ORD-[0-9]{8}-[A-F0-9]{10}$/D',$id) || !in_array($format,['pdf','xlsx'],true)) {
+    if (!preg_match('/^ORD-([0-9]{8})-[A-F0-9]{10}$/D',$id,$matches) || !in_array($format,['pdf','xlsx'],true)) {
         throw new InvalidArgumentException('Invalid order file.');
     }
-    return order_file_dir().'/'.$id.'.'.$format;
+    $root=order_file_dir();
+    $legacy=$root.'/'.$id.'.'.$format;
+    // Existing approved documents are immutable; their previous flat paths
+    // remain valid and SUPER downloads continue to work.
+    if (is_file($legacy)) return $legacy;
+    $store=null;
+    // The approved ledger, not a caller-supplied store, determines the directory.
+    $db=order_db();
+    $query=$db->prepare('SELECT store FROM orders WHERE id=?');
+    $query->execute([$id]);
+    $store=$query->fetchColumn();
+    if (!in_array($store,['MX','ET','DT','RT'],true)) throw new InvalidArgumentException('Unknown order.');
+    $date=substr($matches[1],0,4).'-'.substr($matches[1],4,2).'-'.substr($matches[1],6,2);
+    $dir=$root.'/'.$store.'/'.$date;
+    if (!is_dir($dir)) {
+        $old=umask(0077);
+        try {if (!@mkdir($dir,0700,true) && !is_dir($dir)) throw new RuntimeException('Order directory unavailable.');}
+        finally {umask($old);}
+    }
+    if (is_link($dir)) throw new RuntimeException('Unsafe order directory.');
+    return $dir.'/'.$id.'.'.$format;
 }
 function order_pdf_text(string $value): string {
     $out=@iconv('UTF-8','windows-1252//TRANSLIT//IGNORE',$value);
