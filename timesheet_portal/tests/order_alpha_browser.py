@@ -10,12 +10,13 @@ def run():
         for directory in ('includes','api','assets'):shutil.copytree(ROOT/directory,dst/directory)
         shutil.copy(ROOT/'orders.php',dst/'orders.php')
         (dst/'includes'/'config.php').write_text("<?php define('SESSION_NAME','MERD_ALPHA_BROWSER');",encoding='ascii')
-        (dst/'qa-session.php').write_text("<?php require_once __DIR__.'/includes/auth.php'; start_app_session(); $_SESSION['user']=['name'=>'Alpha Browser QA','is_super'=>false]; echo 'READY';",encoding='ascii')
+        (dst/'qa-session.php').write_text("<?php require_once __DIR__.'/includes/auth.php'; start_app_session(); $_SESSION['user']=['user_id'=>'111','name'=>'Alpha Browser QA','is_super'=>false]; echo 'READY';",encoding='ascii')
         with socket.socket() as sock:
             sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
         php=os.getenv('MERD_PHP84') or shutil.which('php84') or next((str(p) for p in Path.home().glob('AppData/Local/Microsoft/WinGet/Packages/PHP.PHP.8.4_*/php.exe')),None)
         cmd=[php,'-d','curl.cainfo='+certifi.where(),'-d','openssl.cafile='+certifi.where(),'-S',f'127.0.0.1:{port}','-t',str(dst)]
-        server=subprocess.Popen(cmd,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        env=os.environ.copy();env['MERD_ALPHA_ORDER_DATA_DIR']=str(dst/'private_order_data')
+        server=subprocess.Popen(cmd,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=env)
         try:
             with sync_playwright() as p:
                 browser=p.chromium.launch(channel='chrome',headless=True)
@@ -34,8 +35,12 @@ def run():
                 page.wait_for_function("() => document.querySelector('#countedProducts').textContent === '1'")
                 assert page.locator('#countedBody').inner_text().find("B & H")>=0
                 # Deliver 2 clicks in one event loop while first API request is pending.
-                page.evaluate("() => {const b=document.querySelector('#countedBody .order-row-action'); b.click(); b.click();}")
-                page.wait_for_function("() => document.querySelector('#countedBody .order-qty').textContent === '3'",timeout=30000)
+                assert page.locator('#countTable thead').inner_text().find('Actions')<0
+                page.evaluate("() => {const b=document.querySelector('#countedBody .order-stepper-btn:last-child'); b.click(); b.click();}")
+                page.wait_for_function("() => document.querySelector('#countedBody .order-stepper-input').value === '3'",timeout=30000)
+                page.locator('#countedBody .order-stepper-input').first.fill('2')
+                page.locator('#countedBody .order-stepper-input').first.press('Enter')
+                page.wait_for_function("() => document.querySelector('#countedBody .order-stepper-input').value === '2'")
                 page.locator('#typeManual').click()
                 page.locator('#productSearch').fill('BIC Plain Big')
                 page.locator('.order-suggestion').first.click()
@@ -55,6 +60,16 @@ def run():
                 page.evaluate("() => {document.querySelector('#stopCamera').click();document.querySelector('#startCamera').click();}")
                 page.wait_for_timeout(500)
                 assert page.evaluate('() => window.__starts===1 && window.__stops===1 && document.querySelector("#cameraPanel").hidden')
+                assert not errors, errors
+                # Synthetic USER submits one order; pending remains editable.
+                page.on('dialog',lambda dialog:dialog.accept())
+                page.locator('#submitOrder').click()
+                page.wait_for_url('**/orders.php?submitted=*',timeout=30000)
+                page.locator('.order-status-pending').first.wait_for(timeout=15000)
+                page.locator('button:has-text("Edit pending order")').first.click()
+                page.wait_for_url('**/orders.php?editing=*',timeout=15000)
+                page.locator('#countWorkspace').wait_for(state='visible',timeout=30000)
+                assert page.locator('#submitOrder').inner_text().find('Save changes')>=0
                 assert not errors, errors
                 page.screenshot(path=str(dst/'order-alpha-mobile.png'),full_page=True)
                 print('PASS mobile Chromium 390px UI, store selection, Inventory CSV load, search, AUTO/MANUAL increments and zero JS page errors',flush=True)

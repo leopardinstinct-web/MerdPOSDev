@@ -95,28 +95,37 @@
         tr.append(ceiling);
       }
       const count = document.createElement('td');
-      const edit = document.createElement('button');
-      edit.type = 'button';
-      edit.className = 'order-qty';
-      edit.textContent = String(p.count);
-      edit.setAttribute('aria-label','Edit quantity for ' + p.name);
-      edit.addEventListener('click',()=>editCount(p));
-      count.append(edit);
-      tr.append(count);
+      const stepper = document.createElement('div');
+      stepper.className = 'order-stepper';
+      const minus = document.createElement('button');
+      minus.type='button';minus.className='order-stepper-btn';minus.textContent='−';
+      minus.setAttribute('aria-label','Decrease '+p.name+' by one');
+      minus.disabled=p.count===0;
+      minus.addEventListener('click',()=>mutate({action:'adjust',product_id:p.id,delta:'-1'},p.name+' decreased by 1.'));
+      const edit = document.createElement('input');
+      edit.className='order-stepper-input';edit.type='number';edit.inputMode='numeric';
+      edit.min='0';edit.max='99999';edit.step='1';edit.value=String(p.count);
+      edit.setAttribute('aria-label','Exact '+(state.type==='AUTO'?'stock':'order')+' quantity for '+p.name);
+      edit.addEventListener('change',()=>{
+        const value=edit.value.trim();
+        if (!/^\d{1,5}$/.test(value) || Number(value)>99999) {
+          info('Quantity must be an integer from 0 to 99999.',true);edit.value=String(p.count);return;
+        }
+        mutate({action:'set',product_id:p.id,quantity:value},p.name+' quantity updated.');
+      });
+      edit.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();edit.blur();}});
+      const plus = document.createElement('button');
+      plus.type='button';plus.className='order-stepper-btn';plus.textContent='+';
+      plus.setAttribute('aria-label','Increase '+p.name+' by one');
+      plus.addEventListener('click',()=>mutate({action:'adjust',product_id:p.id,delta:'1'},p.name+' increased by 1.'));
+      stepper.append(minus,edit,plus);count.append(stepper);tr.append(count);
       if (state.type === 'AUTO') {
         const order = document.createElement('td');
         order.textContent = units(p.order_quantity);
         order.className = 'order-calculated';
         tr.append(order);
       }
-      const actions = document.createElement('td');
-      const plus = document.createElement('button');
-      plus.type='button';plus.className='order-row-action';plus.textContent='+1';plus.setAttribute('aria-label','Add one '+p.name);
-      plus.addEventListener('click',()=>addProduct(p.id));
-      const remove=document.createElement('button');
-      remove.type='button';remove.className='order-row-action order-remove';remove.textContent='Reset';remove.setAttribute('aria-label','Reset '+p.name);
-      remove.addEventListener('click',()=>mutate({action:'remove',product_id:p.id},p.name+' reset to 0.'));
-      actions.append(plus,remove);tr.append(actions);tbody.append(tr);
+      tbody.append(tr);
     });
     $('emptyCounts').hidden = rows.length > 0;
     $('countTable').hidden = rows.length === 0;
@@ -147,12 +156,6 @@
     return state.queue;
   }
   async function addProduct(id) {await mutate({action:'select',product_id:id},'Product quantity increased by 1.');}
-  async function editCount(product) {
-    const value = window.prompt('Exact '+(state.type==='AUTO'?'physical units on hand':'accessories to order')+' for\n'+product.name, String(product.count));
-    if (value === null) return;
-    if (!/^\d{1,5}$/.test(value.trim())) { info('Enter a whole number from 0 to 99999.',true);return; }
-    await mutate({action:'set',product_id:product.id,quantity:value.trim()},product.name+' quantity updated.');
-  }
   async function enterBarcode(value) {
     const code=String(value||'').trim();
     if (!code) return;
@@ -228,6 +231,7 @@
   $('startCamera').addEventListener('click',startCamera);
   $('stopCamera').addEventListener('click',stopCamera);
   window.addEventListener('pagehide',()=>{if(state.scanning || state.cameraStarting)stopCamera();});
+  window.merdAlphaCountReady = () => state.queue;
   request().then(()=>{render();$('countLoading').hidden=true;root.hidden=false;}).catch(e=>{
     $('countLoading').textContent='Cannot load Inventory DBA: '+(e.message||'Unknown error');
     $('countLoading').className='order-notice order-error';

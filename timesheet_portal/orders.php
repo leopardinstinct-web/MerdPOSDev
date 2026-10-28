@@ -47,7 +47,7 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Portal (Alpha) — Cigarette Orders</title>
-  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha2">
+  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha3">
 </head>
 <body>
   <header class="topbar">
@@ -64,9 +64,9 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
 
   <main class="page-shell order-page">
     <section class="orders-intro">
-      <p class="orders-eyebrow">Cigarette Orders · Alpha counting preview</p>
+      <p class="orders-eyebrow">Cigarette Orders · Submit &amp; approve</p>
       <h1><?= $selectedStore ? "Count stock &amp; accessories" : "Choose a store" ?></h1>
-      <p>Choose a store, scan stock and review the ceiling-based quantities. This is a <strong>draft only</strong>: nothing is ordered or saved to Google Drive yet.</p>
+      <p>Count stock, add accessories, then submit an order for SUPER review. Each submission has its own ID; approved orders are locked and downloadable by SUPER.</p>
     </section>
 
     <?php if ($error !== ''): ?>
@@ -100,9 +100,10 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
         <li><strong>Select store</strong> <span><?= $selectedStore !== null ? 'Completed' : 'Current step' ?></span></li>
         <li><strong>Scan cigarette stock</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
         <li><strong>Add tobacco accessories</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
-        <li><strong>Review, generate and save order</strong> <span>Coming next</span></li>
+        <li><strong>Submit to SUPER for review</strong> <span><?= $selectedStore ? 'Ready' : 'Select store first' ?></span></li>
+        <li><strong>SUPER approval &amp; downloads</strong> <span>Available for submitted orders</span></li>
       </ol>
-      <p class="orders-note">Draft counts are held only in your login session, separately by store. No sales retrieval, inventory write, PDF or Drive submission is performed.</p>
+      <p class="orders-note">An order is stored permanently when submitted. After submission, counting starts a new draft, so you may submit multiple orders for the same store in one session. SUPER approval locks an order and creates its PDF and spreadsheet files.</p>
     </section>
 
     <?php if ($selectedStore !== null): ?>
@@ -151,23 +152,40 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
         <h3 id="countedLabel">Counted cigarettes</h3>
         <div class="order-table-wrap">
           <table id="countTable" class="order-count-table" hidden>
-            <thead><tr><th>Product</th><th id="countCeilingHeading">Ceiling</th><th id="countQtyLabel">On hand</th><th id="countOrderHeading">To order</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Product</th><th id="countCeilingHeading">Ceiling</th><th id="countQtyLabel">On hand</th><th id="countOrderHeading">To order</th></tr></thead>
             <tbody id="countedBody"></tbody>
           </table>
           <p id="emptyCounts" class="order-empty">Nothing counted yet. Scan a barcode or select a product above.</p>
         </div>
       </section>
       <section class="report-card">
-        <h2 class="orders-section-heading">Draft only — no order submitted</h2>
-        <p>Physical counts use your selected store's ceilings from Inventory DBA. Products not scanned are treated as zero. Accessories are separate requested quantities. Google Sheets/PDF creation and SUPER submission status are the next release.</p>
+        <h2 class="orders-section-heading">Generate order for SUPER review</h2>
+        <p>Preview your calculated cigarette quantities and requested accessories above. Generating submits an immutable order for SUPER approval. <strong>It does not place a supplier order or change Inventory DBA.</strong></p>
+        <button id="submitOrder" type="button" class="primary-btn"><?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? "Save changes for SUPER review" : "Generate &amp; send to SUPER" ?></button>
+        <button id="newOrderDraft" type="button" class="secondary-btn">Start a new order</button>
+        <p id="submissionNotice" class="order-notice" hidden role="status"></p>
       </section>
     </section>
     <?php endif; ?>
+    <section id="workflowPanel" class="report-card order-workflow" data-super="<?= !empty($user['is_super']) ? '1' : '0' ?>" data-csrf="<?= htmlspecialchars($_SESSION['order_store_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+      <h2 class="orders-section-heading"><?= !empty($user['is_super']) ? 'SUPER review — all four shops' : 'My submitted orders' ?></h2>
+      <p class="orders-note"><?= !empty($user['is_super']) ? 'Review pending submissions, approve or reject them. Once approved, orders are locked and their PDF and XLSX files become available for SUPER.' : 'See the review status of your submitted orders. Each new submission gets a separate order ID.' ?></p>
+      <p id="orderHistoryNotice" class="order-notice" hidden role="status"></p>
+      <div class="order-history-filters" aria-label="Order history filters">
+        <label for="historyStore">Store</label>
+        <select id="historyStore"><option value="">All stores</option><option value="MX">MX</option><option value="ET">ET</option><option value="DT">DT</option><option value="RT">RT</option></select>
+        <label for="historyStatus">Status</label>
+        <select id="historyStatus"><option value="">All statuses</option><option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="REJECTED">Rejected</option></select>
+        <button type="button" id="refreshOrders" class="secondary-btn">Refresh</button>
+      </div>
+      <div id="orderHistory" class="order-history" aria-live="polite">Loading order history…</div>
+    </section>
   </main>
 
+  <script src="assets/order_workflow.js?v=20261028alpha3" defer></script>
   <?php if ($selectedStore !== null): ?>
     <script src="assets/vendor/html5-qrcode.min.js?v=2.3.8"></script>
-    <script src="assets/orders.js?v=20261028alpha2" defer></script>
+    <script src="assets/orders.js?v=20261028alpha3" defer></script>
   <?php endif; ?>
 
   <script>
