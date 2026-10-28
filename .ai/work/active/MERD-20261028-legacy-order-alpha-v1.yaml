@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: d7cf050a9a547835e95f09ef4a3494eda0f183c2
+last_seen_head: 4042b25ee466513478a53803122dc321945961cc
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T16:42:00+05:00'
+updated_at: '2026-10-28T17:35:19+05:00'
 lifecycle: DEPLOYED
-packet_state: ALPHA_APPROVAL_DEPLOYED_HASH_HTTP_PASS_OWNER_ACCEPTANCE_PENDING
+packet_state: ALPHA_PR193_LIVE_KIMI_QA_VERIFIED_MOBILE_ACCEPTANCE_PENDING
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -102,3 +102,23 @@ stage_3_4:
     - "No real production role writes or phone camera tested before release; use synthetic tests and owner acceptance."
   status: "DEPLOYED_PUBLIC_HTTP_AND_HASH_PASS_OWNER_ROLE_ACCEPTANCE_PENDING"
 next_action: "Product owner authenticates as USER and SUPER on https://app.merdpos.com/timesheet_portal/orders.php and verifies physical phone camera counting, inline steppers, multiple pending submissions, SUPER review/approval locks, PDF/XLSX downloads; connect approved server-side Drive auth separately before enabling Drive saves."
+
+pr193_live_qa:
+  source_pr: 193
+  reviewed_source_sha: ae0a104048d3c62fbec556bd0226e65a928532cd
+  merge_sha: 4042b25ee466513478a53803122dc321945961cc
+  root_cause: "Production SQLite error_log There is no active transaction: manual BEGIN IMMEDIATE used with PDO commit and inTransaction; corrected with raw COMMIT / ROLLBACK."
+  independent_review: "First immutable 9b76776 FIX-FIRST; delta 1dbca9e FIX-FIRST; immutable final ae0a104 Kimi web SHIP, zero major/minor (one nonblocking comment wording nit)."
+  backup: /home/dridsheikh/.merdpos_alpha_backups/pr193-ae0a104-20261028
+  verified_deployment: "Old 6 files baseline match, files and SQLite online VACUUM backup verified, six staged hashes, server PHP lint, promotion and live six hashes match source; private config unchanged; JS/CSS/index HTTP markers and auth protections pass."
+  live_kimi_session: "Authenticated SUPER Chrome session on app.merdpos.com, 2026-10-28, RT selected for test, original MX restored."
+  live_test:
+    first_qa_order: ORD-20261028-7DCC79CA5C
+    first_result: "Created PENDING, SUPER edited same ID, rejected, soft-deleted; retained QA audit status REJECTED DELETED."
+    approved_qa_order: ORD-20261028-188820D8B7
+    second_result: "Created PENDING, approved/locked by SUPER. PDF HTTP 200 %PDF (7935 bytes, 3 pages), XLSX HTTP 200 ZIP (4619 bytes). SUPER cannot edit/delete APPROVED (409)."
+    document_verification: "Read private-server PDF via authenticated SSH and extracted text: QA TEST ORDER - NOT FOR SUPPLIER, order ID and Order Quantity table confirmed. XLSX A1 has MERDPOS QA TEST - NOT FOR SUPPLIER."
+    ui: "SUPER history shows QA TEST APPROVED and exactly two document download links."
+    private_sqlite_rows: "Only QA records from these tests: one REJECTED DELETED, one APPROVED ACTIVE."
+  scope_limit: "Actual phone camera, separate USER production account testing and automatic Google Drive save not yet verified. No supplier order was sent; Inventory DBA and timesheet files unchanged."
+  pending: "Product-owner mobile UX acceptance; connect Google Drive service credentials separately; remaining nonblocking history navigation UX issues."

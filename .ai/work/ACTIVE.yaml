@@ -1,11 +1,11 @@
 version: 1
 authoritative_branch: namecheap-beta-live
-updated_at: '2026-10-28T16:42:00+05:00'
+updated_at: '2026-10-28T17:35:19+05:00'
 active:
 - id: MERD-20261028-legacy-order-alpha-v1
   path: .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
   lifecycle: DEPLOYED
-  packet_state: ALPHA_APPROVAL_DEPLOYED_HASH_HTTP_PASS_OWNER_ACCEPTANCE_PENDING
+  packet_state: ALPHA_PR193_LIVE_KIMI_QA_VERIFIED_MOBILE_ACCEPTANCE_PENDING
 - id: MERD-20261004-roster-planning-v1
   path: .ai/work/active/MERD-20261004-roster-planning-v1.yaml
   lifecycle: DEPLOYED
