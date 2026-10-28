@@ -121,6 +121,10 @@ function order_pdf(array $row,string $path): void {
         if ($doc->GetY()+$height>267) {
             $doc->AddPage();
             $drawHeader();
+            // Explicitly restore body metrics after every repeated header.
+            // Row wrapping was measured with this exact 8pt regular font.
+            $doc->SetFont('Arial','',8);
+            $doc->SetTextColor(27,36,48);
         }
         // The branded Header() is taller than the prior design. Measure real
         // remaining body space AFTER a fresh page and table header are drawn.

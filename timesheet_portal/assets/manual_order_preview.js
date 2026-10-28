@@ -17,7 +17,8 @@
   const auDate=(value)=>{
     // Submitted-at values originate from the UTC SQLite ledger. If a legacy
     // timestamp lacks an offset, interpret it as UTC instead of browser local.
-    const timestamp=typeof value==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/.test(value) ? value+'Z' : value;
+    const legacyUtc=typeof value==='string' && /^\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d(?:\.\d+)?$/.test(value);
+    const timestamp=legacyUtc ? value.replace(' ','T')+'Z' : value;
     const parsed=timestamp?new Date(timestamp):new Date();
     if(Number.isNaN(parsed.getTime()))return 'Date unavailable';
     return new Intl.DateTimeFormat('en-AU',{

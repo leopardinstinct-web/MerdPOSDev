@@ -31,6 +31,14 @@ def run():
                 page.locator('#countWorkspace').wait_for(state='visible',timeout=30000)
                 assert page.locator('#orderTotal').inner_text().isdigit()
                 assert page.locator('#manualOrderPreview .manual-order-store').inner_text()=='Marrickville Xpress'
+                assert page.evaluate("""() => {const host=document.createElement('div');
+                  MerdManualOrder.render(host,{store:'MX',date:'2026-10-28 23:30:00',rows:[]});
+                  return host.querySelector('.manual-order-date').textContent;
+                }""") == '29 October 2026'
+                assert page.evaluate("""() => {const host=document.createElement('div');
+                  MerdManualOrder.render(host,{store:'MX',date:'2026-10-28T23:30:00.123',rows:[]});
+                  return host.querySelector('.manual-order-date').textContent;
+                }""") == '29 October 2026'
                 assert page.locator('#manualOrderPreview .manual-order-table th').all_inner_texts()==['Category','Bar Code','Product Name','Order Quantity']
                 assert page.locator('h2:has-text("Generate order for SUPER review")').count()==0
                 page.locator('#productSearch').fill('B & H 20')

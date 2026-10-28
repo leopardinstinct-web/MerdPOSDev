@@ -35,10 +35,17 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   extracted=' '.join(page.get_text() for page in doc)
   for i in range(65):
    assert extracted.count('SKU%03d'%i)==1,('PDF dropped/duplicated product',i)
+  sku_spans=[]
   for page in doc:
+   for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines',[]):
+     for span in line['spans']:
+      if 'SKU' in span['text']:
+       sku_spans.append(span)
    for block in page.get_text('blocks'):
     assert block[3]<=page.rect.height-10,('text overflowed page',block)
-  print('PASS long category/barcode/product wrapping,',len(doc),'PDF pages, every SKU once, no page overflow',flush=True)
+  assert len(sku_spans)==65 and all(abs(span['size']-8)<0.2 and 'Bold' not in span['font'] for span in sku_spans), 'body font must remain 8pt regular across every repeated header'
+  print('PASS long category/barcode/product wrapping,',len(doc),'PDF pages, every SKU once, no page overflow, body font consistent',flush=True)
   doc.close()
   # Fail closed rather than accepting a single row too tall for page.
   payload['rows'][0]['category']='X'*9000
