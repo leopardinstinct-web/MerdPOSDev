@@ -111,3 +111,14 @@ Verified current **Inventory DBA → Inventory** columns:
 ## PR #193 — production hotfix and live SUPER QA, 2026-10-28
 
 Production root cause was confirmed through live PHP error_log: \`There is no active transaction\` from manual SQLite \`BEGIN IMMEDIATE\` combined with PDO \`commit\` / \`inTransaction\`. Corrected to SQL-level COMMIT/ROLLBACK on all order mutations. Additive, race-safe tombstone migration supports SUPER soft-delete of PENDING/REJECTED only; APPROVED stays locked. SUPER may edit any PENDING order while preserving submitting author. QA TEST status is set at initial submission, preserved through edits, shown in SUPER history and visibly stamped in approved PDF/XLSX. Live authenticated Kimi Web bridge QA on Rose Bay: rejected/deleted \`ORD-20261028-7DCC79CA5C\`, approved/locked \`ORD-20261028-188820D8B7\`. Both records are QA TEST, no supplier order. Private PDF three pages and XLSX independently opened and verified. No Google Drive save; no inventory or payroll data writes. Physical phone-camera acceptance and real separate USER account remain to be checked.
+
+
+## 2026-10-28 — Namecheap-only approved order documents (supersedes Drive requirement)
+
+The product owner chose private Namecheap-hosted PDF/XLSX storage instead of automatic Google Drive uploads. Do not turn on Drive publishing without a new explicit decision. The preexisting SUPER approval workflow and server-side private SQLite ledger remain authoritative.
+
+- Newly approved exports use `.merdpos_alpha_orders/approved/<STORE>/<YYYY-MM-DD>/<ORDER_ID>.pdf` and `.xlsx`. Store comes from the stored order ID's SQLite record, and date from the validated order ID, never client input.
+- Previous approved documents in the flat `approved/<ORDER_ID>.<ext>` location remain readable at their immutable original paths. No overwriting, migration or recreation of prior approved documents.
+- Files remain outside the public document root and SUPER-only downloads continue via `api/order_download.php`, not web-server static URLs.
+- Namecheap guarded deployment of `timesheet_portal/includes/order_export.php` verified via remote PHP lint and SHA-256 (`898121a22566268c41cfcf789dcd81af17ec5e5757dd1729a914188a3ac9a4c1`). No new real unmarked supplier-facing order was approved as part of that deployment.
+- The earlier Google Drive integration source files were removed from the authoritative branch; no server-side Drive credentials are needed.
