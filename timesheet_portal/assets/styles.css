@@ -413,3 +413,43 @@ tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.l
   .order-count-table th,.order-count-table td { padding:9px 7px; font-size:12px; }
   .order-qty { min-width:42px; min-height:46px; }
 }
+
+
+/* Alpha order approval: inline accessible stock steppers and immutable review ledger. */
+.order-stepper { display:inline-flex; align-items:center; justify-content:center; gap:3px; white-space:nowrap; }
+.order-stepper-btn { display:inline-grid;place-items:center; min-width:42px;min-height:44px;padding:4px 8px;border:1px solid #bfcee2;border-radius:9px;background:#eaf3ff;color:#173d75;font-size:20px;font-weight:800; }
+.order-stepper-btn:disabled { opacity:.42;cursor:not-allowed; }
+.order-stepper-input { width:68px;min-width:0;height:44px;box-sizing:border-box;padding:4px;border:1px solid #d9ad45;border-radius:9px;text-align:center;background:#fff4c3;color:#152c4e;font-size:16px;font-weight:800;appearance:textfield;-moz-appearance:textfield; }
+.order-stepper-input::-webkit-outer-spin-button,.order-stepper-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.order-stepper-input:focus-visible,.order-stepper-btn:focus-visible { outline:3px solid #0f75bd;outline-offset:2px; }
+.order-history-filters { display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:15px 0; }
+.order-history-filters label { font-size:12px;font-weight:800;color:#28435e; }
+.order-history-filters select { border:1px solid #ccd8e5;border-radius:8px;min-height:44px;padding:6px 8px;background:white; }
+.order-status-strip { display:flex;flex-wrap:wrap;gap:8px;margin:12px 0; }
+.order-store-stat { border:1px solid #d6e1ec;border-radius:12px;background:#f1f5fa;padding:9px 12px;font-weight:800;font-size:12px; }
+.order-history-card { background:white;border:1px solid #d6e1ec;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(17,37,67,.05); }
+.order-history-head { display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap; }
+.order-history-head strong { color:#12375d;overflow-wrap:anywhere; }
+.order-history-meta { color:#64788d;font-size:12px;margin:8px 0; }
+.order-status { border-radius:99px;padding:5px 10px;font-size:11px;font-weight:900;letter-spacing:.03em; }
+.order-status-pending { color:#755419;background:#fff1cf; }
+.order-status-approved { color:#17663b;background:#e0f7e9; }
+.order-status-rejected { color:#972b26;background:#feeae9; }
+.order-details summary { cursor:pointer;color:#0f5f9f;font-weight:750;padding:10px 0; }
+.order-review-table { border-collapse:collapse;width:100%;margin:8px 0;font-size:12px; }
+.order-review-table td,.order-review-table th { padding:8px;border:1px solid #d7e0ea;text-align:left; }
+.order-review-table th { background:#eaf3ff; }
+.order-history-actions { display:flex;gap:10px;flex-wrap:wrap;margin-top:12px; }
+.order-history-actions a,.order-history-actions button,#submitOrder { min-height:44px;display:inline-flex;justify-content:center;align-items:center;padding:9px 15px; }
+.order-history-actions a { text-decoration:none; }
+@media (max-width:700px) {
+ .order-stepper-btn { min-width:36px;min-height:44px;padding:5px; }
+ .order-stepper-input { width:55px;height:44px; }
+ .order-count-table th,.order-count-table td { padding:8px 5px; }
+ .order-history-filters { gap:8px; }
+ .order-history-head strong { font-size:12px; }
+}
+
+.order-history-pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:16px}
+.order-history-pager button{min-height:44px}.order-history-pager button:disabled{opacity:.45;cursor:not-allowed}
+.order-history-pager span{font-size:12px;font-weight:800;color:#405773}

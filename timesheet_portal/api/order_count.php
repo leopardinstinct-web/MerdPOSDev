@@ -33,6 +33,9 @@ try {
             'captured_at' => gmdate('c')
         ];
     }
+    if (!isset($_SESSION['order_draft_nonce'][$store])) {
+        $_SESSION['order_draft_nonce'][$store] = bin2hex(random_bytes(16));
+    }
     $snapshot = $_SESSION['order_draft_catalogue'][$store];
     $catalog = $snapshot['products'];
     if (!isset($_SESSION['order_draft_counts']) || !is_array($_SESSION['order_draft_counts'])) {
@@ -61,7 +64,7 @@ try {
             $matched = order_barcode_match($catalog, trim($barcode), $type);
             $id = $matched['product']['id'];
             $increment = $matched['quantity'];
-        } elseif (in_array($action, ['select','set','remove'], true)) {
+        } elseif (in_array($action, ['select','set','adjust','remove'], true)) {
             $id = $_POST['product_id'] ?? null;
             if (!is_string($id) || !isset($catalog[$id]) || $catalog[$id]['type'] !== $type) {
                 throw new InvalidArgumentException('Selected product is no longer in the catalogue.');
@@ -69,7 +72,16 @@ try {
         } else {
             throw new InvalidArgumentException('Unsupported action.');
         }
-        if ($action === 'remove') {
+        if ($action === 'adjust') {
+            $raw=$_POST['delta'] ?? null;
+            if (!is_string($raw) || !in_array($raw,['1','-1'],true)) {
+                throw new InvalidArgumentException('Invalid quantity adjustment.');
+            }
+            $next=max(0,(int)($counts[$type][$id] ?? 0)+(int)$raw);
+            if ($next>99999) throw new InvalidArgumentException('Quantity exceeds the maximum allowed.');
+            if ($next===0) unset($counts[$type][$id]);
+            else $counts[$type][$id]=$next;
+        } elseif ($action === 'remove') {
             unset($counts[$type][$id]);
         } elseif ($action === 'set') {
             $raw = $_POST['quantity'] ?? null;
@@ -93,6 +105,8 @@ try {
         'products' => order_response_products($catalog, $counts),
         'csrf_token' => $_SESSION['order_store_csrf'],
         'catalogue_captured_at' => $snapshot['captured_at'],
+        'draft_nonce' => $_SESSION['order_draft_nonce'][$store],
+        'editing_order_id' => $_SESSION['order_draft_edit'][$store]['id'] ?? null,
         'draft_only' => true
     ]);
 } catch (InvalidArgumentException $e) {
