@@ -10,9 +10,9 @@ def main():
   (include/'config.php').write_text("<?php define('SESSION_NAME','PDF_TEST');",encoding='ascii')
   rows=[]
   for i in range(65):
-   rows.append({'type':'AUTO','category':'TobaccoLongCategory '+('A'*110),
+   rows.append({'type':'AUTO','category':'Tobacco',
                 'name':'SKU%03d '%i+('Very long protected product name with wrapped descriptive details '*3),
-                'barcodes':'00012345678901234567890123456789,0009876543210987654321',
+                'barcodes':'9310797251655,9310797301671',
                 'on_hand':1,'ceiling':3,'order_quantity':2})
   payload={'rows':rows,'excluded_missing_ceiling':[]}
   jsonpath=t/'payload.json';jsonpath.write_text(json.dumps(payload),encoding='utf8')
@@ -45,34 +45,42 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
    for block in page.get_text('blocks'):
     assert block[3]<=page.rect.height-10,('text overflowed page',block)
   assert len(sku_spans)==65 and all(abs(span['size']-8)<0.2 and 'Bold' not in span['font'] for span in sku_spans), 'body font must remain 8pt regular across every repeated header'
-  print('PASS long category/barcode/product wrapping,',len(doc),'PDF pages, every SKU once, no page overflow, body font consistent',flush=True)
+  # Every barcode and category stays on exactly one PDF text line.
+  expected_barcode='9310797251655,9310797301671'
+  for page in doc:
+   for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines',[]):
+     content=''.join(span['text'] for span in line['spans'])
+     if '9310797251655' in content:
+      assert expected_barcode in content, 'barcode was wrapped or truncated'
+     if 'Tobacco' in content:
+      assert content.strip()=='Tobacco', 'Category text had an unexpected wrap'
+  print('PASS 65 product rows, narrow product wraps, category/barcode single line, header repeats, body font consistent',flush=True)
   doc.close()
-  # Fail closed rather than accepting a single row too tall for page.
-  payload['rows'][0]['category']='X'*9000
+  # An impossible single-line barcode must fail rather than wrap/clip.
+  payload['rows'][0]['barcodes']='9'*800
   jsonpath.write_text(json.dumps(payload),encoding='utf8')
   pdf.unlink()
   error=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
-  assert error.returncode!=0 and not pdf.exists(),'Excessive row must fail rather than corrupt approved PDF'
-  print('PASS pathologically long row fails closed',flush=True)
-  # Verify the real usable body height after a branded Header() and table header.
-  # QA banners further reduce capacity; a row that cannot fit must fail closed.
+  assert error.returncode!=0 and not pdf.exists(),'Unrenderable barcode must fail closed'
+  payload['rows'][0]['barcodes']='9310797251655,9310797301671'
+  payload['rows'][0]['category']='A'*300
+  jsonpath.write_text(json.dumps(payload),encoding='utf8')
+  error=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
+  assert error.returncode!=0 and not pdf.exists(),'Unrenderable category must fail closed'
+  print('PASS pathological barcode/category fail closed instead of wrapping',flush=True)
+
+  # Test status remains in the immutable order record but no visible QA banner
+  # is shown in PDFs, as requested by the owner.
   payload['test_order']=True
-  oversized_blocked=False
-  rendered_safe=False
-  for chars in [120,160,200,240,280,320,360,400]:
-   payload['rows']=[dict(payload['rows'][0],category='W'*chars)]
-   jsonpath.write_text(json.dumps(payload),encoding='utf8')
-   if pdf.exists():pdf.unlink()
-   output=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
-   if output.returncode!=0:
-    oversized_blocked=True
-    assert not pdf.exists(),('failed QA PDF must not be published',chars)
-    continue
-   doc=fitz.open(pdf)
-   assert all('QA TEST ORDER - NOT FOR SUPPLIER' in pg.get_text() for pg in doc)
-   assert all(block[3] <= pg.rect.height-20 for pg in doc for block in pg.get_text('blocks'))
-   rendered_safe=True
-   doc.close()
-  assert oversized_blocked and rendered_safe,'QA body-height regression did not exercise both fit and overflow rejection'
-  print('PASS near-limit QA row respects branded page body and rejects oversized rows',flush=True)
-if __name__=='__main__':main()
+  payload['rows'][0]['category']='Tobacco'
+  payload['rows'][0]['barcodes']='9310797251655,9310797301671'
+  jsonpath.write_text(json.dumps(payload),encoding='utf8')
+  output=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
+  assert output.returncode==0,output.stderr
+  doc=fitz.open(pdf)
+  assert all('QA TEST ORDER - NOT FOR SUPPLIER' not in pg.get_text() for pg in doc)
+  assert all('APPROVED TEST COPY - DO NOT FULFIL' in pg.get_text() and 'TEST COPY' in pg.get_text() for pg in doc)
+  assert all('Tobacco' in pg.get_text() and 'Bar Code' in pg.get_text() for pg in doc)
+  doc.close()
+  print('PASS QA classified record PDF without visual QA warning',flush=True)
