@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: cd1a8fd7b32d2160e615458eaee67122c4c34b84
+last_seen_head: b31b96795a78d620722db6c2c6c23b0c8a4ead9a
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T12:25:00+05:00'
-lifecycle: DEPLOYED
-packet_state: PRODUCTION_SOURCE_AND_PUBLIC_HTTP_VERIFIED_LIVE_ROLE_ACCEPTANCE_PENDING
+updated_at: '2026-10-28T14:55:00+05:00'
+lifecycle: WIRED
+packet_state: STAGE2_LOCAL_TESTS_PASS_PR_REVIEW_PENDING
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -56,4 +56,13 @@ pending:
   - "Stage 2: mobile cigarette barcode counting and Inventory DBA universal CSV reader; no sales scraping."
   - "Stage 3: accessories selection; Stage 4: Drive Sheet+PDF and SUPER order status."
   - "Minor reviewer nit: add Allow: POST header to HTTP 405 in next release or a small reviewed patch."
-next_action: "Verify store selection with real authorized USER and SUPER sessions without submitting production order data, then implement Stage 2 against Inventory DBA Y:AB ceiling CSV."
+stage_2:
+  scope: "Inventory DBA CSV AUTO ceiling stock count, MANUAL accessory draft, camera scanner, unit/box Packaging multiplier, per-store PHP session drafts"
+  implemented: "timesheet_portal/includes/order_inventory.php, api/order_count.php, assets/orders.js, locally bundled html5-qrcode v2.3.8, orders.php and styles.css"
+  evidence:
+    - "PHP lint + Node JS syntax PASS; Inventory DBA live CSV and header schema verified"
+    - "Local HTTP smoke 19 PASS including CSRF, store isolation, AUTO/MANUAL, unit aliases, unscanned zero and synthetic Packaging=10"
+    - "Chromium mobile 390px browser smoke PASS with no JavaScript page errors; camera not yet tested on physical phone"
+  excluded: "No orders generated, no Drive writes, no external sales retrieval, no payroll changes"
+  pending: "Independent review, CI and direct legacy-portal deployment after remote hash backup, then product-owner mobile-camera verification"
+next_action: "Review immutable stage-2 SHA and green CI, deploy only the legacy root timesheet_portal delta with config preserved, then owner verifies phone camera."

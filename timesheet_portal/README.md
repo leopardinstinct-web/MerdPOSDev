@@ -79,3 +79,7 @@ Do not open `/api/login.php` directly. It is only for the login form.
 ## Cigarette Orders — Alpha milestone
 
 Open orders.php from the signed-in navigation. All authenticated users can select MX, ET, DT or RT; the choice persists in the PHP login session. This first milestone does not read Inventory DBA or write orders to Drive. See ORDERING_ALPHA.md for the approved ceiling-based (never sales-based) calculation, the unscanned-as-zero rule and later-stage requirements.
+
+## Alpha stock scan draft (Stage 2)
+
+After selecting a store in `orders.php`, the stock-count workspace reads the current `Inventory DBA` `Inventory` tab through the existing Google CSV transport. Products marked `TobaccoOrder=AUTO` use the selected store's Y:AB maximum ceilings and `max(0, ceiling - physical count)`; `TobaccoOrder=MANUAL` products are accessories with user-entered order quantities. `NO` products are excluded. Unit barcodes (C:E) add one; box barcodes (F:H) add the positive integer `Packaging` (AC). Barcode collisions are rejected; manually selecting a product adds one. All counts are session-only and scoped by store, and the UI uses bundled Apache-2.0 `html5-qrcode` v2.3.8 for mobile camera scanning. **Nothing generates or saves an order, PDF, Sheet or Drive file yet.** API: `api/order_count.php`; logic: `includes/order_inventory.php`; UI: `assets/orders.js`. Test: `python tests/order_alpha_smoke.py` (local PHP 8.4 + HTTPS certificate chain required).

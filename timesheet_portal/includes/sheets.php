@@ -74,7 +74,8 @@ function parse_csv_string(string $csv): array
     rewind($fp);
 
     $rows = [];
-    while (($row = fgetcsv($fp)) !== false) {
+    // Preserve PHP's historical default escape behaviour explicitly (PHP 8.4+).
+    while (($row = fgetcsv($fp, 0, ',', '"', '\\')) !== false) {
         if ($row === [null] || count(array_filter($row, fn($v) => trim((string)$v) !== '')) === 0) {
             continue;
         }
