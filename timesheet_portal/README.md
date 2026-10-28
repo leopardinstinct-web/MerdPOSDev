@@ -1,6 +1,6 @@
-# Timesheet Portal - PHP + JS
+# MERDPOS Portal (Alpha) - PHP + JavaScript
 
-This is a simple PHP + JavaScript website for employees to log in and view weekly Monday-Sunday timesheets from a shared Google Sheet link.
+MERDPOS Portal (Alpha) is the existing PHP/JavaScript Timesheet Portal, with a new authenticated Cigarette Orders area. Payroll and the existing CSV-reading timesheet integration remain unchanged.
 
 ## What it does
 
@@ -75,3 +75,7 @@ If login fails, open:
 It should say `Sheet read OK` and show headers including `NAME, TYPE, USER_ID, PASSWORD`.
 
 Do not open `/api/login.php` directly. It is only for the login form.
+
+## Cigarette Orders — Alpha milestone
+
+Open orders.php from the signed-in navigation. All authenticated users can select MX, ET, DT or RT; the choice persists in the PHP login session. This first milestone does not read Inventory DBA or write orders to Drive. See ORDERING_ALPHA.md for the approved ceiling-based (never sales-based) calculation, the unscanned-as-zero rule and later-stage requirements.

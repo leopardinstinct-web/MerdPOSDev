@@ -9,6 +9,15 @@ function start_app_session(): void
     }
 }
 
+function portal_logout_csrf(): string
+{
+    start_app_session();
+    if (!isset($_SESSION['portal_logout_csrf']) || !is_string($_SESSION['portal_logout_csrf'])) {
+        $_SESSION['portal_logout_csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['portal_logout_csrf'];
+}
+
 function current_user(): ?array
 {
     start_app_session();

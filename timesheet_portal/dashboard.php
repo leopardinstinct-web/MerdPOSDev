@@ -11,16 +11,20 @@ if (!$user) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Weekly Timesheet</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <title>MERDPOS Portal (Alpha) — Timesheets</title>
+  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha1">
 </head>
 <body>
   <header class="topbar">
     <div>
-      <div class="app-title">Timesheet Portal</div>
+      <div class="app-title">MERDPOS Portal (Alpha)</div>
       <div class="user-line">Signed in as <strong><?= htmlspecialchars($user['name']) ?></strong><?= $user['is_super'] ? ' <span class="role-pill">SUPER</span>' : '' ?></div>
     </div>
-    <button id="logoutBtn" class="ghost-btn">Log Out</button>
+    <nav class="portal-nav" aria-label="Portal sections">
+      <a href="dashboard.php" aria-current="page">Timesheets</a>
+      <a href="orders.php">Cigarette Orders</a>
+    </nav>
+    <button id="logoutBtn" class="ghost-btn" type="button" data-logout-csrf="<?= htmlspecialchars(portal_logout_csrf(), ENT_QUOTES, 'UTF-8') ?>">Log Out</button>
   </header>
 
   <main class="page-shell">
@@ -38,6 +42,6 @@ if (!$user) {
     <section id="reportContainer"></section>
   </main>
 
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js?v=20261028alpha1"></script>
 </body>
 </html>

@@ -10,15 +10,15 @@ if (current_user()) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Timesheet Login</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <title>MERDPOS Portal (Alpha) — Sign In</title>
+  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha1">
 </head>
 <body class="login-body">
   <main class="login-shell">
     <section class="login-card">
-      <div class="brand-mark">TS</div>
-      <h1>Timesheet Portal</h1>
-      <p class="muted">Log in to view your weekly Monday–Sunday timesheet.</p>
+      <div class="brand-mark">MP</div>
+      <h1>MERDPOS Portal (Alpha)</h1>
+      <p class="muted">Log in to view timesheets and begin cigarette orders.</p>
 
       <form id="loginForm" autocomplete="off">
         <label for="user_id">User ID</label>

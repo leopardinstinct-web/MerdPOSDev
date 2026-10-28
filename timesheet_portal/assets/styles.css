@@ -321,3 +321,40 @@ tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.l
   .employee-name { font-size: 16px; margin: 8px 0 6px; }
   tr { page-break-inside: avoid; }
 }
+
+
+/* MERDPOS Portal (Alpha): shared navigation and order-store selection. */
+.portal-nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.portal-nav a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 14px; text-decoration: none; font-weight: 800; color: var(--navy); border: 1px solid var(--border); background: #fff; border-radius: 12px; }
+.portal-nav a:hover { background: var(--blue-soft); }
+.portal-nav a[aria-current="page"] { background: var(--blue); color: #fff; border-color: var(--blue); }
+.topbar { flex-wrap: wrap; }
+.order-page { max-width: 1120px; }
+.orders-intro { padding: 18px 0 24px; }
+.orders-intro h1 { color: var(--navy); font-size: clamp(28px, 4vw, 38px); margin: 3px 0 8px; }
+.orders-intro p { max-width: 66ch; color: var(--muted); font-size: 15px; }
+.orders-eyebrow { font-size: 12px !important; text-transform: uppercase; font-weight: 900; letter-spacing: .08em; color: var(--blue) !important; }
+.orders-section-heading { color: var(--navy); font-size: 22px; margin-bottom: 16px; }
+.store-selection-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.store-choice { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 9px; padding: 20px; min-height: 146px; text-align: left; color: var(--text); background: #f9fbff; border: 2px solid var(--border); border-radius: 16px; }
+.store-choice:hover { border-color: var(--blue); background: #f2f8ff; }
+.store-choice:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.store-choice.is-selected { border-color: var(--green); background: #effaf2; }
+.store-code { color: var(--blue-dark); font-weight: 900; letter-spacing: .08em; font-size: 12px; }
+.store-name { font-size: 19px; font-weight: 850; line-height: 1.25; }
+.store-action { font-size: 13px; font-weight: 800; color: var(--blue-dark); }
+.store-choice.is-selected .store-action { color: var(--green-dark); }
+.order-selected { color: var(--text); font-size: 15px; }
+.order-steps { list-style: none; display: grid; gap: 9px; padding: 0; counter-reset: ordersteps; }
+.order-steps li { counter-increment: ordersteps; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; }
+.order-steps li::before { content: counter(ordersteps); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; height: 28px; border-radius: 50%; background: var(--blue-soft); color: var(--blue-dark); font-weight: 900; }
+.order-steps li strong { flex: 1; }
+.order-steps li span { color: var(--muted); font-size: 12px; font-weight: 800; }
+.orders-note { margin-top: 18px; font-size: 13px; color: var(--muted); }
+@media(max-width: 720px) {
+  .portal-nav { order: 3; width: 100%; }
+  .portal-nav a { flex: 1; }
+  .store-selection-grid { grid-template-columns: 1fr; }
+  .store-choice { min-height: 115px; }
+  .order-steps li { flex-wrap: wrap; }
+}

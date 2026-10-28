@@ -1,0 +1,44 @@
+version: 1
+id: MERD-20261028-legacy-order-alpha-v1
+title: "MERDPOS Portal (Alpha): legacy production portal order workflow"
+project: merdpos
+track: legacy-production-portal
+authoritative_branch: namecheap-beta-live
+branch: feature/legacy-portal-alpha-order-store-v1
+base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
+last_seen_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
+created_at: '2026-10-28T00:00:00Z'
+updated_at: '2026-10-28T00:00:00Z'
+lifecycle: WIRED
+packet_state: LOCAL_SMOKE_PASS_REVIEW_AND_DEPLOY_PENDING
+risk: HIGH
+risk_basis: "New authenticated POST/session path and legacy production deployment need review; never alter the Drupal Beta payroll route."
+objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection for cigarette ordering while preserving timesheets."
+owned_paths:
+  - timesheet_portal/
+  - .ai/work/active/MERD-20261028-legacy-order-alpha-v1.yaml
+product_requirements:
+  - "Any signed-in USER or SUPER may select MX, ET, DT or RT."
+  - "Do not retrieve sales for order calculations."
+  - "Inventory DBA Inventory sheet: Y=MX, Z=ET, AA=DT, AB=RT maximum ceilings."
+  - "Unscanned cigarettes mean zero stock; order quantity max(0, ceiling - counted)."
+  - "Later stock scan, accessories, Sheets+PDF Drive save, SUPER submissions monitoring."
+  - "Keep existing Google Sheets links / universal CSV reader; do not alter frozen payroll."
+acceptance:
+  - "Unauthenticated orders page redirects to login."
+  - "All four stores available to both USER and SUPER."
+  - "Only allowlisted store codes; POST CSRF enforced."
+  - "Selection survives page refresh within the session and does not write live data."
+  - "Portal brand and Timesheets link work without altering payroll."
+completed_evidence:
+  - "PHP 8.4 lint orders.php/dashboard.php/index.php PASS."
+  - "Node --check assets/app.js PASS; git diff --check PASS."
+  - "Isolated localhost HTTP smoke with synthetic PHP sessions PASS: anonymous guard, all stores, USER/SUPER, CSRF, invalid store, POST 303, persistence."
+  - "timesheet_portal/ORDERING_ALPHA.md documents future stages and constraints."
+pending:
+  - "Review immutable PR SHA independently (Tier-3 auth/session surface)."
+  - "Resolve authorized deployment method for legacy production path (beta deployment only copies namecheap_beta_live/)."
+  - "Deploy reviewed root timesheet_portal changes without replacing production includes/config.php."
+  - "Verify live USER/SUPER and production asset hashes."
+  - "Implement stage 2 physical stock count and Inventory DBA CSV adapter."
+next_action: "Open PR and obtain independent review, then deploy via an authorized legacy-path-specific upload and verify live."
