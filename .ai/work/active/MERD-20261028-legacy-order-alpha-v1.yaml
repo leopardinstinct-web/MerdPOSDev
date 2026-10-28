@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: 1d8588bd6324a10ee5d258f861d883b8175022c2
+last_seen_head: d7cf050a9a547835e95f09ef4a3494eda0f183c2
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T16:20:00+05:00'
-lifecycle: WIRED
-packet_state: ALPHA_APPROVAL_LOCAL_PASS_INDEPENDENT_REVIEW_PENDING
+updated_at: '2026-10-28T16:42:00+05:00'
+lifecycle: DEPLOYED
+packet_state: ALPHA_APPROVAL_DEPLOYED_HASH_HTTP_PASS_OWNER_ACCEPTANCE_PENDING
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -54,7 +54,7 @@ completed_evidence:
 pending:
   - "Authenticated live USER and SUPER UI acceptance against authorized accounts; synthetic local role checks are PASS but real production role sessions not exercised."
   - "Stage 2 deployed; real authenticated phone-camera acceptance pending."
-  - "Stage 3: persist/review/submit orders; Stage 4: Drive Sheet+PDF and SUPER order status. Accessories draft scanning already deployed."
+  - "Stage 3/4 implemented and deployed: submit, private persistence, USER editable pending, SUPER approve/reject and locked PDF/XLSX downloads. Google Drive auto-save remains blocked until server-side authorization is configured."
   - "Minor reviewer nit: add Allow: POST header to HTTP 405 in next release or a small reviewed patch."
 stage_2:
   scope: "Inventory DBA CSV AUTO ceiling stock count, MANUAL accessory draft, camera scanner, unit/box Packaging multiplier, per-store PHP session drafts"
@@ -82,9 +82,23 @@ stage_3_4:
     - "Isolated synthetic USER/SUPER role HTTP workflow passes: submit 2 orders same session, duplicate nonce 409, edit pending same ID and revision, role/CSRF denies, approve locks, repeat approval 409, reject, approved PDF + XLSX opened by openpyxl."
     - "Mobile Chromium 390px UI browser test PASS: minus/plus/input, manual accessories, pending order submit/reopen; zero JS page errors."
     - "No Google Sheets modification, supplier ordering, or sales retrieval."
+  reviewed_release:
+    pr: 192
+    reviewed_sha: 15b23eaccbc00117315882984df9b344b2790266
+    merge_sha: d7cf050a9a547835e95f09ef4a3494eda0f183c2
+    independent_review: "KIMI_WEB FIX-FIRST on e13fc87; delta 15b23ea SHIP, no majors, two nonblocking minor history-navigation observations."
+    github_checks: "CI and Secret scan PASS; initial Beta guardrail failure unrelated Drupal DevStudio role-inheritance browser test, rerun successful (91 tests)."
+    target: /home/dridsheikh/merdpos.com/app/timesheet_portal/
+    private_data: /home/dridsheikh/.merdpos_alpha_orders
+    private_data_mode: '0700'
+    rollback_backup: /home/dridsheikh/.merdpos_alpha_backups/pr192-15b23ea-20261028
+    verified: "Remote old 4 files baseline match; backups hash checked; 15 staged hash verified; remote 7 PHP lint passes; promoted; all 15 production file hashes match exact reviewed source; includes/config.php unchanged; private directory mode 0700."
+    public_http: "JS/CSS/index markers 200; unauthenticated orders.php redirects 302, order_workflow.php/order_download.php/order_count.php return 401; PHP library and font direct requests 403."
+    test_scope: "No real production order submission/review/download tested with authenticated users; no shop inventory or Google Drive writes."
+    remaining_minor_review: "History response race may show mismatched page/filters after fast navigation; empty stale page after approval shrinks results. Nonblocking SHIP, follow-up UX patch."
   known_limitations:
     - "Inventory DBA MX 160 AUTO products lack configured ceiling; explicitly excluded and flagged, never inferred."
     - "No authorized server-side Drive writer configured; approved PDF/XLSX remain private-host downloads rather than automatically saved to owner's Google Drive."
     - "No real production role writes or phone camera tested before release; use synthetic tests and owner acceptance."
-  status: "LOCAL_TESTS_PASS_REVIEW_PENDING"
-next_action: "Review immutable PR SHA independently (KIMI_WEB), require CI/secret scan/guardrails PASS, merge then deploy exact root timesheet_portal files with verified remote backups and nonpublic private storage; validate role HTTP and owner phone acceptance."
+  status: "DEPLOYED_PUBLIC_HTTP_AND_HASH_PASS_OWNER_ROLE_ACCEPTANCE_PENDING"
+next_action: "Product owner authenticates as USER and SUPER on https://app.merdpos.com/timesheet_portal/orders.php and verifies physical phone camera counting, inline steppers, multiple pending submissions, SUPER review/approval locks, PDF/XLSX downloads; connect approved server-side Drive auth separately before enabling Drive saves."
