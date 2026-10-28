@@ -129,6 +129,15 @@
     });
     $('emptyCounts').hidden = rows.length > 0;
     $('countTable').hidden = rows.length === 0;
+    // Shared preview shows exactly the server's ceiling-based order calculation.
+    // Unlike the scanning table, it includes every eligible unscanned AUTO item.
+    if (window.MerdManualOrder) {
+      window.MerdManualOrder.render($('manualOrderPreview'), {
+        store:root.dataset.store,
+        rows:window.MerdManualOrder.draftRows(state.products),
+        phase:root.dataset.editing ? 'Pending edit' : 'Draft'
+      });
+    }
   }
   function mutate(data, notice) {
     // Queue mutations in arrival order: a fast second scan must never disappear.

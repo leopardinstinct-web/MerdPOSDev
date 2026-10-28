@@ -37,6 +37,39 @@ function order_pdf_wrap(FPDF $pdf,string $text,float $width): array {
 }
 class MerdOrderPdf extends FPDF {
     public string $orderId='';
+    public string $storeName='';
+    public string $storeAddress='';
+    public string $orderDate='';
+    public bool $isQaTest=false;
+    public function Header() {
+        // Matches Manual Order.xlsx: navy date/address strips, blue store title
+        // and a four-column order table. Repeated on every page.
+        $this->SetXY(13,12);
+        $this->SetFillColor(30,64,115);
+        $this->SetTextColor(255,255,255);
+        $this->SetFont('Arial','',11);
+        $this->Cell(184,9,$this->orderDate,0,1,'C',true);
+        $this->SetX(13);
+        $this->SetFillColor(17,85,204);
+        $this->SetFont('Arial','B',15);
+        $this->Cell(184,12,order_pdf_text($this->storeName),0,1,'C',true);
+        $this->SetX(13);
+        $this->SetFillColor(30,64,115);
+        $this->SetFont('Arial','',8);
+        $this->Cell(184,9,'Address: '.order_pdf_text($this->storeAddress),0,1,'C',true);
+        $this->SetTextColor(46,67,92);
+        $this->SetFont('Arial','',8);
+        $this->Ln(3);
+        $this->Cell(0,6,'MERDPOS Portal (Alpha)  |  '.$this->orderId.'  |  SUPER approved',0,1,'C');
+        if ($this->isQaTest) {
+            $this->SetFillColor(254,235,232);
+            $this->SetTextColor(156,27,24);
+            $this->SetFont('Arial','B',11);
+            $this->Cell(0,9,'QA TEST ORDER - NOT FOR SUPPLIER',0,1,'C',true);
+        }
+        $this->SetTextColor(27,36,48);
+        $this->Ln(4);
+    }
     public function Footer() {
         $this->SetY(-18);
         $this->SetFont('Arial','',8);$this->SetTextColor(95,109,128);
@@ -52,28 +85,22 @@ function order_pdf(array $row,string $path): void {
     [$storeName,$address]=$names[$row['store']];
     $doc=new MerdOrderPdf('P','mm','A4');
     $doc->orderId=$row['id'];
-    $doc->AliasNbPages();$doc->SetMargins(13,14,13);$doc->SetAutoPageBreak(true,22);
+    $doc->storeName=$storeName;
+    $doc->storeAddress=$address;
+    $submitted=new DateTimeImmutable($row['submitted_at']);
+    $doc->orderDate=$submitted->setTimezone(new DateTimeZone('Australia/Sydney'))->format('F j, Y');
+    $doc->isQaTest=!empty($data['test_order']);
+    $doc->AliasNbPages();$doc->SetMargins(13,12,13);$doc->SetAutoPageBreak(true,22);
     $doc->AddPage();
-    $doc->SetFont('Arial','',12);$doc->SetTextColor(35,47,65);
-    $doc->Cell(0,8,gmdate('F j, Y',strtotime($row['submitted_at'])),0,1,'C');
-    $doc->SetFont('Arial','B',14);
-    $doc->Cell(0,9,order_pdf_text($storeName),0,1,'C');
-    $doc->SetFont('Arial','',9);
-    $doc->Cell(0,6,'Address: '.order_pdf_text($address),0,1,'C');
-    $doc->SetFont('Arial','',8);
-    $doc->Cell(0,5,'Approved Order  |  '.$row['id'],0,1,'C');
-    if (!empty($data['test_order'])) {
-        $doc->SetTextColor(165,33,27);$doc->SetFont('Arial','B',13);
-        $doc->Cell(0,9,'QA TEST ORDER - NOT FOR SUPPLIER',0,1,'C');
-        $doc->SetTextColor(27,36,48);
-    }
-    $doc->Ln(7);
     $widths=[27,40,90,27];
     $drawHeader=static function () use ($doc,$widths): void {
-        $doc->SetFont('Arial','B',9);$doc->SetFillColor(229,239,250);$doc->SetTextColor(22,45,74);
+        $doc->SetFont('Arial','B',9);$doc->SetFillColor(58,118,216);
+        $doc->SetTextColor(255,255,255);$doc->SetDrawColor(35,66,115);
         foreach (['Category','Bar Code','Product Name','Order Quantity'] as $i=>$label) {
             $doc->Cell($widths[$i],9,$label,1,0,$i===3?'C':'L',true);
-        }$doc->Ln();
+        }
+        $doc->Ln();
+        $doc->SetTextColor(27,36,48);$doc->SetFont('Arial','',8);
     };
     $drawHeader();
     $doc->SetTextColor(27,36,48);$doc->SetFont('Arial','',8);
@@ -92,6 +119,16 @@ function order_pdf(array $row,string $path): void {
         if ($height>210) throw new RuntimeException('Order line is too long to fit a PDF page.');
         if ($doc->GetY()+$height>267) {$doc->AddPage();$drawHeader();$doc->SetFont('Arial','',8);$doc->SetTextColor(27,36,48);}
         $y=$doc->GetY();$x=$doc->GetX();
+        // Column fills mirror the workbook (neutral category, cream barcode,
+        // white product and pale-blue quantity).
+        $columnFills=[[246,248,252],[255,244,207],[255,255,255],[205,223,249]];
+        $colX=$x;
+        foreach ($widths as $col=>$width) {
+            $doc->SetFillColor(...$columnFills[$col]);
+            $doc->Rect($colX,$y,$width,$height,'F');
+            $colX+=$width;
+        }
+        $doc->SetDrawColor(34,54,87);
         $doc->Rect($x,$y,array_sum($widths),$height);
         $offset=$x;
         for($col=0;$col<3;$col++){ $offset+=$widths[$col];$doc->Line($offset,$y,$offset,$y+$height); }

@@ -47,7 +47,7 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MERDPOS Portal (Alpha) — Cigarette Orders</title>
-  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha3">
+  <link rel="stylesheet" href="assets/styles.css?v=20261028alpha4">
 </head>
 <body>
   <header class="topbar">
@@ -65,8 +65,8 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
   <main class="page-shell order-page">
     <section class="orders-intro">
       <p class="orders-eyebrow">Cigarette Orders · Submit &amp; approve</p>
-      <h1><?= $selectedStore ? "Count stock &amp; accessories" : "Choose a store" ?></h1>
-      <p>Count stock, add accessories, then submit an order for SUPER review. Each submission has its own ID; approved orders are locked and downloadable by SUPER.</p>
+      <h1><?= $selectedStore ? "Manual Order — Live Order Sheet" : "Choose a store" ?></h1>
+      <p>Scan stock or select accessories, then review your order sheet as it updates. Submit directly from the sheet for SUPER review and approval.</p>
     </section>
 
     <?php if ($error !== ''): ?>
@@ -89,26 +89,9 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
       </form>
     </section>
 
-    <section class="report-card order-progress" aria-live="polite">
-      <h2 class="orders-section-heading">Order progress</h2>
-      <?php if ($selectedStore !== null): ?>
-        <p class="order-selected">Selected store: <strong><?= htmlspecialchars($stores[$selectedStore]['name'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($selectedStore, ENT_QUOTES, 'UTF-8') ?>)</strong></p>
-      <?php else: ?>
-        <p class="order-selected">No store selected yet.</p>
-      <?php endif; ?>
-      <ol class="order-steps">
-        <li><strong>Select store</strong> <span><?= $selectedStore !== null ? 'Completed' : 'Current step' ?></span></li>
-        <li><strong>Scan cigarette stock</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
-        <li><strong>Add tobacco accessories</strong> <span><?= $selectedStore ? "Ready" : "Select store first" ?></span></li>
-        <li><strong>Submit to SUPER for review</strong> <span><?= $selectedStore ? 'Ready' : 'Select store first' ?></span></li>
-        <li><strong>SUPER approval &amp; downloads</strong> <span>Available for submitted orders</span></li>
-      </ol>
-      <p class="orders-note">An order is stored permanently when submitted. After submission, counting starts a new draft, so you may submit multiple orders for the same store in one session. SUPER approval locks an order and creates its PDF and spreadsheet files.</p>
-    </section>
-
     <?php if ($selectedStore !== null): ?>
     <p id="countLoading" class="order-notice">Loading Inventory DBA catalogue…</p>
-    <section id="countWorkspace" class="order-workspace" data-csrf="<?= htmlspecialchars($_SESSION['order_store_csrf'], ENT_QUOTES, 'UTF-8') ?>" hidden>
+    <section id="countWorkspace" class="order-workspace" data-store="<?= htmlspecialchars($selectedStore, ENT_QUOTES, 'UTF-8') ?>" data-editing="<?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? '1' : '' ?>" data-csrf="<?= htmlspecialchars($_SESSION['order_store_csrf'], ENT_QUOTES, 'UTF-8') ?>" hidden>
       <div class="order-metrics" aria-label="Order calculation summary">
         <div class="order-metric"><span>Cigarettes counted</span><strong id="countedProducts">0</strong></div>
         <div class="order-metric"><span>Cigarette units to order</span><strong id="orderTotal">0</strong></div>
@@ -158,16 +141,22 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
           <p id="emptyCounts" class="order-empty">Nothing counted yet. Scan a barcode or select a product above.</p>
         </div>
       </section>
-      <section class="report-card">
-        <h2 class="orders-section-heading">Generate order for SUPER review</h2>
-        <p>Preview your calculated cigarette quantities and requested accessories above. Generating submits an immutable order for SUPER approval. <strong>It does not place a supplier order or change Inventory DBA.</strong></p>
+      <section class="report-card manual-order-preview-panel" aria-labelledby="manualOrderTitle">
+        <div class="manual-order-panel-heading">
+          <h2 id="manualOrderTitle" class="orders-section-heading">Live order sheet</h2>
+          <span class="order-status order-status-pending">DRAFT — updates automatically</span>
+        </div>
+        <p class="orders-note">Designed from the Manual Order workbook. This is the same four-column layout SUPER reviews and receives as an approved PDF. Changing a stock count or accessory quantity immediately recalculates this sheet.</p>
+        <p id="manualOrderScrollHint" class="orders-note">On a narrow screen, swipe across the table to see all columns.</p>
+        <div id="manualOrderPreview" aria-live="polite" aria-label="Live order sheet"></div>
+        <p class="orders-note">Missing Inventory DBA ceilings are excluded. This does not place a supplier order or modify Inventory DBA.</p>
         <?php if (!empty($user['is_super']) && empty($_SESSION['order_draft_edit'][$selectedStore])): ?>
           <label class="order-test-option"><input id="testOrder" type="checkbox" value="1"> QA TEST ORDER — not for supplier</label>
         <?php endif; ?>
         <?php if (!empty($_SESSION['order_draft_edit'][$selectedStore])): ?>
           <p class="orders-note">Editing existing <?= !empty($_SESSION['order_draft_edit'][$selectedStore]['test_order']) ? 'QA TEST' : 'regular' ?> pending order. Test classification cannot be changed during editing.</p>
         <?php endif; ?>
-        <button id="submitOrder" type="button"  class="primary-btn"><?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? "Save changes for SUPER review" : "Generate &amp; send to SUPER" ?></button>
+        <button id="submitOrder" type="button"  class="primary-btn"><?= isset($_SESSION['order_draft_edit'][$selectedStore]) ? "Save changes for SUPER review" : "Submit order for SUPER review" ?></button>
         <button id="newOrderDraft" type="button" class="secondary-btn">Start a new order</button>
         <p id="submissionNotice" class="order-notice" hidden role="status"></p>
       </section>
@@ -193,10 +182,11 @@ if (!is_string($selectedStore) || !array_key_exists($selectedStore, $stores)) {
     </section>
   </main>
 
-  <script src="assets/order_workflow.js?v=20261028alpha3" defer></script>
+  <script src="assets/manual_order_preview.js?v=20261028alpha4" defer></script>
+  <script src="assets/order_workflow.js?v=20261028alpha4" defer></script>
   <?php if ($selectedStore !== null): ?>
     <script src="assets/vendor/html5-qrcode.min.js?v=2.3.8"></script>
-    <script src="assets/orders.js?v=20261028alpha3" defer></script>
+    <script src="assets/orders.js?v=20261028alpha4" defer></script>
   <?php endif; ?>
 
   <script>

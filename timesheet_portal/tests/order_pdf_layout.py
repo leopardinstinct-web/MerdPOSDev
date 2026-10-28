@@ -26,6 +26,12 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   assert out=='OK' and pdf.exists()
   doc=fitz.open(pdf)
   assert len(doc)>=4, 'long rows should paginate into multiple pages'
+  for pg in doc:
+   content=pg.get_text()
+   assert 'Marrickville Xpress' in content and '375 Enmore Rd' in content, 'branded store and address must repeat on each PDF page'
+   assert 'Category' in content and 'Bar Code' in content and 'Order Quantity' in content, 'workbook columns must repeat on each PDF page'
+  fills=[item.get('fill') for item in doc[0].get_drawings() if item.get('fill') is not None]
+  assert any(abs(fill[0]-17/255)<0.02 and abs(fill[1]-85/255)<0.02 for fill in fills), 'PDF store banner must use workbook-style blue'
   extracted=' '.join(page.get_text() for page in doc)
   for i in range(65):
    assert extracted.count('SKU%03d'%i)==1,('PDF dropped/duplicated product',i)
