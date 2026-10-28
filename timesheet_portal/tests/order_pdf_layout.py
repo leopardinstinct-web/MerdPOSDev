@@ -26,13 +26,26 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   assert out=='OK' and pdf.exists()
   doc=fitz.open(pdf)
   assert len(doc)>=4, 'long rows should paginate into multiple pages'
+  for pg in doc:
+   content=pg.get_text()
+   assert 'Marrickville Xpress' in content and '375 Enmore Rd' in content, 'branded store and address must repeat on each PDF page'
+   assert 'Category' in content and 'Bar Code' in content and 'Order Quantity' in content, 'workbook columns must repeat on each PDF page'
+  fills=[item.get('fill') for item in doc[0].get_drawings() if item.get('fill') is not None]
+  assert any(abs(fill[0]-17/255)<0.02 and abs(fill[1]-85/255)<0.02 for fill in fills), 'PDF store banner must use workbook-style blue'
   extracted=' '.join(page.get_text() for page in doc)
   for i in range(65):
    assert extracted.count('SKU%03d'%i)==1,('PDF dropped/duplicated product',i)
+  sku_spans=[]
   for page in doc:
+   for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines',[]):
+     for span in line['spans']:
+      if 'SKU' in span['text']:
+       sku_spans.append(span)
    for block in page.get_text('blocks'):
     assert block[3]<=page.rect.height-10,('text overflowed page',block)
-  print('PASS long category/barcode/product wrapping,',len(doc),'PDF pages, every SKU once, no page overflow',flush=True)
+  assert len(sku_spans)==65 and all(abs(span['size']-8)<0.2 and 'Bold' not in span['font'] for span in sku_spans), 'body font must remain 8pt regular across every repeated header'
+  print('PASS long category/barcode/product wrapping,',len(doc),'PDF pages, every SKU once, no page overflow, body font consistent',flush=True)
   doc.close()
   # Fail closed rather than accepting a single row too tall for page.
   payload['rows'][0]['category']='X'*9000
@@ -41,4 +54,25 @@ order_pdf($row,__DIR__.'/layout.pdf');echo 'OK';""",encoding='utf8')
   error=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
   assert error.returncode!=0 and not pdf.exists(),'Excessive row must fail rather than corrupt approved PDF'
   print('PASS pathologically long row fails closed',flush=True)
+  # Verify the real usable body height after a branded Header() and table header.
+  # QA banners further reduce capacity; a row that cannot fit must fail closed.
+  payload['test_order']=True
+  oversized_blocked=False
+  rendered_safe=False
+  for chars in [120,160,200,240,280,320,360,400]:
+   payload['rows']=[dict(payload['rows'][0],category='W'*chars)]
+   jsonpath.write_text(json.dumps(payload),encoding='utf8')
+   if pdf.exists():pdf.unlink()
+   output=subprocess.run([command,str(php)],capture_output=True,text=True,timeout=30)
+   if output.returncode!=0:
+    oversized_blocked=True
+    assert not pdf.exists(),('failed QA PDF must not be published',chars)
+    continue
+   doc=fitz.open(pdf)
+   assert all('QA TEST ORDER - NOT FOR SUPPLIER' in pg.get_text() for pg in doc)
+   assert all(block[3] <= pg.rect.height-20 for pg in doc for block in pg.get_text('blocks'))
+   rendered_safe=True
+   doc.close()
+  assert oversized_blocked and rendered_safe,'QA body-height regression did not exercise both fit and overflow rejection'
+  print('PASS near-limit QA row respects branded page body and rejects oversized rows',flush=True)
 if __name__=='__main__':main()

@@ -455,3 +455,43 @@ tbody tr:nth-child(even):not(.green-total):not(.hours-row):not(.wage-row):not(.l
 .order-history-pager span{font-size:12px;font-weight:800;color:#405773}
 
 .order-test-option{display:flex;align-items:center;gap:10px;margin:12px 0;font-weight:850;color:#a12821}.order-test-option input{width:20px;height:20px}.order-danger{color:#9b2621;background:#ffeded;border:1px solid #efc0bd}
+
+
+/* Workbook-inspired MERDPOS Manual Order Alpha. Layout is shared conceptually
+   with FPDF exports: navy date/address, cobalt store band, 4-column table. */
+.manual-order-preview-panel { overflow:hidden; }
+.manual-order-panel-heading { display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap; }
+.manual-order-panel-heading .orders-section-heading { margin:0; }
+.manual-order-sheet { width:100%;max-width:100%;box-sizing:border-box;background:#fff;border:1px solid #c7d4e9;box-shadow:0 2px 8px rgba(3,27,75,.07);border-radius:8px;overflow:hidden; }
+.manual-order-sheet-header { text-align:center; }
+.manual-order-date { color:#fff;background:#1e4073;font-size:14px;line-height:1.4;padding:10px 12px; }
+.manual-order-store { color:#fff;background:#1155cc;font-weight:800;font-size:20px;line-height:1.35;padding:10px 12px; }
+.manual-order-address { color:#fff;background:#1e4073;font-size:12px;line-height:1.5;padding:8px 12px; }
+.manual-order-meta { background:#f1f5fc;color:#334f70;font-size:12px;font-weight:750;padding:10px 12px;overflow-wrap:anywhere; }
+.manual-order-test { background:#ffeded;color:#981e1a;font-size:12px;font-weight:900;letter-spacing:.03em;padding:8px 10px; }
+.manual-order-scroll { width:100%;overflow-x:auto;overscroll-behavior-inline:contain; }
+.manual-order-table { border-collapse:collapse;width:100%;min-width:540px;table-layout:fixed;font-size:13px;color:#102941; }
+.manual-order-table th { padding:9px 7px;border:1px solid #193f80;background:#3a76d8;color:#fff;font-weight:800;text-align:left; }
+.manual-order-table th:nth-child(1) { width:16%; }
+.manual-order-table th:nth-child(2) { width:22%; }
+.manual-order-table th:nth-child(3) { width:46%; }
+.manual-order-table th:nth-child(4) { width:16%;text-align:center; }
+.manual-order-table td { border:1px solid #9eaec2;padding:6px 7px;overflow-wrap:anywhere;vertical-align:middle; }
+.manual-order-table td:nth-child(1) { background:#f6f8fc; }
+.manual-order-table td:nth-child(2) { background:#fff4cf;font-variant-numeric:tabular-nums;word-break:break-word; }
+.manual-order-table td:nth-child(3) { background:#fff; }
+.manual-order-table td:nth-child(4) { background:#cddff9;text-align:center;font-weight:800;font-variant-numeric:tabular-nums; }
+.manual-order-table .manual-order-empty { text-align:center;background:#f7f9ff;color:#536883;padding:20px 10px; }
+.manual-order-foot { display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;background:#f6f9ff;color:#395573;font-size:12px; }
+.manual-order-foot span:first-child { font-weight:800; }
+.manual-order-history-sheet { margin-top:10px; }
+.order-details[open] .manual-order-sheet { border-radius:6px; }
+@media(max-width:640px){
+ .manual-order-preview-panel { padding:12px; }
+ .manual-order-store {font-size:18px;}
+ .manual-order-date {font-size:13px;}
+ .manual-order-address {font-size:11px;}
+ .manual-order-table {font-size:12px;}
+ .manual-order-panel-heading .orders-section-heading {font-size:18px;}
+ .manual-order-preview-panel #submitOrder,.manual-order-preview-panel #newOrderDraft {width:100%;margin:7px 0;min-height:48px;}
+}

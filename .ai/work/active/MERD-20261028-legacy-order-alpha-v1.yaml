@@ -6,11 +6,11 @@ track: legacy-production-portal
 authoritative_branch: namecheap-beta-live
 branch: feature/legacy-portal-alpha-order-store-v1
 base_head: 28c1316e5adfd7086b942a939df044ca7262b0ac
-last_seen_head: 4042b25ee466513478a53803122dc321945961cc
+last_seen_head: a0f905dcfde6998aab278ee5bed95fc1ae52a615
 created_at: '2026-10-28T00:00:00Z'
-updated_at: '2026-10-28T17:35:19+05:00'
-lifecycle: DEPLOYED
-packet_state: ALPHA_PR193_LIVE_KIMI_QA_VERIFIED_MOBILE_ACCEPTANCE_PENDING
+updated_at: '2026-10-28T18:09:39+05:00'
+lifecycle: WIRED
+packet_state: MANUAL_ORDER_LAYOUT_IMPLEMENTED_LOCAL_VERIFIED_RELEASE_PENDING
 risk: HIGH
 risk_basis: "Auth/session path of the separate legacy PHP portal; preserve payroll, private config, and distinction from Drupal Beta."
 objective: "Rename app.merdpos.com/timesheet_portal to MERDPOS Portal (Alpha) and implement stage-1 store selection while preserving timesheets."
@@ -122,3 +122,18 @@ pr193_live_qa:
     private_sqlite_rows: "Only QA records from these tests: one REJECTED DELETED, one APPROVED ACTIVE."
   scope_limit: "Actual phone camera, separate USER production account testing and automatic Google Drive save not yet verified. No supplier order was sent; Inventory DBA and timesheet files unchanged."
   pending: "Product-owner mobile UX acceptance; connect Google Drive service credentials separately; remaining nonblocking history navigation UX issues."
+
+manual_order_layout_release:
+  source_workbook: "Manual Order.xlsx, Order Sheet tab"
+  scope: "One selected store on mobile; inline live four-column workbook-style order preview with submit attached; SUPER review shares sheet; approved PDFs get workbook blue/navy design."
+  preserves: "Ceiling calculation, barcode scan, accessories, USER/SUPER permission, pending edits, separate orders, approval locks, existing PDFs, private storage, payroll, Inventory DBA."
+  local_tests:
+    - "Mobile Chromium 390px: order sheet four columns, live updates after AUTO and MANUAL changes, history sheet, pending edit, zero JS exceptions PASS."
+    - "PDF test: 65 long synthetic SKUs over 22 pages, repeated header/address/table, workbook-blue fill, no overflow, pathological row fail-closed PASS."
+    - "Isolated USER/SUPER HTTP full lifecycle/authorization/PDF/XLSX PASS."
+    - "PHP 8.4 lint / Node syntax / continuity validator / Git diff --check PASS."
+  current_state: "WIRED_LOCAL_TESTS_PASS_INDEPENDENT_REVIEW_REQUIRED"
+  target: "legacy Alpha root /home/dridsheikh/merdpos.com/app/timesheet_portal, NOT Drupal Beta"
+  deployment_required: "Exact reviewed SHA, remote backup, staged hash, PHP lint and authenticated role checks."
+  qa_end_point: "Create new clearly labelled QA TEST orders through live authenticated SUPER session, approve them, then verify workbook-style PDF and deliver links. Existing approved QA PDFs must remain unchanged."
+  limitations: "No Google Drive write; no invalid workbook share.google QR reuse; physical phone camera acceptance not yet proven."

@@ -30,6 +30,17 @@ def run():
                 page.get_by_role('button',name='MX Marrickville Xpress Select store').click()
                 page.locator('#countWorkspace').wait_for(state='visible',timeout=30000)
                 assert page.locator('#orderTotal').inner_text().isdigit()
+                assert page.locator('#manualOrderPreview .manual-order-store').inner_text()=='Marrickville Xpress'
+                assert page.evaluate("""() => {const host=document.createElement('div');
+                  MerdManualOrder.render(host,{store:'MX',date:'2026-10-28 23:30:00',rows:[]});
+                  return host.querySelector('.manual-order-date').textContent;
+                }""") == '29 October 2026'
+                assert page.evaluate("""() => {const host=document.createElement('div');
+                  MerdManualOrder.render(host,{store:'MX',date:'2026-10-28T23:30:00.123',rows:[]});
+                  return host.querySelector('.manual-order-date').textContent;
+                }""") == '29 October 2026'
+                assert page.locator('#manualOrderPreview .manual-order-table th').all_inner_texts()==['Category','Bar Code','Product Name','Order Quantity']
+                assert page.locator('h2:has-text("Generate order for SUPER review")').count()==0
                 page.locator('#productSearch').fill('B & H 20')
                 page.locator('.order-suggestion').first.click()
                 page.wait_for_function("() => document.querySelector('#countedProducts').textContent === '1'")
@@ -45,6 +56,9 @@ def run():
                 page.locator('#productSearch').fill('BIC Plain Big')
                 page.locator('.order-suggestion').first.click()
                 page.wait_for_function("() => document.querySelector('#accessoryTotal').textContent === '1'")
+                assert page.locator('#manualOrderPreview .manual-order-table tbody').inner_text().find('BIC Plain Big')>=0
+                assert page.locator('#manualOrderPreview .manual-order-table tbody').inner_text().find('B & H')>=0
+
                 # Camera cancellation during async startup must stop once start resolves.
                 page.evaluate("""() => { window.__cameraStopped = false;
                   window.Html5Qrcode = class { constructor(){} start(){return new Promise(resolve=>setTimeout(resolve,250));} stop(){window.__cameraStopped=true;return Promise.resolve();} clear(){} };
@@ -66,13 +80,16 @@ def run():
                 page.locator('#submitOrder').click()
                 page.wait_for_url('**/orders.php?submitted=*',timeout=30000)
                 page.locator('.order-status-pending').first.wait_for(timeout=15000)
+                page.locator('.order-details summary').first.click()
+                assert page.locator('.manual-order-history-sheet .manual-order-store').first.inner_text()=='Marrickville Xpress'
+                assert page.locator('.manual-order-history-sheet .manual-order-table th').count()==4
                 page.locator('button:has-text("Edit pending order")').first.click()
                 page.wait_for_url('**/orders.php?editing=*',timeout=15000)
                 page.locator('#countWorkspace').wait_for(state='visible',timeout=30000)
                 assert page.locator('#submitOrder').inner_text().find('Save changes')>=0
                 assert not errors, errors
                 page.screenshot(path=str(dst/'order-alpha-mobile.png'),full_page=True)
-                print('PASS mobile Chromium 390px UI, store selection, Inventory CSV load, search, AUTO/MANUAL increments and zero JS page errors',flush=True)
+                print('PASS mobile Chromium 390px integrated manual-order sheet, live preview, stock/accessories, history, edit, zero JS errors',flush=True)
                 browser.close()
         finally:
             server.terminate()

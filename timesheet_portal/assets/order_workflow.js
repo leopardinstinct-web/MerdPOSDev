@@ -60,20 +60,14 @@
         card.append(el('p','order-history-meta','Not calculated (no store ceiling): '+o.excluded_missing_ceiling.length+' catalogue products'));
       }
       const details=el('details','order-details');
-      details.append(el('summary','','View '+o.rows.length+' order lines'));
-      const table=el('table','order-review-table');
-      const thead=el('thead','');
-      const tr=el('tr','');
-      ['Category','Bar code','Product','Quantity'].forEach(h=>tr.append(el('th','',h)));
-      thead.append(tr);table.append(thead);
-      const tbody=el('tbody','');
-      o.rows.forEach(p=>{
-        const tr=el('tr','');
-        [p.category,p.barcodes,p.name,p.order_quantity].forEach(v=>tr.append(el('td','',v)));
-        tbody.append(tr);
+      details.append(el('summary','','View workbook-style order sheet · '+o.rows.length+' lines'));
+      const preview=el('div','manual-order-history-sheet');
+      if(window.MerdManualOrder)window.MerdManualOrder.render(preview,{
+        store:o.store,rows:o.rows,date:o.submitted_at,orderId:o.id,
+        testOrder:o.test_order,phase:o.status
       });
-      table.append(tbody);
-      const scrolling=el('div','order-table-wrap');scrolling.append(table);details.append(scrolling);card.append(details);
+      details.append(preview);
+      card.append(details);
       if(o.review_note)card.append(el('p','order-history-meta','Review note: '+o.review_note));
       if(o.status==='APPROVED'){
         card.append(el('p','order-history-meta','Approved by '+o.reviewer_name+' · '+new Date(o.reviewed_at).toLocaleString()));
