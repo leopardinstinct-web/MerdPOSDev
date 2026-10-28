@@ -132,7 +132,7 @@ function renderReport(report) {
 
   els.title.textContent = titleText;
   els.subtitle.textContent = `${report.week_start} to ${report.week_end}`;
-  document.title = titleText;
+  document.title = `MERDPOS Portal (Alpha) — ${titleText}`;
 
   const hasRows = report.employees && report.employees.length > 0;
   if (!hasRows) {
