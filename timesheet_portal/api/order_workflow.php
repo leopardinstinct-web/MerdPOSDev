@@ -75,7 +75,7 @@ try {
         $_SESSION['order_draft_catalogue'][$store]=['products'=>$payload['draft']['catalogue'],'captured_at'=>$payload['captured_at']];
         $_SESSION['order_draft_counts'][$store]=$payload['draft']['counts'];
         $_SESSION['order_draft_nonce'][$store]=bin2hex(random_bytes(16));
-        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision']];
+        $_SESSION['order_draft_edit'][$store]=['id'=>$id,'revision'=>(int)$row['revision'],'test_order'=>(bool)($payload['test_order']??false)];
         json_response(['success'=>true,'store'=>$store,'editing'=>$id]);
     }
     if ($action==='new') {

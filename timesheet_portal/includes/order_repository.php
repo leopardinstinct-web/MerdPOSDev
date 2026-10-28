@@ -42,10 +42,19 @@ CREATE INDEX IF NOT EXISTS idx_orders_store_date ON orders (store,submitted_at D
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status,submitted_at DESC);
 SQL);
     // Backwards-compatible additive migration, executed before live queries.
-    $cols=$pdo->query('PRAGMA table_info(orders)')->fetchAll();
-    $names=array_column($cols,'name');
-    if (!in_array('deleted_at',$names,true)) $pdo->exec('ALTER TABLE orders ADD COLUMN deleted_at TEXT');
-    if (!in_array('deleted_by',$names,true)) $pdo->exec('ALTER TABLE orders ADD COLUMN deleted_by TEXT');
+    $ensureColumn = static function (string $column) use ($pdo): void {
+        $current = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+        if (in_array($column, $current, true)) return;
+        try {
+            $pdo->exec('ALTER TABLE orders ADD COLUMN ' . $column . ' TEXT');
+        } catch (PDOException $e) {
+            // Concurrent first request may have completed the same migration.
+            $latest = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+            if (!in_array($column, $latest, true)) throw $e;
+        }
+    };
+    $ensureColumn('deleted_at');
+    $ensureColumn('deleted_by');
     return $pdo;
 }
 function order_user_id(array $user): string {
