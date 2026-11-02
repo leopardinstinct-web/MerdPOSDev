@@ -144,3 +144,25 @@ With the current full Inventory DBA catalogue (193 AUTO + 78 MANUAL), the authen
 RT order `ORD-20261028-DC0AB41C1C` was then submitted through authenticated SUPER with `test_order=false` and approved. The order contains **56 lines, including 10 MANUAL accessory lines**. PDF (3 pages) and XLSX returned HTTP 200 with PDF/ZIP signatures, and read-only SFTP + private SQLite verification confirmed immutable approved state, 10 MANUAL lines, exclusion of all 11 discontinued source items, no QA/test-copy wording, private Namecheap store/date paths and unwrapped Category/Bar Code columns. **No supplier dispatch and no Inventory DBA edits occurred.** The earlier MX and DT production orders were independently revalidated alongside RT.
 
 Final combined file set on the authorized Windows computer: `C:/Users/Imran/Downloads/MERDPOS_Production_Orders_Accessories_20261028/MERDPOS_Approved_MX_DT_RT_With_Accessories.zip` (three production PDFs + three XLSX files). Protected portal download endpoint: `timesheet_portal/api/order_download.php?id=<ID>&format=pdf|xlsx`, SUPER login required. Prior approved QA orders remain immutable and distinguishable.
+
+
+## 2026-11-02 — Owner-confirmed naming standardization rules for next Rosebay/Marrickville orders
+
+**Status: source-name mapping rules approved, input preparation only. No new November order has been submitted or PDF generated from these rules.** Next batch: current owner-supplied Rosebay Express counts (2026-11-02 conversation), then wait for Marrickville counts. Do not reuse historical October 28 counts. Match each input by intended variant + pack size + Inventory DBA identity and barcode; ambiguous or missing names must never be silently substituted.
+
+Owner-confirmed aliases and default behavior:
+
+| Incoming owner shorthand | Canonical Inventory DBA item | Interpretation / caveat |
+| --- | --- | --- |
+| `Peter Stuyvesant 20's Original` / `Peter Stuyvesant Original` | `PS 20's (Blue, Original)` | Verified Inventory row 274, `Code_1=9327329016750`, `TobaccoOrder=AUTO`, RT ceiling 18 at time of check. Do **not** map to PS 30's or Red Virginia. |
+| `Holiday 20's Bold` / `Holiday 20's Bold R` | `Holiday 20's Red` | Owner explicitly confirms Bold means Red, preserving separate Classic and Sun variants. |
+| `RAW paper small with tips` / `RAW classic 1/4 with tips` | `RAW Rolling Paper + Tips 11/4 Size` | Intended **Classic 1¼ size + tips**, Inventory row 400, not Black or Organic Hemp; do not confuse with `RAW Classic Single Wide + Tips`. If actual barcode conflicts, flag rather than substitute. |
+| `RAW paper large with tips` / `RAW long classic with tips` | `RAW Classic Kingsize + Tips` | Intended **Classic long/king size + tips**, Inventory row 377; exclude Black and Organic Hemp variants. |
+| `Tallyho paper 5 pack` | `Tally-HO Papers (5 Pack)` | Owner confirms requested quantity **1**. |
+| Other tobacco accessories with item but no quantity supplied | Exact matched `MANUAL` catalogue entry | Default **order quantity 1 each** unless a different explicit amount is given. The default does not apply to cigarette physical stock counts or to unmatched/noneligible products. |
+
+Owner decision for the new batch: **skip remaining discontinued or not-found products**, including products that cannot be safely matched or are not eligible (`TobaccoOrder=NO`). A blank *store-specific* ceiling on an AUTO cigarette signifies discontinued for that store: skip it, never restore or infer an old ceiling. Preserve exclusions in the reconciliation report so omissions are auditable. Use current Inventory DBA as authority; the full-export `gid=0` reader is required so MANUAL accessories aren't dropped.
+
+User-supplied cigarette/RYO numbers are **physical stock counts**, not direct purchasing quantities. AUTO purchase = `max(0, current store ceiling - physical count)`. MANUAL accessory numbers are **requested purchase quantities**, defaulting to 1 only when omitted. No duplicate alias merging without identity checks. Store-specific drafts/orders must be separate. Old immutable approved records must not be edited or reclassified.
+
+**Next action:** receive Marrickville Xpress count list, reconcile both store lists with exact Inventory DBA names/barcodes, show unresolved items and exclusions, then generate new approved PDF/XLSX files through authenticated MERDPOS Portal (Alpha) via RDC/Kimi. Do not submit new orders or claim PDF completion before data reconciliation and owner-provided second store list.
