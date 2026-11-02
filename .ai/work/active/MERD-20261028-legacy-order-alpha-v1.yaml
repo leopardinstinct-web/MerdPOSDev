@@ -212,11 +212,22 @@ rt_discontinued_final_20261028:
   next_action: "For November batch, await owner-provided MX stock list, reconcile new RT/MX lists, then submit separate approved portal orders after name and barcode validation."
 
 next_batch_standardization_20261102:
-  status: AWAITING_MARRICKVILLE_INPUT
+  status: VERIFIED_NEW_ORDERS_GENERATED
   source: "Owner supplied fresh Rosebay counts and accessory names in current chat. These supersede older October counts for the next batch; do not reuse old approved orders."
   rules_doc: "timesheet_portal/ORDERING_ALPHA.md, section '2026-11-02 — Owner-confirmed naming standardization rules'"
   normalized_aliases: "Peter Stuyvesant Original -> PS 20's (Blue, Original); Holiday Bold -> Holiday 20's Red; RAW small -> Classic 1¼ with tips; RAW long -> Classic Kingsize with tips; Tally-HO 5 Pack qty 1"
-  caution: "Owner's Rosebay list has Holiday Bold R count 1 AND Bold count 2. Both refer to Holiday Red by shorthand, but the two counts must not be silently merged; confirm whether same stock/SKU before generating order."
+  confirmed_holiday_red: "Owner confirmed both Rosebay Holiday Bold entries refer to Holiday 20's Red, 1+2=3 units physical stock."
   accessory_default: "When a MANUAL accessory has no explicit order quantity, use 1."
   excluded: "Skip not-found/NO or blank-ceiling discontinued AUTO cigarettes; do not change Inventory DBA."
-  next_action: "Await new Marrickville stock list and resolve Holiday Red double-entry before generating fresh Rosebay and Marrickville approved PDFs/XLSX via authenticated Alpha."
+  next_action: "Owner reviews the approved November MX and RT PDFs/XLSX before any supplier dispatch. No additional order is pending."
+
+november_mx_rt_completed_20261102:
+  status: VERIFIED
+  canonical_docs: timesheet_portal/ORDERING_ALPHA.md
+  transport: "Remote Desktop Commander -> Kimi bridge merdpos-nov-batch -> authenticated Alpha SUPER portal"
+  mx: "ORD-20261102-5A30C0D576; 18 lines incl 5 MANUAL; 1-page PDF; SUPER approved, non-test"
+  rt: "ORD-20261102-11AC020406; 44 lines incl 6 MANUAL; 2-page PDF; SUPER approved, non-test"
+  validation: "SFTP private server file permissions, PDF/XLSX content and no QA marks; SQLite ledger status approved, test_order=false and MANUAL count; browser HTTP 200 for both formats"
+  exclusions: "RT Holiday Red duplicates merged stock 1+2=3; no-ceiling discontinued AUTO and ineligible/unmatched excluded; owner-selected Ranch Menthol Burst MX qty 1"
+  windows_zip: "C:/Users/Imran/Downloads/MERDPOS_November_2026_New_Orders/MERDPOS_Nov2026_Approved_MX_RT_PDF_XLSX.zip"
+  next_action: "Owner reviews current quantities; no supplier send was initiated."
