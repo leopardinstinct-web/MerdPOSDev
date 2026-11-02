@@ -209,4 +209,14 @@ rt_discontinued_final_20261028:
   evidence: "Kimi authenticated SUPER submit/approve, browser PDF and XLSX HTTP 200; Namecheap SFTP verifies private store/date files, 3 PDF pages, no QA/test wording, no barcode/category wrapping; XLSX rows and SQLite JSON payload confirm 10 MANUAL lines and 11 discontinueds excluded."
   prior_batch_timeout_recovery: "The browser counting batch timed out after saving all 32 source counts; exact read-only inventory check confirmed counts and no real RT order existed before a single successful submit. No duplicate submission."
   downloaded_archive: "C:/Users/Imran/Downloads/MERDPOS_Production_Orders_Accessories_20261028/MERDPOS_Approved_MX_DT_RT_With_Accessories.zip"
-  next_action: "SUPER reviews the approved orders before sharing with suppliers; maintain historical QA immutability."
+  next_action: "For November batch, await owner-provided MX stock list, reconcile new RT/MX lists, then submit separate approved portal orders after name and barcode validation."
+
+next_batch_standardization_20261102:
+  status: AWAITING_MARRICKVILLE_INPUT
+  source: "Owner supplied fresh Rosebay counts and accessory names in current chat. These supersede older October counts for the next batch; do not reuse old approved orders."
+  rules_doc: "timesheet_portal/ORDERING_ALPHA.md, section '2026-11-02 — Owner-confirmed naming standardization rules'"
+  normalized_aliases: "Peter Stuyvesant Original -> PS 20's (Blue, Original); Holiday Bold -> Holiday 20's Red; RAW small -> Classic 1¼ with tips; RAW long -> Classic Kingsize with tips; Tally-HO 5 Pack qty 1"
+  caution: "Owner's Rosebay list has Holiday Bold R count 1 AND Bold count 2. Both refer to Holiday Red by shorthand, but the two counts must not be silently merged; confirm whether same stock/SKU before generating order."
+  accessory_default: "When a MANUAL accessory has no explicit order quantity, use 1."
+  excluded: "Skip not-found/NO or blank-ceiling discontinued AUTO cigarettes; do not change Inventory DBA."
+  next_action: "Await new Marrickville stock list and resolve Holiday Red double-entry before generating fresh Rosebay and Marrickville approved PDFs/XLSX via authenticated Alpha."
