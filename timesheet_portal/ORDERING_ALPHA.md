@@ -188,3 +188,14 @@ All four authenticated PDF/XLSX downloads returned HTTP 200 with valid magic byt
 Windows verified artifact: `C:/Users/Imran/Downloads/MERDPOS_November_2026_New_Orders/MERDPOS_Nov2026_Approved_MX_RT_PDF_XLSX.zip` (4 files, 15,744 bytes). Individual documents also reside in the same directory. SUPER can download via `timesheet_portal/api/order_download.php?id=<ID>&format=pdf|xlsx`.
 
 Old October production records and QA immutable records remain untouched. A supplier-facing use should follow owner review of the exported order quantities.
+
+## 2026-11-09 — Owner-confirmed Port Royal 30g alias (binding for all store orders)
+
+**Definitive owner correction:** The names `Port Royal Original 30g`, `Port Royal 30gm`, `Port Royal 30gE Original` and `Port Royal RYO 30g Rum` refer to the **same product**. The canonical Inventory DBA entry is **`Port Royal RYO 30g Rum`**, Inventory row 272, code `9310797301930`. These aliases are **CONFIRMED**, not tentative; **do not ask the owner to reconfirm this mapping** or exclude it on name grounds in future standardization. Respect the store's current stock ceiling and `TobaccoOrder` eligibility separately.
+
+For the latest 2026-11-09 owner-supplied physical counts, apply:
+- MX: Port Royal Original 30g on hand **6**, current MX ceiling **3** → calculated order **0**.
+- DT (Double Bay, user sometimes calls DX): Port Royal Original 30g on hand **3**, current DT ceiling **3** → calculated order **0**.
+- RT (Rosebay, user sometimes calls RX): Port Royal 30gm on hand **8**, current RT ceiling **3** → calculated order **0**.
+
+These are cigarette/RYO **physical stock counts, not accessory purchase requests**. In the pending reconciliation record, count the three aliases as matched and update the per-store stock counts; do not accidentally treat the previously excluded Port Royal SKU as uncounted/zero-stock or auto-order three units. The 2026-11-09 three-store orders are **not** approved or submitted until the owner reviews and explicitly confirms the complete standardized reconciliations.
