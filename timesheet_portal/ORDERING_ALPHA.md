@@ -208,3 +208,18 @@ Owner answered **yes** to both exact mappings below. These are definitive mappin
 - `RAW 6-pack pre-roll paper` -> Inventory DBA **`RAW Cone Classic 6 per Cone`** (Inventory row 383, MANUAL accessory). Rosebay requested purchase quantity **2**. This is a 6-cone pack product ordered in two units, not two individual cones.
 
 Move both from unresolved to exact confirmed matches in the pending reconciliation; never treat the Rothmans SKU as uncounted/zero-stock. **This confirmation covers identities/quantities, NOT final authorization to submit or SUPER-approve MX, DT and RT orders.** Still present the full reconciled three-store review to the owner and obtain explicit final approval before any portal mutation.
+
+## 2026-11-09 — MX, DT, RT newly submitted to MERDPOS Alpha for owner approval
+
+On explicit owner instruction, standardized the fresh November 9 stock counts and accessories, skipped discontinued/no-store-ceiling, ineligible `NO` and unmatched SKUs, and submitted one **genuine non-test** order for each store in the existing authenticated SUPER portal. **No assistant approval, supplier dispatch or Inventory DBA change was performed.** The owner said they will review and approve in the portal; this supersedes earlier assistant-side final approval steps.
+
+The Kimi local browser daemon had stopped on November 5; restarted `kimi-webbridge.exe start` through authorized Remote Desktop Commander, then used the authenticated `merdpos-nov09-pending-orders` browser session. Every store was empty beforehand and there were no existing 2026-11-09 orders. Every submitted order was guarded by a local receipt to prevent duplicate submission.
+
+The current Inventory DBA ceilings and live portal catalogue (193 AUTO + 78 MANUAL) were cross-checked. Changes since the earlier draft: MX JPS 20's Original ceiling increased to 6; DT had nine changed eligible stock ceilings; RT had six changed listed product ceilings and an uncounted Dunhill Classic ceiling changed to 8. These were revalidated live before submission. The portal's established contract includes uncounted eligible AUTO cigarettes at zero on-hand, automatically replenished to configured ceiling. Port Royal Original 30g is the owner-confirmed alias of Port Royal RYO 30g Rum in all three stores. DT Riverstone 30g duplicate 1+2 = 3 physical on-hand. RT Holiday Red duplicate 1+2 = 3 physical on-hand; RT Rothmans Classic 20 maps to Signature (Blue, Classic) count 2 and RAW 6-pack cones maps to RAW Cone Classic 6 per Cone purchase quantity 2. RT Riverstone 30g physical count 10 yields order zero per owner's "no need this week".
+
+New approved-for-review records (statuses below are last-observed and may be changed by owner):
+- **MX** `ORD-20261109-0C3BA141D0`, 17 order lines, 33 units, 0 MANUAL accessory lines; submitted as PENDING. A later read-only history check showed `APPROVED` (not by assistant).
+- **DT** `ORD-20261109-6ECA9FF513`, 20 lines, 50 units, 1 MANUAL accessory, `PENDING` on last check.
+- **RT** `ORD-20261109-6EC854D8F6`, 36 lines, 147 units, 3 MANUAL accessory lines, `PENDING` on last check.
+
+Local audit input: `C:/Temp/MERDPOS_2026-11-09_UNCONFIRMED_RECONCILIATION.json` (filename is historical; all matches/ceilings reconciled by submission), store receipts `C:/Temp/MERDPOS_20261109_<STORE>_PENDING_RECEIPT.json`. Final link: `https://app.merdpos.com/timesheet_portal/orders.php`; owner will review/approve and download PDF there. Do not resubmit or change approved records; read current statuses before any future action. Previous 2026-11-02 approved production orders and QA orders remain unchanged.
