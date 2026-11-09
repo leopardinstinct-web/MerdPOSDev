@@ -199,3 +199,12 @@ For the latest 2026-11-09 owner-supplied physical counts, apply:
 - RT (Rosebay, user sometimes calls RX): Port Royal 30gm on hand **8**, current RT ceiling **3** → calculated order **0**.
 
 These are cigarette/RYO **physical stock counts, not accessory purchase requests**. In the pending reconciliation record, count the three aliases as matched and update the per-store stock counts; do not accidentally treat the previously excluded Port Royal SKU as uncounted/zero-stock or auto-order three units. The 2026-11-09 three-store orders are **not** approved or submitted until the owner reviews and explicitly confirms the complete standardized reconciliations.
+
+## 2026-11-09 owner-confirmed Rosebay Rothmans Classic and RAW six-cone aliases
+
+Owner answered **yes** to both exact mappings below. These are definitive mapping decisions for the current November 9 three-store reconciliation and future similar shorthand, unless the owner specifies another variant.
+
+- `Rothmans 20's Classic` -> Inventory DBA **`Rothmans 20's Signature (Blue, Classic)`** (Inventory row 288, barcode `9310797300421`). Rosebay physical stock count **2**; current RT ceiling **2** -> calculated order quantity **0**. This is AUTO physical stock, **not** a direct purchase request.
+- `RAW 6-pack pre-roll paper` -> Inventory DBA **`RAW Cone Classic 6 per Cone`** (Inventory row 383, MANUAL accessory). Rosebay requested purchase quantity **2**. This is a 6-cone pack product ordered in two units, not two individual cones.
+
+Move both from unresolved to exact confirmed matches in the pending reconciliation; never treat the Rothmans SKU as uncounted/zero-stock. **This confirmation covers identities/quantities, NOT final authorization to submit or SUPER-approve MX, DT and RT orders.** Still present the full reconciled three-store review to the owner and obtain explicit final approval before any portal mutation.
