@@ -279,3 +279,24 @@ Last read-only status check:
 - DT `ORD-20261116-0149E2A421`: **PENDING** (28 lines / 69 units / 4 accessories)
 - RT `ORD-20261116-D7EC674D30`: APPROVED (37 lines / 137 units / 3 accessories)
 Owner may now inspect and approve DT at `https://app.merdpos.com/timesheet_portal/orders.php`. Existing MX and RT approved records were not altered by the assistant.
+
+## 2026-11-17 — Fresh reprocessing after product owner removed discontinued stock ceilings (PORTAL SUBMISSION BLOCKED)
+
+**User request:** reprocess the complete 2026-11-16 MX/DT/RT owner stock counts plus all verified accessories using the **new live Inventory DBA ceilings**, submit new genuine Alpha orders as **PENDING only**, for owner's manual approval. Previous Nov 16 approved records are immutable and must never be reused, edited, or automatically marked superseded. Do not approve or send to supplier.
+
+The original Word attachment `Order 16 Nov 2026.docx` was reopened directly and stock counts compared to the earlier fully reconciled three-store plan. The photographed DT four accessories include exact `OCB Premium 1 1/4 with Tips` barcode `3057067394242`, added to Inventory DBA and Alpha in prior session. Confirmed DT Parker & Simpson Blue/Original physical count 1+3=4, and RT Holiday Bold Red/Bold count 1+2=3, continue to apply.
+
+**Live snapshot:** Inventory DBA sheet `Inventory` gid=0, 193 AUTO, 80 MANUAL, 456 NO. Store ceiling-controlled eligible AUTO count: MX **30**, DT **36**, RT **41**. Fresh count calculation (`max(0, ceiling - supplied physical count)` for eligible AUTO, 0 stock for unspecified eligible AUTO; exact MANUAL accessory request quantities) yielded:
+- **MX: 19 lines / 35 units**, including 5 manual accessory lines. Old November 16 order `ORD-20261116-F1E8FE9CE5` was 23 lines / 43 units (8 fewer).
+- **DT: 25 lines / 62 units**, including 4 manual accessory lines. Old November 16 order `ORD-20261116-0149E2A421` was 28 lines / 69 units (7 fewer).
+- **RT: 28 lines / 107 units**, including 3 manual accessory lines (4 individual accessory units, incl Bic Small x2). Old November 16 order `ORD-20261116-D7EC674D30` was 37 lines / 137 units (30 fewer).
+
+**Safety critical:** new source ceilings blank for discontinued items are excluded even if old orders included them. 30g RYO SKUs **still replenished solely because active ceiling and no submitted physical count**:
+- MX `Winfield RYO 30g Signature Gold` x2
+- DT `Winfield RYO 30g (Blue, Classic Blue)` x2
+- RT `Champion RYO 30g (Ruby, Distinct)` x5
+Do NOT assume these are discontinued; the live sheet retains nonblank ceilings. The owner specifically reported harmful 30g RYO overstocking and should inspect these lines before approving corrected orders. Other explicitly counted 30g RYO products with positive replenishment: MX Champion 30g x3; DT Champion 30g x2; RT Manitou Organic 30g x2. User's RT Riverstone 30g stock 9, "no need this week", remains order 0.
+
+**Execution blocker:** Authorized Windows Remote Desktop Commander device `d01d43f4-7121-42ed-805d-e33a039d8f1b` went **offline while preparing the fresh three-store reconciliation**, so no new corrected portal orders have been submitted. Do **not** claim any new Nov 17 IDs or PENDING status. The latest prior approved orders remain visible and do NOT automatically get canceled or replaced. Remote device must be reconnected. Once available, recreate the current live Sheet snapshot and confirm it still matches, check for any existing new November 17 orders and nonempty store drafts, reset empty per-session pinned catalogues only when safe, enter all original Nov16 counts including accessories with the corrected ceilings, independently verify order lines/units, and submit exactly once per store as PENDING. Preserve receipts to avoid duplicate sends and report the resulting IDs. Never automatically SUPER approve.
+
+The user's last reply has already received a recalculated three-store total comparison, but completing actual portal submission awaits restored authorized desktop connectivity.
