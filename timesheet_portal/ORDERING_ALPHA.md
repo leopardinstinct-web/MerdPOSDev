@@ -257,3 +257,25 @@ Confirmed exact Inventory DBA MANUAL matches, already staged in the authorized W
 - **Unresolved fourth product** photographed: `OCB Premium 1¼ + Filters`, qty default 1. Inventory DBA has `OCB Slim Small`, row 356, barcode `30063082`, but that barcode identifies a paper-only product without filters, **not an exact match** to pictured `OCB Premium 1¼ + Filters`. Do not misrepresent substitution as exact.
 
 Double Bay previously confirmed Parker & Simpson Blue/Original stock count **4**, current DT ceiling **3**, order **0**. The local staging plan now includes three exact manual accessory lines, leaving one exception in `DT.ambiguous`. **No 2026-11-16 DT order has been submitted.** Pre-decision draft totals: **27 lines, 68 units**, excluding unmatched OCB 1¼ + Filters. Owner must choose **exclude unmatched** or **explicitly substitute OCB Slim Small paper-only**. Once decided, clear the exception, update the plan and submit DT as genuine non-test **PENDING for owner approval only** via authenticated Alpha. MX and RT are previously submitted; do not touch them.
+
+## 2026-11-16 — Double Bay completed with newly added exact OCB Premium 1¼ + Tips
+
+**Supersedes the earlier unmatched OCB accessory warning** in this document. Owner supplied the exact standard row `OCB Premium 1 1/4 with Tips`, barcode `3057067394242`. Live Inventory DBA `Inventory` gid=0 now contains it at row **425**, with `TobaccoOrder=MANUAL` (the source now has **193 AUTO and 80 MANUAL** eligible entries). Another added MANUAL entry is RAW Classic 1 1/4 Rolling Papers (row 426). Earlier 193/78 catalogue snapshots are stale.
+
+The authenticated Alpha portal initially still had its old session-pinned inventory catalog (193 AUTO / 78 MANUAL) even though the live Google Sheet had been updated. `timesheet_portal/api/order_count.php` pins `order_draft_catalogue` per store. Since the **DT draft was empty**, an authorized `order_workflow.php` `action=new` cleanly refreshed the DT catalogue **without touching existing approved/pending orders**, returning **193 AUTO + 80 MANUAL** and the exact OCB barcode. Never attempt silent substitution to OCB Slim Small, which has no attached tips.
+
+The four manually requested accessories identified from owner photo and ordered as **one purchase unit each**:
+- Ventti Extra Long Micro Slim Filters, barcode `9310537107648`
+- OCB Slim Long + Filters, barcode `30107014`
+- RAW Organic Hemp 1¼ Size + Tips, barcode `716165176121`
+- **OCB Premium 1 1/4 with Tips**, barcode `3057067394242`
+
+The owner explicitly confirmed DT Parker & Simpson Blue 1 + Original 3 is **one SKU** (`Parker & Simpson 20's Blue`) with **4 physical on-hand**, DT ceiling 3, hence **zero replenishment**.
+
+**New authentic non-test DT order `ORD-20261116-0149E2A421`**, **28 order lines, 69 total units, 4 MANUAL accessory lines**, submitted through MERDPOS Alpha and independently verified **PENDING** for owner's own review/approval. The assistant did not SUPER-approve or dispatch anything. Source plan `C:/Temp/MERDPOS_20261116_RECONCILIATION_DRAFT.json`, protected receipt `C:/Temp/MERDPOS_20261116_DT_PENDING_RECEIPT.json`, and submission script `C:/Temp/merd-20261116-submit-DT-updated-catalog.py` are on the authorized Windows PC. All new November 16 orders are now submitted; DO NOT resubmit.
+
+Last read-only status check:
+- MX `ORD-20261116-F1E8FE9CE5`: APPROVED (23 lines / 43 units / 5 accessories)
+- DT `ORD-20261116-0149E2A421`: **PENDING** (28 lines / 69 units / 4 accessories)
+- RT `ORD-20261116-D7EC674D30`: APPROVED (37 lines / 137 units / 3 accessories)
+Owner may now inspect and approve DT at `https://app.merdpos.com/timesheet_portal/orders.php`. Existing MX and RT approved records were not altered by the assistant.
