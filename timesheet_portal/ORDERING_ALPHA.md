@@ -223,3 +223,19 @@ New approved-for-review records (statuses below are last-observed and may be cha
 - **RT** `ORD-20261109-6EC854D8F6`, 36 lines, 147 units, 3 MANUAL accessory lines, `PENDING` on last check.
 
 Local audit input: `C:/Temp/MERDPOS_2026-11-09_UNCONFIRMED_RECONCILIATION.json` (filename is historical; all matches/ceilings reconciled by submission), store receipts `C:/Temp/MERDPOS_20261109_<STORE>_PENDING_RECEIPT.json`. Final link: `https://app.merdpos.com/timesheet_portal/orders.php`; owner will review/approve and download PDF there. Do not resubmit or change approved records; read current statuses before any future action. Previous 2026-11-02 approved production orders and QA orders remain unchanged.
+
+## 2026-11-16 — Current MX, DT, RT counts from owner-uploaded Word document
+
+Source: owner file `Order 16 Nov 2026.docx` (three store lists), matched against Inventory DBA `Inventory` (gid 0, 193 AUTO + 78 MANUAL). New orders are submitted only as **PENDING for owner portal approval**; the assistant must never SUPER-approve or send to supplier.
+
+The fresh full, machine-readable reconciliation lives on the user's authorized desktop:
+`C:/Temp/MERDPOS_20261116_RECONCILIATION_DRAFT.json`
+(sources, canonical names, physical counts, stock ceilings, excluded items and uncounted AUTO products). Script `C:/Temp/merd-20261116-submit-pending.py` provides a receipt/idempotency guarded portal workflow. For every store it verifies the current live catalog, excludes NO/blank-ceiling/unmatched SKUs, treats uncounted eligible AUTO products as zero stock under the established portal contract, uses the supplied physical count for matched AUTO, and uses requested accessory quantities (default 1 when absent).
+
+**MX submitted** as genuine non-test `ORD-20261116-F1E8FE9CE5`, 23 lines, 43 units, **5 manual accessories**, initially PENDING; subsequent read-only portal check found **APPROVED** (not by assistant). MX exclusions included Parker & Simpson Blue+Fresh (blank MX ceiling), Choice Original Blue 30g (not in Inventory DBA, DO NOT reinterpret as 15g), Horizon Blue RYO 25g (blank), Rothmans Gold RYO 20g (ineligible) and Rothmans Red RYO 25g (blank).
+
+**RT submitted** as genuine non-test `ORD-20261116-D7EC674D30`, 37 lines, 137 units, **3 manual accessory lines** (RAW Classic Kingsize + Tips x1, Clipper Round Large Graphics Jet Lighter x1, BIC Plain Small x2), **PENDING** on last verification. Holiday Bold Red 1 + Bold 2 = 3 physical count for one `Holiday 20's Red`, confirmed by owner in earlier batch; RYO Riverstone 30g physical count 9 with explicit "no need this week" order zero; previously confirmed aliases apply. NO, blank-RT-ceiling and not-in-list items excluded.
+
+**DT remains unsubmitted and draft empty, awaiting exactly one owner decision:** `Parker and simp blue - 1` plus `parker and simp original - 3` both appear to refer to Inventory DBA `Parker & Simpson 20's Blue` (DT ceiling 3). Need owner to confirm same SKU and physical **1+3=4** before entering DT order. Do not silently merge duplicate counts. DT has zero manual accessories in this uploaded list. Other non-orderable products excluded under established rule: Rothmans 20's Signature Red/Bold (blank DT ceiling), JPS Original RYO 30g (blank), Choice Blue RYO 30g (not found), Choice Original Blue RYO 25g (not found), JPS Regular RYO 30g (not found). Older approved November 9 orders remain immutable.
+
+**Next:** On owner confirmation that DT Parker & Simpson Blue and Original are same SKU, update the draft JSON so one canonical `Parker & Simpson 20's Blue` AUTO physical count is 4; current DT ceiling was 3 so order zero. Re-read live Inventory DBA/portal ceilings before submitting, guard against duplicate Nov 16 DT order, then create genuine non-test **PENDING** order for DT only. If the owner says they differ, clarify the exact separate variants instead. Never edit or resubmit MX/RT. After DT submission provide all new order IDs and portal review link.
