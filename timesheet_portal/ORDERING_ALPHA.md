@@ -398,3 +398,20 @@ The established Alpha portal contract treats eligible AUTO SKUs absent from the 
 **New genuine non-test Rosebay order `ORD-20261123-9D7B06AACA` — 32 order lines / 109 units / five manual accessory lines, status PENDING for owner approval.** Entered 38 matched stock/accessory records through one guarded Kimi bridge session `merdpos-20261123-rt-current`. All counts, calculated lines/units, exact manual accessory lines, and excluded product results were validated *before* one submission. A subsequent independent read-only portal check confirmed PENDING and test_order=false. Older RT approved orders `ORD-20261116-FDFA5D55F2` and `ORD-20261116-D7EC674D30` remain APPROVED and unmodified. The assistant did not approve, dispatch, delete, or change the master sheet.
 
 Authorized Windows audit files: `C:/Temp/MERDPOS_20261123_RT_RECONCILIATION_AWAITING_COUNT.json` (historical draft), `C:/Temp/MERDPOS_20261123_RT_FRESH_MASTER_FOR_FINAL.json`, `C:/Temp/MERDPOS_20261123_RT_CONFIRMED_FINAL_MANIFEST.json`, `C:/Temp/MERDPOS_20261123_RT_PENDING_RECEIPT.json`, `C:/Temp/merd-20261123-rt-submit-pending-once.py`. Never resubmit this order. Owner review link: `https://app.merdpos.com/timesheet_portal/orders.php`.
+
+## 2026-11-23 — Rosebay (RX/RT) rerun from same owner stock counts, refreshed ceilings
+
+Owner requested "re run RX" immediately after Rosebay `ORD-20261123-9D7B06AACA`. The existing record was confirmed **REJECTED** and the RT draft empty, allowing one new replacement order without duplicating a PENDING order. The same original 2026-11-23 owner counts and all 5 MANUAL accessories were reprocessed, including owner-confirmed **Bond St. RYO 25g Red stock 2, ceiling 2 -> order 0**.
+
+**Fresh live master:** Inventory DBA `Inventory` gid 0, 194 AUTO + 80 MANUAL, 274 eligible products, current Rosebay 40 active AUTO ceiling products (previous 42). Fully compared each eligible product's live Alpha type and current store ceiling with Google Sheet before any count writes. Recalculated order **28 lines / 91 units / 5 accessory lines** (18 fewer units than rejected 32-line / 109-unit version), still using the portal's established zero-stock replenishment rule for unspecified eligible AUTO products. Uncounted eligible units included Bond St RYO25 Blue 2, Champion RYO30 Ruby 5, Pall Mall Classic20 10, Rothmans Crush Blue20 2, Rothmans Signature Blue Classic20 2, Winfield Classic Blue20 8, Winfield Sun Gold20 8. Owner should review these to prevent accidental overstocking. Discontinued/ineligible/unmatched variants excluded; no speculative substitutions.
+
+**New genuine non-test order `ORD-20261123-6F8D873A59`**. Submitted once via Kimi webbridge as PENDING, with pre-submit verification of all 38 stock/accessory entries and exactly 28 lines / 91 units. The assistant **did not SUPER-approve or dispatch**. Independent follow-up portal checks found its status had already changed to **APPROVED**, apparently via another actor/session; do not report it as currently PENDING. The predecessor `ORD-20261123-9D7B06AACA` remained **REJECTED** and untouched, and new store draft empty.
+
+Authorized Windows audit:
+- `C:/Temp/MERDPOS_20261123_RT_FRESH_MASTER_RERUN.json`
+- `C:/Temp/MERDPOS_20261123_RT_RERUN_ORDER_PLAN.json`
+- `C:/Temp/MERDPOS_20261123_RT_RERUN_PENDING_RECEIPT.json`
+- `C:/Temp/merd-20261123-rt-rerun-submit-pending-once.py`
+- `C:/Temp/merd-20261123-rt-rerun-verify-current-status.py`
+
+Do not resubmit. The current order is approved and its supplier dispatch status has NOT been checked. Link: `https://app.merdpos.com/timesheet_portal/orders.php`.
