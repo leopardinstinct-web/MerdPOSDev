@@ -353,3 +353,26 @@ The old 34 input counts were carefully remapped against the *fresh master*, with
 **New non-test genuine MX order `ORD-20261123-BDC76DF839` — PENDING, 14 lines, 35 total units, 0 MANUAL accessory lines**. Regeneration script validated the entire live pinned portal eligible catalogue and all active MX ceilings against the newest Google Sheet before entering 26 counts. Independent read-only follow-up confirmed the new PENDING order, blank new draft, and old `ORD-20261123-811CAB3D45` remaining REJECTED. No assistant SUPER approval, deletion of approved records, Inventory DBA edits or supplier dispatch.
 
 Authorized desktop artifacts: `C:/Temp/MERDPOS_20261123_MX_FRESH_MASTER_REGEN.json`, `C:/Temp/MERDPOS_20261123_MX_REGENERATE_PLAN.json`, `C:/Temp/MERDPOS_20261123_MX_REGENERATED_PENDING_RECEIPT.json`, `C:/Temp/merd-20261123-mx-regen-submit-pending.py`. **Do not resubmit**. Owner portal: `https://app.merdpos.com/timesheet_portal/orders.php`.
+
+## 2026-11-23 — NEW Double Bay (DT / DX) stock counts and photographed accessories
+
+Owner supplied a new Double Bay-only stock list (repeated cigarette/RYO descriptions) and a photo showing three accessories, and also requested RAW kingsize papers **without tips**. Current Inventory DBA live `Inventory` gid0 had **194 AUTO + 80 MANUAL** eligible products. The authenticated Alpha portal's full 274-product catalogue and **every DT ceiling** were compared against the live master before entering any counts.
+
+Standardization used exact previously confirmed aliases. Repeated on-hand stock counts were merged by canonical SKU: `JPS Virginia 20` 1+5=**6** as `JPS 20's Red`; `Holiday Classic 20` 1+3=**4**; `Parker & Simpson Original` 3 + `Blue` 1=**4** as `Parker & Simpson 20's Blue`; `Winfield Signature Sun Gold RYO 30g` 2 + `Winfield Sig Sun 30g` 2=**4** as `Winfield RYO 30g Signature Gold`; `Choice Blue RYO 25g` 1+1=**2** but **excluded** because unmatched at 25g size. `Rothmans Gold 20` was interpreted as `Rothmans 20's Crush Gold` (separate from explicitly mentioned Signature Sun), on-hand 2, DT ceiling 2, order 0; owner may correct if this label was a different product.
+
+Photo/manual accessory entries, qty **1 purchase unit** each:
+- Blue `Ventti Super Slim Filters` 140 tips, barcode `9310537107525`
+- `RAW Classic Connoisseur Kingsize + Tips`, barcode `716165281702`
+- Pink BIC mini lighter `BIC Plain Small`, barcode `070330600072` (size compared to 110mm RAW kingsize booklet; avoid accidental Big substitution)
+- Separately written request `RAW Classic Kingsize` **without tips**, barcode `716165177357`
+
+**Five exclusions:** `Rothmans 20's Signature Red` (blank DT ceiling); `JPS RYO 30g Original` (blank DT ceiling); unmatched `Choice RYO 30g` and `Choice Blue RYO 25g` (do not swap to 15g); unmatched `JPS Regular RYO 30g`. Existing portal contract replenishes eligible AUTO products uncounted in the source from zero stock: `Rothmans 20's Crush Blue` **3**, `Wee Willem Gold 10's` **3**, `Winfield 20's (Blue, Classic)` **10**. These three contribute 16 of 48 ordered units and should be checked by the owner before approving to avoid overstock.
+
+**New genuine non-test order `ORD-20261123-C63BD346B4` — 19 lines / 48 units / 4 manual accessories, submitted PENDING for owner approval.** All 36 included source counts/accessories were entered and independently checked against the portal's calculated order lines and units before the single submission. The posting script verified the created order is PENDING in current order history and `test_order=false`. No SUPER approval, supplier dispatch or Inventory DBA edit was made. Previous DT approved order `ORD-20261116-127E71AF7C` was left unchanged.
+
+Audit and idempotency receipt on authorized Windows machine:
+- `C:/Temp/MERDPOS_20261123_DT_NEW_ORDER_MANIFEST.json`
+- `C:/Temp/MERDPOS_20261123_DT_PENDING_RECEIPT.json`
+- `C:/Temp/merd-20261123-dt-submit-new-once.py`
+
+**Do not resubmit this order.** Owner review/approval in `https://app.merdpos.com/timesheet_portal/orders.php`.
