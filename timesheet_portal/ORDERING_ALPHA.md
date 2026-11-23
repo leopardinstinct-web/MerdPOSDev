@@ -327,3 +327,17 @@ Total new **204 units**, down **45** from previous 249. Order IDs bear `20261116
 **WARNING:** Old MX and RT approved documents remain in order history, not automatically canceled or superseded. They must NOT be forwarded again or used as the corrected orders; if already sent to suppliers, new pending orders could duplicate procurement. The owner will approve ONLY the corrected IDs after review at `https://app.merdpos.com/timesheet_portal/orders.php`.
 
 This completion record supersedes earlier "offline" status notes. Do not resubmit any of these three orders.
+
+## 2026-11-23 — Marrickville current owner counts, new genuine PENDING order
+
+User supplied a fresh **MX-only** list (19 cigarette descriptions, 15 RYO descriptions, **no accessories**) and instructed to generate it in MERDPOS Portal Alpha for owner approval only. All 34 lines were standardized against the live Inventory DBA sheet (`Inventory` gid0; 193 AUTO / 80 MANUAL). The full eligible catalogue and **every current MX ceiling** were independently compared with the authenticated portal's pinned catalogue before any stock entry. No prior approved records were edited.
+
+Applied previously approved aliases (including Port Royal Original 30g = `Port Royal RYO 30g Rum`, Winfield Sun 30g = `Winfield RYO 30g Signature Gold`) and treated supplied values as physical on-hand counts. `Marlboro Red+ firm filter 20` was **not** treated as `Marlboro 20's (Red, Blended R)` because it is a distinct variant not in the eligible catalogue. Unmatched and discontinued/blank-ceiling names were excluded, not guessed.
+
+**Excluded 7 user inputs:** `Marlboro Red + Firm Filter 20` (unmatched), `Parker & Simpson 20's Blue+Fresh` (blank MX ceiling), `Choice Original Blue RYO 30g` and `25g` (not in catalogue; do not substitute 15g), `Horizon RYO 25g Blue` (blank MX ceiling), `Rothmans RYO 20g Gold` (not eligible), `Rothmans RYO 25g Red` (blank MX ceiling).
+
+The standard Alpha ordering contract replenishes uncounted eligible AUTO products from 0 physical stock: `JPS 20's (Gold, Regular)` **3**, `Marlboro 20's (Gold, Regular G)` **4**, and `PS 20's (Blue, Original)` **4**, for 11 uncounted units. All specified 30g RYO counts were applied (e.g., `Winfield RYO 30g Signature Gold` stock 2, MX ceiling 2, order 0; `Champion RYO 30g` stock 2, ceiling 4, order 2).
+
+**Submitted authenticated non-test order `ORD-20261123-811CAB3D45`, 14 order lines / 31 units, zero MANUAL accessories.** Independent follow-up portal read verified status **PENDING**, test flag false and new MX draft blank. No SUPER approval or supplier dispatch performed. Old approved MX `ORD-20261116-95067E161E` and `ORD-20261116-F1E8FE9CE5` remain APPROVED, unchanged.
+
+Authorized Windows audit files: `C:/Temp/MERDPOS_20261123_MX_CURRENT_ORDER_PLAN.json`, `C:/Temp/MERDPOS_20261123_MX_PENDING_RECEIPT.json`, script `C:/Temp/merd-20261123-mx-submit-pending-once.py`; session `merdpos-nov23-mx-current`. **Do not resubmit.** Owner may review and approve at `https://app.merdpos.com/timesheet_portal/orders.php`.
